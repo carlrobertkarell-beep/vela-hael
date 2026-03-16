@@ -543,7 +543,7 @@ function _zpRenewalHTML(patId, visitId, patName, visit, achievements, selLen, li
 
       <div class="zp-guarantee">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <div class="zp-guarantee-text">Inte nöjd? Kontakta ${e(CLINIC.name)} inom 14 dagar -- vi löser det. Inga krångliga processer.</div>
+        <div class="zp-guarantee-text">Inte nöjd? Kontakta ${e(CLINIC.name)} inom 14 dagar — vi löser det. Inga krångliga processer.</div>
       </div>
     </div>
 
@@ -1688,7 +1688,7 @@ function zpLockedFeatureSection(patId, visitId) {
 const _lockedFeatureCopy = {
   weekly_analysis: {
     title: 'Veckoanalys',
-    body: 'En sammanfattning av hur den här veckan gick jämfört med förra -- antal pass, smärttrend, och vad du bör fokusera på härnäst. Genereras automatiskt varje fredag.',
+    body: 'En sammanfattning av hur den här veckan gick jämfört med förra — antal pass, smärttrend, och vad du bör fokusera på härnäst. Genereras automatiskt varje fredag.',
     tier: 'standard',
   },
   auto_adjust: {
@@ -8996,6 +8996,23 @@ async function loadPublicPlan(patId, visitId) {
   </div>`;
 }
 
+// Pass button handler: first click reveals check-in form; submitting the form logs the pass.
+function _zpHandlePassBtn(patId, visitId) {
+  const wrap = document.getElementById('pub-checkin-wrap');
+  const btn  = document.getElementById('pub-pass-btn');
+  if (!wrap) { pubLogPassDone(patId, visitId); return; }
+  if (wrap.style.display === 'none') {
+    wrap.style.display = 'block';
+    wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (btn) { btn.textContent = 'Skicka rapport och logga pass'; }
+  } else {
+    // Second click — submit check-in and log the pass
+    submitCheckIn(patId, visitId);
+    pubLogPassDone(patId, visitId);
+    if (btn) { btn.style.display = 'none'; }
+  }
+}
+
 function pubLogPassDone(patId, visitId) {
   const btn = document.getElementById('pub-pass-btn');
   if (btn && btn.disabled) return; // prevent double-tap
@@ -9385,6 +9402,10 @@ function renderPublicPlan(plan, pat) {
       .zp-next-num { width:24px; height:24px; border-radius:50%; background:rgba(13,155,138,.2); color:#0d9b8a; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
       .zp-next-text { font-size:13px; color:rgba(255,255,255,.7); line-height:1.55; }
 
+      /* ── Chips ───────────────────────────────────────────────── */
+      .zp-chip { display:inline-flex; align-items:center; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600; color:rgba(255,255,255,.55); background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1); }
+      .zp-chip.accent { color:#e07060; background:rgba(220,80,60,.12); border-color:rgba(220,80,60,.3); }
+
       /* ── Animations ──────────────────────────────────────────── */
       @keyframes slideUpBanner { from{transform:translateY(100%)} to{transform:translateY(0)} }
       @keyframes fadeInOv  { from{opacity:0} to{opacity:1} }
@@ -9483,14 +9504,14 @@ function renderPublicPlan(plan, pat) {
       </div>
       <div style="font-size:12px;color:#4a5a6a;line-height:1.6">
         ${currentWeek <= 1
-          ? 'Du är precis i början -- fokusera på att lära dig rörelserna ordentligt. Kvalitet före kvantitet.'
+          ? 'Du är precis i början — fokusera på att lära dig rörelserna ordentligt. Kvalitet före kvantitet.'
           : currentWeek < totalWeeks * 0.4
           ? 'Du bygger grunden nu. Rörelsekvalitet är viktigare än antal reps i detta skede.'
           : currentWeek < totalWeeks * 0.75
           ? 'Du är i uppbyggnadsfasen. Kroppen anpassar sig -- det är normalt att det börjar kännas lättare.'
           : currentWeek < totalWeeks
           ? 'Du närmar dig målet. Bibehåll intensiteten och förbered dig för uppföljningsbesöket.'
-          : 'Du har nått ditt planerade mål. Dags för uppföljning -- boka tid med din fysioterapeut.'}
+          : 'Du har nått ditt planerade mål. Dags för uppföljning — boka tid med din behandlare.'}
       </div>
     </div>
   </div>`;
@@ -9643,7 +9664,7 @@ function renderPublicPlan(plan, pat) {
       <div style="padding:4px 18px 16px">
         <div style="font-size:12px;color:#4a5a6a;line-height:1.7;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f0f2f5">
           Planen är utformad individuellt utifrån din diagnos, smärtnivå och förutsättningar. 
-          Alla övningar är valda av din fysioterapeut för att passa just din situation.
+          Alla övningar är valda av din behandlare för att passa just din situation.
         </div>
         <div style="display:flex;flex-direction:column;gap:0">
           ${bgItems.map((item,i) => `
@@ -9670,10 +9691,10 @@ function renderPublicPlan(plan, pat) {
   const patIdSafe = e(pat?.id||'');
   const visitIdSafe = e(plan.visitId||'');
   const passBtn = `
-    ${pubCheckInHTML(patIdSafe, visitIdSafe)}
+    <div id="pub-checkin-wrap" style="display:none">${pubCheckInHTML(patIdSafe, visitIdSafe)}</div>
     <div class="zp-pass-bar">
-      <button class="zp-pass-btn" id="pub-pass-btn"
-        onclick="pubLogPassDone('${patIdSafe}','${visitIdSafe}')">
+      <button class="zp-pass-btn all-done" id="pub-pass-btn"
+        onclick="_zpHandlePassBtn('${patIdSafe}','${visitIdSafe}')">
         Klar med dagens pass
       </button>
     </div>`;
@@ -9725,7 +9746,7 @@ function renderPublicPlan(plan, pat) {
     ${countdownHtml}
     ${weekProgressHtml}
     ${_hasStats ? zpContextualMsg(pat, plan.visitId||visitIdSafe, plan) : _zpFeatureUpsell('ai_messages', patIdSafe, visitIdSafe)}
-    ${!_hasStats ? zpLockedFeatureSection(patIdSafe, visitIdSafe) : zpContextualMsg(pat, plan.visitId||visitIdSafe, plan)}
+    ${!_hasStats ? zpLockedFeatureSection(patIdSafe, visitIdSafe) : ''}
     ${_hasMsgs ? pubMsgSectionHTML(pat, plan.visitId||'') : ''}
     ${pubBookingRequestHTML(pat, plan)}
     ${_access.features.includes('symptom_journal') ? renderSymptomJournal(pat?.id||'', plan.visitId||visitIdSafe) : _zpFeatureUpsell('symptom_journal', patIdSafe, visitIdSafe)}
@@ -9758,7 +9779,7 @@ function renderPublicPlan(plan, pat) {
     <div class="zp-footer" style="text-align:center;margin-bottom:20px">
       <img src="${LOGO}" style="height:24px;opacity:.55;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto">
       <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:4px">${e(CLINIC.name)}</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.9">${e(CLINIC.address)}<br>${e(CLINIC.phone)} · ${e(CLINIC.email)}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.9">${e(CLINIC.address)}<br>${[CLINIC.phone, CLINIC.email].filter(Boolean).map(x => e(x)).join(' · ')}</div>
       ${CLINIC.phone ? `<a href="tel:${CLINIC.phone}" style="display:inline-block;margin-top:14px;background:rgba(255,255,255,.1);color:white;font-size:13px;font-weight:600;padding:10px 24px;border-radius:9px;text-decoration:none;border:1px solid rgba(255,255,255,.12)">Ring oss</a>` : ''}
     </div>
 
@@ -10771,10 +10792,10 @@ async function submitCheckIn(patId, visitId) {
   const feedbackMsg = pain >= 7
     ? 'Du rapporterar hög smärta -- ta det lugnt och hör av dig till kliniken om det håller i sig.'
     : done === 'few'
-      ? 'Du klarade bara delar av passet -- det kan vara ett tecken på att programmet behöver justeras. Din fysioterapeut ser detta.'
+      ? 'Du klarade bara delar av passet — det kan vara ett tecken på att programmet behöver justeras. Din behandlare ser detta.'
       : energy === '1'
         ? 'Låg energi kan vara ett tecken på att kroppen behöver mer återhämtning.'
-        : 'Pass registrerat. Varje pass ger din fysioterapeut bättre underlag för din behandling.';
+        : 'Pass registrerat. Varje pass ger din behandlare bättre underlag för din behandling.';
 
   box.innerHTML = `
     <div style="padding:6px 0">
@@ -10806,7 +10827,13 @@ function renderSymptomJournal(patId, visitId) {
   const todayLog = logs.find(l => l.date === today);
   const recent = logs.slice(-7).reverse();
 
-  const moodEmoji = [':(',':/',':|',':)',':)'];
+  const moodEmoji = [
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 16s1-2 4-2 4 2 4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="15" x2="16" y2="15"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>',
+  ];
   const moodLabel = ['Dåligt','Ganska dåligt','Ok','Ganska bra','Bra'];
 
   const recentHTML = recent.length ? recent.map(l => `

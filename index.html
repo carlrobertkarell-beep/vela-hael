@@ -11,9 +11,367 @@
 <link rel="manifest" href="hael-manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230d9b8a'/><text x='96' y='130' font-size='100' text-anchor='middle' fill='white' font-family='Georgia,serif' font-weight='300'>H</text></svg>">
 <title>Hael</title>
+
+<style id="vela-app-css">
+/* ── DESIGN TOKENS ─────────────────────────────────────── */
+:root {
+  --navy:    #0f2744;
+  --navy2:   #0c1929;
+  --teal:    #0d9b8a;
+  --teal-dk: #0a7a6e;
+  --accent:  #0d9b8a;
+  --gold:    #c8a030;
+  --red:     #c05050;
+  --red-bg:  #fde8e8;
+  --ink:     #0c1420;
+  --ink2:    #1a2a3a;
+  --text:    #3a4a5a;
+  --text2:   #5a6a7a;
+  --text3:   #8892a4;
+  --muted:   #8892a4;
+  --border:  #dde1ef;
+  --border2: #eef0f5;
+  --surface: #ffffff;
+  --surface2:#f4f6fb;
+  --surface3:#eef0f7;
+  --bg:      #f4f6fb;
+  --bg2:     #eef0f7;
+  --font:    'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'DM Mono', monospace;
+  --font-serif: 'Fraunces', Georgia, serif;
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px;
+  --shadow-sm: 0 1px 4px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.09);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,.12);
+  --teal3: rgba(13,155,138,.08);
+  --accent-dim: rgba(13,155,138,.12);
+  --accent2: #0aab7c;
+  --sb-bg: #07101e; --sb-border: rgba(255,255,255,.07);
+  --sb-text: rgba(255,255,255,.38); --sb-text2: rgba(255,255,255,.72);
+  --sb-active: rgba(255,255,255,.07);
+}
+
+/* ── RESET & BASE ────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: var(--font); color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
+button, input, textarea, select { font-family: inherit; }
+
+/* ── APP SHELL ───────────────────────────────────────────── */
+.app-shell { display: flex; height: 100vh; overflow: hidden; }
+.nav-sidebar {
+  width: 220px; flex-shrink: 0; background: var(--sb-bg);
+  display: flex; flex-direction: column; overflow-y: auto;
+  transition: transform .25s ease; z-index: 150;
+}
+.nav-logo { padding: 20px 18px 16px; border-bottom: 1px solid var(--sb-border); }
+.nav-logo-img { height: 18px; opacity: .85; }
+.nav-section { flex: 1; padding: 10px 8px; }
+.nav-footer { padding: 8px; border-top: 1px solid var(--sb-border); }
+.nav-item {
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  padding: 9px 10px; border: none; border-radius: var(--r-md);
+  background: transparent; color: var(--sb-text); font-size: 13px;
+  font-weight: 500; cursor: pointer; text-align: left;
+  transition: background .15s, color .15s; white-space: nowrap;
+}
+.nav-item:hover { background: var(--sb-active); color: rgba(255,255,255,.65); }
+.nav-item.active { background: rgba(13,155,138,.15); color: #3dcfbd; }
+.nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; }
+.nav-badge {
+  background: var(--red); color: white; font-size: 10px; font-weight: 700;
+  padding: 1px 5px; border-radius: 10px; margin-left: auto;
+}
+
+/* ── SCREENS ─────────────────────────────────────────────── */
+.main-content { flex: 1; overflow-y: auto; position: relative; }
+.screen { display: none; min-height: 100%; }
+.screen.active { display: block; }
+.cx { max-width: 1100px; margin: 0 auto; padding: 28px 28px 60px; }
+
+/* ── TOPBAR (mobile) ─────────────────────────────────────── */
+.topbar {
+  display: none; position: fixed; top: 0; left: 0; right: 0;
+  height: 52px; background: var(--navy); z-index: 140;
+  align-items: center; padding: 0 4px; gap: 4px;
+}
+@media (max-width: 768px) {
+  .topbar { display: flex; }
+  .nav-sidebar { position: fixed; top: 0; bottom: 0; left: 0; transform: translateX(-100%); z-index: 151; }
+  .nav-sidebar.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
+  .main-content { padding-top: 52px; }
+  .app-shell { display: block; height: auto; min-height: 100vh; }
+  .cx { padding: 16px 14px 60px; }
+}
+
+/* ── COMMAND CENTER DASHBOARD ────────────────────────────── */
+.cc-wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px 60px; }
+.cc-header {
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+}
+.cc-greeting {
+  font-family: var(--font-serif); font-size: clamp(22px,3vw,30px);
+  font-weight: 300; color: var(--navy); letter-spacing: -.02em; line-height: 1.2;
+}
+.cc-date { font-size: 12px; color: var(--text3); margin-top: 4px; }
+.cc-start-btn {
+  background: var(--navy); color: white; border: none; border-radius: var(--r-md);
+  padding: 12px 22px; font-size: 14px; font-weight: 700; cursor: pointer;
+  font-family: var(--font); display: flex; align-items: center; gap: 8px;
+  transition: background .2s; flex-shrink: 0;
+}
+.cc-start-btn:hover { background: var(--teal); }
+.cc-start-btn svg { opacity: .7; }
+
+/* KPI row */
+.cc-kpi-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px;
+}
+@media (max-width: 900px) { .cc-kpi-row { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 500px) { .cc-kpi-row { grid-template-columns: repeat(2, 1fr); } }
+.cc-kpi {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg);
+  padding: 18px 20px; position: relative; overflow: hidden;
+}
+.cc-kpi-val { font-size: 28px; font-weight: 700; color: var(--navy); font-family: var(--font-mono); line-height: 1; margin-bottom: 4px; }
+.cc-kpi-lbl { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+.cc-kpi-delta { font-size: 10px; margin-top: 6px; font-weight: 600; }
+.cc-kpi-delta.up { color: #1a7a4a; }
+.cc-kpi-delta.dn { color: var(--red); }
+.cc-kpi-accent { position: absolute; right: -8px; bottom: -8px; width: 64px; height: 64px; border-radius: 50%; opacity: .06; }
+
+/* Main grid */
+.cc-grid {
+  display: grid; grid-template-columns: 1fr 1fr 340px; gap: 16px;
+}
+@media (max-width: 1100px) { .cc-grid { grid-template-columns: 1fr 1fr; } .cc-col-right { display: none; } }
+@media (max-width: 700px) { .cc-grid { grid-template-columns: 1fr; } }
+.cc-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); overflow: hidden;
+}
+.cc-panel-hdr {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--border);
+}
+.cc-panel-title { font-size: 12px; font-weight: 700; color: var(--navy); letter-spacing: .04em; text-transform: uppercase; }
+.cc-panel-body { padding: 8px 0; }
+.cc-row {
+  display: flex; align-items: center; gap: 10px; padding: 10px 16px;
+  border-bottom: 1px solid var(--border2); cursor: pointer;
+  transition: background .12s;
+}
+.cc-row:last-child { border-bottom: none; }
+.cc-row:hover { background: var(--bg); }
+.cc-row-av {
+  width: 34px; height: 34px; border-radius: 50%; background: var(--navy);
+  color: white; font-size: 11px; font-weight: 700; display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0; font-family: var(--font-mono);
+}
+.cc-row-main { flex: 1; min-width: 0; }
+.cc-row-name { font-size: 13px; font-weight: 600; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-row-sub { font-size: 11px; color: var(--text3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-row-meta { flex-shrink: 0; text-align: right; }
+.cc-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; }
+.cc-badge-red { background: var(--red-bg); color: var(--red); }
+.cc-badge-teal { background: rgba(13,155,138,.1); color: var(--teal); }
+.cc-badge-gold { background: rgba(200,160,48,.1); color: var(--gold); }
+.cc-empty { padding: 24px 16px; text-align: center; font-size: 12px; color: var(--text3); }
+
+/* AI briefing card */
+.cc-briefing {
+  background: linear-gradient(135deg, var(--navy) 0%, #0c2040 100%);
+  border-radius: var(--r-lg); padding: 20px 22px; margin-bottom: 20px;
+  border: 1px solid rgba(255,255,255,.06); position: relative; overflow: hidden;
+}
+.cc-briefing::before {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 140px; height: 140px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(13,155,138,.2) 0%, transparent 70%);
+}
+.cc-briefing-lbl {
+  font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(13,155,138,.8); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+}
+.cc-briefing-lbl::before { content: ''; width: 14px; height: 1px; background: rgba(13,155,138,.5); }
+.cc-briefing-text { font-size: 13px; color: rgba(255,255,255,.75); line-height: 1.75; }
+.cc-briefing-btn {
+  margin-top: 14px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.6); border-radius: var(--r-md); padding: 8px 14px;
+  font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font);
+  transition: all .2s;
+}
+.cc-briefing-btn:hover { background: rgba(255,255,255,.14); color: white; }
+
+/* AI action feed (right column) */
+.cc-feed-item {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 16px;
+  border-bottom: 1px solid var(--border2);
+}
+.cc-feed-item:last-child { border-bottom: none; }
+.cc-feed-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px;
+}
+.cc-feed-title { font-size: 12px; font-weight: 600; color: var(--navy); line-height: 1.4; }
+.cc-feed-sub { font-size: 11px; color: var(--text3); margin-top: 2px; line-height: 1.4; }
+.cc-feed-time { font-size: 10px; color: var(--text3); margin-top: 4px; }
+
+/* ── VELA ASK BUBBLE ─────────────────────────────────────── */
+.vela-ask-bubble {
+  position: fixed; bottom: 24px; right: 24px; z-index: 400;
+  width: 54px; height: 54px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--navy), var(--teal));
+  border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(13,155,138,.4);
+  transition: transform .2s, box-shadow .2s;
+}
+.vela-ask-bubble:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(13,155,138,.5); }
+.vela-ask-bubble svg { color: white; }
+.vela-ask-panel {
+  position: fixed; bottom: 88px; right: 24px; z-index: 399;
+  width: 360px; max-height: 520px;
+  background: var(--navy2); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 20px; box-shadow: 0 8px 40px rgba(0,0,0,.4);
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: fadeUp .22s ease;
+}
+@media (max-width: 500px) {
+  .vela-ask-panel { left: 12px; right: 12px; width: auto; }
+  .vela-ask-bubble { bottom: 16px; right: 16px; }
+}
+.vela-ask-hdr {
+  padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.08);
+  display: flex; align-items: center; gap: 10px;
+}
+.vela-ask-hdr-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  background: rgba(13,155,138,.2); display: flex; align-items: center; justify-content: center;
+}
+.vela-ask-title { font-size: 13px; font-weight: 700; color: white; }
+.vela-ask-sub { font-size: 10px; color: rgba(255,255,255,.35); }
+.vela-ask-msgs {
+  flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+}
+.vela-ask-msg-ai {
+  background: rgba(255,255,255,.06); border-radius: 12px 12px 12px 4px;
+  padding: 10px 13px; font-size: 13px; color: rgba(255,255,255,.8); line-height: 1.6;
+  max-width: 90%;
+}
+.vela-ask-msg-user {
+  background: var(--teal); border-radius: 12px 12px 4px 12px;
+  padding: 10px 13px; font-size: 13px; color: white; line-height: 1.6;
+  max-width: 90%; align-self: flex-end;
+}
+.vela-ask-suggestions { padding: 8px 14px; display: flex; flex-direction: column; gap: 5px; }
+.vela-ask-sug {
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 8px; padding: 8px 12px; font-size: 11px; color: rgba(255,255,255,.6);
+  cursor: pointer; font-family: var(--font); text-align: left; transition: all .15s;
+}
+.vela-ask-sug:hover { background: rgba(255,255,255,.1); color: white; border-color: rgba(13,155,138,.4); }
+.vela-ask-inp-row {
+  padding: 10px 12px; border-top: 1px solid rgba(255,255,255,.08);
+  display: flex; gap: 8px;
+}
+.vela-ask-inp {
+  flex: 1; background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px; padding: 9px 13px; font-size: 13px; color: white;
+  font-family: var(--font); outline: none;
+}
+.vela-ask-inp::placeholder { color: rgba(255,255,255,.25); }
+.vela-ask-inp:focus { border-color: rgba(13,155,138,.5); }
+.vela-ask-send {
+  background: var(--teal); border: none; border-radius: 10px;
+  width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; transition: background .15s;
+}
+.vela-ask-send:hover { background: var(--teal-dk); }
+
+/* ── CONSULTATION POPUP ──────────────────────────────────── */
+.consult-ov {
+  position: fixed; inset: 0; z-index: 600;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(7,16,30,.65); backdrop-filter: blur(6px);
+  animation: fadeInOv .18s ease;
+}
+.consult-sheet {
+  background: var(--surface); border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 640px; max-height: 82vh;
+  display: flex; flex-direction: column; box-shadow: var(--shadow-lg);
+  animation: fadeUp .22s ease;
+}
+.consult-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.consult-messages {
+  flex: 1; overflow-y: auto; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.consult-bubble {
+  padding: 10px 14px; border-radius: 14px; font-size: 14px;
+  line-height: 1.65; max-width: 88%;
+}
+.consult-bubble.ai {
+  background: var(--surface2); color: var(--ink);
+  border-radius: 4px 14px 14px 14px; align-self: flex-start;
+}
+.consult-bubble.user {
+  background: var(--navy); color: white;
+  border-radius: 14px 14px 4px 14px; align-self: flex-end;
+}
+.consult-input-row {
+  display: flex; gap: 10px; padding: 12px 16px;
+  border-top: 1px solid var(--border); flex-shrink: 0;
+}
+.consult-inp {
+  flex: 1; border: 1.5px solid var(--border); border-radius: var(--r-md);
+  padding: 10px 14px; font-size: 14px; font-family: var(--font);
+  color: var(--ink); outline: none; background: var(--surface2);
+}
+.consult-inp:focus { border-color: var(--teal); }
+
+/* ── COMMON UTILS ────────────────────────────────────────── */
+.btn { display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);color:var(--ink);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s; }
+.btn:hover { background:var(--bg); }
+.btn.btn-p { background:var(--navy);color:white;border-color:var(--navy); }
+.btn.btn-p:hover { background:var(--teal);border-color:var(--teal); }
+.btn.btn-d { background:var(--red-bg);color:var(--red);border-color:rgba(192,80,80,.2); }
+.search-inp { border:1.5px solid var(--border);border-radius:var(--r-md);padding:9px 13px;font-size:13px;font-family:var(--font);color:var(--ink);background:var(--surface);outline:none; }
+.search-inp:focus { border-color:var(--teal); }
+
+/* ── ANIMATIONS ──────────────────────────────────────────── */
+@keyframes fadeInOv { from{opacity:0} to{opacity:1} }
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+@keyframes spin { to{transform:rotate(360deg)} }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+@keyframes slideUpBanner { from{transform:translateY(100%)} to{transform:translateY(0)} }
+
+/* ── NPF SHEET ───────────────────────────────────────────── */
+.npf-sheet { background:white;border-radius:20px 20px 0 0;width:100%;max-width:520px; }
+.npf-header { background:var(--navy);border-radius:20px 20px 0 0;padding:22px 24px 18px; }
+.npf-title { font-size:20px;font-weight:700;color:white;letter-spacing:-.01em; }
+.npf-sub { font-size:12px;color:rgba(255,255,255,.45);margin-top:3px; }
+.npf-body { padding:20px 24px; }
+.npf-footer { padding:12px 24px 28px;display:flex;flex-direction:column;gap:8px; }
+.npf-label { font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--navy);margin-bottom:6px;display:block; }
+.npf-input { width:100%;border:1.5px solid var(--border);border-radius:var(--r-md);padding:11px 14px;font-size:14px;font-family:var(--font);color:var(--ink);background:var(--surface2);outline:none;box-sizing:border-box; }
+.npf-input:focus { border-color:var(--teal); }
+.npf-row { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+.npf-full { margin-bottom:14px; }
+.npf-err { font-size:12px;color:var(--red);display:none;margin-bottom:8px; }
+.npf-btn-primary { width:100%;padding:14px;background:var(--navy);color:white;border:none;border-radius:var(--r-md);font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font); }
+.npf-btn-primary:hover { background:var(--teal); }
+.npf-btn-ghost { width:100%;padding:12px;background:transparent;color:var(--text2);border:1px solid var(--border);border-radius:var(--r-md);font-size:14px;cursor:pointer;font-family:var(--font); }
+.npf-backdrop { position:fixed;inset:0;background:rgba(0,0,0,.4); }
+</style>
+
 </head><body>
 <!-- Mobile sidebar overlay -->
-<div id="sb-overlay" onclick="togSidebar()" style="display:none;position:fixed;inset:0;z-index:149;background:rgba(0,0,0,.45);backdrop-filter:blur(2px)"></div>
+<div id="sb-overlay" onclick="togSidebar()" style="display:none;position:fixed;inset:0;z-index:149;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);cursor:pointer"></div>
 <div class="topbar" id="mobile-topbar"></div>
 
 <div class="app-shell">
@@ -43,7 +401,7 @@
   </div>
 </div>
 
-<div id="autosave-toast" style="display:none;position:fixed;bottom:16px;right:16px;background:var(--navy);color:white;padding:8px 16px;border-radius:6px;font-size:11px;z-index:998;opacity:0;transition:opacity .3s">Autosparad</div>
+<div id="autosave-toast" style="display:none;position:fixed;bottom:80px;right:24px;background:var(--navy,#0f2744);color:white;padding:10px 18px;border-radius:20px;font-size:12px;font-weight:600;z-index:998;opacity:0;transition:opacity .3s;box-shadow:0 4px 16px rgba(0,0,0,.2)">Autosparad</div>
 <div class="modal-ov" id="modal">
   <div class="modal">
     <div class="modal-title" id="mtitle"></div>
@@ -2352,6 +2710,13 @@ function togSidebar() {
   if (!sb) return;
   const open = sb.classList.toggle('open');
   if (ov) ov.style.display = open ? 'block' : 'none';
+  // Update hamburger icon — becomes X when open
+  const btn = document.getElementById('topbar-menu-btn');
+  if (btn) {
+    btn.innerHTML = open
+      ? '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+      : '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+  }
 }
 
 function rTopbar() {
@@ -2370,7 +2735,16 @@ function rTopbar() {
       <button class="nav-item ${scr===it.s?'active':''}" onclick="go('${it.s}');document.getElementById('nav-sidebar')?.classList.remove('open');document.getElementById('sb-overlay')&&(document.getElementById('sb-overlay').style.display='none')">
         <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${it.svg}</svg>
         ${it.label}
-      </button>`).join('');
+      </button>`).join('') + `
+      <div style="margin:12px 8px 6px;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.2)">Intelligence</div>
+      <button class="nav-item" onclick="startVisitFlow();document.getElementById('nav-sidebar')?.classList.remove('open');document.getElementById('sb-overlay')&&(document.getElementById('sb-overlay').style.display='none')" style="color:rgba(255,255,255,.9);background:rgba(13,155,138,.18);margin-bottom:4px">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Starta besök
+      </button>
+      <button class="nav-item" onclick="toggleVelaAsk();document.getElementById('nav-sidebar')?.classList.remove('open');document.getElementById('sb-overlay')&&(document.getElementById('sb-overlay').style.display='none')">
+        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Vela Ask
+      </button>`;
   }
 
   // -- SIDEBAR FOOTER ---------------------------------------------------------
@@ -2421,7 +2795,7 @@ function rTopbar() {
     };
     const unread = getUnreadCount();
     const leftBtn = isRoot
-      ? `<button onclick="togSidebar()" style="background:none;border:none;color:rgba(255,255,255,.65);cursor:pointer;padding:8px;display:flex;align-items:center;flex-shrink:0">
+      ? `<button id="topbar-menu-btn" onclick="togSidebar()" style="background:none;border:none;color:rgba(255,255,255,.65);cursor:pointer;padding:8px;display:flex;align-items:center;flex-shrink:0">
            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
          </button>`
       : `<button onclick="goBack()" style="background:none;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.75);border-radius:var(--r-sm);font-size:12px;font-weight:500;cursor:pointer;padding:6px 12px;font-family:var(--font);white-space:nowrap;flex-shrink:0">${backLabels[scr]||'<- Hem'}</button>`;
@@ -2522,140 +2896,187 @@ function togSettings(){
 
 function rDashboard() {
   const now = new Date();
-  const today = now.toLocaleDateString('sv-SE',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   const hour = now.getHours();
-  const greeting = hour < 12 ? 'God morgon' : hour < 17 ? 'God eftermiddag' : 'God kväll';
+  const dayName = now.toLocaleDateString('sv-SE',{weekday:'long'});
+  const dateStr = now.toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'});
+  const greeting = hour < 5 ? 'Natt' : hour < 12 ? 'God morgon' : hour < 17 ? 'God eftermiddag' : 'God kväll';
 
-  const total = S.patients.length;
-  const active = S.patients.filter(p => (p.visits&&p.visits[0]&&p.visits[0].status)==='Aktiv').length;
+  const total   = S.patients.length;
+  const active  = S.patients.filter(p => (p.visits||[])[0]?.status === 'Aktiv').length;
+  const urgent  = S.patients.filter(p => _clinPriority(p).level >= 3).length;
 
-  // Revenue this month
+  // Revenue: this month + last month for delta
   const thisMonth = now.getMonth(); const thisYear = now.getFullYear();
-  let monthRevenue = 0;
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  let monthRevenue = 0, lastMonthRevenue = 0;
   S.patients.forEach(p => (p.visits||[]).forEach(v => {
-    const d = new Date(v.date||''); if(isNaN(d)) return;
-    if(d.getMonth()===thisMonth && d.getFullYear()===thisYear) monthRevenue += (v.servicePrice||0);
+    const d = new Date(v.date||''); if (isNaN(d)) return;
+    const amt = v.servicePrice || 0;
+    if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) monthRevenue += amt;
+    if (d.getMonth() === lastMonthDate.getMonth() && d.getFullYear() === lastMonthDate.getFullYear()) lastMonthRevenue += amt;
   }));
+  const revDelta = lastMonthRevenue > 0 ? Math.round(((monthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100) : null;
 
-  // Upcoming followups (overdue)
-  const upcoming = S.patients.filter(p => {
-    if (!p.visits||!p.visits[0]) return false;
-    const fw = (p.visits[0].form&&p.visits[0].form.followup)||4;
-    const d = new Date(p.visits[0].date||''); if (isNaN(d)) return false;
-    const due = new Date(d); due.setDate(due.getDate() + fw*7);
+  // Overdue follow-ups
+  const overdue = S.patients.filter(p => {
+    const v = (p.visits||[])[0]; if (!v?.date) return false;
+    const fw = v.form?.followup || 4;
+    const due = new Date(v.date); due.setDate(due.getDate() + fw * 7);
     return due <= now;
-  }).slice(0,8);
-
-  const recent = [...S.patients].sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,8);
-
-  // Diagnosis stats
-  const diagCount = {};
-  S.patients.forEach(p => {
-    const d = p.diagnosis || 'Okänd';
-    diagCount[d] = (diagCount[d]||0) + 1;
   });
-  const topDiags = Object.entries(diagCount).sort((a,b)=>b[1]-a[1]).slice(0,7);
-  const maxD = topDiags[0]?.[1] || 1;
 
-  const upcomingHtml = upcoming.length ? upcoming.map(p => {
-    const fw = (p.visits[0].form&&p.visits[0].form.followup)||4;
-    const d = new Date(p.visits[0].date||''); d.setDate(d.getDate()+fw*7);
-    const overdueDays = Math.round((now-d)/(1000*60*60*24));
-    const initials = (p.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    return `<div class="dash-row" onclick="openPat('${p.id}')">
-      <div class="dr-initials">${initials}</div>
-      <div class="dr-info"><div class="dr-name">${e(p.name||'Namnlös')}</div><div class="dr-diag">${e(p.diagnosis||'')} · planerat ${d.toLocaleDateString('sv-SE',{day:'numeric',month:'short'})}</div></div>
-      <span class="dr-badge" style="background:var(--red-bg);color:var(--red)">${overdueDays}d</span>
+  // Recent patients
+  const recent = [...S.patients].sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,6);
+
+  // Priority patients (need attention)
+  const priorityPats = S.patients
+    .map(p => ({ p, pr: _clinPriority(p) }))
+    .filter(x => x.pr.level >= 2)
+    .sort((a,b) => b.pr.level - a.pr.level)
+    .slice(0, 6);
+
+  // KPI HTML
+  const kpiHtml = `
+    <div class="cc-kpi-row">
+      <div class="cc-kpi">
+        <div class="cc-kpi-val">${total}</div>
+        <div class="cc-kpi-lbl">Patienter totalt</div>
+        <div class="cc-kpi-delta" style="color:var(--teal)">${active} aktiva</div>
+        <div class="cc-kpi-accent" style="background:var(--teal)"></div>
+      </div>
+      <div class="cc-kpi">
+        <div class="cc-kpi-val" style="color:${urgent>0?'var(--red)':'var(--navy)'}">${urgent}</div>
+        <div class="cc-kpi-lbl">Kräver åtgärd</div>
+        <div class="cc-kpi-delta" style="color:var(--text3)">${overdue.length} förfallna återbesök</div>
+        <div class="cc-kpi-accent" style="background:${urgent>0?'var(--red)':'var(--navy)'}"></div>
+      </div>
+      <div class="cc-kpi">
+        <div class="cc-kpi-val">${monthRevenue > 0 ? monthRevenue.toLocaleString('sv-SE') + ' kr' : '--'}</div>
+        <div class="cc-kpi-lbl">Intäkter ${now.toLocaleDateString('sv-SE',{month:'long'})}</div>
+        ${revDelta !== null ? `<div class="cc-kpi-delta ${revDelta >= 0 ? 'up' : 'dn'}">${revDelta >= 0 ? '+' : ''}${revDelta}% vs förra mån</div>` : '<div class="cc-kpi-delta" style="color:var(--text3)">Inget jämförelsevärde</div>'}
+        <div class="cc-kpi-accent" style="background:var(--gold)"></div>
+      </div>
+      <div class="cc-kpi">
+        <div class="cc-kpi-val">${S.patients.filter(p=>(p.visits||[]).some(v=>v.plan)).length}</div>
+        <div class="cc-kpi-lbl">Med Hael-plan</div>
+        <div class="cc-kpi-delta" style="color:var(--text3)">${total > 0 ? Math.round(S.patients.filter(p=>(p.visits||[]).some(v=>v.plan)).length/total*100) : 0}% av alla patienter</div>
+        <div class="cc-kpi-accent" style="background:var(--teal)"></div>
+      </div>
     </div>`;
-  }).join('') : '<div class="dash-empty">Inga förfallna återbesök</div>';
 
+  // Priority rows
+  const priorityHtml = priorityPats.length ? priorityPats.map(({p, pr}) => {
+    const initials = (p.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const dotColor = pr.level >= 3 ? 'var(--red)' : 'var(--gold)';
+    return `<div class="cc-row" onclick="openPat('${p.id}')">
+      <div class="cc-row-av" style="background:${pr.level>=3?'var(--red)':'var(--navy)'}">${initials}</div>
+      <div class="cc-row-main">
+        <div class="cc-row-name">${e(p.name)}</div>
+        <div class="cc-row-sub" style="color:${dotColor};font-weight:600">${e(pr.primary)}</div>
+      </div>
+      <div class="cc-row-meta">
+        <span class="cc-badge ${pr.level>=3?'cc-badge-red':'cc-badge-gold'}">${pr.level>=3?'Akut':'Följ upp'}</span>
+      </div>
+    </div>`;
+  }).join('') : `<div class="cc-empty">Inga patienter kräver omedelbar åtgärd</div>`;
+
+  // Recent rows
   const recentHtml = recent.length ? recent.map(p => {
-    const pph = PHASES[(p.phase||1)-1];
-    const lastDate = p.visits&&p.visits[0]&&p.visits[0].date||'';
     const initials = (p.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const svc = p.visits&&p.visits[0]&&p.visits[0].service||'';
-    return `<div class="dash-row" onclick="openPat('${p.id}')">
-      <div class="dr-initials">${initials}</div>
-      <div class="dr-info"><div class="dr-name">${e(p.name||'Namnlös')}</div><div class="dr-diag">${e(p.diagnosis||'')}${svc?' · '+svc:''}</div></div>
-      <div style="text-align:right;flex-shrink:0">
-        <div class="dr-badge" style="background:${pph.bg};color:${pph.color};display:block;margin-bottom:2px">${pph.label}</div>
-        ${lastDate?`<div class="dr-date">${lastDate}</div>`:''}
+    const v = (p.visits||[])[0];
+    const d = v?.date ? new Date(v.date).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : '';
+    const svc = v?.service || p.diagnosis || '';
+    return `<div class="cc-row" onclick="openPat('${p.id}')">
+      <div class="cc-row-av">${initials}</div>
+      <div class="cc-row-main">
+        <div class="cc-row-name">${e(p.name)}</div>
+        <div class="cc-row-sub">${e(svc)}</div>
+      </div>
+      <div class="cc-row-meta">
+        ${d ? `<div style="font-size:11px;color:var(--text3)">${d}</div>` : ''}
+        <div style="font-size:10px;color:var(--text3)">${(p.visits||[]).length} besök</div>
       </div>
     </div>`;
-  }).join('') : '<div class="dash-empty">Inga patienter ännu</div>';
+  }).join('') : `<div class="cc-empty">Inga patienter ännu</div>`;
 
-  const diagHtml = topDiags.length ? topDiags.map(([d,c]) => `
-    <div class="dash-stat-row">
+  // AI inbox feed (from existing inbox)
+  const inboxItems = getInbox().slice(0,5);
+  const feedHtml = inboxItems.length ? inboxItems.map(item => {
+    const dotColor = item.type === 'urgent' ? 'var(--red)' : item.type === 'ai_action' ? 'var(--teal)' : 'var(--border)';
+    const timeStr = formatInboxTime(item.ts);
+    return `<div class="cc-feed-item">
+      <div class="cc-feed-dot" style="background:${dotColor}"></div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e(d)}</div>
-        <div class="dash-bar"><div class="dash-bar-fill" style="width:${Math.round((c/maxD)*100)}%"></div></div>
+        <div class="cc-feed-title">${e(item.title)}</div>
+        <div class="cc-feed-sub">${e(item.patName||'')}${item.body ? ' — ' + item.body.slice(0,60) : ''}</div>
+        <div class="cc-feed-time">${timeStr}</div>
       </div>
-      <div style="font-size:10px;font-family:'DM Mono',monospace;color:var(--text3);margin-left:12px;flex-shrink:0">${c}</div>
-    </div>`).join('') : '<div class="dash-empty">--</div>';
+    </div>`;
+  }).join('') : `<div class="cc-empty">Ingen aktivitet ännu</div>`;
 
-  document.getElementById('s-dashboard').innerHTML = `<div class="cx">
-    <!-- HEADER: greeting + actions -->
-    <div class="dash-topbar">
+  document.getElementById('s-dashboard').innerHTML = `
+  <div class="cc-wrap">
+
+    <!-- HEADER -->
+    <div class="cc-header">
       <div>
-        <div class="dash-greeting">${greeting}</div>
-        <div class="dash-date">${today}</div>
+        <div class="cc-greeting">${greeting}, ${e(CLINIC.name || _authUser?.email?.split('@')[0] || 'Doktorn')}</div>
+        <div class="cc-date">${dayName.charAt(0).toUpperCase() + dayName.slice(1)} · ${dateStr}</div>
       </div>
-      <div class="dash-quickbar">
-        <button class="dash-qbtn dash-qbtn-secondary" onclick="go('list')">Alla patienter</button>
-        <button class="dash-qbtn dash-qbtn-secondary" onclick="returningPatientFlow()">Återkommande</button>
-        <button class="dash-qbtn dash-qbtn-primary" onclick="newPatientFlow()">+ Ny patient</button>
-      </div>
+      <button class="cc-start-btn" onclick="startVisitFlow()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Starta besök
+      </button>
+    </div>
+
+    <!-- AI BRIEFING -->
+    <div class="cc-briefing" id="cc-briefing-card">
+      <div class="cc-briefing-lbl">Vela Intelligence · Daglig briefing</div>
+      <div class="cc-briefing-text" id="cc-briefing-text" style="color:rgba(255,255,255,.4);font-style:italic">Genererar din morgonbriefing...</div>
+      <button class="cc-briefing-btn" onclick="generateDailyBriefing()" id="cc-briefing-btn" style="display:none">Regenerera</button>
     </div>
 
     <!-- KPI STRIP -->
-    <div class="dash-kpis">
-      <div class="dash-kpi">
-        <div class="dash-kpi-val">${total}</div>
-        <div class="dash-kpi-lbl">Patienter</div>
-      </div>
-      <div class="dash-kpi">
-        <div class="dash-kpi-val">${active}</div>
-        <div class="dash-kpi-lbl">Aktiva</div>
-      </div>
-      <div class="dash-kpi">
-        <div class="dash-kpi-val" style="color:${upcoming.length>0?'var(--red)':'var(--ink)'}">${upcoming.length}</div>
-        <div class="dash-kpi-lbl">Väntande återbesök</div>
-      </div>
-      <div class="dash-kpi">
-        <div class="dash-kpi-val">${monthRevenue>0?monthRevenue.toLocaleString('sv-SE')+' kr':'--'}</div>
-        <div class="dash-kpi-lbl">Intäkter ${now.toLocaleDateString('sv-SE',{month:'long'})}</div>
-      </div>
-    </div>
+    ${kpiHtml}
 
-    ${renderAnomalySection(S.patients)}
-    ${renderPlanReviewSection(S.patients)}
-    ${renderClinicStats(S.patients)}
-    <div id="adaptive-alerts" class="anomaly-section" style="display:none"></div>
+    <!-- MAIN GRID -->
+    <div class="cc-grid">
 
-    <!-- MAIN GRID: 3 columns -->
-    <div class="dash-grid">
-      <div class="dash-panel">
-        <div class="dash-panel-hdr">
-          <div class="dash-panel-title">Väntande återbesök</div>
-          <div style="font-size:10px;color:var(--muted)">${upcoming.length} st</div>
+      <!-- COL 1: Kräver åtgärd -->
+      <div class="cc-panel">
+        <div class="cc-panel-hdr">
+          <div class="cc-panel-title">Kräver åtgärd</div>
+          <button onclick="go('list');_listFilter='needs_attention';rList()" style="background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600">Visa alla →</button>
         </div>
-        <div class="dash-panel-body">${upcomingHtml}</div>
+        <div class="cc-panel-body">${priorityHtml}</div>
       </div>
-      <div class="dash-panel">
-        <div class="dash-panel-hdr">
-          <div class="dash-panel-title">Senaste aktivitet</div>
-          <button onclick="go('list')" style="background:none;border:none;font-size:10px;color:var(--accent);cursor:pointer;font-family:var(--font);padding:0;font-weight:600">Visa alla -></button>
+
+      <!-- COL 2: Senaste aktivitet -->
+      <div class="cc-panel">
+        <div class="cc-panel-hdr">
+          <div class="cc-panel-title">Senaste aktivitet</div>
+          <button onclick="go('list')" style="background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600">Alla patienter →</button>
         </div>
-        <div class="dash-panel-body">${recentHtml}</div>
+        <div class="cc-panel-body">${recentHtml}</div>
       </div>
-      <div class="dash-panel">
-        <div class="dash-panel-hdr"><div class="dash-panel-title">Diagnoser</div></div>
-        <div class="dash-panel-body">${diagHtml}</div>
+
+      <!-- COL 3: AI-feed -->
+      <div class="cc-panel cc-col-right">
+        <div class="cc-panel-hdr">
+          <div class="cc-panel-title">Vela Intelligence</div>
+          <button onclick="openInbox()" style="background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600">Inkorg →</button>
+        </div>
+        <div class="cc-panel-body" id="cc-feed-body">${feedHtml}</div>
       </div>
+
     </div>
 
     ${renderClinicInsightsHTML(S.patients)}
   </div>`;
+
+  // Trigger AI briefing
+  setTimeout(() => generateDailyBriefing(), 300);
+  // Trigger anomaly alerts
   setTimeout(() => checkAdaptivePlanAlerts(S.patients), 800);
 }
 
@@ -7551,7 +7972,7 @@ async function doLogin() {
     if (cb) cb.style.display = 'none'; // keep hidden unless crash occurs
     const at = document.getElementById('autosave-toast');
     if (at) at.style.display = '';
-    loadPats(); S.apiKey = getKey(); startAutoSave(); go('dashboard');
+    loadPats(); S.apiKey = getKey(); startAutoSave(); go('dashboard'); initVelaAsk();
     setTimeout(() => syncFromCloud(), 800);
     setTimeout(() => sbKeepAlive(), 2000);
     setTimeout(() => runInboxAgent(S.patients), 3500);
@@ -9637,14 +10058,18 @@ function renderPublicPlan(plan, pat) {
   const schedHtml = plan.schedule?.length ? `
     <div class="zp-section">
       <div class="zp-sec-hdr"><div class="zp-sec-title">Veckoschema</div></div>
-      <div style="padding:4px 18px 16px;display:grid;grid-template-columns:repeat(7,1fr);gap:3px">
-        ${plan.schedule.map(d => {
-          const active = d.activity && (d.activity.toLowerCase().includes('övning') || d.activity.toLowerCase().includes('program'));
-          return `<div style="text-align:center;padding:9px 2px;background:${active?'var(--navy)':'#f4f6f9'}">
-            <div style="font-size:8px;font-weight:700;letter-spacing:.05em;color:${active?'rgba(255,255,255,.55)':'#9aaabb'};margin-bottom:3px">${d.day.slice(0,3).toUpperCase()}</div>
-            <div style="font-size:8px;line-height:1.35;color:${active?'white':'#7a8a9a'}">${e(d.activity)}</div>
-          </div>`;
-        }).join('')}
+      <div style="padding:12px 14px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <div style="display:flex;gap:8px;min-width:max-content">
+          ${plan.schedule.map((d,i) => {
+            const active = d.activity && (d.activity.toLowerCase().includes('övning') || d.activity.toLowerCase().includes('program'));
+            const isToday = new Date().getDay() === (i === 6 ? 0 : i + 1);
+            return `<div style="display:flex;flex-direction:column;align-items:center;min-width:68px;background:${active?'var(--navy)':isToday?'rgba(13,155,138,.08)':'#f4f6f9'};border-radius:12px;padding:12px 8px;border:${isToday&&!active?'1.5px solid rgba(13,155,138,.3)':'1.5px solid transparent'}">
+              <div style="font-size:9px;font-weight:700;letter-spacing:.06em;color:${active?'rgba(255,255,255,.5)':isToday?'var(--teal)':'#9aaabb'};margin-bottom:6px">${d.day.slice(0,3).toUpperCase()}</div>
+              ${active ? '<div style="width:6px;height:6px;border-radius:50%;background:var(--teal);margin-bottom:6px"></div>' : '<div style="width:6px;height:6px;border-radius:50%;background:#dde;margin-bottom:6px"></div>'}
+              <div style="font-size:10px;line-height:1.4;color:${active?'rgba(255,255,255,.8)':'#7a8a9a'};text-align:center">${e(d.activity)}</div>
+            </div>`;
+          }).join('')}
+        </div>
       </div>
     </div>` : '';
 
@@ -9781,6 +10206,10 @@ function renderPublicPlan(plan, pat) {
       <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:4px">${e(CLINIC.name)}</div>
       <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.9">${e(CLINIC.address)}<br>${[CLINIC.phone, CLINIC.email].filter(Boolean).map(x => e(x)).join(' · ')}</div>
       ${CLINIC.phone ? `<a href="tel:${CLINIC.phone}" style="display:inline-block;margin-top:14px;background:rgba(255,255,255,.1);color:white;font-size:13px;font-weight:600;padding:10px 24px;border-radius:9px;text-decoration:none;border:1px solid rgba(255,255,255,.12)">Ring oss</a>` : ''}
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;color:rgba(255,255,255,.2);line-height:1.8">
+        Hael — ett rehabiliteringsprogram från <span style="color:rgba(255,255,255,.35);font-weight:600">Vela</span><br>
+        Framtaget av ${e(CLINIC.name)}
+      </div>
     </div>
 
   </div>`;
@@ -11643,6 +12072,8 @@ REMITTERANDE ENHET | PATIENTDATA | DIAGNOS OCH ANAMNES | UNDERSÖKNINGSFYND | BE
       document.getElementById('mconfirm').textContent = 'OK';
       document.getElementById('mconfirm').onclick = closeModal;
     };
+    // Reset button after success
+    if (btn) { btn.textContent = 'Generera epikris'; btn.disabled = false; }
   } catch(err) {
     if (btn) { btn.textContent = 'Generera epikris'; btn.disabled = false; }
     alert('Fel vid generering: ' + err.message);
@@ -11855,6 +12286,279 @@ function printRemiss(patId) {
 // ============================================================================
 
 // -- STARTUP ------------------------------------------------------------------
+
+// ── DAILY BRIEFING ─────────────────────────────────────────
+let _briefingCache = { date: '', text: '' };
+
+async function generateDailyBriefing() {
+  const today = new Date().toISOString().slice(0,10);
+  const el = document.getElementById('cc-briefing-text');
+  const btn = document.getElementById('cc-briefing-btn');
+  if (!el) return;
+
+  // Use cache if same day
+  if (_briefingCache.date === today && _briefingCache.text) {
+    el.textContent = _briefingCache.text;
+    el.style.cssText = 'font-size:13px;color:rgba(255,255,255,.75);line-height:1.75;font-style:normal';
+    if (btn) btn.style.display = 'inline-block';
+    return;
+  }
+
+  const key = getKey();
+  if (!key) {
+    el.textContent = 'Ange din API-nyckel i Inställningar för att aktivera daglig briefing.';
+    return;
+  }
+
+  // Build patient context
+  const now = new Date();
+  const urgent = S.patients.filter(p => _clinPriority(p).level >= 3).slice(0,4);
+  const overdue = S.patients.filter(p => {
+    const v = (p.visits||[])[0]; if (!v?.date) return false;
+    const fw = v.form?.followup || 4;
+    const due = new Date(v.date); due.setDate(due.getDate() + fw*7);
+    return due <= now;
+  }).slice(0,4);
+
+  const thisMonth = now.getMonth(); const thisYear = now.getFullYear();
+  let monthRevenue = 0;
+  S.patients.forEach(p => (p.visits||[]).forEach(v => {
+    const d = new Date(v.date||''); if (isNaN(d)) return;
+    if (d.getMonth()===thisMonth && d.getFullYear()===thisYear) monthRevenue += (v.servicePrice||0);
+  }));
+
+  const context = `Klinik: ${CLINIC.name || 'Kliniken'}
+Datum: ${now.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})}
+Totalt patienter: ${S.patients.length}, Aktiva: ${S.patients.filter(p=>(p.visits||[])[0]?.status==='Aktiv').length}
+Månadsintäkt hittills: ${monthRevenue.toLocaleString('sv-SE')} kr
+Kräver åtgärd: ${urgent.map(p=>p.name+' ('+_clinPriority(p).primary+')').join(', ')||'inga'}
+Förfallna återbesök: ${overdue.map(p=>p.name).join(', ')||'inga'}`;
+
+  const prompt = `Du är en AI-assistent för en kliniker. Skriv en kort, professionell morgonbriefing på 2-3 meningar. 
+Tonen ska vara koncis och handlingsinriktad — som en erfaren kollega som sammanfattar läget.
+Nämn de viktigaste sakerna att agera på idag. Inga listor, bara löpande text.
+Avsluta INTE med "Ha en bra dag" eller liknande.
+
+${context}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:MODEL_HAIKU, max_tokens:200, messages:[{role:'user',content:prompt}]})
+    });
+    const data = await res.json();
+    const text = (data.content||[]).map(b=>b.text||'').join('').trim();
+    if (text) {
+      _briefingCache = { date: today, text };
+      if (el) {
+        el.textContent = text;
+        el.style.cssText = 'font-size:13px;color:rgba(255,255,255,.75);line-height:1.75;font-style:normal';
+      }
+      if (btn) btn.style.display = 'inline-block';
+    }
+  } catch(err) {
+    if (el) el.textContent = 'Briefing ej tillgänglig — kontrollera API-nyckel.';
+  }
+}
+
+// ── STARTA BESÖK — unified entry point ─────────────────────
+function startVisitFlow() {
+  // If we already have a patient in context, go straight to action chooser
+  if (S.pat) {
+    showVisitActionChooser();
+    return;
+  }
+  // Otherwise: pick new or returning
+  const ov = document.createElement('div');
+  ov.id = 'start-visit-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px);animation:fadeInOv .15s ease';
+  ov.onclick = e => { if(e.target===ov) ov.remove(); };
+  ov.innerHTML = `
+  <div style="background:white;border-radius:20px;width:100%;max-width:400px;overflow:hidden;box-shadow:var(--shadow-lg)" onclick="event.stopPropagation()">
+    <div style="background:var(--navy);padding:22px 24px 18px">
+      <div style="font-size:20px;font-weight:700;color:white">Starta besök</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px">Välj typ av besök</div>
+    </div>
+    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
+      <button onclick="document.getElementById('start-visit-ov').remove();newPatientFlow()"
+        style="display:flex;align-items:center;gap:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:14px 18px;text-align:left;cursor:pointer;font-family:var(--font);width:100%;transition:all .15s"
+        onmouseover="this.style.borderColor='var(--teal)';this.style.background='rgba(13,155,138,.04)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg)'">
+        <div style="width:40px;height:40px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--navy)">Ny patient</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">Registrera och starta första besök</div>
+        </div>
+      </button>
+      <button onclick="document.getElementById('start-visit-ov').remove();returningPatientFlow()"
+        style="display:flex;align-items:center;gap:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:14px 18px;text-align:left;cursor:pointer;font-family:var(--font);width:100%;transition:all .15s"
+        onmouseover="this.style.borderColor='var(--teal)';this.style.background='rgba(13,155,138,.04)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg)'">
+        <div style="width:40px;height:40px;border-radius:50%;background:rgba(13,155,138,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--navy)">Återkommande patient</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:2px">Sök bland befintliga patienter</div>
+        </div>
+      </button>
+    </div>
+    <div style="padding:0 20px 20px">
+      <button onclick="document.getElementById('start-visit-ov').remove()" style="width:100%;padding:11px;background:none;border:1px solid var(--border);border-radius:var(--r-md);font-size:13px;color:var(--text3);cursor:pointer;font-family:var(--font)">Avbryt</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  addOverlayEsc('start-visit-ov');
+}
+
+// ── VELA ASK ───────────────────────────────────────────────
+let _velaAskOpen = false;
+let _velaAskHistory = [];
+
+function initVelaAsk() {
+  if (document.getElementById('vela-ask-bubble')) return;
+
+  const bubble = document.createElement('button');
+  bubble.id = 'vela-ask-bubble';
+  bubble.className = 'vela-ask-bubble';
+  bubble.title = 'Vela Ask';
+  bubble.onclick = toggleVelaAsk;
+  bubble.innerHTML = `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+  document.body.appendChild(bubble);
+}
+
+function toggleVelaAsk() {
+  _velaAskOpen = !_velaAskOpen;
+  const existing = document.getElementById('vela-ask-panel');
+  if (!_velaAskOpen) {
+    existing?.remove(); return;
+  }
+  if (existing) { existing.remove(); }
+
+  const panel = document.createElement('div');
+  panel.id = 'vela-ask-panel';
+  panel.className = 'vela-ask-panel';
+
+  const suggestions = [
+    'Har jag några ofakturerade patienter?',
+    'Vilka patienter är inaktiva den här veckan?',
+    'Sammanfatta klinikens status',
+    'Förklara rotatorkuffskada',
+  ];
+
+  panel.innerHTML = `
+  <div class="vela-ask-hdr">
+    <div class="vela-ask-hdr-icon">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3dcfbd" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    </div>
+    <div>
+      <div class="vela-ask-title">Vela Ask</div>
+      <div class="vela-ask-sub">Fråga om vad som helst om din klinik</div>
+    </div>
+    <button onclick="toggleVelaAsk()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,.3);font-size:20px;cursor:pointer;line-height:1;padding:0 4px">×</button>
+  </div>
+  <div class="vela-ask-msgs" id="vela-ask-msgs">
+    <div class="vela-ask-msg-ai">Hej! Jag är Vela Ask. Jag kan svara på frågor om dina patienter, klinikens ekonomi, kliniska ämnen och mer. Vad kan jag hjälpa dig med?</div>
+  </div>
+  <div class="vela-ask-suggestions" id="vela-ask-sugs">
+    ${suggestions.map(s => `<button class="vela-ask-sug" onclick="sendVelaAsk(${JSON.stringify(s)})">${s}</button>`).join('')}
+  </div>
+  <div class="vela-ask-inp-row">
+    <input class="vela-ask-inp" id="vela-ask-inp" placeholder="Skriv din fråga..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendVelaAsk()}">
+    <button class="vela-ask-send" onclick="sendVelaAsk()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    </button>
+  </div>`;
+
+  document.body.appendChild(panel);
+  setTimeout(() => document.getElementById('vela-ask-inp')?.focus(), 100);
+}
+
+async function sendVelaAsk(presetText) {
+  const inp = document.getElementById('vela-ask-inp');
+  const msgs = document.getElementById('vela-ask-msgs');
+  const sugs = document.getElementById('vela-ask-sugs');
+  const userText = presetText || inp?.value?.trim();
+  if (!userText || !msgs) return;
+  if (inp) inp.value = '';
+  if (sugs) sugs.remove();
+
+  const key = getKey();
+
+  // Add user message
+  const userBubble = document.createElement('div');
+  userBubble.className = 'vela-ask-msg-user';
+  userBubble.textContent = userText;
+  msgs.appendChild(userBubble);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Typing indicator
+  const typingId = 'va-typing-' + Date.now();
+  const typing = document.createElement('div');
+  typing.id = typingId;
+  typing.className = 'vela-ask-msg-ai';
+  typing.innerHTML = '<span style="opacity:.4;font-style:italic">Tänker...</span>';
+  msgs.appendChild(typing);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  if (!key) {
+    typing.textContent = 'API-nyckel saknas — gå till Inställningar.';
+    return;
+  }
+
+  // Build clinic context
+  const now = new Date();
+  const thisMonth = now.getMonth(); const thisYear = now.getFullYear();
+  let monthRevenue = 0;
+  S.patients.forEach(p => (p.visits||[]).forEach(v => {
+    const d = new Date(v.date||''); if(isNaN(d)) return;
+    if(d.getMonth()===thisMonth && d.getFullYear()===thisYear) monthRevenue += (v.servicePrice||0);
+  }));
+
+  const noInvoice = S.patients.filter(p => (p.visits||[]).some(v => v.servicePrice === 0 || !v.servicePrice));
+  const inactive = S.patients.filter(p => {
+    const last = (p.sessionLogs||[]).sort((a,b)=>b.date>a.date?1:-1)[0];
+    return !last || (now - new Date(last.date||0)) > 7*86400000;
+  });
+  const urgent = S.patients.filter(p => _clinPriority(p).level >= 3);
+
+  const ctx = `Du är AI-assistent för kliniken "${CLINIC.name || 'Kliniken'}".
+Datum: ${now.toLocaleDateString('sv-SE')}
+Totalt patienter: ${S.patients.length}
+Aktiva patienter: ${S.patients.filter(p=>(p.visits||[])[0]?.status==='Aktiv').length}
+Månadsintäkt: ${monthRevenue.toLocaleString('sv-SE')} kr
+Patienter utan fakturerat besök: ${noInvoice.length}
+Inaktiva >7 dagar: ${inactive.length}
+Kräver åtgärd: ${urgent.length} (${urgent.slice(0,3).map(p=>p.name).join(', ')})
+Patienter med namn: ${S.patients.slice(0,20).map(p=>p.name+'('+p.diagnosis+')').join('; ')}
+
+Svara kortfattat och direkt på svenska. Max 3-4 meningar om inte mer krävs.
+Om frågan rör en specifik patient du kan se i listan ovan — namnge dem.`;
+
+  _velaAskHistory.push({ role: 'user', content: userText });
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:MODEL_HAIKU, max_tokens:400, system:ctx, messages:_velaAskHistory})
+    });
+    const data = await res.json();
+    const reply = (data.content||[]).map(b=>b.text||'').join('').trim();
+    _velaAskHistory.push({ role: 'assistant', content: reply });
+    const el = document.getElementById(typingId);
+    if (el) el.innerHTML = reply.replace(/\n/g,'<br>');
+    msgs.scrollTop = msgs.scrollHeight;
+  } catch(err) {
+    const el = document.getElementById(typingId);
+    if (el) el.textContent = 'Fel — kontrollera anslutning och API-nyckel.';
+  }
+}
+
+
 document.addEventListener('DOMContentLoaded', function() {
 try {
 const _hashParams = new URLSearchParams(window.location.hash.replace('#',''));
@@ -11888,7 +12592,7 @@ if (_hashIntakeId) {
   const _storedAuth = getStoredAuth();
   if (_storedAuth) {
     _authUser = _storedAuth.user;
-    loadPats(); S.apiKey = getKey(); startAutoSave(); go('dashboard');
+    loadPats(); S.apiKey = getKey(); startAutoSave(); go('dashboard'); initVelaAsk();
     loadClinicSettings();
     setTimeout(() => syncFromCloud(), 1500);
     setTimeout(() => sbKeepAlive(), 3000);

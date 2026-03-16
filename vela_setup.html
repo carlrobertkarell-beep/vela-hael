@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vela — Kom igång</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#0d9b8a;--teal-dim:rgba(13,155,138,.1);
+  --navy:#07101e;--navy2:#0c1929;
+  --surface:#ffffff;--bg:#f7f8fc;
+  --border:#dde1ef;--muted:#8892a4;--ink:#0c0f18;
+  --serif:'Fraunces',Georgia,serif;
+  --sans:'Plus Jakarta Sans',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --green:#0aab7c;--green-bg:#e8faf4;
+  --amber:#e8960a;--amber-bg:#fdf7e8;
+  --red:#e53935;--red-bg:#fef1f1;
+}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:40px 20px 80px}
+.logo{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--ink);margin-bottom:40px}
+.logo em{color:var(--teal);font-style:normal}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:36px 32px;width:100%;max-width:540px;box-shadow:0 4px 24px rgba(0,0,0,.06)}
+h1{font-family:var(--serif);font-size:28px;font-weight:300;line-height:1.2;margin-bottom:8px;color:var(--ink)}
+.sub{font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:32px}
+.step{display:flex;gap:16px;margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid var(--border)}
+.step:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--teal-dim);border:1.5px solid var(--teal);color:var(--teal);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-family:var(--mono)}
+.step-num.done{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+.step-num.done::after{content:'✓'}
+.step-body{flex:1;min-width:0}
+.step-title{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:5px}
+.step-desc{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:10px}
+label{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;margin-top:12px}
+input,textarea{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--sans);color:var(--ink);background:var(--bg);outline:none;transition:border-color .2s}
+input:focus,textarea:focus{border-color:var(--teal)}
+textarea{resize:none;height:80px;line-height:1.6}
+.field-hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.5}
+.field-hint a{color:var(--teal);text-decoration:none}
+.status{font-size:12px;margin-top:6px;padding:6px 10px;border-radius:6px;display:none}
+.status.ok{background:var(--green-bg);color:#065f46;display:block}
+.status.err{background:var(--red-bg);color:#7f1d1d;display:block}
+.status.checking{background:var(--amber-bg);color:#78350f;display:block}
+.code-block{font-family:var(--mono);font-size:12px;background:#1a1a2e;color:#a8d8a8;padding:14px 16px;border-radius:8px;white-space:pre;overflow-x:auto;margin-top:10px;line-height:1.6}
+.btn{display:block;width:100%;padding:14px;background:var(--teal);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--sans);margin-top:24px;transition:opacity .2s}
+.btn:hover{opacity:.88}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-sec{background:var(--bg);color:var(--ink);border:1.5px solid var(--border);margin-top:10px}
+.btn-sec:hover{background:var(--border)}
+.progress{height:4px;background:var(--border);border-radius:2px;margin-bottom:32px;overflow:hidden}
+.progress-fill{height:100%;background:var(--teal);border-radius:2px;transition:width .4s ease}
+.copy-btn{font-size:11px;font-weight:600;color:var(--teal);background:var(--teal-dim);border:none;border-radius:5px;padding:3px 8px;cursor:pointer;font-family:var(--sans);float:right;margin-top:-2px}
+.section-label{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;margin-top:32px}
+.check-row{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px;color:var(--ink)}
+.check-icon{width:18px;height:18px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px}
+.check-icon.pass{background:var(--green-bg);color:var(--green)}
+.check-icon.fail{background:var(--red-bg);color:var(--red)}
+.check-icon.wait{background:var(--amber-bg);color:var(--amber)}
+</style>
+</head>
+<body>
+
+<div class="logo">Ve<em>la</em></div>
+
+<div class="card" id="step-card">
+  <div class="progress"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+
+  <!-- STEP 1: Klinikinfo -->
+  <div id="step1">
+    <h1>Välkommen till Vela</h1>
+    <p class="sub">Vi hjälper dig komma igång på tio minuter. Börja med att berätta om din klinik.</p>
+
+    <label>Klinikens namn *</label>
+    <input id="s1-name" type="text" placeholder="T.ex. Stureplan Rehab" oninput="validateStep1()">
+
+    <label>Din e-postadress *</label>
+    <input id="s1-email" type="email" placeholder="din@klinik.se" oninput="validateStep1()">
+
+    <label>Telefon</label>
+    <input id="s1-phone" type="tel" placeholder="08-000 00 00">
+
+    <label>Adress</label>
+    <input id="s1-address" type="text" placeholder="Gatuadress, postnummer, stad">
+
+    <button class="btn" id="s1-next" onclick="goStep(2)" disabled>Nästa →</button>
+  </div>
+
+  <!-- STEP 2: Supabase -->
+  <div id="step2" style="display:none">
+    <h1>Konfigurera databasen</h1>
+    <p class="sub">Vela använder Supabase för att lagra patientdata säkert i EU. Skapa ett gratis konto och klistra in dina nycklar.</p>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Skapa Supabase-projekt</div>
+        <div class="step-desc">Gå till supabase.com → New project → välj region Frankfurt (eu-central-1).</div>
+        <a href="https://supabase.com/dashboard/new/_" target="_blank" style="display:inline-block;margin-top:6px;padding:7px 14px;background:var(--teal-dim);border:1px solid rgba(13,155,138,.3);border-radius:7px;font-size:12px;font-weight:700;color:var(--teal);text-decoration:none">Öppna Supabase →</a>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Kopiera dina nycklar</div>
+        <div class="step-desc">Settings → API → kopiera Project URL och anon public key.</div>
+        <label>Project URL</label>
+        <input id="s2-url" type="url" placeholder="https://abcdefgh.supabase.co" oninput="validateStep2()">
+        <label>Anon Key (public)</label>
+        <input id="s2-key" type="text" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." oninput="validateStep2()">
+        <div id="s2-status" class="status"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Skapa databastabellen</div>
+        <div class="step-desc">Kör detta SQL i Supabase → SQL Editor → New query:</div>
+        <button class="copy-btn" onclick="copySQL()">Kopiera</button>
+        <div class="code-block" id="sql-block">create table if not exists patients (
+  id text primary key,
+  data jsonb,
+  updated_at timestamptz default now()
+);
+
+create table if not exists pass_log (
+  id bigserial primary key,
+  visit_id text not null,
+  pain numeric,
+  done text,
+  logged_at timestamptz default now()
+);
+
+-- RLS
+alter table patients enable row level security;
+alter table pass_log enable row level security;
+
+create policy "anon read patients"
+  on patients for select using (true);
+create policy "anon update patients"
+  on patients for update using (true);
+create policy "anon insert patients"
+  on patients for insert with check (true);
+create policy "anon insert pass_log"
+  on pass_log for insert with check (true);
+create policy "anon read pass_log"
+  on pass_log for select using (true);</div>
+      </div>
+    </div>
+
+    <button class="btn" id="s2-next" onclick="testSupabase()" disabled>Testa anslutning →</button>
+    <button class="btn btn-sec" onclick="goStep(1)">← Tillbaka</button>
+  </div>
+
+  <!-- STEP 3: Anthropic -->
+  <div id="step3" style="display:none">
+    <h1>Koppla AI-motorn</h1>
+    <p class="sub">Vela använder Anthropic Claude för att generera rehabplaner och journaler. Du behöver en API-nyckel.</p>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Skapa Anthropic-konto</div>
+        <div class="step-desc">Gå till console.anthropic.com och logga in.</div>
+        <a href="https://console.anthropic.com" target="_blank" style="display:inline-block;margin-top:6px;padding:7px 14px;background:var(--teal-dim);border:1px solid rgba(13,155,138,.3);border-radius:7px;font-size:12px;font-weight:700;color:var(--teal);text-decoration:none">Öppna Anthropic →</a>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Hämta API-nyckel</div>
+        <div class="step-desc">API Keys → Create Key → kopiera nyckeln (börjar med sk-ant-).</div>
+        <label>Anthropic API-nyckel</label>
+        <input id="s3-apikey" type="password" placeholder="sk-ant-api03-..." oninput="validateStep3()">
+        <div class="field-hint">Nyckeln sparas lokalt i din webbläsare — aldrig på vår server.</div>
+        <div id="s3-status" class="status"></div>
+      </div>
+    </div>
+
+    <button class="btn" id="s3-next" onclick="goStep(4)" disabled>Nästa →</button>
+    <button class="btn btn-sec" onclick="goStep(2)">← Tillbaka</button>
+  </div>
+
+  <!-- STEP 4: Klar -->
+  <div id="step4" style="display:none">
+    <h1>Allt klart — <em style="color:var(--teal)">Vela är redo.</em></h1>
+    <p class="sub">Din klinik är konfigurerad. Här är en sammanfattning av vad som är satt upp.</p>
+
+    <div class="section-label">Inställningar verifierade</div>
+    <div id="summary-checks"></div>
+
+    <div style="margin-top:24px;padding:16px;background:var(--teal-dim);border:1px solid rgba(13,155,138,.2);border-radius:10px">
+      <div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:6px">Din konfigurationsfil</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Spara detta och klistra in i Vela under Inställningar om du byter enhet.</div>
+      <div class="code-block" id="config-export" style="font-size:11px;max-height:120px;overflow-y:auto"></div>
+      <button class="copy-btn" style="margin-top:8px;float:none" onclick="copyConfig()">Kopiera konfiguration</button>
+    </div>
+
+    <button class="btn" onclick="launchVela()" style="margin-top:20px">Öppna Vela →</button>
+  </div>
+</div>
+
+<script>
+let config = { name:'', email:'', phone:'', address:'', sbUrl:'', sbKey:'', apiKey:'' };
+let currentStep = 1;
+
+function goStep(n) {
+  document.getElementById('step' + currentStep).style.display = 'none';
+  currentStep = n;
+  document.getElementById('step' + n).style.display = 'block';
+  document.getElementById('prog').style.width = ((n-1)/3*100) + '%';
+  if (n === 4) buildSummary();
+}
+
+function validateStep1() {
+  const name = document.getElementById('s1-name').value.trim();
+  const email = document.getElementById('s1-email').value.trim();
+  const ok = name.length > 1 && email.includes('@');
+  document.getElementById('s1-next').disabled = !ok;
+  if (ok) { config.name = name; config.email = email; }
+}
+
+function validateStep2() {
+  const url = document.getElementById('s2-url').value.trim();
+  const key = document.getElementById('s2-key').value.trim();
+  const ok = url.startsWith('https://') && url.includes('supabase.co') && key.startsWith('eyJ');
+  document.getElementById('s2-next').disabled = !ok;
+  if (ok) { config.sbUrl = url; config.sbKey = key; }
+}
+
+async function testSupabase() {
+  const btn = document.getElementById('s2-next');
+  const status = document.getElementById('s2-status');
+  btn.disabled = true; btn.textContent = 'Testar...';
+  status.className = 'status checking'; status.textContent = 'Ansluter till Supabase...'; status.style.display = 'block';
+  try {
+    const res = await fetch(config.sbUrl + '/rest/v1/patients?limit=1', {
+      headers: { 'apikey': config.sbKey, 'Authorization': 'Bearer ' + config.sbKey }
+    });
+    if (res.ok || res.status === 400) {
+      status.className = 'status ok'; status.textContent = '✓ Anslutning fungerar! Supabase är korrekt konfigurerat.';
+      setTimeout(() => goStep(3), 800);
+    } else {
+      throw new Error('Status ' + res.status + ' — har du kört SQL-scriptet?');
+    }
+  } catch(err) {
+    status.className = 'status err'; status.textContent = '✗ ' + err.message;
+    btn.disabled = false; btn.textContent = 'Testa anslutning →';
+  }
+}
+
+function validateStep3() {
+  const key = document.getElementById('s3-apikey').value.trim();
+  const ok = key.startsWith('sk-ant');
+  document.getElementById('s3-next').disabled = !ok;
+  if (ok) config.apiKey = key;
+}
+
+function buildSummary() {
+  config.phone = document.getElementById('s1-phone')?.value.trim() || '';
+  config.address = document.getElementById('s1-address')?.value.trim() || '';
+
+  const checks = [
+    { label: 'Klinik: ' + config.name, ok: true },
+    { label: 'E-post: ' + config.email, ok: true },
+    { label: 'Supabase: ' + config.sbUrl.replace('https://','').split('.')[0] + '.supabase.co', ok: !!config.sbUrl },
+    { label: 'Anthropic API: sk-ant-***' + config.apiKey.slice(-6), ok: !!config.apiKey },
+  ];
+
+  document.getElementById('summary-checks').innerHTML = checks.map(c => `
+    <div class="check-row">
+      <div class="check-icon ${c.ok ? 'pass' : 'fail'}">${c.ok ? '✓' : '✗'}</div>
+      ${c.label}
+    </div>`).join('');
+
+  // Save everything to localStorage for Vela to pick up
+  const clinicConfig = { name: config.name, email: config.email, phone: config.phone, address: config.address, accent: '#0d9b8a' };
+  try {
+    localStorage.setItem('hael:clinic-config', JSON.stringify(clinicConfig));
+    localStorage.setItem('hael:supabase-url', config.sbUrl);
+    localStorage.setItem('hael:supabase-key', config.sbKey);
+    localStorage.setItem('hael:apikey', config.apiKey);
+  } catch(e) {}
+
+  const exportObj = {
+    clinicConfig,
+    supabaseUrl: config.sbUrl,
+    supabaseKey: config.sbKey.slice(0,20) + '...',
+    note: 'Spara och klistra in i Vela → Inställningar → Importera konfiguration'
+  };
+  document.getElementById('config-export').textContent = JSON.stringify(exportObj, null, 2);
+  document.getElementById('prog').style.width = '100%';
+}
+
+function copySQL() {
+  navigator.clipboard?.writeText(document.getElementById('sql-block').textContent)
+    .then(() => { const b = document.querySelector('.copy-btn'); b.textContent = 'Kopierat!'; setTimeout(() => b.textContent = 'Kopiera', 2000); });
+}
+
+function copyConfig() {
+  navigator.clipboard?.writeText(document.getElementById('config-export').textContent)
+    .then(() => alert('Konfiguration kopierad!'));
+}
+
+function launchVela() {
+  window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>

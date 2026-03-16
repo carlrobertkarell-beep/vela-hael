@@ -1,0 +1,28 @@
+{
+  "name": "Hael — Rehabprogram",
+  "short_name": "Hael",
+  "description": "Ditt personliga rehabiliteringsprogram från din naprapat",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#07101e",
+  "theme_color": "#0d9b8a",
+  "orientation": "portrait-primary",
+  "categories": ["health", "fitness"],
+  "lang": "sv",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230d9b8a'/><text x='96' y='130' font-size='100' text-anchor='middle' fill='white' font-family='Georgia,serif' font-weight='300'>H</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='110' fill='%230d9b8a'/><text x='256' y='350' font-size='280' text-anchor='middle' fill='white' font-family='Georgia,serif' font-weight='300'>H</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": []
+}

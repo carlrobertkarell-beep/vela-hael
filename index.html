@@ -369,6 +369,288 @@ button, input, textarea, select { font-family: inherit; }
 .npf-backdrop { position:fixed;inset:0;background:rgba(0,0,0,.4); }
 </style>
 
+
+<style id="vela-ux-css">
+/* ── MODAL ───────────────────────────────────────────────── */
+.modal-ov {
+  display:none; position:fixed; inset:0; z-index:800;
+  background:rgba(7,16,30,.6); backdrop-filter:blur(6px);
+  align-items:center; justify-content:center; padding:20px;
+}
+.modal-ov.open { display:flex; animation:fadeInOv .18s ease; }
+.modal {
+  background:var(--surface,#fff); border-radius:20px;
+  padding:28px 24px; width:100%; max-width:400px;
+  box-shadow:0 8px 40px rgba(0,0,0,.2);
+}
+.modal-title { font-size:17px; font-weight:700; color:var(--navy,#0f2744); margin-bottom:8px; }
+.modal-text  { font-size:14px; color:var(--text,#3a4a5a); line-height:1.6; margin-bottom:20px; }
+.modal-actions { display:flex; gap:10px; justify-content:flex-end; }
+
+/* ── DETAIL LAYOUT ───────────────────────────────────────── */
+.det-layout {
+  display:grid; grid-template-columns:1fr 280px; gap:20px;
+  align-items:start;
+}
+@media (max-width:900px) { .det-layout { grid-template-columns:1fr; } }
+.det-main { min-width:0; }
+.det-aside { position:sticky; top:24px; display:flex; flex-direction:column; gap:12px; }
+.det-action-card {
+  background:var(--surface,#fff); border:1px solid var(--border,#dde1ef);
+  border-radius:14px; overflow:hidden;
+}
+.det-action-card-hdr {
+  font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted,#8892a4); padding:12px 16px 8px;
+  border-bottom:1px solid var(--border,#dde1ef);
+}
+.det-action-card-body { padding:8px; display:flex; flex-direction:column; gap:2px; }
+.det-action-btn {
+  display:flex; align-items:center; gap:9px; width:100%; padding:9px 10px;
+  border:none; background:transparent; color:var(--ink,#0c1420); font-size:13px;
+  font-weight:500; cursor:pointer; border-radius:8px; font-family:var(--font,sans-serif);
+  text-align:left; transition:background .12s;
+}
+.det-action-btn:hover { background:var(--bg,#f4f6fb); }
+.det-action-btn.primary { color:var(--teal,#0d9b8a); font-weight:700; }
+.det-action-btn.danger  { color:var(--red,#c05050); }
+.det-action-btn svg     { flex-shrink:0; opacity:.6; }
+
+/* ── PATIENT DETAIL PAGE HEADER ──────────────────────────── */
+.det-page-hdr {
+  margin-bottom:20px; padding-bottom:16px;
+  border-bottom:1px solid var(--border,#dde1ef);
+}
+
+/* ── INBOX DRAWER ────────────────────────────────────────── */
+.inbox-overlay { position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.3);backdrop-filter:blur(3px); }
+.inbox-drawer {
+  position:fixed; top:0; right:0; bottom:0; z-index:301;
+  width:420px; max-width:100vw; background:var(--surface,#fff);
+  box-shadow:-4px 0 32px rgba(0,0,0,.12); display:flex; flex-direction:column;
+  animation:slideInRight .22s ease;
+}
+@keyframes slideInRight { from{transform:translateX(100%)} to{transform:translateX(0)} }
+.inbox-hdr { padding:18px 20px; border-bottom:1px solid var(--border,#dde1ef); display:flex; justify-content:space-between; align-items:flex-start; }
+.inbox-title { font-size:18px; font-weight:700; color:var(--navy,#0f2744); }
+.inbox-subtitle { font-size:12px; color:var(--muted,#8892a4); margin-top:2px; }
+.inbox-close { background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted,#8892a4);line-height:1;padding:4px; }
+.inbox-tabs { display:flex; gap:4px; padding:10px 16px; border-bottom:1px solid var(--border,#dde1ef); }
+.inbox-tab { flex:1;padding:7px 4px;border:none;background:transparent;font-size:12px;font-weight:600;color:var(--muted,#8892a4);cursor:pointer;border-radius:8px;font-family:var(--font,sans-serif);transition:all .15s; }
+.inbox-tab.active { background:var(--bg,#f4f6fb);color:var(--ink,#0c1420); }
+.inbox-body { flex:1;overflow-y:auto; }
+.inbox-item { padding:14px 18px; border-bottom:1px solid var(--border,#dde1ef); cursor:pointer; transition:background .12s; }
+.inbox-item:hover { background:var(--bg,#f4f6fb); }
+.inbox-item.urgent { border-left:3px solid var(--red,#c05050); }
+.inbox-item.ai-action { border-left:3px solid var(--teal,#0d9b8a); }
+.inbox-item.read { opacity:.6; }
+.inbox-item-hdr { display:flex;align-items:flex-start;gap:10px; }
+.inbox-item-icon { width:32px;height:32px;border-radius:8px;background:var(--bg,#f4f6fb);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.inbox-item-icon svg { width:14px;height:14px; }
+.inbox-item-content { flex:1;min-width:0; }
+.inbox-item-title { font-size:13px;font-weight:600;color:var(--navy,#0f2744);line-height:1.4; }
+.inbox-item-body { font-size:12px;color:var(--text3,#8892a4);margin-top:3px;line-height:1.5; }
+.inbox-item-time { font-size:10px;color:var(--muted,#8892a4);margin-top:4px; }
+.inbox-act-btn { padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font,sans-serif);border:none; }
+.inbox-act-primary { background:var(--navy,#0f2744);color:white; }
+.inbox-act-secondary { background:var(--bg,#f4f6fb);color:var(--ink,#0c1420);border:1px solid var(--border,#dde1ef); }
+.inbox-act-ghost { background:transparent;color:var(--muted,#8892a4); }
+.inbox-ai-tag { font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal,#0d9b8a);margin-bottom:4px; }
+.inbox-empty { text-align:center;padding:48px 20px; }
+.inbox-empty svg { width:32px;height:32px;stroke:var(--border,#dde1ef);fill:none;stroke-width:1.5;margin-bottom:12px; }
+.inbox-empty-title { font-size:15px;font-weight:600;color:var(--navy,#0f2744);margin-bottom:4px; }
+.inbox-empty-sub { font-size:13px;color:var(--muted,#8892a4);line-height:1.6; }
+
+/* ── FORMS & MISC ────────────────────────────────────────── */
+.field { width:100%;border:1.5px solid var(--border,#dde1ef);border-radius:var(--r-md,10px);padding:10px 13px;font-size:14px;font-family:var(--font,sans-serif);color:var(--ink,#0c1420);background:var(--surface,#fff);outline:none;box-sizing:border-box; }
+.field:focus { border-color:var(--teal,#0d9b8a); }
+.slabel { display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal,#0d9b8a);margin:18px 0 10px; }
+.chip { padding:6px 14px;border:1.5px solid var(--border,#dde1ef);border-radius:20px;background:var(--surface,#fff);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font,sans-serif);color:var(--text,#3a4a5a);transition:all .12s; }
+.chip.on { background:var(--navy,#0f2744);color:white;border-color:var(--navy,#0f2744); }
+.chips { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px; }
+.hint { font-size:11px;color:var(--muted,#8892a4);margin-bottom:8px;line-height:1.5; }
+.errbox { background:var(--red-bg,#fde8e8);color:var(--red,#c05050);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:10px; }
+.genbtn { width:100%;padding:14px;background:var(--navy,#0f2744);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font,sans-serif);margin-top:12px;transition:background .2s; }
+.genbtn:hover { background:var(--teal,#0d9b8a); }
+.genbtn:disabled { opacity:.5;cursor:not-allowed; }
+
+/* ── MISC APP ELEMENTS ───────────────────────────────────── */
+.akwrap { display:flex;gap:6px;margin-bottom:6px; }
+.akinp { flex:1;border:1.5px solid var(--border,#dde1ef);border-radius:8px;padding:9px 12px;font-size:13px;font-family:var(--font-mono,monospace);color:var(--ink,#0c1420);outline:none; }
+.akinp:focus { border-color:var(--teal,#0d9b8a); }
+.aktgl { padding:9px 14px;border:1px solid var(--border,#dde1ef);border-radius:8px;background:var(--bg,#f4f6fb);font-size:12px;cursor:pointer;font-family:var(--font,sans-serif); }
+.akst { display:flex;align-items:center;gap:6px;font-size:11px; }
+.akdot { width:7px;height:7px;border-radius:50%; }
+.swrap { max-width:540px;padding:4px 0 20px; }
+.stitle { font-size:22px;font-weight:700;color:var(--navy,#0f2744);margin-bottom:4px; }
+.ssub { font-size:13px;color:var(--muted,#8892a4);margin-bottom:20px; }
+
+/* ── INTELLIGENCE SCREEN ─────────────────────────────────── */
+.intel-wrap { max-width:1200px; margin:0 auto; padding:0 24px 60px; }
+.intel-header {
+  padding:28px 0 20px; border-bottom:1px solid var(--border,#dde1ef); margin-bottom:24px;
+  display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;
+}
+.intel-title { font-family:var(--font-serif,Georgia,serif); font-size:28px; font-weight:300; color:var(--navy,#0f2744); letter-spacing:-.02em; }
+.intel-sub { font-size:13px; color:var(--muted,#8892a4); margin-top:4px; }
+.intel-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px; }
+@media (max-width:1000px) { .intel-grid { grid-template-columns:1fr 1fr; } }
+@media (max-width:640px)  { .intel-grid { grid-template-columns:1fr; } }
+.intel-card {
+  background:var(--surface,#fff); border:1px solid var(--border,#dde1ef);
+  border-radius:16px; padding:20px; position:relative; overflow:hidden;
+}
+.intel-card-dark {
+  background:var(--navy,#0f2744); border-color:rgba(255,255,255,.06);
+  color:white;
+}
+.intel-card-label {
+  font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--muted,#8892a4); margin-bottom:12px;
+  display:flex; align-items:center; gap:6px;
+}
+.intel-card-dark .intel-card-label { color:rgba(255,255,255,.35); }
+.intel-card-label::before { content:''; width:12px; height:1px; background:currentColor; }
+.intel-metric { font-family:var(--font-mono,'JetBrains Mono',monospace); font-size:36px; font-weight:700; color:var(--navy,#0f2744); line-height:1; }
+.intel-card-dark .intel-metric { color:white; }
+.intel-metric-sub { font-size:12px; color:var(--muted,#8892a4); margin-top:6px; }
+.intel-card-dark .intel-metric-sub { color:rgba(255,255,255,.4); }
+.intel-trend { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; padding:3px 8px; border-radius:20px; margin-top:8px; }
+.intel-trend.up { background:rgba(26,122,74,.1); color:#1a7a4a; }
+.intel-trend.dn { background:rgba(192,80,80,.1); color:var(--red,#c05050); }
+.intel-chart { margin-top:16px; height:60px; position:relative; }
+.intel-ask-row {
+  background:linear-gradient(135deg,var(--navy,#0f2744),#0c2040);
+  border-radius:16px; padding:20px 22px; margin-bottom:20px;
+  display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+}
+.intel-ask-input {
+  flex:1; min-width:200px; background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12); border-radius:10px;
+  padding:12px 16px; font-size:14px; color:white;
+  font-family:var(--font,sans-serif); outline:none;
+}
+.intel-ask-input::placeholder { color:rgba(255,255,255,.3); }
+.intel-ask-input:focus { border-color:rgba(13,155,138,.5); }
+.intel-ask-btn {
+  background:var(--teal,#0d9b8a); color:white; border:none;
+  border-radius:10px; padding:12px 20px; font-size:14px; font-weight:700;
+  cursor:pointer; font-family:var(--font,sans-serif); white-space:nowrap;
+}
+.intel-insights { display:flex; flex-direction:column; gap:10px; }
+.intel-insight {
+  background:var(--surface,#fff); border:1px solid var(--border,#dde1ef);
+  border-radius:12px; padding:14px 18px; display:flex; align-items:flex-start; gap:12px;
+}
+.intel-insight-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+.intel-insight-title { font-size:13px; font-weight:600; color:var(--navy,#0f2744); margin-bottom:3px; }
+.intel-insight-body { font-size:12px; color:var(--text3,#8892a4); line-height:1.55; }
+
+/* ── RESPONSIVE CONTENT WIDTH ────────────────────────────── */
+.cx { max-width:1100px; margin:0 auto; padding:28px 32px 60px; }
+@media (max-width:768px) { .cx { padding:16px 14px 60px; } }
+
+/* ── ANOMALY / CLINICAL WARNINGS ─────────────────────────── */
+.anomaly-section {
+  background:#fffcf0; border-left:3px solid var(--gold,#c8a030);
+  border-radius:var(--r-lg,14px); margin-bottom:16px; overflow:hidden;
+  border:1px solid rgba(200,160,48,.2); border-left-width:3px;
+}
+.anomaly-hdr {
+  display:flex; align-items:center; gap:8px;
+  padding:11px 16px; border-bottom:1px solid rgba(200,160,48,.15);
+}
+.anomaly-dot {
+  width:8px; height:8px; border-radius:50%; background:var(--gold,#c8a030); flex-shrink:0;
+}
+.anomaly-row {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:10px 16px; border-bottom:1px solid rgba(0,0,0,.04);
+  cursor:pointer; transition:background .12s;
+}
+.anomaly-row:hover { background:rgba(0,0,0,.02); }
+.anomaly-row:last-child { border-bottom:none; }
+.anomaly-icon { flex-shrink:0; margin-top:3px; }
+.anomaly-name { font-size:13px; font-weight:600; color:var(--navy,#0f2744); }
+.anomaly-msg  { font-size:12px; color:var(--text2,#5a6a7a); margin-top:2px; line-height:1.4; }
+.anomaly-tag  { font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; flex-shrink:0; white-space:nowrap; }
+
+/* ── DASHBOARD QUICK-ACCESS ──────────────────────────────── */
+.dash-qbtn { padding:9px 16px; border-radius:var(--r-md,10px); font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font,sans-serif); border:none; transition:all .15s; }
+.dash-qbtn-primary { background:var(--navy,#0f2744); color:white; }
+.dash-qbtn-primary:hover { background:var(--teal,#0d9b8a); }
+.dash-qbtn-secondary { background:var(--surface,#fff); color:var(--ink,#0c1420); border:1px solid var(--border,#dde1ef); }
+.dash-qbtn-secondary:hover { background:var(--bg,#f4f6fb); }
+
+/* ── DR ROWS (dashboard patient rows) ───────────────────── */
+.dr-initials { width:36px; height:36px; border-radius:50%; background:var(--navy,#0f2744); color:white; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-mono,'JetBrains Mono',monospace); }
+.dr-info { flex:1; min-width:0; }
+.dr-name { font-size:13px; font-weight:600; color:var(--navy,#0f2744); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dr-diag { font-size:11px; color:var(--muted,#8892a4); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dr-date { font-size:10px; color:var(--muted,#8892a4); }
+.dr-badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; }
+.dash-row { display:flex; align-items:center; gap:10px; padding:9px 14px; border-bottom:1px solid var(--border2,#eef0f5); cursor:pointer; transition:background .12s; }
+.dash-row:last-child { border-bottom:none; }
+.dash-row:hover { background:var(--bg,#f4f6fb); }
+.dash-empty { padding:16px 14px; font-size:12px; color:var(--muted,#8892a4); text-align:center; }
+
+/* ── STAT ROWS ───────────────────────────────────────────── */
+.dash-stat-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border2,#eef0f5); }
+.dash-stat-row:last-child { border-bottom:none; }
+.dash-bar { height:4px; background:var(--border,#dde1ef); border-radius:2px; margin-top:3px; overflow:hidden; }
+.dash-bar-fill { height:100%; background:var(--teal,#0d9b8a); border-radius:2px; }
+
+/* ── CLINIC STATS PANEL ──────────────────────────────────── */
+.clinic-stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:16px; }
+.cstat { background:var(--surface,#fff); border:1px solid var(--border,#dde1ef); border-radius:var(--r-lg,14px); padding:16px 18px; }
+.cstat-val { font-size:24px; font-weight:700; color:var(--navy,#0f2744); font-family:var(--font-mono,'JetBrains Mono',monospace); line-height:1.1; }
+.cstat-lbl { font-size:11px; color:var(--muted,#8892a4); font-weight:600; text-transform:uppercase; letter-spacing:.07em; margin-top:4px; }
+
+/* ── LOADING SCREEN ──────────────────────────────────────── */
+.load-wrap { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; gap:16px; }
+.load-spinner { width:32px; height:32px; border:3px solid var(--border,#dde1ef); border-top-color:var(--teal,#0d9b8a); border-radius:50%; animation:spin .8s linear infinite; }
+.load-text { font-size:14px; color:var(--muted,#8892a4); }
+
+/* ── FORM SCREEN ─────────────────────────────────────────── */
+.fwrap { max-width:680px; margin:0 auto; padding:8px 0; }
+.ftitle { font-family:var(--font-serif,Georgia,serif); font-size:22px; color:var(--navy,#0f2744); font-weight:400; margin-bottom:4px; }
+.fsub { font-size:13px; color:var(--muted,#8892a4); margin-bottom:20px; }
+.ferr { margin-bottom:10px; }
+.twocol { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.slwrap { margin-bottom:14px; }
+.slhd { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+.sllbl { font-size:11px; font-weight:600; color:var(--text2,#5a6a7a); }
+.slval { font-size:13px; font-weight:700; }
+.qi-wrap { background:var(--navy,#0f2744); border-radius:12px; padding:16px; margin-bottom:16px; }
+.qi-title { font-size:13px; font-weight:700; color:white; margin-bottom:8px; }
+.qi-ta { width:100%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:8px; padding:10px 12px; font-size:13px; color:white; font-family:var(--font,sans-serif); resize:none; outline:none; box-sizing:border-box; }
+.qi-actions { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:center; }
+.qi-btn { padding:8px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; font-family:var(--font,sans-serif); border:none; }
+.qi-status { font-size:11px; }
+.mic-btn { display:flex; align-items:center; gap:6px; padding:8px 12px; border-radius:8px; border:1px solid; font-size:12px; font-weight:600; cursor:pointer; font-family:var(--font,sans-serif); }
+.mic-btn.listening .mic-btn-dot { background:#e05050; animation:pulse 1s infinite; }
+.mic-btn-dot { width:8px; height:8px; border-radius:50%; background:currentColor; flex-shrink:0; }
+
+/* ── PATIENT JOURNAL / DOC SCREEN ───────────────────────── */
+.swrap { max-width:720px; margin:0 auto; }
+.stitle { font-family:var(--font-serif,Georgia,serif); font-size:22px; font-weight:400; color:var(--navy,#0f2744); margin-bottom:4px; }
+.ssub { font-size:13px; color:var(--muted,#8892a4); margin-bottom:20px; }
+
+/* ── NPF BACKDROP ────────────────────────────────────────── */
+.npf-backdrop { position:fixed;inset:0;background:rgba(7,16,30,.65);backdrop-filter:blur(5px);z-index:-1; }
+
+/* ── MEETING SCREEN ──────────────────────────────────────── */
+.mtg-wrap { max-width:800px; margin:0 auto; }
+
+/* ── SOAP SCREEN ─────────────────────────────────────────── */
+.soap-wrap { max-width:760px; margin:0 auto; }
+
+/* ── INSIGHT / BRIEFING PANEL ────────────────────────────── */
+.briefing-panel { background:var(--surface,#fff); border:1px solid var(--border,#dde1ef); border-radius:var(--r-lg,14px); padding:16px 18px; margin-bottom:16px; }
+.briefing-hdr { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted,#8892a4); margin-bottom:10px; }
+.briefing-text { font-size:13px; color:var(--text,#3a4a5a); line-height:1.75; }
+</style>
+
 </head><body>
 <!-- Mobile sidebar overlay -->
 <div id="sb-overlay" onclick="togSidebar()" style="display:none;position:fixed;inset:0;z-index:149;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);cursor:pointer"></div>
@@ -398,6 +680,7 @@ button, input, textarea, select { font-family: inherit; }
     <div id="s-manualsoap" class="screen"></div>
     <div id="s-sbs-soap" class="screen"></div>
     <div id="s-patjournal" class="screen"></div>
+    <div id="s-intelligence" class="screen"></div>
   </div>
 </div>
 
@@ -2700,7 +2983,7 @@ function go(scr){
     if(tb) tb.style.display = '';
   }
   rTopbar();
-  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:rMeeting,soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal};
+  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:rMeeting,soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
 }
@@ -2731,20 +3014,32 @@ function rTopbar() {
       { s:'list',      label:'Patienter',
         svg:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
     ];
-    nav.innerHTML = items.map(it => `
-      <button class="nav-item ${scr===it.s?'active':''}" onclick="go('${it.s}');document.getElementById('nav-sidebar')?.classList.remove('open');document.getElementById('sb-overlay')&&(document.getElementById('sb-overlay').style.display='none')">
-        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${it.svg}</svg>
-        ${it.label}
-      </button>`).join('') + `
-      <div style="margin:12px 8px 6px;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.2)">Intelligence</div>
-      <button class="nav-item" onclick="startVisitFlow();document.getElementById('nav-sidebar')?.classList.remove('open');document.getElementById('sb-overlay')&&(document.getElementById('sb-overlay').style.display='none')" style="color:rgba(255,255,255,.9);background:rgba(13,155,138,.18);margin-bottom:4px">
-        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Starta besök
-      </button>
-      <button class="nav-item" onclick="toggleVelaAsk();document.getElementById('nav-sidebar')?.classList.remove('open');document.getElementById('sb-overlay')&&(document.getElementById('sb-overlay').style.display='none')">
-        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Vela Ask
-      </button>`;
+    const closeSidebar = "document.getElementById('nav-sidebar')?.classList.remove('open');document.getElementById('sb-overlay')&&(document.getElementById('sb-overlay').style.display='none');const mb=document.getElementById('topbar-menu-btn');if(mb)mb.innerHTML='<svg viewBox=\"0 0 24 24\" width=\"19\" height=\"19\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><line x1=\"3\" y1=\"6\" x2=\"21\" y2=\"6\"/><line x1=\"3\" y1=\"12\" x2=\"21\" y2=\"12\"/><line x1=\"3\" y1=\"18\" x2=\"21\" y2=\"18\"/></svg>';";
+    nav.innerHTML = `
+      <div style="padding:4px 0 8px">
+        ${items.map(it => `
+        <button class="nav-item ${scr===it.s?'active':''}" onclick="go('${it.s}');${closeSidebar}">
+          <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${it.svg}</svg>
+          ${it.label}
+        </button>`).join('')}
+      </div>
+      <div style="border-top:1px solid rgba(255,255,255,.06);padding:10px 0 8px">
+        <button class="nav-item" onclick="startVisitFlow();${closeSidebar}" style="background:rgba(13,155,138,.18);color:rgba(255,255,255,.9);font-weight:700;margin-bottom:2px">
+          <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Starta besök
+        </button>
+      </div>
+      <div style="border-top:1px solid rgba(255,255,255,.06);padding:10px 0 8px">
+        <div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.2);padding:0 10px 6px">Vela Intelligence</div>
+        <button class="nav-item ${scr==='intelligence'?'active':''}" onclick="go('intelligence');${closeSidebar}">
+          <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Analys & insikter
+        </button>
+        <button class="nav-item" onclick="toggleVelaAsk();${closeSidebar}">
+          <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Vela Ask
+        </button>
+      </div>`;
   }
 
   // -- SIDEBAR FOOTER ---------------------------------------------------------
@@ -2786,12 +3081,13 @@ function rTopbar() {
   // -- MOBILE TOPBAR -- = left | logo center | inbox right ---------------------
   const tb = document.getElementById('mobile-topbar');
   if (tb) {
-    const isRoot = scr === 'dashboard' || scr === 'list';
+    const isRoot = scr === 'dashboard' || scr === 'list' || scr === 'intelligence';
     const backLabels = {
       meeting:'<- Kundkort', soap:'<- Kundkort', manualsoap:'<- Kundkort',
       'sbs-soap':'<- Kundkort', doc:'<- Kundkort', form:'<- Kundkort',
       editex:'<- Plan', editpat:'<- Kundkort', journaldoc:'<- Kundkort',
-      patjournal:'<- Kundkort', detail:'<- Patienter', list:'<- Hem'
+      patjournal:'<- Kundkort', detail:'<- Patienter', list:'<- Hem',
+      intelligence:'<- Hem'
     };
     const unread = getUnreadCount();
     const leftBtn = isRoot
@@ -3667,7 +3963,7 @@ function rDetail(){
     setTimeout(() => generateBriefing(p), 80);
   }
 
-  document.getElementById("s-detail").innerHTML=`<div class="cx"><div class="det-layout"><div class="det-main">${h}</div>${asideHtml}</div></div>`;
+  document.getElementById("s-detail").innerHTML=`<div class="cx" style="max-width:1100px"><div class="det-layout"><div class="det-main">${h}</div>${asideHtml}</div></div>`;
 }
 function renderOnboardingGuide(p, steps, nextStep) {
   const firstName = e(p.name?.split(' ')[0] || 'patienten');
@@ -3702,10 +3998,17 @@ function renderOnboardingGuide(p, steps, nextStep) {
     ? '<button onclick="' + nextStep.action + '" class="btn btn-p" style="margin-top:12px;font-size:12px;padding:7px 16px">Nästa steg: ' + e(nextStep.label) + ' &rarr;</button>'
     : '';
 
-  return '<div style="background:rgba(13,155,138,.04);border:1px solid rgba(13,155,138,.15);border-radius:10px;padding:14px 18px;margin-bottom:16px">' +
-    '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:10px">Kom igång med ' + firstName + '</div>' +
-    '<div style="display:flex;gap:0;align-items:stretch">' + stepsHTML + '</div>' +
-    nextBtn +
+  // Only show if incomplete, and only show the NEXT step — not a full progress bar
+  if (!nextStep) return '';
+  return '<div style="background:var(--surface2,#f4f6fb);border:1px solid var(--border,#dde1ef);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">' +
+    '<div style="width:28px;height:28px;border-radius:50%;background:rgba(13,155,138,.12);border:1.5px solid rgba(13,155,138,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
+    '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#0d9b8a)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>' +
+    '</div>' +
+    '<div style="flex:1;min-width:0">' +
+    '<div style="font-size:11px;color:var(--muted,#8892a4)">Nästa steg</div>' +
+    '<div style="font-size:13px;font-weight:600;color:var(--navy,#0f2744)">' + e(nextStep.label) + '</div>' +
+    '</div>' +
+    (nextStep.action ? '<button onclick="' + nextStep.action + '" style="background:var(--navy,#0f2744);color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font,sans-serif);flex-shrink:0">Gör det →</button>' : '') +
     '</div>';
 }
 
@@ -10958,130 +11261,73 @@ function analyzeClinicInsights(patients) {
 
 function renderClinicStats(patients) {
   if (!patients.length) return '';
-
   const now = Date.now();
   const DAY = 86400000;
   const WEEK = 7 * DAY;
-
-  // ── Beräkna klinikstatistik ────────────────────────────────────────────────
-  const active     = patients.filter(p => (p.visits||[])[0]?.status === 'Aktiv').length;
-  const withPlan   = patients.filter(p => (p.visits||[]).some(v => v.plan)).length;
-  const completed  = patients.filter(p => (p.visits||[])[0]?.status === 'Avslutad').length;
-
-  // Genomsnitts-NRS för aktiva
-  const nrsVals = [];
-  patients.forEach(p => {
-    const logs = (p.symptomLogs||[]).filter(l => l.nrs != null);
-    if (logs.length) nrsVals.push(logs[logs.length-1].nrs);
-    else if ((p.visits||[])[0]?.form?.pain != null) nrsVals.push((p.visits||[])[0].form.pain);
-  });
-  const avgNRS = nrsVals.length ? (nrsVals.reduce((a,b)=>a+b,0)/nrsVals.length).toFixed(1) : null;
-
-  // NRS-förbättring: patienter med minst 2 mätningar där sista < första
-  let improved = 0, worsened = 0;
-  patients.forEach(p => {
-    const logs = (p.symptomLogs||[]).filter(l=>l.nrs!=null).sort((a,b)=>(a.date||'')<(b.date||'')?-1:1);
-    const firstNRS = logs[0]?.nrs ?? (p.visits||[])[0]?.form?.pain;
-    const lastNRS  = logs[logs.length-1]?.nrs ?? firstNRS;
-    if (firstNRS != null && lastNRS != null && logs.length >= 2) {
-      if (lastNRS < firstNRS - 0.5) improved++;
-      else if (lastNRS > firstNRS + 0.5) worsened++;
-    }
-  });
-
-  // Aktiva patienter som tränat senaste 7 dagarna
-  const activeTraining = patients.filter(p => {
-    const last = (p.sessionLogs||[]).sort((a,b)=>(b.date||'')>(a.date||'')?1:-1)[0];
-    return last && (now - new Date(last.date).getTime()) < WEEK;
-  }).length;
-
-  // Denna månads intäkter vs förra månaden
-  const thisMonth = new Date().getMonth();
-  const thisYear  = new Date().getFullYear();
-  const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
-  const lastYear  = thisMonth === 0 ? thisYear - 1 : thisYear;
-  let revThis = 0, revLast = 0;
+  const active = patients.filter(p => (p.visits||[])[0]?.status === 'Aktiv').length;
+  const thisWeekStart = now - (new Date().getDay()||7)*DAY;
+  const lastWeekStart = thisWeekStart - 7*DAY;
+  const weekRevenue = {}; let totalRev = 0;
   patients.forEach(p => (p.visits||[]).forEach(v => {
-    if (!v.servicePrice || !v.date) return;
-    const d = new Date(v.date);
-    if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) revThis += v.servicePrice;
-    if (d.getMonth() === lastMonth && d.getFullYear() === lastYear) revLast += v.servicePrice;
+    const d = new Date(v.date||'').getTime(); if (!d) return;
+    const amt = v.servicePrice || 0;
+    totalRev += amt;
+    if (d >= thisWeekStart) weekRevenue.this = (weekRevenue.this||0) + amt;
+    else if (d >= lastWeekStart) weekRevenue.last = (weekRevenue.last||0) + amt;
   }));
-  const revDelta = revLast > 0 ? Math.round(((revThis - revLast) / revLast) * 100) : null;
+  const avgRev = patients.length > 0 ? Math.round(totalRev / patients.length) : 0;
+  const withPlan = patients.filter(p => (p.visits||[]).some(v => v.plan)).length;
+  const inactive7 = patients.filter(p => {
+    const sl = (p.sessionLogs||[]).sort((a,b)=>b.date>a.date?1:-1)[0];
+    return !sl || (now - new Date(sl.date||0)) > 7*DAY;
+  }).length;
+  const weekDelta = weekRevenue.last > 0
+    ? Math.round(((weekRevenue.this||0)-(weekRevenue.last||0))/(weekRevenue.last)*100) : null;
 
-  // Vanligaste diagnoskategorier
-  const diagCount = {};
-  patients.forEach(p => {
-    const diag = (p.diagnosis||'Okänd').split('(')[0].split(',')[0].trim().slice(0, 30);
-    diagCount[diag] = (diagCount[diag]||0) + 1;
-  });
-  const topDiags = Object.entries(diagCount).sort((a,b)=>b[1]-a[1]).slice(0, 5);
-  const maxD = topDiags[0]?.[1] || 1;
-
-  // ── Render ─────────────────────────────────────────────────────────────────
-  const statCard = (value, label, sub='', color='var(--ink)') =>
-    `<div style="background:var(--surface,#fff);border:1px solid var(--border,#dde1ef);border-radius:10px;padding:14px 16px;flex:1;min-width:100px">
-      <div style="font-family:var(--font-mono,'DM Mono',monospace);font-size:24px;font-weight:700;color:${color};line-height:1">${value}</div>
-      <div style="font-size:11px;color:var(--muted,#8892a4);margin-top:5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">${label}</div>
-      ${sub ? `<div style="font-size:11px;color:var(--muted,#8892a4);margin-top:3px">${sub}</div>` : ''}
-    </div>`;
-
-  const diagBars = topDiags.map(([d,c]) =>
-    `<div style="display:flex;align-items:center;gap:10px;padding:5px 0;border-bottom:1px solid var(--border,#dde1ef)">
-      <div style="flex:1;min-width:0;font-size:12px;color:var(--ink,#0c0f18);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e(d)}</div>
-      <div style="width:80px;height:4px;background:var(--surface3,#eef0f7);border-radius:2px;flex-shrink:0">
-        <div style="width:${Math.round((c/maxD)*100)}%;height:100%;background:var(--accent,#0d9b8a);border-radius:2px"></div>
-      </div>
-      <div style="font-size:11px;color:var(--muted,#8892a4);font-family:var(--font-mono,'DM Mono',monospace);flex-shrink:0;min-width:18px;text-align:right">${c}</div>
-    </div>`
-  ).join('');
-
-  return `<div style="margin-bottom:20px">
-    <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted,#8892a4);margin-bottom:12px">Klinikstatistik</div>
-
-    <!-- KPI row -->
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
-      ${statCard(active, 'Aktiva', withPlan + ' med plan')}
-      ${avgNRS != null ? statCard(avgNRS, 'Snitt NRS', improved + ' förbättrade · ' + worsened + ' försämrade',
-          parseFloat(avgNRS) >= 6 ? 'var(--red,#e53935)' : parseFloat(avgNRS) >= 4 ? 'var(--amber,#e8960a)' : 'var(--green,#0aab7c)') : ''}
-      ${statCard(activeTraining, 'Tränade i veckan', 'av ' + active + ' aktiva',
-          activeTraining >= active * 0.7 ? 'var(--green,#0aab7c)' : activeTraining < active * 0.4 ? 'var(--red,#e53935)' : 'var(--ink,#0c0f18)')}
-      ${revThis > 0 ? statCard(
-          revThis.toLocaleString('sv-SE') + ' kr',
-          'Intäkter ' + new Date().toLocaleDateString('sv-SE',{month:'short'}),
-          revDelta != null ? (revDelta >= 0 ? '↑ ' + revDelta + '% vs förra mån' : '↓ ' + Math.abs(revDelta) + '% vs förra mån') : '',
-          revDelta != null && revDelta >= 0 ? 'var(--green,#0aab7c)' : 'var(--ink,#0c0f18)'
-        ) : ''}
+  return \`<div class="clinic-stats-grid">
+    <div class="cstat">
+      <div class="cstat-val">\${active}</div>
+      <div class="cstat-lbl">Aktiva patienter</div>
     </div>
-
-    <!-- Diagnos-fördelning -->
-    ${topDiags.length >= 2 ? `<div style="background:var(--surface,#fff);border:1px solid var(--border,#dde1ef);border-radius:10px;padding:14px 16px">
-      <div style="font-size:11px;font-weight:700;color:var(--muted,#8892a4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Diagnoser</div>
-      ${diagBars}
-    </div>` : ''}
-  </div>`;
+    <div class="cstat">
+      <div class="cstat-val">\${weekRevenue.this ? weekRevenue.this.toLocaleString('sv-SE')+' kr' : '--'}</div>
+      <div class="cstat-lbl">Intäkt denna vecka\${weekDelta !== null ? \` <span style="font-size:10px;color:\${weekDelta>=0?'#1a7a4a':'var(--red,#c05050)'}">\${weekDelta>=0?'+':''}\${weekDelta}%</span>\` : ''}</div>
+    </div>
+    <div class="cstat">
+      <div class="cstat-val">\${withPlan}</div>
+      <div class="cstat-lbl">Med Hael-plan</div>
+    </div>
+    <div class="cstat" style="\${inactive7 > 0 ? 'border-color:rgba(200,160,48,.3)' : ''}">
+      <div class="cstat-val" style="\${inactive7 > 0 ? 'color:var(--gold,#c8a030)' : ''}">\${inactive7}</div>
+      <div class="cstat-lbl">Inaktiva >7 dagar</div>
+    </div>
+  </div>\`;
 }
 
 function renderClinicInsightsHTML(patients) {
   const insights = analyzeClinicInsights(patients);
   if (!insights.length) return '';
   const maxScore = insights[0]?.score || 1;
-  return `<div class="insights-panel">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="font-size:12px;font-weight:700;color:var(--navy)">Klinikens mest använda övningar</div>
-      <div style="font-size:10px;color:var(--text3)">${patients.length} patienter · egna data</div>
+  return `<div class="cc-panel" style="margin-top:16px">
+    <div class="cc-panel-hdr">
+      <div class="cc-panel-title">Mest effektiva övningar</div>
+      <div style="font-size:11px;color:var(--muted,#8892a4)">baserat på smärtförbättring</div>
     </div>
-    ${insights.map(ex => `
-      <div class="insights-ex-row">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e(ex.name)}</div>
-          <div style="margin-top:4px;height:4px;background:#eef0f3;border-radius:2px"><div class="insights-bar" style="width:${Math.round((ex.score/maxScore)*100)}%"></div></div>
-        </div>
-        <div style="text-align:right;flex-shrink:0;margin-left:10px">
-          <div style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text3)">${ex.count}×</div>
-          ${ex.improved ? `<div style="font-size:9px;color:#1a7a4a;font-weight:600">${ex.improved} förbättr.</div>` : ''}
-        </div>
-      </div>`).join('')}
+    <div style="padding:8px 16px 14px">
+      ${insights.map(ins => `
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border2,#eef0f5)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;color:var(--navy,#0f2744);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e(ins.name)}</div>
+            <div style="height:4px;background:var(--border,#dde1ef);border-radius:2px;margin-top:4px;overflow:hidden">
+              <div style="height:100%;background:var(--teal,#0d9b8a);border-radius:2px;width:${Math.round(ins.score/maxScore*100)}%"></div>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:11px;font-family:var(--font-mono,'JetBrains Mono',monospace);color:var(--muted,#8892a4)">${ins.count}×</div>
+            ${ins.improved > 0 ? `<div style="font-size:10px;color:var(--teal,#0d9b8a)">↑${ins.improved} förbättr.</div>` : ''}
+          </div>
+        </div>`).join('')}
+    </div>
   </div>`;
 }
 
@@ -11920,14 +12166,14 @@ Ge kliniskt välgrundade svar. Var konkret och direkt. Referera gärna till spec
   ov.innerHTML = `
   <div class="consult-sheet" onclick="event.stopPropagation()">
     <div class="consult-header">
-      <div style="width:32px;height:32px;background:var(--teal3);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <div style="width:8px;height:8px;background:var(--teal)"></div>
-          </div>
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:600;color:var(--navy)">AI-konsultation</div>
-        <div style="font-size:11px;color:var(--text3)">${e(pat.name)} · ${e(pat.diagnosis||'')}</div>
+      <div style="width:36px;height:36px;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#0d9b8a)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       </div>
-      <button onclick="document.getElementById('consult-overlay').remove()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);padding:4px">×</button>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700;color:var(--navy,#0f2744)">AI-konsultation</div>
+        <div style="font-size:11px;color:var(--muted,#8892a4)">${e(pat.name)} · ${e(pat.diagnosis||'')}</div>
+      </div>
+      <button onclick="document.getElementById('consult-overlay').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted,#8892a4);line-height:1;padding:4px">×</button>
     </div>
     <div class="consult-messages" id="consult-msgs">
       <div class="consult-bubble ai">Hej! Jag har läst journalen för ${e(pat.name)}. Vad vill du diskutera?</div>
@@ -12555,6 +12801,218 @@ Om frågan rör en specifik patient du kan se i listan ovan — namnge dem.`;
   } catch(err) {
     const el = document.getElementById(typingId);
     if (el) el.textContent = 'Fel — kontrollera anslutning och API-nyckel.';
+  }
+}
+
+
+
+// ── VELA INTELLIGENCE SCREEN ───────────────────────────────
+function rIntelligence() {
+  const now = new Date();
+  const total = S.patients.length;
+  const active = S.patients.filter(p => (p.visits||[])[0]?.status === 'Aktiv').length;
+  const withPlan = S.patients.filter(p => (p.visits||[]).some(v => v.plan)).length;
+  const urgent = S.patients.filter(p => _clinPriority(p).level >= 3).length;
+
+  // Revenue calculations
+  const thisMonth = now.getMonth(); const thisYear = now.getFullYear();
+  let monthRev = 0, yearRev = 0, lastMonthRev = 0;
+  const weeklyRev = Array(8).fill(0);
+  S.patients.forEach(p => (p.visits||[]).forEach(v => {
+    const d = new Date(v.date||''); if (isNaN(d)) return;
+    const amt = v.servicePrice || 0;
+    if (d.getFullYear() === thisYear) yearRev += amt;
+    if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) monthRev += amt;
+    if (d.getMonth() === (thisMonth-1+12)%12) lastMonthRev += amt;
+    const weeksAgo = Math.floor((now - d) / (7*86400000));
+    if (weeksAgo >= 0 && weeksAgo < 8) weeklyRev[7-weeksAgo] += amt;
+  }));
+  const revDelta = lastMonthRev > 0 ? Math.round(((monthRev-lastMonthRev)/lastMonthRev)*100) : null;
+
+  // Diagnosis distribution
+  const diagCount = {};
+  S.patients.forEach(p => { const d = p.diagnosis||'Okänd'; diagCount[d]=(diagCount[d]||0)+1; });
+  const topDiags = Object.entries(diagCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+  // Inline sparkline SVG
+  function sparkline(data, color) {
+    if (!data.length) return '';
+    const max = Math.max(...data, 1);
+    const W = 200, H = 48, pad = 4;
+    const pts = data.map((v,i) => {
+      const x = pad + (i/(data.length-1))*(W-pad*2);
+      const y = (H-pad) - ((v/max)*(H-pad*2));
+      return `${x},${y}`;
+    }).join(' ');
+    const fillPts = `${pad},${H-pad} ${pts} ${W-pad},${H-pad}`;
+    return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:48px;display:block">
+      <polyline points="${fillPts}" fill="${color}22" stroke="none"/>
+      <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="${W-pad}" cy="${(H-pad)-((data[data.length-1]/max)*(H-pad*2))}" r="3" fill="${color}"/>
+    </svg>`;
+  }
+
+  // Inactivity rate
+  const inactiveCount = S.patients.filter(p => {
+    const last = (p.sessionLogs||[]).sort((a,b)=>b.date>a.date?1:-1)[0];
+    return !last || (now - new Date(last.date||0)) > 7*86400000;
+  }).length;
+  const followRate = total > 0 ? Math.round((total-inactiveCount)/total*100) : 0;
+
+  // Diag bars
+  const maxD = topDiags[0]?.[1] || 1;
+  const diagHtml = topDiags.map(([d,c]) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border2,#eef0f5)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;color:var(--navy,#0f2744);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e(d)}</div>
+        <div style="height:4px;background:var(--border,#dde1ef);border-radius:2px;margin-top:4px;overflow:hidden">
+          <div style="height:100%;background:var(--teal,#0d9b8a);border-radius:2px;width:${Math.round(c/maxD*100)}%;transition:width .5s"></div>
+        </div>
+      </div>
+      <div style="font-size:11px;font-family:var(--font-mono,'JetBrains Mono',monospace);color:var(--muted,#8892a4);flex-shrink:0">${c}</div>
+    </div>`).join('');
+
+  document.getElementById('s-intelligence').innerHTML = `
+  <div class="intel-wrap">
+
+    <div class="intel-header">
+      <div>
+        <div class="intel-title">Vela Intelligence</div>
+        <div class="intel-sub">AI-driven analys · ${now.toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'})}</div>
+      </div>
+      <button onclick="generateIntelligenceBriefing()" style="background:var(--navy,#0f2744);color:white;border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font,sans-serif);display:flex;align-items:center;gap:8px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Generera analys
+      </button>
+    </div>
+
+    <!-- Vela Ask row -->
+    <div class="intel-ask-row">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3dcfbd" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <input class="intel-ask-input" id="intel-ask-inp" placeholder='Fråga Vela Ask: "Vilka patienter riskerar avhopp?" eller "Analysera min intäktsutveckling"...'
+        onkeydown="if(event.key==='Enter'){sendVelaAsk(document.getElementById('intel-ask-inp').value);document.getElementById('intel-ask-inp').value='';toggleVelaAsk();}">
+      <button class="intel-ask-btn" onclick="sendVelaAsk(document.getElementById('intel-ask-inp').value);document.getElementById('intel-ask-inp').value='';toggleVelaAsk()">
+        Fråga →
+      </button>
+    </div>
+
+    <!-- KPI grid -->
+    <div class="intel-grid">
+
+      <div class="intel-card intel-card-dark">
+        <div class="intel-card-label">Intäkter denna månad</div>
+        <div class="intel-metric">${monthRev > 0 ? monthRev.toLocaleString('sv-SE') + ' kr' : '--'}</div>
+        ${revDelta !== null ? `<div class="intel-trend ${revDelta>=0?'up':'dn'}">${revDelta>=0?'↑':'↓'} ${Math.abs(revDelta)}% vs förra mån</div>` : ''}
+        <div class="intel-chart">${sparkline(weeklyRev, '#3dcfbd')}</div>
+      </div>
+
+      <div class="intel-card">
+        <div class="intel-card-label">Årsintäkt ${thisYear}</div>
+        <div class="intel-metric">${yearRev > 0 ? (yearRev/1000).toFixed(0) + 'k kr' : '--'}</div>
+        <div class="intel-metric-sub">${total} patienter totalt</div>
+        <div style="margin-top:12px;display:flex;gap:12px">
+          <div>
+            <div style="font-size:11px;color:var(--muted,#8892a4)">Aktiva</div>
+            <div style="font-size:18px;font-weight:700;color:var(--navy,#0f2744)">${active}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted,#8892a4)">Med plan</div>
+            <div style="font-size:18px;font-weight:700;color:var(--teal,#0d9b8a)">${withPlan}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--muted,#8892a4)">Kräver åtgärd</div>
+            <div style="font-size:18px;font-weight:700;color:${urgent>0?'var(--red,#c05050)':'var(--navy,#0f2744)'}">${urgent}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="intel-card">
+        <div class="intel-card-label">Följsamhetsindex</div>
+        <div class="intel-metric">${followRate}%</div>
+        <div class="intel-metric-sub">av aktiva patienter tränar regelbundet</div>
+        <div style="margin-top:14px;height:6px;background:var(--border,#dde1ef);border-radius:3px;overflow:hidden">
+          <div style="height:100%;background:${followRate>=70?'var(--teal,#0d9b8a)':followRate>=40?'var(--gold,#c8a030)':'var(--red,#c05050)'};border-radius:3px;width:${followRate}%;transition:width .6s ease"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Two-col: diagnoses + AI insights -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+
+      <div class="intel-card">
+        <div class="intel-card-label">Diagnosfördelning</div>
+        <div style="margin-top:4px">${diagHtml || '<div style="font-size:13px;color:var(--muted,#8892a4);padding:12px 0">Ingen data ännu</div>'}</div>
+      </div>
+
+      <div class="intel-card">
+        <div class="intel-card-label">AI-insikter</div>
+        <div id="intel-insights-body" style="margin-top:4px">
+          <div style="font-size:13px;color:var(--muted,#8892a4);padding:12px 0;font-style:italic">Klicka "Generera analys" för att hämta AI-insikter om din klinik.</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>`;
+}
+
+async function generateIntelligenceBriefing() {
+  const key = getKey();
+  const el = document.getElementById('intel-insights-body');
+  if (!el) return;
+  if (!key) { el.innerHTML = '<div style="font-size:13px;color:var(--red,#c05050)">API-nyckel saknas.</div>'; return; }
+
+  el.innerHTML = '<div style="font-size:13px;color:var(--muted,#8892a4);padding:12px 0;font-style:italic">Analyserar klinikdata...</div>';
+
+  const now = new Date();
+  const thisMonth = now.getMonth();
+  let monthRev = 0;
+  S.patients.forEach(p => (p.visits||[]).forEach(v => {
+    const d = new Date(v.date||''); if (isNaN(d)) return;
+    if (d.getMonth()===thisMonth) monthRev += (v.servicePrice||0);
+  }));
+  const urgent = S.patients.filter(p => _clinPriority(p).level >= 3);
+  const inactive = S.patients.filter(p => {
+    const last = (p.sessionLogs||[]).sort((a,b)=>b.date>a.date?1:-1)[0];
+    return !last || (now-new Date(last.date||0)) > 7*86400000;
+  });
+  const diagCount = {};
+  S.patients.forEach(p => { const d = p.diagnosis||'Okänd'; diagCount[d]=(diagCount[d]||0)+1; });
+  const topDiag = Object.entries(diagCount).sort((a,b)=>b[1]-a[1])[0];
+
+  const prompt = `Du är en AI-analytiker för en klinik. Analysera datan och ge 4 konkreta insikter. Varje insikt ska ha: rubrik, analys (1-2 meningar), och en specifik rekommendation. Svara ENBART med JSON utan backticks:
+[{"title":"rubrik","body":"analys","action":"rekommendation","level":"info|warning|success"}]
+
+Klinikdata:
+- Totalt patienter: ${S.patients.length}, Aktiva: ${S.patients.filter(p=>(p.visits||[])[0]?.status==='Aktiv').length}
+- Månadsintäkt: ${monthRev.toLocaleString('sv-SE')} kr
+- Kräver åtgärd: ${urgent.length} patienter (${urgent.slice(0,3).map(p=>p.name).join(', ')})
+- Inaktiva >7 dagar: ${inactive.length}
+- Vanligaste diagnos: ${topDiag?topDiag[0]+' ('+topDiag[1]+' pat)':'okänd'}
+- Patienter utan Hael-plan: ${S.patients.filter(p=>!(p.visits||[]).some(v=>v.plan)).length}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:MODEL_HAIKU, max_tokens:600, messages:[{role:'user',content:prompt}]})
+    });
+    const data = await res.json();
+    const raw = (data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+    const insights = JSON.parse(raw);
+    const dotColors = {success:'var(--teal,#0d9b8a)',warning:'var(--gold,#c8a030)',info:'var(--navy,#0f2744)'};
+    el.innerHTML = insights.map(ins => `
+      <div class="intel-insight">
+        <div class="intel-insight-dot" style="background:${dotColors[ins.level]||dotColors.info}"></div>
+        <div>
+          <div class="intel-insight-title">${e(ins.title)}</div>
+          <div class="intel-insight-body">${e(ins.body)}</div>
+          ${ins.action ? `<div style="font-size:11px;color:var(--teal,#0d9b8a);font-weight:600;margin-top:4px">→ ${e(ins.action)}</div>` : ''}
+        </div>
+      </div>`).join('');
+  } catch(err) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--red,#c05050)">Analys misslyckades — kontrollera API-nyckel.</div>';
   }
 }
 

@@ -12,6 +12,49 @@
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230d9b8a'/><text x='96' y='130' font-size='100' text-anchor='middle' fill='white' font-family='Georgia,serif' font-weight='300'>H</text></svg>">
 <title>Hael</title>
 </head><body>
+<!-- Mobile sidebar overlay -->
+<div id="sb-overlay" onclick="togSidebar()" style="display:none;position:fixed;inset:0;z-index:149;background:rgba(0,0,0,.45);backdrop-filter:blur(2px)"></div>
+<div class="topbar" id="mobile-topbar"></div>
+
+<div class="app-shell">
+  <nav class="nav-sidebar" id="nav-sidebar">
+    <div class="nav-logo"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20105%2018.81%22%3E%3Cstyle%3E.zw%7Bfill%3A%23fff%3Bfill-rule%3Aevenodd%7D%3C/style%3E%3Cpolygon%20class%3D%22zw%22%20points%3D%2214.47%203.62%2014.47%200%20.23%200%20.23%204.09%208.53%204.09%200%2015.03%200%2018.81%2014.49%2018.81%2014.49%2014.73%205.82%2014.73%2014.47%203.62%22/%3E%3Cpolygon%20class%3D%22zw%22%20points%3D%2227.32%2011%2035.81%2011%2035.81%206.96%2027.32%206.96%2027.32%204.09%2036.57%204.09%2036.57%200%2022.86%200%2022.86%206.96%2019.75%206.96%2019.75%2010.96%2022.86%2010.96%2022.86%2018.81%2036.99%2018.81%2036.99%2014.67%2027.32%2014.67%2027.32%2011%22/%3E%3Cpolygon%20class%3D%22zw%22%20points%3D%2255.72%2011.2%2049.48%200%2044.94%200%2044.94%2018.81%2049.24%2018.81%2049.24%207.38%2055.66%2018.81%2060.02%2018.81%2060.02%200%2055.72%200%2055.72%2011.2%22/%3E%3Cpolygon%20class%3D%22zw%22%20points%3D%2275.52%207.16%2072.19%200%2066.84%200%2073.19%2011.74%2073.19%2018.81%2077.74%2018.81%2077.74%2011.74%2083.89%200%2078.71%200%2075.52%207.16%22/%3E%3Cpath%20class%3D%22zw%22%20d%3D%22M94.45%2C11.13l1.62-5.07%2C1.57%2C5.07h-3.19ZM98.5%2C0h-4.76l-6.55%2C18.81h4.78l1.21-3.68h5.78l1.13%2C3.68h4.93L98.5%2C0Z%22/%3E%3C/svg%3E" class="nav-logo-img"></div>
+    <div class="nav-section" id="nav-links"></div>
+    <div class="nav-footer" id="nav-footer"></div>
+  </nav>
+  <div class="main-content">
+    <div id="s-dashboard" class="screen"></div>
+    <div id="s-list" class="screen"></div>
+    <div id="s-detail" class="screen"></div>
+    <div id="s-form" class="screen"></div>
+    <div id="s-editex" class="screen"></div>
+    <div id="s-loading" class="screen"></div>
+    <div id="s-login" class="screen active"></div>
+    <div id="s-public-plan" class="screen"></div>
+    <div id="s-doc" class="screen"></div>
+    <div id="s-settings" class="screen"></div>
+    <div id="s-meeting" class="screen"></div>
+    <div id="s-soap" class="screen"></div>
+    <div id="s-editpat" class="screen"></div>
+    <div id="s-journaldoc" class="screen"></div>
+    <div id="s-manualsoap" class="screen"></div>
+    <div id="s-sbs-soap" class="screen"></div>
+    <div id="s-patjournal" class="screen"></div>
+  </div>
+</div>
+
+<div id="autosave-toast" style="display:none;position:fixed;bottom:16px;right:16px;background:var(--navy);color:white;padding:8px 16px;border-radius:6px;font-size:11px;z-index:998;opacity:0;transition:opacity .3s">Autosparad</div>
+<div class="modal-ov" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="mtitle"></div>
+    <div class="modal-text" id="mtext"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Avbryt</button>
+      <button class="btn btn-d" id="mconfirm">Radera</button>
+    </div>
+  </div>
+</div>
+
 <div id="r" style="display:none"></div>
 <script>
 // Register service worker for PWA
@@ -8123,7 +8166,7 @@ async function saveIntakeResponse(patId, visitId, answers) {
   } catch {}
 }
 
-// -- GENERERA PLAN FRÅN INTAKE (ingen manuell inmatning) ----------------------
+// -- GENERERA PLAN FRÅN INTAKE -----------------------------------------------
 async function generatePlanFromIntake(patId, intakeTs) {
   const key = getKey(); if (!key) return;
   const p = S.patients.find(x => x.id === patId) || S.pat;
@@ -8136,21 +8179,21 @@ async function generatePlanFromIntake(patId, intakeTs) {
   const exerciseCount = Math.max(3, Math.min(8, Math.round((timeMap[a.timePerSession]||2) * 1.5)));
   const locationMap = { 'home':'hem', 'bands':'hem', 'gym':'gym', 'outdoor':'hem' };
 
-  // -- KLINISK KONTEXT: hämta från befintliga besök om de finns ---------------
+  // -- Hämta klinisk kontext om besök finns ----------------------------------
   const existingVisits = (p.visits||[]).filter(v => v.soap || v.plan);
   const latestVisit    = existingVisits[0] || null;
   const hasClinical    = !!latestVisit;
 
-  // Sätt S.pat och S.visitId så att buildPr får tillgång till all klinisk data
+  // Sätt S.pat och S.visitId så buildPr får full klinisk kontext
   const prevPat     = S.pat;
   const prevVisitId = S.visitId;
   S.pat     = p;
   S.visitId = latestVisit?.id || null;
 
-  // Build intake notes
+  // Bygg intake-noteringar
   const intakeNotes = [
     a.currentPain       ? `Smärta vid ifyllnad: NRS ${a.currentPain}/10` : '',
-    a.painLocation      ? `Smärtlokal (patient): ${a.painLocation}` : '',
+    a.painLocation      ? `Smärtlokal: ${a.painLocation}` : '',
     a.painDuration      ? `Duration: ${{ '<1v':'< 1 vecka','1-4v':'1–4 veckor','1-3m':'1–3 mån','3-12m':'3–12 mån','>1y':'> 1 år' }[a.painDuration]||a.painDuration}` : '',
     a.painPattern       ? `Smärtmönster: ${{ 'constant':'Konstant','activity':'Vid rörelse','morning':'Störst på morgonen','evening':'Störst på kvällen','variable':'Varierar' }[a.painPattern]||a.painPattern}` : '',
     a.painAggravates    ? `Förvärras av: ${a.painAggravates}` : '',
@@ -8173,15 +8216,15 @@ async function generatePlanFromIntake(patId, intakeTs) {
     a.feedback          ? `Övrigt från patienten: ${a.feedback}` : '',
   ].filter(Boolean).join('\n');
 
-  // Kombinera med klinisk SOAP om den finns
+  // Kombinera med SOAP om den finns
   const soapNotes = (() => {
     if (!latestVisit?.soap) return '';
     const s = latestVisit.soap;
     const parts = [
-      s.S ? `S (subjektivt): ${s.S}` : '',
-      s.O ? `O (objektivt): ${s.O}` : '',
-      s.A ? `A (bedömning): ${s.A}` : '',
-      s.P ? `P (plan): ${s.P}` : '',
+      s.S ? `S: ${s.S}` : '',
+      s.O ? `O: ${s.O}` : '',
+      s.A ? `A: ${s.A}` : '',
+      s.P ? `P: ${s.P}` : '',
     ].filter(Boolean).join('\n');
     return parts ? `\nKLINISK JOURNAL (${latestVisit.date||'senaste besök'}):\n${parts}` : '';
   })();
@@ -8192,13 +8235,9 @@ async function generatePlanFromIntake(patId, intakeTs) {
     soapNotes,
   ].filter(Boolean).join('\n');
 
-  // NRS: använd intake-värdet om det finns, annars senaste journalvärde
   const painNRS = parseInt(a.currentPain || latestVisit?.form?.pain || '5');
-
-  // Träningsbakgrund: gymtillgång eller motivation som proxy
-  const motInt = parseInt(a.motivation||'6');
-  const hasGym = (a.equipment||'').includes('gym') || a.location === 'gym';
-  const historyGuess = hasGym ? 'regelbunden' : motInt >= 7 ? 'sporadisk' : 'ingen';
+  const motInt  = parseInt(a.motivation || '6');
+  const hasGym  = (a.equipment||'').includes('gym') || a.location === 'gym';
 
   const form = {
     name:       p.name,
@@ -8206,7 +8245,7 @@ async function generatePlanFromIntake(patId, intakeTs) {
     birthYear:  p.birthYear || '',
     diagnosis:  p.diagnosis || (p.diagnoses||[])[0] || latestVisit?.form?.diagnosis || '',
     pain:       painNRS,
-    history:    latestVisit?.form?.history || historyGuess,
+    history:    latestVisit?.form?.history || (hasGym ? 'regelbunden' : motInt >= 7 ? 'sporadisk' : 'ingen'),
     knowledge:  latestVisit?.form?.knowledge || 'låg',
     location:   locationMap[a.location] || latestVisit?.form?.location || 'hem',
     motivation: motInt,
@@ -8215,24 +8254,20 @@ async function generatePlanFromIntake(patId, intakeTs) {
     notes:      clinicalNotes,
   };
 
-  // Spara funktionsmål på patientobjektet
   if (a.goals) p.functionalGoal = a.goals;
-
   intake._planGenerating = true;
   savePat(p);
 
   try {
-    // buildPr hämtar nu S.pat och S.visitId — inkluderar fas, tidigare besök, pass-loggar
     const gen = await callAPI(buildPr(form), [], key);
-    const vid = 'v_intake_' + Date.now();
+    const vid  = 'v_intake_' + Date.now();
     const plan = { ...gen, patientName: p.name, diagnosis: form.diagnosis, form, visitId: vid };
-    const nv = {
-      id:     vid,
-      date:   new Date().toISOString().slice(0,10),
-      form,
-      plan,
+    const nv   = {
+      id: vid,
+      date: new Date().toISOString().slice(0,10),
+      form, plan,
       status: 'Inväntar godkännande',
-      note:   '',
+      note: '',
       _fromIntake: intakeTs,
       _basedOnVisit: latestVisit?.id || null,
     };
@@ -8246,7 +8281,7 @@ async function generatePlanFromIntake(patId, intakeTs) {
     if (S.screen === 'detail') rDetail();
     addInboxItem(patId, fresh.name, 'ai_action', 'plan_pending_approval',
       'Plan redo för godkännande',
-      `AI genererade ${(plan.exercises||[]).length} övningar${hasClinical ? ' (klinisk journal + intake)' : ' (intake)'}.`,
+      `AI genererade ${(plan.exercises||[]).length} övningar${hasClinical ? ' (journal + intake)' : ' (intake)'}.`,
       [{ label:'Granska', style:'primary', fn:`openDetail:${patId}` }]);
   } catch(err) {
     intake._planGenerating    = false;
@@ -8254,64 +8289,10 @@ async function generatePlanFromIntake(patId, intakeTs) {
     savePat(p);
     console.error('generatePlanFromIntake error:', err);
   } finally {
-    // Återställ S.pat och S.visitId
     S.pat     = prevPat;
     S.visitId = prevVisitId;
   }
 }
-
-  const timeMap = {'10':1,'20':2,'30':3,'45':4};
-  const exerciseCount = Math.max(3, Math.min(8, Math.round((timeMap[a.timePerSession]||2) * 1.5)));
-  const locationMap = { 'home':'hem', 'bands':'hem', 'gym':'gym', 'outdoor':'hem' };
-
-  // Build rich clinical notes from all intake fields
-  const clinicalNotes = [
-    a.currentPain     ? `Smärta vid ifyllnad: NRS ${a.currentPain}/10` : '',
-    a.painLocation    ? `Smärtlokal: ${a.painLocation}` : '',
-    a.painDuration    ? `Duration: ${{ '<1v':'Kortare än 1 vecka','1-4v':'1–4 veckor','1-3m':'1–3 månader','3-12m':'3–12 månader','>1y':'Mer än 1 år' }[a.painDuration]||a.painDuration}` : '',
-    a.painPattern     ? `Smärtmönster: ${{ 'constant':'Konstant','activity':'Vid rörelse','morning':'Störst på morgonen','evening':'Störst på kvällen','variable':'Varierar' }[a.painPattern]||a.painPattern}` : '',
-    a.painAggravates  ? `Förvärras av: ${a.painAggravates}` : '',
-    a.painRelieves    ? `Lindras av: ${a.painRelieves}` : '',
-    a.nightPain && a.nightPain !== 'no' ? `Nattsmärta: ${{ 'sometimes':'Ibland','often':'Ofta' }[a.nightPain]||a.nightPain}` : '',
-    a.functionLimit   ? `Funktionsbegränsning: ${a.functionLimit}` : '',
-    a.previousTreatment ? `Tidigare behandling: ${a.previousTreatment}` : '',
-    a.medication      ? `Medicin/behandling: ${a.medication}` : '',
-    a.sleepQuality && a.sleepQuality !== 'good' ? `Sömn: ${{ 'poor':'Dålig','ok':'Okej' }[a.sleepQuality]||a.sleepQuality}` : '',
-    a.stressLevel && a.stressLevel !== 'low' ? `Stress: ${{ 'medium':'Måttlig','high':'Hög' }[a.stressLevel]||a.stressLevel}` : '',
-    a.workSituation   ? `Arbete/vardag: ${a.workSituation}` : '',
-    a.progressSinceLast ? `Progress sedan sist: ${{ 'much_better':'Mycket bättre','better':'Bättre','same':'Oförändrad','worse':'Sämre' }[a.progressSinceLast]||a.progressSinceLast}` : '',
-    a.whatWorked      ? `Vad har fungerat: ${a.whatWorked}` : '',
-    a.whatHasStopped  ? `Ny problematik: ${a.whatHasStopped}` : '',
-    a.equipment && a.equipment !== 'none' ? `Utrustning: ${a.equipment}` : '',
-    a.daysPerWeek     ? `Tränar ${a.daysPerWeek} dagar/vecka` : '',
-    a.timePerSession  ? `${a.timePerSession} min per pass` : '',
-    a.limitations     ? `Begränsningar/kontraindikationer: ${a.limitations}` : '',
-    a.goals           ? `Patientens mål: ${a.goals}` : '',
-    a.feedback        ? `Övrigt från patienten: ${a.feedback}` : '',
-  ].filter(Boolean).join('\n');
-
-  // Estimate pain level: use intake value if available
-  const painNRS = parseInt(a.currentPain || '5');
-
-  // Estimate history from motivation + work situation
-  const motInt = parseInt(a.motivation||'5');
-  const hasGymAccess = (a.equipment||'').includes('gym') || a.location === 'gym';
-  const historyGuess = hasGymAccess ? 'regelbunden' : motInt >= 7 ? 'sporadisk' : 'ingen';
-
-  const form = {
-    name:       p.name,
-    birthdate:  p.birthdate || '',
-    birthYear:  p.birthYear || '',
-    diagnosis:  p.diagnosis || (p.diagnoses||[])[0] || '',
-    pain:       painNRS,
-    history:    historyGuess,
-    knowledge:  'låg',
-    location:   locationMap[a.location] || 'hem',
-    motivation: motInt,
-    exercises:  exerciseCount,
-    followup:   4,
-    notes:      clinicalNotes,
-  };
 
 async function generateIntakeSuggestions(patId, intakeTs) {
   const key = getKey(); if (!key) return;
@@ -11847,6 +11828,7 @@ function printRemiss(patId) {
 // ============================================================================
 
 // -- STARTUP ------------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', function() {
 try {
 const _hashParams = new URLSearchParams(window.location.hash.replace('#',''));
 const _hashPatId = _hashParams.get('plan');
@@ -11897,6 +11879,7 @@ if (_hashIntakeId) {
   diagDiv.textContent = 'STARTUP ERROR:\n' + (startupErr && startupErr.stack ? startupErr.stack : String(startupErr));
   document.body.appendChild(diagDiv);
 }
+}); // DOMContentLoaded
 
 
 document.getElementById('r').textContent = 'Full script OK';

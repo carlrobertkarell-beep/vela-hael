@@ -1693,28 +1693,6 @@ function zpShowLockedFeature(featureId, patId, visitId) {
   document.body.appendChild(ov);
 }
 
-  const sessions = zpGetExSessionHistory(patId, visitId);
-  const total = (plan?.exercises||[]).length;
-  const today = new Date().toISOString().slice(0,10);
-  const todaySession = sessions.find(s => s.date === today);
-  const todayDone = todaySession ? Object.values(todaySession.state).filter(Boolean).length : 0;
-
-  // Days since last session
-  const lastSession = sessions[0];
-  const daysSinceLast = lastSession
-    ? Math.round((Date.now() - new Date(lastSession.date).getTime()) / (1000*60*60*24))
-    : null;
-
-  // Streak -- consecutive days with at least 1 exercise done
-  let streak = 0;
-  const d = new Date();
-  for (let i = 0; i < 30; i++) {
-    const dateStr = new Date(d - i*86400000).toISOString().slice(0,10);
-    const s = sessions.find(x => x.date === dateStr);
-    if (s && s.done > 0) streak++;
-    else if (i > 0) break; // streak broken
-  }
-
 // Subtle upsell shown when stats are locked (free tier)
 function _zpStatsUpsell() { return ''; } // handled by blurred graph now
 

@@ -11263,45 +11263,33 @@ function renderClinicStats(patients) {
   if (!patients.length) return '';
   const now = Date.now();
   const DAY = 86400000;
-  const WEEK = 7 * DAY;
   const active = patients.filter(p => (p.visits||[])[0]?.status === 'Aktiv').length;
   const thisWeekStart = now - (new Date().getDay()||7)*DAY;
   const lastWeekStart = thisWeekStart - 7*DAY;
-  const weekRevenue = {}; let totalRev = 0;
+  let thisWeekRev = 0, lastWeekRev = 0, totalRev = 0;
   patients.forEach(p => (p.visits||[]).forEach(v => {
     const d = new Date(v.date||'').getTime(); if (!d) return;
     const amt = v.servicePrice || 0;
     totalRev += amt;
-    if (d >= thisWeekStart) weekRevenue.this = (weekRevenue.this||0) + amt;
-    else if (d >= lastWeekStart) weekRevenue.last = (weekRevenue.last||0) + amt;
+    if (d >= thisWeekStart) thisWeekRev += amt;
+    else if (d >= lastWeekStart) lastWeekRev += amt;
   }));
-  const avgRev = patients.length > 0 ? Math.round(totalRev / patients.length) : 0;
   const withPlan = patients.filter(p => (p.visits||[]).some(v => v.plan)).length;
   const inactive7 = patients.filter(p => {
-    const sl = (p.sessionLogs||[]).sort((a,b)=>b.date>a.date?1:-1)[0];
+    const sl = (p.sessionLogs||[]).sort((a,b) => b.date > a.date ? 1 : -1)[0];
     return !sl || (now - new Date(sl.date||0)) > 7*DAY;
   }).length;
-  const weekDelta = weekRevenue.last > 0
-    ? Math.round(((weekRevenue.this||0)-(weekRevenue.last||0))/(weekRevenue.last)*100) : null;
+  const weekDelta = lastWeekRev > 0 ? Math.round(((thisWeekRev - lastWeekRev) / lastWeekRev) * 100) : null;
+  const deltaHtml = weekDelta !== null
+    ? ' <span style="font-size:10px;color:' + (weekDelta >= 0 ? '#1a7a4a' : 'var(--red,#c05050)') + '">' + (weekDelta >= 0 ? '+' : '') + weekDelta + '%</span>'
+    : '';
 
-  return \`<div class="clinic-stats-grid">
-    <div class="cstat">
-      <div class="cstat-val">\${active}</div>
-      <div class="cstat-lbl">Aktiva patienter</div>
-    </div>
-    <div class="cstat">
-      <div class="cstat-val">\${weekRevenue.this ? weekRevenue.this.toLocaleString('sv-SE')+' kr' : '--'}</div>
-      <div class="cstat-lbl">Intäkt denna vecka\${weekDelta !== null ? \` <span style="font-size:10px;color:\${weekDelta>=0?'#1a7a4a':'var(--red,#c05050)'}">\${weekDelta>=0?'+':''}\${weekDelta}%</span>\` : ''}</div>
-    </div>
-    <div class="cstat">
-      <div class="cstat-val">\${withPlan}</div>
-      <div class="cstat-lbl">Med Hael-plan</div>
-    </div>
-    <div class="cstat" style="\${inactive7 > 0 ? 'border-color:rgba(200,160,48,.3)' : ''}">
-      <div class="cstat-val" style="\${inactive7 > 0 ? 'color:var(--gold,#c8a030)' : ''}">\${inactive7}</div>
-      <div class="cstat-lbl">Inaktiva >7 dagar</div>
-    </div>
-  </div>\`;
+  return '<div class="clinic-stats-grid">'
+    + '<div class="cstat"><div class="cstat-val">' + active + '</div><div class="cstat-lbl">Aktiva patienter</div></div>'
+    + '<div class="cstat"><div class="cstat-val">' + (thisWeekRev > 0 ? thisWeekRev.toLocaleString('sv-SE') + ' kr' : '--') + '</div><div class="cstat-lbl">Intäkt denna vecka' + deltaHtml + '</div></div>'
+    + '<div class="cstat"><div class="cstat-val">' + withPlan + '</div><div class="cstat-lbl">Med Hael-plan</div></div>'
+    + '<div class="cstat" style="' + (inactive7 > 0 ? 'border-color:rgba(200,160,48,.3)' : '') + '"><div class="cstat-val" style="' + (inactive7 > 0 ? 'color:var(--gold,#c8a030)' : '') + '">' + inactive7 + '</div><div class="cstat-lbl">Inaktiva >7 dagar</div></div>'
+    + '</div>';
 }
 
 function renderClinicInsightsHTML(patients) {

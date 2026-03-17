@@ -3194,185 +3194,266 @@ function rDashboard() {
   const hour = now.getHours();
   const dayName = now.toLocaleDateString('sv-SE',{weekday:'long'});
   const dateStr = now.toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'});
-  const greeting = hour < 5 ? 'Natt' : hour < 12 ? 'God morgon' : hour < 17 ? 'God eftermiddag' : 'God kväll';
+  const greeting = hour < 5 ? 'God natt' : hour < 12 ? 'God morgon' : hour < 17 ? 'God eftermiddag' : 'God kväll';
+  const clinicName = CLINIC.name || (_authUser?.email?.split('@')[0]) || 'Doktorn';
 
-  const total   = S.patients.length;
-  const active  = S.patients.filter(p => (p.visits||[])[0]?.status === 'Aktiv').length;
-  const urgent  = S.patients.filter(p => _clinPriority(p).level >= 3).length;
+  // ── DATA ──────────────────────────────────────────────────
+  const total  = S.patients.length;
+  const active = S.patients.filter(p => (p.visits||[])[0]?.status === 'Aktiv').length;
+  const urgent = S.patients.map(p => ({ p, pr: _clinPriority(p) })).filter(x => x.pr.level >= 3);
+  const needsFollowup = S.patients.map(p => ({ p, pr: _clinPriority(p) })).filter(x => x.pr.level >= 2);
 
-  // Revenue: this month + last month for delta
+  // Revenue
   const thisMonth = now.getMonth(); const thisYear = now.getFullYear();
-  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   let monthRevenue = 0, lastMonthRevenue = 0;
+  const last8weeks = Array(8).fill(0);
   S.patients.forEach(p => (p.visits||[]).forEach(v => {
     const d = new Date(v.date||''); if (isNaN(d)) return;
     const amt = v.servicePrice || 0;
     if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) monthRevenue += amt;
-    if (d.getMonth() === lastMonthDate.getMonth() && d.getFullYear() === lastMonthDate.getFullYear()) lastMonthRevenue += amt;
+    if (d.getMonth() === (thisMonth-1+12)%12 && d.getFullYear() === (thisMonth===0?thisYear-1:thisYear)) lastMonthRevenue += amt;
+    const weeksAgo = Math.floor((now - d) / (7*86400000));
+    if (weeksAgo >= 0 && weeksAgo < 8) last8weeks[7-weeksAgo] += amt;
   }));
-  const revDelta = lastMonthRevenue > 0 ? Math.round(((monthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100) : null;
+  const revDelta = lastMonthRevenue > 0 ? Math.round(((monthRevenue-lastMonthRevenue)/lastMonthRevenue)*100) : null;
 
-  // Overdue follow-ups
+  // Overdue
   const overdue = S.patients.filter(p => {
     const v = (p.visits||[])[0]; if (!v?.date) return false;
-    const fw = v.form?.followup || 4;
-    const due = new Date(v.date); due.setDate(due.getDate() + fw * 7);
+    const due = new Date(v.date); due.setDate(due.getDate() + (v.form?.followup||4)*7);
     return due <= now;
   });
 
-  // Recent patients
-  const recent = [...S.patients].sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,6);
+  // Dropout risk — active patients with no session log in 10+ days
+  const dropoutRisk = S.patients.filter(p => {
+    const v = (p.visits||[])[0]; if (!v?.plan) return false;
+    const logs = getPassLogs(p.id);
+    if (!logs.length) {
+      const daysSinceVisit = Math.floor((now - new Date(v.date||0)) / 86400000);
+      return daysSinceVisit >= 10;
+    }
+    const daysSinceLast = Math.floor((now - new Date(logs[0].ts||0)) / 86400000);
+    return daysSinceLast >= 10;
+  });
+  const dropoutRevRisk = dropoutRisk.length * 1800; // avg 1800 kr per patient
 
-  // Priority patients (need attention)
-  const priorityPats = S.patients
-    .map(p => ({ p, pr: _clinPriority(p) }))
-    .filter(x => x.pr.level >= 2)
-    .sort((a,b) => b.pr.level - a.pr.level)
-    .slice(0, 6);
+  // Adherence
+  const withPlan = S.patients.filter(p => (p.visits||[]).some(v => v.plan)).length;
+  const activeLogs = S.patients.filter(p => {
+    const logs = getPassLogs(p.id);
+    return logs.length > 0 && Math.floor((now - new Date(logs[0].ts||0))/86400000) <= 7;
+  }).length;
+  const adherence = withPlan > 0 ? Math.round(activeLogs/withPlan*100) : 0;
 
-  // KPI HTML
-  const kpiHtml = `
-    <div class="cc-kpi-row">
-      <div class="cc-kpi">
-        <div class="cc-kpi-val">${total}</div>
-        <div class="cc-kpi-lbl">Patienter totalt</div>
-        <div class="cc-kpi-delta" style="color:var(--teal)">${active} aktiva</div>
-        <div class="cc-kpi-accent" style="background:var(--teal)"></div>
-      </div>
-      <div class="cc-kpi">
-        <div class="cc-kpi-val" style="color:${urgent>0?'var(--red)':'var(--navy)'}">${urgent}</div>
-        <div class="cc-kpi-lbl">Kräver åtgärd</div>
-        <div class="cc-kpi-delta" style="color:var(--text3)">${overdue.length} förfallna återbesök</div>
-        <div class="cc-kpi-accent" style="background:${urgent>0?'var(--red)':'var(--navy)'}"></div>
-      </div>
-      <div class="cc-kpi">
-        <div class="cc-kpi-val">${monthRevenue > 0 ? monthRevenue.toLocaleString('sv-SE') + ' kr' : '--'}</div>
-        <div class="cc-kpi-lbl">Intäkter ${now.toLocaleDateString('sv-SE',{month:'long'})}</div>
-        ${revDelta !== null ? `<div class="cc-kpi-delta ${revDelta >= 0 ? 'up' : 'dn'}">${revDelta >= 0 ? '+' : ''}${revDelta}% vs förra mån</div>` : '<div class="cc-kpi-delta" style="color:var(--text3)">Inget jämförelsevärde</div>'}
-        <div class="cc-kpi-accent" style="background:var(--gold)"></div>
-      </div>
-      <div class="cc-kpi">
-        <div class="cc-kpi-val">${S.patients.filter(p=>(p.visits||[]).some(v=>v.plan)).length}</div>
-        <div class="cc-kpi-lbl">Med Hael-plan</div>
-        <div class="cc-kpi-delta" style="color:var(--text3)">${total > 0 ? Math.round(S.patients.filter(p=>(p.visits||[]).some(v=>v.plan)).length/total*100) : 0}% av alla patienter</div>
-        <div class="cc-kpi-accent" style="background:var(--teal)"></div>
-      </div>
-    </div>`;
+  // Conversion: patients with intake → patients with plan
+  const withIntake = S.patients.filter(p => (p.intakeForms||[]).length > 0 || (p.visits||[]).length > 0).length;
+  const conversion = withIntake > 0 ? Math.round(withPlan/withIntake*100) : 0;
 
-  // Priority rows
-  const priorityHtml = priorityPats.length ? priorityPats.map(({p, pr}) => {
-    const initials = (p.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    const dotColor = pr.level >= 3 ? 'var(--red)' : 'var(--gold)';
-    return `<div class="cc-row" onclick="openPat('${p.id}')">
-      <div class="cc-row-av" style="background:${pr.level>=3?'var(--red)':'var(--navy)'}">${initials}</div>
-      <div class="cc-row-main">
-        <div class="cc-row-name">${e(p.name)}</div>
-        <div class="cc-row-sub" style="color:${dotColor};font-weight:600">${e(pr.primary)}</div>
-      </div>
-      <div class="cc-row-meta">
-        <span class="cc-badge ${pr.level>=3?'cc-badge-red':'cc-badge-gold'}">${pr.level>=3?'Akut':'Följ upp'}</span>
-      </div>
-    </div>`;
-  }).join('') : `<div class="cc-empty">Inga patienter kräver omedelbar åtgärd</div>`;
+  // Recent activity
+  const recent = [...S.patients].sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).slice(0,5);
 
-  // Recent rows
+  // AI inbox items split by type
+  const inbox = getInbox();
+  const urgentItems = inbox.filter(x => x.type === 'urgent').slice(0,4);
+  const aiItems     = inbox.filter(x => x.type === 'ai_action').slice(0,3);
+  const goodItems   = inbox.filter(x => x.type === 'info' && x.category === 'plan_progressed').slice(0,2);
+
+  // ── SPARKLINE SVG ──────────────────────────────────────────
+  function spark(data, color, filled) {
+    const max = Math.max(...data, 1);
+    const W = 120, H = 32, pad = 2;
+    const pts = data.map((v,i) => {
+      const x = pad + (i/(data.length-1||1))*(W-pad*2);
+      const y = (H-pad) - ((v/max)*(H-pad*2));
+      return x+','+y;
+    }).join(' ');
+    const fill = filled ? '<polygon points="'+pad+','+(H-pad)+' '+pts+' '+(W-pad)+','+(H-pad)+'" fill="'+color+'22"/>' : '';
+    return '<svg viewBox="0 0 '+W+' '+H+'" style="width:120px;height:32px;display:block">'+fill+'<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+
+  // ── KPI STRIP ─────────────────────────────────────────────
+  const kpiHtml = '<div class="cc-kpi-row">'
+    + '<div class="cc-kpi">'
+    +   '<div class="cc-kpi-val">'+monthRevenue.toLocaleString('sv-SE')+'</div>'
+    +   '<div class="cc-kpi-lbl">Intäkt '+now.toLocaleDateString('sv-SE',{month:'long'})+'</div>'
+    +   (revDelta !== null ? '<div class="cc-kpi-delta '+(revDelta>=0?'up':'dn')+'">'+(revDelta>=0?'↑':'↓')+' '+Math.abs(revDelta)+'% vs förra mån</div>' : '<div class="cc-kpi-delta" style="color:var(--text3)">Inget jämförelsevärde</div>')
+    +   '<div style="margin-top:8px">'+spark(last8weeks,'#0d9b8a',true)+'</div>'
+    + '</div>'
+    + '<div class="cc-kpi">'
+    +   '<div class="cc-kpi-val" style="color:'+(urgent.length>0?'var(--red)':'var(--navy)')+'">'+urgent.length+'</div>'
+    +   '<div class="cc-kpi-lbl">Kräver åtgärd nu</div>'
+    +   '<div class="cc-kpi-delta" style="color:var(--text3)">'+needsFollowup.length+' totalt att följa upp</div>'
+    + '</div>'
+    + '<div class="cc-kpi">'
+    +   '<div class="cc-kpi-val">'+adherence+'%</div>'
+    +   '<div class="cc-kpi-lbl">Följsamhet</div>'
+    +   '<div style="margin-top:8px;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div style="height:100%;background:'+(adherence>=70?'var(--teal)':adherence>=40?'var(--gold)':'var(--red)')+';border-radius:2px;width:'+adherence+'%"></div></div>'
+    + '</div>'
+    + '<div class="cc-kpi" style="'+(dropoutRisk.length>0?'border-color:rgba(200,160,48,.3)':'')+'">'
+    +   '<div class="cc-kpi-val" style="color:'+(dropoutRisk.length>0?'var(--gold)':'var(--navy)')+'">'+dropoutRisk.length+'</div>'
+    +   '<div class="cc-kpi-lbl">Avhoppsrisk</div>'
+    +   (dropoutRisk.length>0 ? '<div class="cc-kpi-delta dn">~'+dropoutRevRisk.toLocaleString('sv-SE')+' kr risk</div>' : '<div class="cc-kpi-delta" style="color:var(--text3)">Inga riskpatienter</div>')
+    + '</div>'
+    + '</div>';
+
+  // ── AUTONOMOUS AI CARDS (🔴🟡🟢) ──────────────────────────
+  function aiCard(dot, title, body, patId, btnLabel) {
+    const colors = { red:'#c05050', gold:'#c8a030', teal:'#0d9b8a' };
+    const bgs = { red:'rgba(192,80,80,.06)', gold:'rgba(200,160,48,.06)', teal:'rgba(13,155,138,.06)' };
+    const borders = { red:'rgba(192,80,80,.2)', gold:'rgba(200,160,48,.2)', teal:'rgba(13,155,138,.2)' };
+    return '<div style="background:'+bgs[dot]+';border:1px solid '+borders[dot]+';border-radius:12px;padding:13px 15px;margin-bottom:8px">'
+      + '<div style="display:flex;align-items:flex-start;gap:10px">'
+      + '<div style="width:8px;height:8px;border-radius:50%;background:'+colors[dot]+';flex-shrink:0;margin-top:4px"></div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:2px">'+title+'</div>'
+      + '<div style="font-size:11px;color:var(--text3);line-height:1.5">'+body+'</div>'
+      + '</div>'
+      + (patId && btnLabel ? '<button onclick="openPat(\''+patId+'\')" style="background:var(--navy);color:white;border:none;border-radius:7px;padding:5px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--font);flex-shrink:0;white-space:nowrap">'+btnLabel+'</button>' : '')
+      + '</div></div>';
+  }
+
+  let aiCardsHtml = '';
+  // 🔴 Urgent items
+  urgentItems.forEach(item => {
+    aiCardsHtml += aiCard('red', item.title, e(item.patName||'') + (item.body?' — '+item.body.slice(0,80):''), item.patId, 'Öppna →');
+  });
+  // 🟡 AI acted
+  aiItems.forEach(item => {
+    aiCardsHtml += aiCard('gold', 'AI agerade: ' + item.title, e(item.patName||'') + (item.body?' — '+item.body.slice(0,80):''), item.patId, 'Se →');
+  });
+  // 🟢 Positive signals
+  goodItems.forEach(item => {
+    aiCardsHtml += aiCard('teal', item.title, e(item.patName||'') + (item.body?' — '+item.body.slice(0,80):''), item.patId, '');
+  });
+  // Dropout risk warnings
+  dropoutRisk.slice(0,2).forEach(p => {
+    const logs = getPassLogs(p.id);
+    const days = logs.length ? Math.floor((now-new Date(logs[0].ts||0))/86400000) : Math.floor((now-new Date((p.visits||[])[0]?.date||0))/86400000);
+    aiCardsHtml += aiCard('gold', 'Avhoppsrisk — '+e(p.name), 'Ingen aktivitet på '+days+' dagar. Skicka en påminnelse nu.', p.id, 'Kontakta →');
+  });
+  if (!aiCardsHtml) {
+    aiCardsHtml = '<div style="padding:20px 0;text-align:center;font-size:12px;color:var(--text3)">🟢 Allt ser bra ut — inga åtgärder krävs just nu</div>';
+  }
+
+  // ── RECENT PATIENTS ────────────────────────────────────────
   const recentHtml = recent.length ? recent.map(p => {
     const initials = (p.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const v = (p.visits||[])[0];
     const d = v?.date ? new Date(v.date).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : '';
-    const svc = v?.service || p.diagnosis || '';
-    return `<div class="cc-row" onclick="openPat('${p.id}')">
-      <div class="cc-row-av">${initials}</div>
-      <div class="cc-row-main">
-        <div class="cc-row-name">${e(p.name)}</div>
-        <div class="cc-row-sub">${e(svc)}</div>
-      </div>
-      <div class="cc-row-meta">
-        ${d ? `<div style="font-size:11px;color:var(--text3)">${d}</div>` : ''}
-        <div style="font-size:10px;color:var(--text3)">${(p.visits||[]).length} besök</div>
-      </div>
-    </div>`;
-  }).join('') : `<div class="cc-empty">Inga patienter ännu</div>`;
+    const pr = _clinPriority(p);
+    const dotColor = pr.level >= 3 ? 'var(--red)' : pr.level >= 2 ? 'var(--gold)' : 'transparent';
+    return '<div class="cc-row" onclick="openPat(\''+p.id+'\')"><div class="cc-row-av">'+initials+'</div>'
+      + '<div class="cc-row-main">'
+      + '<div class="cc-row-name">'+e(p.name)+'</div>'
+      + '<div class="cc-row-sub">'+e(p.diagnosis||v?.service||'')+'</div>'
+      + '</div>'
+      + '<div class="cc-row-meta">'
+      + (pr.level >= 2 ? '<div style="width:7px;height:7px;border-radius:50%;background:'+dotColor+';margin-bottom:4px;margin-left:auto"></div>' : '')
+      + (d ? '<div style="font-size:11px;color:var(--text3)">'+d+'</div>' : '')
+      + '</div></div>';
+  }).join('') : '<div class="cc-empty">Inga patienter ännu</div>';
 
-  // AI inbox feed (from existing inbox)
-  const inboxItems = getInbox().slice(0,5);
-  const feedHtml = inboxItems.length ? inboxItems.map(item => {
-    const dotColor = item.type === 'urgent' ? 'var(--red)' : item.type === 'ai_action' ? 'var(--teal)' : 'var(--border)';
-    const timeStr = formatInboxTime(item.ts);
-    return `<div class="cc-feed-item">
-      <div class="cc-feed-dot" style="background:${dotColor}"></div>
-      <div style="flex:1;min-width:0">
-        <div class="cc-feed-title">${e(item.title)}</div>
-        <div class="cc-feed-sub">${e(item.patName||'')}${item.body ? ' — ' + item.body.slice(0,60) : ''}</div>
-        <div class="cc-feed-time">${timeStr}</div>
-      </div>
-    </div>`;
-  }).join('') : `<div class="cc-empty">Ingen aktivitet ännu</div>`;
+  // ── KLINIKPULS ─────────────────────────────────────────────
+  const diagCount = {};
+  S.patients.forEach(p => { const d = p.diagnosis||'Okänd'; diagCount[d]=(diagCount[d]||0)+1; });
+  const topDiags = Object.entries(diagCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxD = topDiags[0]?.[1]||1;
+  const diagBars = topDiags.map(([d,c]) =>
+    '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border2)">'
+    + '<div style="flex:1;min-width:0"><div style="font-size:11px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e(d)+'</div>'
+    + '<div style="height:3px;background:var(--border);border-radius:2px;margin-top:3px;overflow:hidden"><div style="height:100%;background:var(--teal);width:'+Math.round(c/maxD*100)+'%"></div></div></div>'
+    + '<div style="font-size:11px;font-family:var(--font-mono);color:var(--muted);flex-shrink:0">'+c+'</div></div>'
+  ).join('');
 
-  document.getElementById('s-dashboard').innerHTML = `
-  <div class="cc-wrap">
+  const pulseHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px">'
+    + '<div class="cc-panel">'
+    +   '<div class="cc-panel-hdr"><div class="cc-panel-title">Diagnoser</div></div>'
+    +   '<div style="padding:8px 16px 12px">'+(diagBars||'<div class="cc-empty">Ingen data</div>')+'</div>'
+    + '</div>'
+    + '<div class="cc-panel">'
+    +   '<div class="cc-panel-hdr"><div class="cc-panel-title">Klinikpuls</div></div>'
+    +   '<div style="padding:12px 16px">'
+    +   '<div style="display:flex;justify-content:space-between;margin-bottom:12px">'
+    +   '<div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--navy);font-family:var(--font-mono)">'+conversion+'%</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Konvertering</div></div>'
+    +   '<div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--navy);font-family:var(--font-mono)">'+withPlan+'</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Med plan</div></div>'
+    +   '<div style="text-align:center"><div style="font-size:22px;font-weight:700;color:'+(overdue.length>0?'var(--red)':'var(--navy)')+';font-family:var(--font-mono)">'+overdue.length+'</div><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Förfallna</div></div>'
+    +   '</div>'
+    +   '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Intäkter senaste 8 veckor</div>'
+    +   spark(last8weeks,'#0d9b8a',true)
+    +   '</div>'
+    + '</div>'
+    + '</div>';
 
-    <!-- HEADER -->
-    <div class="cc-header">
-      <div>
-        <div class="cc-greeting">${greeting}, ${e(CLINIC.name || _authUser?.email?.split('@')[0] || 'Doktorn')}</div>
-        <div class="cc-date">${dayName.charAt(0).toUpperCase() + dayName.slice(1)} · ${dateStr}</div>
-      </div>
-      <button class="cc-start-btn" onclick="startVisitFlow()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Starta besök
-      </button>
-    </div>
+  // ── RENDER ─────────────────────────────────────────────────
+  document.getElementById('s-dashboard').innerHTML =
+    '<div class="cc-wrap">'
 
-    <!-- AI BRIEFING -->
-    <div class="cc-briefing" id="cc-briefing-card">
-      <div class="cc-briefing-lbl">Vela Intelligence · Daglig briefing</div>
-      <div class="cc-briefing-text" id="cc-briefing-text" style="color:rgba(255,255,255,.4);font-style:italic">Genererar din morgonbriefing...</div>
-      <button class="cc-briefing-btn" onclick="generateDailyBriefing()" id="cc-briefing-btn" style="display:none">Regenerera</button>
-    </div>
+    // HEADER
+    + '<div class="cc-header">'
+    +   '<div>'
+    +     '<div class="cc-greeting">'+greeting+', '+e(clinicName)+'</div>'
+    +     '<div class="cc-date">'+dayName.charAt(0).toUpperCase()+dayName.slice(1)+' · '+dateStr+'</div>'
+    +   '</div>'
+    +   '<button class="cc-start-btn" onclick="startVisitFlow()">'
+    +     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+    +     ' Starta besök'
+    +   '</button>'
+    + '</div>'
 
-    <!-- KPI STRIP -->
-    ${kpiHtml}
+    // AI BRIEFING
+    + '<div class="cc-briefing" id="cc-briefing-card">'
+    +   '<div class="cc-briefing-lbl">Vela Intelligence · Daglig briefing</div>'
+    +   '<div class="cc-briefing-text" id="cc-briefing-text" style="color:rgba(255,255,255,.35);font-style:italic">Genererar din briefing...</div>'
+    +   '<button class="cc-briefing-btn" onclick="generateDailyBriefing()" id="cc-briefing-btn" style="display:none">Regenerera</button>'
+    + '</div>'
 
-    <!-- MAIN GRID -->
-    <div class="cc-grid">
+    // KPI STRIP
+    + kpiHtml
 
-      <!-- COL 1: Kräver åtgärd -->
-      <div class="cc-panel">
-        <div class="cc-panel-hdr">
-          <div class="cc-panel-title">Kräver åtgärd</div>
-          <button onclick="go('list');_listFilter='needs_attention';rList()" style="background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600">Visa alla →</button>
-        </div>
-        <div class="cc-panel-body">${priorityHtml}</div>
-      </div>
+    // MAIN GRID — 3 columns
+    + '<div class="cc-grid">'
 
-      <!-- COL 2: Senaste aktivitet -->
-      <div class="cc-panel">
-        <div class="cc-panel-hdr">
-          <div class="cc-panel-title">Senaste aktivitet</div>
-          <button onclick="go('list')" style="background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600">Alla patienter →</button>
-        </div>
-        <div class="cc-panel-body">${recentHtml}</div>
-      </div>
+    // Col 1: Autonoma AI-kort
+    +   '<div class="cc-panel">'
+    +     '<div class="cc-panel-hdr">'
+    +       '<div class="cc-panel-title">AI-bevakning</div>'
+    +       '<button onclick="openInbox()" style="background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600">Inkorg →</button>'
+    +     '</div>'
+    +     '<div style="padding:12px">' + aiCardsHtml + '</div>'
+    +   '</div>'
 
-      <!-- COL 3: AI-feed -->
-      <div class="cc-panel cc-col-right">
-        <div class="cc-panel-hdr">
-          <div class="cc-panel-title">Vela Intelligence</div>
-          <button onclick="openInbox()" style="background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600">Inkorg →</button>
-        </div>
-        <div class="cc-panel-body" id="cc-feed-body">${feedHtml}</div>
-      </div>
+    // Col 2: Senaste aktivitet
+    +   '<div class="cc-panel">'
+    +     '<div class="cc-panel-hdr">'
+    +       '<div class="cc-panel-title">Senaste aktivitet</div>'
+    +       '<button onclick="go(\'list\')" style="background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600">Alla patienter →</button>'
+    +     '</div>'
+    +     '<div class="cc-panel-body">' + recentHtml + '</div>'
+    +   '</div>'
 
-    </div>
+    // Col 3: Vela Intelligence feed
+    +   '<div class="cc-panel cc-col-right">'
+    +     '<div class="cc-panel-hdr">'
+    +       '<div class="cc-panel-title">Vela Intelligence</div>'
+    +       '<button onclick="go(\'intelligence\')" style="background:none;border:none;font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--font);font-weight:600">Djupanalys →</button>'
+    +     '</div>'
+    +     '<div id="cc-feed-body" style="padding:12px">'
+    +       '<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px 0;font-style:italic">Kör AI-analys för insikter</div>'
+    +     '</div>'
+    +     '<div style="padding:0 12px 12px">'
+    +       '<button onclick="generateIntelligenceBriefing();go(\'intelligence\')" style="width:100%;padding:10px;background:var(--navy);color:white;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">Generera analys →</button>'
+    +     '</div>'
+    +   '</div>'
 
-    ${renderClinicInsightsHTML(S.patients)}
-  </div>`;
+    + '</div>'
 
-  // Trigger AI briefing
-  setTimeout(() => generateDailyBriefing(), 300);
-  // Trigger anomaly alerts
-  setTimeout(() => checkAdaptivePlanAlerts(S.patients), 800);
+    // KLINIKPULS
+    + pulseHtml
+
+    + '</div>';
+
+  setTimeout(() => generateDailyBriefing(), 400);
+  setTimeout(() => checkAdaptivePlanAlerts(S.patients), 1000);
 }
 
 // Quick actions from dashboard -- no patient required upfront

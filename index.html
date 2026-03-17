@@ -932,11 +932,11 @@ function getClinicConfig() {
   try {
     const raw = localStorage.getItem(CLINIC_CONFIG_KEY);
     if (raw) return { ...CLINIC_DEFAULTS, ...JSON.parse(raw) };
-  } catch {}
+  } catch(e) {}
   return { ...CLINIC_DEFAULTS };
 }
 function saveClinicConfig(cfg) {
-  try { localStorage.setItem(CLINIC_CONFIG_KEY, JSON.stringify(cfg)); } catch {}
+  try { localStorage.setItem(CLINIC_CONFIG_KEY, JSON.stringify(cfg)); } catch(e) {}
   _applyClinicConfig(cfg);
   // Sync to Supabase clinic:settings
   _sbSaveClinicSettings({ clinicConfig: cfg });
@@ -1021,12 +1021,12 @@ const PAYMENT_LENGTHS = {
   year:  { id: 'year',  label: 'Årsvis',    days: 365, suffix: '/ år'  },
 };
 
-// stripe link key: `${tierId}_${lengthId}` e.g. 'bas_month', 'standard_quarter'
+// stripe link key: tierId_lengthId e.g. bas_month, standard_quarter
 function getStripeLinks() {
-  try { return JSON.parse(localStorage.getItem(STRIPE_LINKS_KEY)||'{}'); } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem(STRIPE_LINKS_KEY)||'{}'); } catch(e) { return {}; }
 }
 function saveStripeLinks(obj) {
-  try { localStorage.setItem(STRIPE_LINKS_KEY, JSON.stringify(obj)); } catch {}
+  try { localStorage.setItem(STRIPE_LINKS_KEY, JSON.stringify(obj)); } catch(e) {}
 }
 function saveStripeLinksFromUI() {
   const links = {};
@@ -1424,10 +1424,10 @@ const INBOX_KEY = 'zenya:inbox';
 let _inboxTab = 'all'; // 'all' | 'action' | 'ai'
 
 function getInbox() {
-  try { return JSON.parse(localStorage.getItem(INBOX_KEY) || '[]'); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(INBOX_KEY) || '[]'); } catch(e) { return []; }
 }
 function saveInbox(items) {
-  try { localStorage.setItem(INBOX_KEY, JSON.stringify(items)); } catch {}
+  try { localStorage.setItem(INBOX_KEY, JSON.stringify(items)); } catch(e) {}
 }
 
 // Create a new inbox item
@@ -1546,7 +1546,7 @@ document.addEventListener('visibilitychange', () => {
 
 // Hook into inbox updates to trigger notifications
 function _checkNewPatientActivity(patients) {
-  const seen = (() => { try { return new Set(JSON.parse(localStorage.getItem(NOTIF_KEY)||'[]')); } catch { return new Set(); }})();
+  const seen = (() => { try { return new Set(JSON.parse(localStorage.getItem(NOTIF_KEY)||'[]')); } catch(e) { return new Set(); }})();
   const newSeen = new Set(seen);
   let notified = false;
   (patients||[]).forEach(p => {
@@ -1564,7 +1564,7 @@ function _checkNewPatientActivity(patients) {
     });
   });
   if (newSeen.size !== seen.size) {
-    try { localStorage.setItem(NOTIF_KEY, JSON.stringify([...newSeen].slice(-200))); } catch {}
+    try { localStorage.setItem(NOTIF_KEY, JSON.stringify([...newSeen].slice(-200))); } catch(e) {}
   }
 }
 
@@ -2049,7 +2049,7 @@ async function _agentSendComplianceMsg(p, lowRate) {
       reply: null,
     });
     savePat(p);
-  } catch {}
+  } catch(e) {}
 }
 
 async function _agentSendInactivityMsg(p, daysSince) {
@@ -2062,7 +2062,7 @@ async function _agentSendInactivityMsg(p, daysSince) {
     if (!p.messages) p.messages = [];
     p.messages.unshift({ id:'msg_'+Date.now(), from:'therapist', type:'ai_inactivity', text:txt.trim(), ts:new Date().toISOString(), read:true, aiGenerated:true, reply:null });
     savePat(p);
-  } catch {}
+  } catch(e) {}
 }
 
 async function _agentSendPainCheckIn(p, avgPain) {
@@ -2075,7 +2075,7 @@ async function _agentSendPainCheckIn(p, avgPain) {
     if (!p.messages) p.messages = [];
     p.messages.unshift({ id:'msg_'+Date.now(), from:'therapist', type:'ai_pain_checkin', text:txt.trim(), ts:new Date().toISOString(), read:true, aiGenerated:true, reply:null });
     savePat(p);
-  } catch {}
+  } catch(e) {}
 }
 
 async function _agentSendFollowupReminder(p, daysUntil) {
@@ -2094,7 +2094,7 @@ async function _agentSendFollowupReminder(p, daysUntil) {
       `Återbesök ${whenStr} -- AI har skickat påminnelse.`,
       [{ label:'Granska', style:'secondary', fn:`openMsg:${p.id}` }]
     );
-  } catch {}
+  } catch(e) {}
 }
 
 async function _agentProgressPlan(p, visit) {
@@ -2118,7 +2118,7 @@ async function _agentProgressPlan(p, visit) {
       'Låg smärta + hög följsamhet -- AI ökade belastning ett steg.',
       [{ label:'Granska plan', style:'primary', fn:`openDetail:${p.id}` }]
     );
-  } catch {}
+  } catch(e) {}
 }
 
 // -- SPÅR 2: KONTEXTUELLA MEDDELANDEN PÅ PATIENTSIDAN ------------------------
@@ -2147,13 +2147,13 @@ function zpGetExSessionHistory(patId, visitId) {
 // Nudge throttle key per patient
 function _nudgeKey(patId) { return 'hael:nudges:' + patId; }
 function _getNudgeLog(patId) {
-  try { return JSON.parse(localStorage.getItem(_nudgeKey(patId)) || '[]'); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(_nudgeKey(patId)) || '[]'); } catch(e) { return []; }
 }
 function _logNudge(patId, type) {
   const log = _getNudgeLog(patId);
   log.push({ type, ts: Date.now() });
   // Keep last 20
-  try { localStorage.setItem(_nudgeKey(patId), JSON.stringify(log.slice(-20))); } catch {}
+  try { localStorage.setItem(_nudgeKey(patId), JSON.stringify(log.slice(-20))); } catch(e) {}
 }
 function _nudgesThisWeek(patId) {
   const monday = new Date(); monday.setDate(monday.getDate() - monday.getDay() + 1); monday.setHours(0,0,0,0);
@@ -2174,7 +2174,7 @@ function zpNudgeEngine(pat, visitId, plan) {
 
   // Collect data
   const sessions = zpGetExSessionHistory(patId, visitId);
-  const logs = ((() => { try { return JSON.parse(localStorage.getItem('hael:symptoms:' + patId) || '[]'); } catch { return []; } })());
+  const logs = ((() => { try { return JSON.parse(localStorage.getItem('hael:symptoms:' + patId) || '[]'); } catch(e) { return []; } })());
   const total = (plan?.exercises||[]).length;
   const today = new Date().toISOString().slice(0,10);
   const dayOfWeek = new Date().getDay(); // 0=sun,1=mon...6=sat
@@ -2512,10 +2512,10 @@ function getBriefingCache(patId) {
     const obj = JSON.parse(raw);
     if (Date.now() - obj.ts > BRIEFING_TTL_MS) return null;
     return obj;
-  } catch { return null; }
+  } catch(e) { return null; }
 }
 function setBriefingCache(patId, data) {
-  try { sessionStorage.setItem(BRIEFING_CACHE_KEY + patId, JSON.stringify({ ts: Date.now(), data })); } catch {}
+  try { sessionStorage.setItem(BRIEFING_CACHE_KEY + patId, JSON.stringify({ ts: Date.now(), data })); } catch(e) {}
 }
 
 function renderBriefingShell(patId) {
@@ -2581,7 +2581,7 @@ function togBriefing(patId) {
 }
 
 function regenBriefing(patId) {
-  try { sessionStorage.removeItem(BRIEFING_CACHE_KEY + patId); } catch {}
+  try { sessionStorage.removeItem(BRIEFING_CACHE_KEY + patId); } catch(e) {}
   const wrap = document.getElementById('briefing-' + patId);
   if (wrap) wrap.outerHTML = renderBriefingShell(patId);
   const p = S.patients.find(x => x.id === patId) || S.pat;
@@ -2877,7 +2877,7 @@ function pubBookingRequestHTML(pat, plan) {
   const clinicPhone = CLINIC.phone || '';
   const visitId = plan?.visitId || pat?.visits?.[0]?.id || '';
   const sentKey = 'hael:booking-sent:' + pat.id;
-  const alreadySent = (() => { try { return !!localStorage.getItem(sentKey); } catch { return false; }})();
+  const alreadySent = (() => { try { return !!localStorage.getItem(sentKey); } catch(e) { return false; }})();
 
   if (alreadySent) {
     return `<div style="margin:0 14px 16px;padding:14px 16px;background:rgba(13,155,138,.08);border:1px solid rgba(13,155,138,.2);border-radius:12px">
@@ -2941,7 +2941,7 @@ async function pubSendBookingRequest(patId, visitId) {
     if (!patchRes.ok) throw new Error('patch failed');
 
     // Mark as sent locally
-    try { localStorage.setItem('hael:booking-sent:' + patId, '1'); } catch {}
+    try { localStorage.setItem('hael:booking-sent:' + patId, '1'); } catch(e) {}
 
     // Replace section with confirmation
     const section = document.getElementById('booking-section-' + patId);
@@ -3102,6 +3102,15 @@ function _closeSidebar() {
   if (btn) btn.innerHTML = '<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
 }
 
+
+function _navItemGhost(label, svg) {
+  return '<button class="nav-item nav-ghost" disabled style="opacity:.32;cursor:not-allowed" title="Kommer snart">'
+    +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+svg+'</svg>'
+    +label
+    +'<span style="font-size:8px;color:rgba(255,255,255,.25);margin-left:auto;font-weight:600;letter-spacing:.06em">SNART</span>'
+    +'</button>';
+}
+
 function rTopbar() {
   const scr = S.screen;
 
@@ -3114,23 +3123,35 @@ function rTopbar() {
       { s:'list',      label:'Patienter',
         svg:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
     ];
-    nav.innerHTML = items.map(it =>
-      '<button class="nav-item ' + (scr===it.s?'active':'') + '" onclick="go(\'' + it.s + '\');_closeSidebar()">'
-      + '<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + it.svg + '</svg>'
-      + it.label + '</button>'
-    ).join('')
-    + '<div style="border-top:1px solid rgba(255,255,255,.06);margin-top:6px;padding-top:8px">'
-    + '<button class="nav-item" style="background:rgba(13,155,138,.18);color:rgba(255,255,255,.9);font-weight:700;margin-bottom:2px" onclick="startVisitFlow();_closeSidebar()">'
-    + '<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
-    + 'Starta besök</button></div>'
-    + '<div style="border-top:1px solid rgba(255,255,255,.06);margin-top:6px;padding-top:8px">'
-    + '<div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.2);padding:0 10px 6px">Vela Intelligence</div>'
-    + '<button class="nav-item ' + (scr==='intelligence'?'active':'') + '" onclick="go(\'intelligence\');_closeSidebar()">'
-    + '<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
-    + 'Analys &amp; insikter</button>'
-    + '<button class="nav-item" onclick="toggleVelaAsk();_closeSidebar()">'
-    + '<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
-    + 'Vela Ask</button></div>';
+    // CTA: Starta besök
+    var nh = '<button class="nav-item" onclick="startVisitFlow();_closeSidebar()" style="background:rgba(13,155,138,.18);color:#3dcfbd;font-weight:700;border:1px solid rgba(13,155,138,.2);margin-bottom:6px">'
+      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Starta besök</button>';
+
+    nh += '<div class="nav-section-label">Klinik</div>';
+    items.forEach(function(it) {
+      var isActive = scr===it.s ? 'active' : '';
+      nh += '<button class="nav-item '+isActive+'" onclick="go(\''+it.s+'\');_closeSidebar()">'
+        +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+it.svg+'</svg>'+it.label+'</button>';
+    });
+    nh += _navItemGhost('Kalender','<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
+    nh += _navItemGhost('Betalningar','<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>');
+
+    nh += '<div class="nav-section-label" style="margin-top:2px">Vela Intelligence</div>';
+    nh += '<button class="nav-item '+(scr==='intelligence'?'active':'')+'" onclick="go(\'intelligence\');_closeSidebar()">'
+      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+      +'Analys &amp; insikter</button>';
+    nh += '<button class="nav-item" onclick="toggleVelaAsk();_closeSidebar()">'
+      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      +'Vela Ask <span style="font-size:9px;background:rgba(13,155,138,.2);color:#3dcfbd;padding:1px 5px;border-radius:6px;margin-left:auto;font-weight:700">AI</span></button>';
+    nh += _navItemGhost('Marknadsanalys','<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>');
+    nh += _navItemGhost('Intäktsprognos','<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>');
+    nh += _navItemGhost('Protokollanalys','<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>');
+
+    nh += '<div class="nav-section-label" style="margin-top:2px">Team & Admin</div>';
+    nh += _navItemGhost('Behandlare','<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>');
+    nh += _navItemGhost('Rapporter','<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>');
+
+    nav.innerHTML = nh;
   }
 
   // -- SIDEBAR FOOTER ---------------------------------------------------------
@@ -6393,7 +6414,7 @@ function checkJournalDraft() {
     if (!d || !S.pat || d.patId !== S.pat.id) return false;
     if (Date.now() - d.savedAt > 2*60*60*1000) return false; // 2h expiry
     return d;
-  } catch { return false; }
+  } catch(e) { return false; }
 }
 
 function restoreJournalDraft(draft) {
@@ -6576,11 +6597,11 @@ function checkMeetDraft() {
     if (Date.now() - d.savedAt > 8*60*60*1000) return null; // 8h expiry
     if (!d.transcript || !d.transcript.length) return null;
     return d;
-  } catch { return null; }
+  } catch(e) { return null; }
 }
 
 function clearMeetDraft() {
-  if (S.pat) try { localStorage.removeItem('hael:meetdraft:'+S.pat.id); } catch {}
+  if (S.pat) try { localStorage.removeItem('hael:meetdraft:'+S.pat.id); } catch(e) {}
 }
 
 function startMeeting() {
@@ -8308,10 +8329,10 @@ async function loadClinicSettings() {
   const settings = await _sbLoadClinicSettings();
   if (!settings) { _applyClinicConfig(getClinicConfig()); return; }
   if (settings.voiceProfile) {
-    try { localStorage.setItem(VOICE_PROFILE_KEY, JSON.stringify(settings.voiceProfile)); } catch {}
+    try { localStorage.setItem(VOICE_PROFILE_KEY, JSON.stringify(settings.voiceProfile)); } catch(e) {}
   }
   if (settings.clinicConfig) {
-    try { localStorage.setItem(CLINIC_CONFIG_KEY, JSON.stringify(settings.clinicConfig)); } catch {}
+    try { localStorage.setItem(CLINIC_CONFIG_KEY, JSON.stringify(settings.clinicConfig)); } catch(e) {}
     _applyClinicConfig(settings.clinicConfig);
   } else {
     _applyClinicConfig(getClinicConfig());
@@ -8352,7 +8373,7 @@ function getStoredAuth() {
     const a = JSON.parse(localStorage.getItem('kansei:auth')||'null');
     if (a && a.exp > Date.now()) return a;
     return null;
-  } catch { return null; }
+  } catch(e) { return null; }
 }
 
 function rLogin() {
@@ -9227,7 +9248,7 @@ function intakeMarkReviewed(patId, intakeTs) {
 async function saveIntakeResponse(patId, visitId, answers) {
   const key = 'vela:intake:'+patId+(visitId?':'+visitId:'');
   // Save answers to localStorage so clinician can read them
-  try { localStorage.setItem(key, JSON.stringify({ ts: new Date().toISOString(), answers })); } catch {}
+  try { localStorage.setItem(key, JSON.stringify({ ts: new Date().toISOString(), answers })); } catch(e) {}
   // Sync to Supabase if available
   try {
     await fetch(`${SB_URL}/rest/v1/pass_log`, {
@@ -9235,7 +9256,7 @@ async function saveIntakeResponse(patId, visitId, answers) {
       headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer '+SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
       body: JSON.stringify({ pat_id: patId, visit_id: visitId||null, logged_at: new Date().toISOString(), type: 'intake', data: answers })
     });
-  } catch {}
+  } catch(e) {}
   // Attach to patient record in Supabase -- read patient, push intakeForm, save
   try {
     const r = await fetch(`${SB_URL}/rest/v1/patients?id=eq.${encodeURIComponent(patId)}&select=data`, {
@@ -9258,7 +9279,7 @@ async function saveIntakeResponse(patId, visitId, answers) {
         // We store answers; clinician's agent will pick it up on next scan
       }
     }
-  } catch {}
+  } catch(e) {}
 }
 
 // -- GENERERA PLAN FRÅN INTAKE -----------------------------------------------
@@ -11083,7 +11104,7 @@ function saveSOAPDraftFromIntake() {
     soap,
     source: 'smart-intake'
   };
-  try { sessionStorage.setItem('hael:journaldraft', JSON.stringify(draftData)); } catch {}
+  try { sessionStorage.setItem('hael:journaldraft', JSON.stringify(draftData)); } catch(e) {}
   // Also pre-fill currentSOAP if it exists
   if (typeof currentSOAP !== 'undefined' && currentSOAP) {
     currentSOAP.soap = {...(currentSOAP.soap||{}), ...soap};
@@ -11179,11 +11200,11 @@ function getSoapPrompts() {
       A: saved.A || SOAP_PROMPT_DEFAULTS.A,
       P: saved.P || SOAP_PROMPT_DEFAULTS.P
     };
-  } catch { return SOAP_PROMPT_DEFAULTS; }
+  } catch(e) { return SOAP_PROMPT_DEFAULTS; }
 }
 
 function saveSoapPrompts(prompts) {
-  try { localStorage.setItem(SOAP_PROMPT_KEY, JSON.stringify(prompts)); } catch {}
+  try { localStorage.setItem(SOAP_PROMPT_KEY, JSON.stringify(prompts)); } catch(e) {}
 }
 
 let _dictSR = null;
@@ -11696,7 +11717,7 @@ function renderClinicInsightsHTML(patients) {
 const PASSLOG_KEY = (patId) => `zenya:passlogs:${patId}`;
 
 function getPassLogs(patId) {
-  try { return JSON.parse(localStorage.getItem(PASSLOG_KEY(patId))||'[]'); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(PASSLOG_KEY(patId))||'[]'); } catch(e) { return []; }
 }
 
 function savePassLog(patId, entry) {
@@ -11704,7 +11725,7 @@ function savePassLog(patId, entry) {
     const logs = getPassLogs(patId);
     logs.unshift(entry); // newest first
     localStorage.setItem(PASSLOG_KEY(patId), JSON.stringify(logs.slice(0,60)));
-  } catch {}
+  } catch(e) {}
 }
 
 // Render multi-metric patient check-in widget (shown in public plan after exercises)
@@ -11856,7 +11877,7 @@ function calcStreak(logs) {
 function renderSymptomJournal(patId, visitId) {
   const key = 'hael:symptoms:' + patId;
   let logs = [];
-  try { logs = JSON.parse(localStorage.getItem(key)||'[]'); } catch {}
+  try { logs = JSON.parse(localStorage.getItem(key)||'[]'); } catch(e) {}
   const today = new Date().toISOString().slice(0,10);
   const todayLog = logs.find(l => l.date === today);
   const recent = logs.slice(-7).reverse();
@@ -12030,11 +12051,11 @@ function sjSave(patId, visitId) {
 
   const key = 'hael:symptoms:' + patId;
   let logs = [];
-  try { logs = JSON.parse(localStorage.getItem(key)||'[]'); } catch {}
+  try { logs = JSON.parse(localStorage.getItem(key)||'[]'); } catch(e) {}
   logs = logs.filter(l => l.date !== today);
   logs.push(entry);
   if (logs.length > 90) logs = logs.slice(-90);
-  try { localStorage.setItem(key, JSON.stringify(logs)); } catch {}
+  try { localStorage.setItem(key, JSON.stringify(logs)); } catch(e) {}
 
   // Show confirmation
   showAutoSaveToast && showAutoSaveToast('Check-in sparad OK');
@@ -12049,11 +12070,11 @@ function sjSave(patId, visitId) {
 function shouldShowOnboarding(patId) {
   try {
     return !localStorage.getItem('hael:onboarded:' + patId);
-  } catch { return false; }
+  } catch(e) { return false; }
 }
 
 function markOnboardingComplete(patId) {
-  try { localStorage.setItem('hael:onboarded:' + patId, '1'); } catch {}
+  try { localStorage.setItem('hael:onboarded:' + patId, '1'); } catch(e) {}
 }
 
 function showOnboarding(patId, visitId, patName, diagnosis) {
@@ -12155,7 +12176,7 @@ function _zpShowDailyCheckIn(patId) {
   if (!patId) return;
   const today = new Date().toISOString().slice(0, 10);
   const key = 'hael:daily-checkin:' + patId + ':' + today;
-  try { if (localStorage.getItem(key)) return; } catch {}
+  try { if (localStorage.getItem(key)) return; } catch(e) {}
 
   const sheet = document.createElement('div');
   sheet.id = 'daily-checkin-sheet';
@@ -12239,10 +12260,10 @@ function _zpShowDailyCheckIn(patId) {
       existing.unshift(entry);
       localStorage.setItem('hael:daily-log:' + patId, JSON.stringify(existing.slice(0, 90)));
       localStorage.setItem(key, '1');
-    } catch {}
+    } catch(e) {}
 
     // Sync to Supabase if available
-    try { await sbUpsertPatPublic(patId, { dailyLog: entry }); } catch {}
+    try { await sbUpsertPatPublic(patId, { dailyLog: entry }); } catch(e) {}
 
     // Close with thank-you
     const s = document.getElementById('daily-checkin-sheet');
@@ -12262,7 +12283,7 @@ function _zpShowDailyCheckIn(patId) {
   };
 
   window._zpDailyDismiss = function() {
-    try { localStorage.setItem(key, 'skipped'); } catch {}
+    try { localStorage.setItem(key, 'skipped'); } catch(e) {}
     const s = document.getElementById('daily-checkin-sheet');
     if (s) { s.style.transform = 'translateY(100%)'; setTimeout(() => s.remove(), 380); }
   };
@@ -13873,14 +13894,14 @@ async function syncFromCloud() {
     const lp = local[cp.id];
     if (!lp) {
       local[cp.id] = cp;
-      try { localStorage.setItem('kansei-data:'+cp.id, JSON.stringify(cp)); } catch {}
+      try { localStorage.setItem('kansei-data:'+cp.id, JSON.stringify(cp)); } catch(e) {}
     } else {
       const cloudNewer = (cp.updatedAt||0) > (lp.updatedAt||0);
       const localHasMoreData = (lp.visits||[]).length > (cp.visits||[]).length;
       if (cloudNewer && !localHasMoreData) {
         // Cloud is newer and not losing visits -- use cloud
         local[cp.id] = cp;
-        try { localStorage.setItem('kansei-data:'+cp.id, JSON.stringify(cp)); } catch {}
+        try { localStorage.setItem('kansei-data:'+cp.id, JSON.stringify(cp)); } catch(e) {}
       } else if (cloudNewer && localHasMoreData) {
         // Cloud is newer but local has more visits -- merge visits from both
         const cloudVisitIds = new Set((cp.visits||[]).map(v=>v.id));
@@ -13888,7 +13909,7 @@ async function syncFromCloud() {
         const merged = {...cp, visits:[...(cp.visits||[]), ...extraLocalVisits]
           .sort((a,b)=>new Date(b.date||0)-new Date(a.date||0))};
         local[cp.id] = merged;
-        try { localStorage.setItem('kansei-data:'+cp.id, JSON.stringify(merged)); } catch {}
+        try { localStorage.setItem('kansei-data:'+cp.id, JSON.stringify(merged)); } catch(e) {}
       }
       // else: local is newer, keep local (already in local[])
     }

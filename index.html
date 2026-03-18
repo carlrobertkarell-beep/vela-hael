@@ -9861,7 +9861,13 @@ async function loadPublicPlan(patId, visitId) {
           // ---------------------------------------------------------------
           _publicPlanCache = { patId, visitId, plan: visit.plan, pat };
           window._zpRenewalPat = pat;
-          renderPublicPlan(visit.plan, pat);
+          try {
+            renderPublicPlan(visit.plan, pat);
+          } catch(renderErr) {
+            console.error('renderPublicPlan failed:', renderErr);
+            el.innerHTML = '<div style="text-align:center;padding:60px 24px;font-family:system-ui,sans-serif"><div style="font-size:20px;color:#e05555;margin-bottom:8px">Fel vid laddning</div><div style="font-size:13px;color:#888">Tekniskt fel: ' + (renderErr && renderErr.message ? renderErr.message : 'okänt') + '</div></div>';
+            return;
+          }
           if (shouldShowOnboarding(patId)) {
             setTimeout(() => showOnboarding(patId, visitId, pat.name, visit.plan?.diagnosis || pat.diagnosis), 400);
           }
@@ -9874,7 +9880,7 @@ async function loadPublicPlan(patId, visitId) {
           if (!access.ok) { zpRenderPaywall(patId, fallbackVisit.id, pat); return; }
           console.warn('visitId mismatch -- using fallback visit', fallbackVisit.id, 'expected', visitId);
           _publicPlanCache = { patId, visitId: fallbackVisit.id, plan: fallbackVisit.plan, pat };
-          renderPublicPlan(fallbackVisit.plan, pat);
+          try { renderPublicPlan(fallbackVisit.plan, pat); } catch(e) { console.error('renderPublicPlan fallback failed:', e); }
           return;
         }
         // Nothing found -- show diagnostic
@@ -11004,8 +11010,6 @@ function renderPublicPlan(plan, pat) {
   if (countdownHtml) _html += countdownHtml;
 
   // Greeting
-  if (greetingHtml) _html += greetingHtml;
-
   // Goals
   if (goalsHtml) {
     _html += '<div class="zp-section"><div class="zp-sec-hdr"><div class="zp-sec-title">Mål med rehabiliteringen</div></div>'
@@ -11013,7 +11017,7 @@ function renderPublicPlan(plan, pat) {
   }
 
   // Exercises
-  if (exercisesHtml) _html += exercisesHtml;
+  if (exHtml) _html += exHtml;
 
   // Pass button
   _html += passBtn;
@@ -11036,7 +11040,7 @@ function renderPublicPlan(plan, pat) {
   _sideInfo += '<div class="zp-sidebar-stat"><span class="zp-sidebar-stat-lbl">Övningar</span><span class="zp-sidebar-stat-val">' + (plan.exercises||[]).length + '</span></div>';
   if (plan.form && plan.form.followup) _sideInfo += '<div class="zp-sidebar-stat"><span class="zp-sidebar-stat-lbl">Återbesök</span><span class="zp-sidebar-stat-val">om ' + plan.form.followup + ' v</span></div>';
   if (plan.form && plan.form.pain != null) _sideInfo += '<div class="zp-sidebar-stat"><span class="zp-sidebar-stat-lbl">Smärta vid start</span><span class="zp-sidebar-stat-val">' + plan.form.pain + '/10</span></div>';
-  _sideInfo += '<div class="zp-sidebar-stat"><span class="zp-sidebar-stat-lbl">Fas</span><span class="zp-sidebar-stat-val">' + (PHASES[(pat&&pat.phase?pat.phase:1)-1]&&PHASES[(pat&&pat.phase?pat.phase:1)-1].label||'Fas 1') + '</span></div>';
+  _sideInfo += '<div class="zp-sidebar-stat"><span class="zp-sidebar-stat-lbl">Fas</span><span class="zp-sidebar-stat-val">' + (PHASES && pat && PHASES[(pat.phase||1)-1] ? PHASES[(pat.phase||1)-1].label : 'Fas 1') + '</span></div>';
   _sideInfo += '</div>';
   _html += _sideInfo;
 

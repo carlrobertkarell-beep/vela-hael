@@ -603,6 +603,34 @@ button, input, textarea, select { font-family: inherit; }
 .briefing-regen:hover { background:var(--surface3); }
 .briefing-time { font-size:10px; color:var(--muted); margin-left:auto; }
 
+/* ── PATIENT LIST ───────────────────────────────────────── */
+.vela-pat-list{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
+.vela-pat-row{border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;}
+.vela-pat-row:last-child{border-bottom:none;}
+.vela-pat-row:hover{background:rgba(13,155,138,.04);}
+.vela-pat-row:hover .vela-pat-action{opacity:1;transform:translateX(0);}
+.vela-pat-row-main{display:flex;align-items:center;gap:0;min-height:58px;}
+.vela-pat-priority-bar{width:3px;align-self:stretch;flex-shrink:0;}
+.vela-pat-identity{flex:1;padding:12px 16px;min-width:0;}
+.vela-pat-status{padding:12px 16px;text-align:right;flex-shrink:0;min-width:90px;}
+.vela-pat-action{display:flex;align-items:center;gap:5px;padding:7px 14px;margin-right:12px;border-radius:6px;background:rgba(13,155,138,.08);border:1px solid rgba(13,155,138,.2);color:var(--accent);font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;opacity:0;transform:translateX(6px);transition:all .15s;flex-shrink:0;white-space:nowrap;}
+.vela-pat-action:hover{background:rgba(13,155,138,.15);}
+/* -- Visit timeline -- */
+.visit-timeline{display:flex;flex-direction:column;gap:0;margin-top:12px;}
+.vt-item{display:flex;gap:0;position:relative;}
+.vt-connector{display:flex;flex-direction:column;align-items:center;width:28px;flex-shrink:0;}
+.vt-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--accent);background:var(--surface);z-index:1;margin-top:14px;flex-shrink:0;transition:background .2s;}
+.vt-dot.first{background:var(--accent);}
+.vt-line{width:2px;background:var(--border);flex:1;min-height:20px;}
+.vt-last .vt-line{background:transparent;}
+.vt-body{flex:1;padding:10px 0 16px 12px;}
+.vt-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-top:4px;}
+.vt-card:hover{border-color:rgba(255,255,255,.12);}
+.vt-date{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em;margin-bottom:4px;}
+.vt-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px;}
+
+
+
 /* ── DETAIL VIEW — COLLAPSIBLES ─────────────────────────── */
 .det-collapsible { border:1px solid var(--border); border-radius:12px; margin-bottom:10px; overflow:hidden; background:var(--surface); }
 .det-collapsible-hdr { display:flex; align-items:center; gap:8px; padding:13px 16px; cursor:pointer; list-style:none; user-select:none; font-size:13px; font-weight:700; color:var(--ink); }
@@ -2870,7 +2898,7 @@ function renderMsgPanel(patId) {
         ${unread ? `<span class="msg-badge-reply">${unread} svar</span>` : ''}
         ${msgs.length && !unread ? `<span style="font-size:10px;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">${msgs.length} meddelanden</span>` : ''}
       </div>
-      <span id="msg-panel-chev-${e(patId)}" style="font-size:14px;color:var(--muted);transition:transform .2s">></span>
+      <span id="msg-panel-chev-${e(patId)}" style="display:flex;align-items:center;transition:transform .2s"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
     </div>
     <div id="msg-panel-body-${e(patId)}" style="display:none">
       <div class="msg-list" id="msg-list-${e(patId)}">${msgsHtml}</div>
@@ -13237,6 +13265,17 @@ function rIntelligence() {
   const diagCount = {};
   S.patients.forEach(p => { const d = p.diagnosis||'Okänd'; diagCount[d]=(diagCount[d]||0)+1; });
   const topDiags = Object.entries(diagCount).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const _diagMax = topDiags[0] ? topDiags[0][1] : 1;
+  const diagBars = topDiags.map(([d,c]) =>
+    '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border2)">'
+    + '<div style="flex:1;min-width:0">'
+    + '<div style="font-size:12px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + d + '</div>'
+    + '<div style="height:3px;background:var(--border2);border-radius:2px;margin-top:4px;overflow:hidden">'
+    + '<div style="height:100%;background:var(--teal);border-radius:2px;width:' + Math.round(c/_diagMax*100) + '%"></div>'
+    + '</div></div>'
+    + '<div style="font-size:11px;font-family:var(--font-mono);color:var(--muted);flex-shrink:0;font-weight:600">' + c + '</div>'
+    + '</div>'
+  ).join('');
 
   // Inline sparkline SVG
   function sparkline(data, color) {

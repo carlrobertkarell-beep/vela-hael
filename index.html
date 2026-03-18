@@ -3327,6 +3327,47 @@ function rTopbar() {
   const scr = S.screen;
 
   // -- SIDEBAR NAV LINKS ------------------------------------------------------
+  const nav = document.getElementById('nav-links');
+  if (nav) {
+    // CTA: Starta besök
+    var nh = '<button class="nav-item" onclick="startVisitFlow();_closeSidebar()" style="background:rgba(13,155,138,.18);color:#3dcfbd;font-weight:700;border:1px solid rgba(13,155,138,.2);margin-bottom:10px">'
+      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Starta besök</button>';
+
+    // Klinik
+    nh += '<div class="nav-section-label">Klinik</div>';
+    [{s:'dashboard',label:'Hem',svg:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'},
+     {s:'list',label:'Patienter',svg:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'},
+    ].forEach(function(it) {
+      nh += '<button class="nav-item '+(scr===it.s?'active':'')+'" onclick="go(\''+it.s+'\');_closeSidebar()">'
+        +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+it.svg+'</svg>'+it.label+'</button>';
+    });
+
+    // Inkorg med badge
+    const unreadNav = getUnreadCount();
+    nh += '<button class="nav-item" onclick="openInbox();_closeSidebar()" style="justify-content:space-between">'
+      +'<span style="display:flex;align-items:center;gap:9px">'
+      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>'
+      +'Inkorg</span>'
+      +(unreadNav>0?'<span class="nav-badge">'+(unreadNav>9?'9+':unreadNav)+'</span>':'')
+      +'</button>';
+
+    // Vela Intelligence
+    nh += '<div class="nav-section-label" style="margin-top:8px">Vela Intelligence</div>';
+    nh += '<button class="nav-item '+(scr==='intelligence'?'active':'')+'" onclick="go(\'intelligence\');_closeSidebar()">'
+      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+      +'Analys &amp; insikter</button>';
+    nh += '<button class="nav-item" onclick="toggleVelaAsk();_closeSidebar()">'
+      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      +'Vela Ask <span style="font-size:9px;background:rgba(13,155,138,.2);color:#3dcfbd;padding:1px 6px;border-radius:6px;margin-left:auto;font-weight:700">AI</span></button>';
+
+    // Inställningar
+    nh += '<div class="nav-section-label" style="margin-top:8px">Konto</div>';
+    nh += '<button class="nav-item '+(scr==='settings'?'active':'')+'" onclick="go(\'settings\');_closeSidebar()">'
+      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
+      +'Inställningar</button>';
+
+    nav.innerHTML = nh;
+  }
 
   // -- SIDEBAR FOOTER ---------------------------------------------------------
   const nf = document.getElementById('nav-footer');
@@ -14446,40 +14487,5 @@ function openClinicConfigSetup() {
 
 </script></body></html    const nav = document.getElementById('nav-links');
   if (nav) {
-    // -- CTA: Starta besök ------------------------------------------------
-    var nh = '<button class="nav-item" onclick="startVisitFlow();_closeSidebar()" style="background:rgba(13,155,138,.18);color:#3dcfbd;font-weight:700;border:1px solid rgba(13,155,138,.2);margin-bottom:10px">'
-      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Starta besök</button>';
-
-    // -- KLINIK -----------------------------------------------------------
-    nh += '<div class="nav-section-label">Klinik</div>';
-    const clinicItems = [
-      { s:'dashboard', label:'Hem',       svg:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
-      { s:'list',      label:'Patienter', svg:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
-    ];
-    clinicItems.forEach(function(it) {
-      var isActive = scr===it.s ? 'active' : '';
-      nh += '<button class="nav-item '+isActive+'" onclick="go(\''+it.s+'\');_closeSidebar()">'
-        +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+it.svg+'</svg>'+it.label+'</button>';
-    });
-    // Inkorg with badge
-    const unreadNav = getUnreadCount();
-    nh += '<button class="nav-item" onclick="openInbox();_closeSidebar()" style="justify-content:space-between">'
-      +'<span style="display:flex;align-items:center;gap:9px">'
-      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>'
-      +'Inkorg</span>'
-      +(unreadNav>0 ? '<span class="nav-badge">'+( unreadNav>9?'9+':unreadNav)+'</span>' : '')
-      +'</button>';
-
-    // -- VELA INTELLIGENCE ------------------------------------------------
-    nh += '<div class="nav-section-label" style="margin-top:8px">Vela Intelligence</div>';
-    nh += '<button class="nav-item '+(scr==='intelligence'?'active':'')+'" onclick="go(\'intelligence\');_closeSidebar()">'
-      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
-      +'Analys &amp; insikter</button>';
-    nh += '<button class="nav-item" onclick="toggleVelaAsk();_closeSidebar()">'
-      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
-      +'Vela Ask <span style="font-size:9px;background:rgba(13,155,138,.2);color:#3dcfbd;padding:1px 6px;border-radius:6px;margin-left:auto;font-weight:700">AI</span></button>';
-
-    nav.innerHTML = nh;
-  }
 
   >

@@ -9809,6 +9809,16 @@ För varje övning, returnera:
 
 
 
+
+async function fetchWithTimeout(url, opts, ms) {
+  var ctrl = new AbortController();
+  var t = setTimeout(function(){ ctrl.abort(); }, ms);
+  try {
+    var r = await fetch(url, Object.assign({}, opts, { signal: ctrl.signal }));
+    clearTimeout(t);
+    return r;
+  } catch(e) { clearTimeout(t); throw e; }
+}
 async function loadPublicPlan(patId, visitId) {
   const el = document.getElementById('s-public-plan');
   if (!el) return;
@@ -9821,21 +9831,9 @@ async function loadPublicPlan(patId, visitId) {
     }
   } catch(e) { /* ignore cache check errors */ }
 
-  el.innerHTML = `<div class="pub-loading">
-    <div style="margin-bottom:12px">Hämtar din Hael-plan...</div>
-    <div style="font-size:12px;color:#aaa">Ansluter till server -- kan ta några sekunder</div>
-  </div>`;
+  el.innerHTML = '<div class="pub-loading"><div style="margin-bottom:12px">Hämtar din Hael-plan...</div><div style="font-size:12px;color:#aaa">Ansluter till server -- kan ta n\u00e5gra sekunder</div></div>';
 
   // Helper: fetch with timeout
-  async function fetchWithTimeout(url, opts, ms) {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), ms);
-    try {
-      const r = await fetch(url, { ...opts, signal: ctrl.signal });
-      clearTimeout(t);
-      return r;
-    } catch(e) { clearTimeout(t); throw e; }
-  }
 
   // 1. Try Supabase with 8s timeout
   try {
@@ -9861,6 +9859,7 @@ async function loadPublicPlan(patId, visitId) {
           // ---------------------------------------------------------------
           _publicPlanCache = { patId, visitId, plan: visit.plan, pat };
           window._zpRenewalPat = pat;
+          if (window._pubLoadTimeout) clearTimeout(window._pubLoadTimeout);
           try {
             renderPublicPlan(visit.plan, pat);
           } catch(renderErr) {
@@ -9880,7 +9879,11 @@ async function loadPublicPlan(patId, visitId) {
           if (!access.ok) { zpRenderPaywall(patId, fallbackVisit.id, pat); return; }
           console.warn('visitId mismatch -- using fallback visit', fallbackVisit.id, 'expected', visitId);
           _publicPlanCache = { patId, visitId: fallbackVisit.id, plan: fallbackVisit.plan, pat };
-          try { renderPublicPlan(fallbackVisit.plan, pat); } catch(e) { console.error('renderPublicPlan fallback failed:', e); }
+          if (window._pubLoadTimeout) clearTimeout(window._pubLoadTimeout);
+          try { renderPublicPlan(fallbackVisit.plan, pat); } catch(e) {
+            console.error('renderPublicPlan fallback failed:', e);
+            document.getElementById('s-public-plan').innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#0e1825"><div style="text-align:center;color:white"><div style="font-size:18px;margin-bottom:8px">Fel: ' + (e&&e.message||'okänt') + '</div></div></div>';
+          }
           return;
         }
         // Nothing found -- show diagnostic
@@ -9920,13 +9923,12 @@ async function loadPublicPlan(patId, visitId) {
     + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e05555" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>'
     + '<div style="font-size:20px;font-weight:700;color:white;margin-bottom:8px">Kunde inte ladda planen</div>'
     + '<div style="font-size:14px;color:rgba(255,255,255,.45);line-height:1.7;margin-bottom:24px">Kontrollera att du \u00e4r online och f\u00f6rs\u00f6k igen.<br>Om problemet kvarst\u00e5r, kontakta din behandlare.</div>'
-    + '<button onclick="loadPublicPlan('' + _patIdRetry + '','' + _visitIdRetry + '')" style="background:#0d9b8a;color:white;border:none;padding:14px 28px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:system-ui,sans-serif">F\u00f6rs\u00f6k igen</button>'
     + '</div></div>';
   var _retryBtn = document.getElementById('pub-retry-btn');
   if (_retryBtn) {
     _retryBtn.onclick = function() { loadPublicPlan(patId, visitId); };
   }
-}}
+}
 
 // Pass button handler: first click reveals check-in form; submitting the form logs the pass.
 function _zpHandlePassBtn(patId, visitId) {
@@ -10212,6 +10214,7 @@ function _zpUpdateStrip(done, total) {
 }
 
 function renderPublicPlan(plan, pat) {
+  if (window._pubLoadTimeout) clearTimeout(window._pubLoadTimeout);
   const el = document.getElementById('s-public-plan');
   if (!el || !plan) return;
 
@@ -13748,8 +13751,23 @@ if (_hashIntakeId) {
   if (_at) _at.style.display = 'none';
   // Show public plan screen full-width
   document.body.style.cssText = 'background:#0e1825;margin:0;padding:0';
-  document.getElementById('s-public-plan').style.cssText = 'display:block;min-height:100vh;background:#0e1825';
-  document.getElementById('s-public-plan').innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0e1825"><div style="text-align:center"><div style="width:32px;height:32px;border:2.5px solid rgba(13,155,138,.2);border-top-color:#0d9b8a;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px"></div><div style="font-size:12px;color:rgba(255,255,255,.3);font-family:system-ui">Hämtar din plan...</div></div></div>';
+  document.body.style.cssText = 'margin:0;padding:0;background:#0e1825;overflow-x:hidden';
+  var _pubEl = document.getElementById('s-public-plan');
+  _pubEl.style.cssText = 'display:block!important;min-height:100vh;width:100%;background:#0e1825;position:relative;z-index:1';
+  _pubEl.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:#0e1825"><div style="width:32px;height:32px;border:2.5px solid rgba(13,155,138,.2);border-top-color:#0d9b8a;border-radius:50%;animation:spin .7s linear infinite"></div><div style="font-size:12px;color:rgba(255,255,255,.35);font-family:system-ui,sans-serif;letter-spacing:.04em">Hämtar din plan...</div></div>';
+  // Safety: if plan doesn't load in 10s, show error
+  var _pubTimeout = setTimeout(function(){
+    var _el = document.getElementById('s-public-plan');
+    if (_el && _el.innerHTML.indexOf('zp-topbar') === -1) {
+      _el.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#0e1825;font-family:system-ui">'
+        + '<div style="text-align:center;max-width:340px">'
+        + '<div style="font-size:18px;font-weight:700;color:white;margin-bottom:8px">Det tog f\u00f6r l\u00e5ng tid</div>'
+        + '<div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px">Kontrollera uppkopplingen och f\u00f6rs\u00f6k igen.</div>'
+        + '<button onclick="location.reload()" style="background:#0d9b8a;color:white;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer">F\u00f6rs\u00f6k igen</button>'
+        + '</div></div>';
+    }
+  }, 10000);
+  window._pubLoadTimeout = _pubTimeout;
   loadPublicPlan(_hashPatId, _hashVisitId);
 } else {
   const _storedAuth = getStoredAuth();

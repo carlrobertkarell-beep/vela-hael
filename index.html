@@ -521,6 +521,46 @@ button, input, textarea, select { font-family: inherit; }
 .search-inp::placeholder { color:var(--muted,#8892a4); }
 .search-inp:focus { border-color:var(--teal,#0d9b8a); }
 
+/* ── DESKTOP HEADER ──────────────────────────────────────── */
+.vela-desktop-header {
+  display: none; /* hidden on mobile — topbar handles that */
+  position: sticky; top: 0; z-index: 120;
+  height: 52px; background: var(--bg);
+  border-bottom: 1px solid var(--border2, rgba(255,255,255,.06));
+  align-items: center; justify-content: space-between;
+  padding: 0 32px; flex-shrink: 0;
+}
+@media (min-width: 769px) {
+  .vela-desktop-header { display: flex; }
+  .main-content { display: flex; flex-direction: column; }
+}
+.vela-dh-left { font-size: 12px; color: var(--muted); font-weight: 500; }
+.vela-dh-right { display: flex; align-items: center; gap: 8px; }
+.vela-dh-inbox-btn {
+  position: relative; background: none; border: none; cursor: pointer;
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); transition: background .15s, color .15s;
+}
+.vela-dh-inbox-btn:hover { background: var(--surface2); color: var(--text); }
+.vela-dh-badge {
+  position: absolute; top: 4px; right: 4px;
+  min-width: 16px; height: 16px; border-radius: 8px;
+  background: var(--teal); color: white;
+  font-size: 9px; font-weight: 700; line-height: 16px;
+  text-align: center; padding: 0 3px;
+  font-family: var(--font);
+}
+.vela-dh-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(13,155,138,.15); border: 1px solid rgba(13,155,138,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: var(--teal);
+  cursor: pointer; font-family: var(--font-mono);
+  transition: background .15s;
+}
+.vela-dh-avatar:hover { background: rgba(13,155,138,.25); }
+
 /* ── DETAIL LAYOUT ───────────────────────────────────────── */
 .det-layout {
   display:grid; grid-template-columns:1fr 280px; gap:20px;
@@ -934,14 +974,6 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
   </div>
     <div class="nav-section" id="nav-links"></div>
     <div class="nav-footer" id="nav-footer">
-      <button class="nav-item" onclick="openInbox();_closeSidebar()">
-        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        Inkorg<span class="nav-badge" id="nav-inbox-badge" style="display:none">0</span>
-      </button>
-      <button class="nav-item" onclick="go('settings');_closeSidebar()">
-        <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        Inställningar
-      </button>
       <div id="nav-user-row" style="padding:8px 10px;border-top:1px solid rgba(255,255,255,.06);margin-top:4px;display:flex;align-items:center;gap:8px">
         <div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:rgba(255,255,255,.5)" id="nav-user-av">?</div>
         <div style="flex:1;min-width:0"><div style="font-size:11px;color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="nav-user-email"></div></div>
@@ -952,7 +984,16 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
     </div>
   </nav>
   <div class="main-content">
-    <div id="s-dashboard" class="screen"></div>
+    <div class="vela-desktop-header" id="vela-desktop-header">
+      <div class="vela-dh-left" id="vela-dh-clinic"></div>
+      <div class="vela-dh-right">
+        <button class="vela-dh-inbox-btn" id="vela-dh-inbox" onclick="openInbox()" title="Inkorg">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+          <span class="vela-dh-badge" id="vela-dh-badge" style="display:none">0</span>
+        </button>
+        <div class="vela-dh-avatar" id="vela-dh-avatar" title="Konto" onclick="go('settings')">?</div>
+      </div>
+    </div>
     <div id="s-list" class="screen"></div>
     <div id="s-detail" class="screen"></div>
     <div id="s-form" class="screen"></div>
@@ -1769,7 +1810,7 @@ function updateInboxBadge() {
   const count = getUnreadCount();
   const display = count > 0 ? 'block' : 'none';
   const label = count > 9 ? '9+' : String(count);
-  ['inbox-badge','inbox-badge-sb'].forEach(id => {
+  ['inbox-badge','inbox-badge-sb','vela-dh-badge'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.textContent = label; el.style.display = display; }
   });
@@ -3342,15 +3383,6 @@ function rTopbar() {
         +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+it.svg+'</svg>'+it.label+'</button>';
     });
 
-    // Inkorg med badge
-    const unreadNav = getUnreadCount();
-    nh += '<button class="nav-item" onclick="openInbox();_closeSidebar()" style="justify-content:space-between">'
-      +'<span style="display:flex;align-items:center;gap:9px">'
-      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>'
-      +'Inkorg</span>'
-      +(unreadNav>0?'<span class="nav-badge">'+(unreadNav>9?'9+':unreadNav)+'</span>':'')
-      +'</button>';
-
     // Vela Intelligence
     nh += '<div class="nav-section-label" style="margin-top:8px">Vela Intelligence</div>';
     nh += '<button class="nav-item '+(scr==='intelligence'?'active':'')+'" onclick="go(\'intelligence\');_closeSidebar()">'
@@ -3433,6 +3465,17 @@ function rTopbar() {
 
   updateInboxBadge();
   rNavLogo();
+
+  // -- DESKTOP HEADER --------------------------------------------------------
+  const dhClinic = document.getElementById('vela-dh-clinic');
+  if (dhClinic) dhClinic.textContent = CLINIC.name || '';
+  const dhAvatar = document.getElementById('vela-dh-avatar');
+  if (dhAvatar) {
+    const em = _authUser?.email || '';
+    dhAvatar.textContent = em.slice(0,2).toUpperCase() || '?';
+    dhAvatar.title = em || 'Konto';
+  }
+  updateInboxBadge();
 }
 
 function goBack(){

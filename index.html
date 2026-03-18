@@ -1,4 +1,48 @@
-<!DOCTYPE html>
+/* ── INBOX DRAWER ────────────────────────────────────────────── */
+.inbox-overlay { position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);backdrop-filter:blur(4px); }
+.inbox-drawer {
+  position:fixed; top:0; right:0; bottom:0; z-index:301;
+  width:420px; max-width:100vw; background:var(--surface);
+  border-left:1px solid var(--border);
+  box-shadow:-4px 0 32px rgba(0,0,0,.4); display:flex; flex-direction:column;
+  animation:slideInRight .22s ease;
+}
+@keyframes slideInRight { from{transform:translateX(100%)} to{transform:translateX(0)} }
+.inbox-hdr {
+  padding:18px 20px; border-bottom:1px solid var(--border);
+  display:flex; justify-content:space-between; align-items:flex-start;
+  background:var(--surface); flex-shrink:0;
+}
+.inbox-title { font-size:17px; font-weight:700; color:var(--ink); }
+.inbox-subtitle { font-size:12px; color:var(--muted); margin-top:2px; }
+.inbox-close { background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;padding:4px; }
+.inbox-close:hover { color:var(--ink); }
+.inbox-tabs { display:flex; gap:2px; padding:10px 14px; border-bottom:1px solid var(--border); flex-shrink:0; }
+.inbox-tab { flex:1;padding:7px 6px;border:none;background:transparent;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border-radius:8px;font-family:var(--font);transition:all .15s; }
+.inbox-tab.active { background:var(--surface2);color:var(--ink); }
+.inbox-body { flex:1;overflow-y:auto; }
+.inbox-item { padding:14px 18px; border-bottom:1px solid var(--border2); cursor:pointer; transition:background .12s; }
+.inbox-item:hover { background:var(--surface2); }
+.inbox-item.urgent { border-left:3px solid var(--red); }
+.inbox-item.ai-action { border-left:3px solid var(--teal); }
+.inbox-item.read { opacity:.55; }
+.inbox-item-hdr { display:flex;align-items:flex-start;gap:10px; }
+.inbox-item-icon { width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.inbox-item-icon svg { width:14px;height:14px; }
+.inbox-item-content { flex:1;min-width:0; }
+.inbox-item-title { font-size:13px;font-weight:600;color:var(--ink);line-height:1.4; }
+.inbox-item-sub { font-size:12px;color:var(--text3);margin-top:3px;line-height:1.5; }
+.inbox-item-time { font-size:10px;color:var(--muted);flex-shrink:0;margin-left:8px;margin-top:2px; }
+.inbox-item-actions { display:flex;gap:6px;margin-top:10px;flex-wrap:wrap; }
+.inbox-act-btn { padding:6px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);border:none; }
+.inbox-act-primary { background:var(--navy);color:white; }
+.inbox-act-secondary { background:var(--surface2);color:var(--ink);border:1px solid var(--border); }
+.inbox-act-ghost { background:transparent;color:var(--text3);border:1px solid var(--border); }
+.inbox-ai-tag { font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin-bottom:4px; }
+.inbox-empty { text-align:center;padding:48px 20px; }
+.inbox-empty svg { width:32px;height:32px;stroke:var(--border);fill:none;stroke-width:1.5;margin:0 auto 12px;display:block; }
+.inbox-empty-title { font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px; }
+.inbox-empty-sub { font-size:13px;color:var(--muted);line-height:1.6; }<!DOCTYPE html>
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -132,7 +176,7 @@ button, input, textarea, select { font-family: inherit; }
   font-family: var(--font);
 }
 .nav-item:hover { background: var(--sb-hover); color: var(--sb-text2); }
-.nav-item.active { background: var(--sb-active-bg); color: var(--sb-active-col); font-weight: 600; }
+.nav-item.active { background: var(--sb-active-bg); color: var(--sb-active-col); font-weight: 600; box-shadow: inset 0 0 0 1px rgba(13,155,138,.2); }
 .nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: .7; }
 .nav-item.active .nav-item-icon { opacity: 1; }
 .nav-ghost { opacity: .32 !important; cursor: not-allowed !important; pointer-events: none; }
@@ -173,7 +217,7 @@ button, input, textarea, select { font-family: inherit; }
 }
 .cc-greeting {
   font-family: var(--font-serif); font-size: clamp(22px,2.5vw,30px);
-  font-weight: 300; color: var(--navy); letter-spacing: -.02em; line-height: 1.2;
+  font-weight: 300; color: var(--ink); letter-spacing: -.02em; line-height: 1.2;
 }
 .cc-date { font-size: 12px; color: var(--text3); margin-top: 5px; }
 .cc-start-btn {
@@ -205,7 +249,7 @@ button, input, textarea, select { font-family: inherit; }
   margin-bottom: 12px; flex-shrink: 0;
 }
 .cc-kpi-val {
-  font-size: 26px; font-weight: 800; color: var(--navy);
+  font-size: 26px; font-weight: 800; color: var(--ink);
   font-family: var(--font-mono); line-height: 1; margin-bottom: 4px;
   letter-spacing: -.02em;
 }
@@ -268,7 +312,7 @@ button, input, textarea, select { font-family: inherit; }
   padding: 14px 18px 12px; border-bottom: 1px solid var(--border);
 }
 .cc-panel-title {
-  font-size: 11px; font-weight: 700; color: var(--navy);
+  font-size: 11px; font-weight: 700; color: var(--text2);
   letter-spacing: .06em; text-transform: uppercase;
 }
 .cc-panel-body { padding: 6px 0; }
@@ -294,7 +338,7 @@ button, input, textarea, select { font-family: inherit; }
   font-family: var(--font-mono); letter-spacing: -.02em;
 }
 .cc-row-main { flex: 1; min-width: 0; }
-.cc-row-name { font-size: 13px; font-weight: 600; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-row-name { font-size: 13px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cc-row-sub  { font-size: 11px; color: var(--text3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cc-row-meta { flex-shrink: 0; text-align: right; }
 .cc-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
@@ -501,12 +545,12 @@ button, input, textarea, select { font-family: inherit; }
 }
 .modal-ov.open { display:flex; animation:fadeInOv .18s ease; }
 .modal {
-  background:var(--surface,#fff); border-radius:20px;
+  background:var(--surface); border-radius:20px;
   padding:28px 24px; width:100%; max-width:400px;
   box-shadow:0 8px 40px rgba(0,0,0,.2);
 }
-.modal-title { font-size:17px; font-weight:700; color:var(--navy,#0f2744); margin-bottom:8px; }
-.modal-text  { font-size:14px; color:var(--text,#3a4a5a); line-height:1.6; margin-bottom:20px; }
+.modal-title { font-size:17px; font-weight:700; color:var(--navy); margin-bottom:8px; }
+.modal-text  { font-size:14px; color:var(--text); line-height:1.6; margin-bottom:20px; }
 .modal-actions { display:flex; gap:10px; justify-content:flex-end; }
 
 /* ── DETAIL LAYOUT ───────────────────────────────────────── */
@@ -518,131 +562,131 @@ button, input, textarea, select { font-family: inherit; }
 .det-main { min-width:0; }
 .det-aside { position:sticky; top:24px; display:flex; flex-direction:column; gap:12px; }
 .det-action-card {
-  background:var(--surface,#fff); border:1px solid var(--border,#dde1ef);
+  background:var(--surface); border:1px solid var(--border);
   border-radius:14px; overflow:hidden;
 }
 .det-action-card-hdr {
   font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
-  color:var(--muted,#8892a4); padding:12px 16px 8px;
-  border-bottom:1px solid var(--border,#dde1ef);
+  color:var(--muted); padding:12px 16px 8px;
+  border-bottom:1px solid var(--border);
 }
 .det-action-card-body { padding:8px; display:flex; flex-direction:column; gap:2px; }
 .det-action-btn {
   display:flex; align-items:center; gap:9px; width:100%; padding:9px 10px;
-  border:none; background:transparent; color:var(--ink,#0c1420); font-size:13px;
+  border:none; background:transparent; color:var(--ink); font-size:13px;
   font-weight:500; cursor:pointer; border-radius:8px; font-family:var(--font,sans-serif);
   text-align:left; transition:background .12s;
 }
-.det-action-btn:hover { background:var(--bg,#f4f6fb); }
-.det-action-btn.primary { color:var(--teal,#0d9b8a); font-weight:700; }
-.det-action-btn.danger  { color:var(--red,#c05050); }
+.det-action-btn:hover { background:var(--bg); }
+.det-action-btn.primary { color:var(--teal); font-weight:700; }
+.det-action-btn.danger  { color:var(--red); }
 .det-action-btn svg     { flex-shrink:0; opacity:.6; }
 
 /* ── PATIENT DETAIL PAGE HEADER ──────────────────────────── */
 .det-page-hdr {
   margin-bottom:20px; padding-bottom:16px;
-  border-bottom:1px solid var(--border,#dde1ef);
+  border-bottom:1px solid var(--border);
 }
 
 /* ── INBOX DRAWER ────────────────────────────────────────── */
 .inbox-overlay { position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.3);backdrop-filter:blur(3px); }
 .inbox-drawer {
   position:fixed; top:0; right:0; bottom:0; z-index:301;
-  width:420px; max-width:100vw; background:var(--surface,#fff);
+  width:420px; max-width:100vw; background:var(--surface);
   box-shadow:-4px 0 32px rgba(0,0,0,.12); display:flex; flex-direction:column;
   animation:slideInRight .22s ease;
 }
 @keyframes slideInRight { from{transform:translateX(100%)} to{transform:translateX(0)} }
-.inbox-hdr { padding:18px 20px; border-bottom:1px solid var(--border,#dde1ef); display:flex; justify-content:space-between; align-items:flex-start; }
-.inbox-title { font-size:18px; font-weight:700; color:var(--navy,#0f2744); }
-.inbox-subtitle { font-size:12px; color:var(--muted,#8892a4); margin-top:2px; }
-.inbox-close { background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted,#8892a4);line-height:1;padding:4px; }
-.inbox-tabs { display:flex; gap:4px; padding:10px 16px; border-bottom:1px solid var(--border,#dde1ef); }
-.inbox-tab { flex:1;padding:7px 4px;border:none;background:transparent;font-size:12px;font-weight:600;color:var(--muted,#8892a4);cursor:pointer;border-radius:8px;font-family:var(--font,sans-serif);transition:all .15s; }
-.inbox-tab.active { background:var(--bg,#f4f6fb);color:var(--ink,#0c1420); }
+.inbox-hdr { padding:18px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start; }
+.inbox-title { font-size:18px; font-weight:700; color:var(--navy); }
+.inbox-subtitle { font-size:12px; color:var(--muted); margin-top:2px; }
+.inbox-close { background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;padding:4px; }
+.inbox-tabs { display:flex; gap:4px; padding:10px 16px; border-bottom:1px solid var(--border); }
+.inbox-tab { flex:1;padding:7px 4px;border:none;background:transparent;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-radius:8px;font-family:var(--font,sans-serif);transition:all .15s; }
+.inbox-tab.active { background:var(--bg);color:var(--ink); }
 .inbox-body { flex:1;overflow-y:auto; }
-.inbox-item { padding:14px 18px; border-bottom:1px solid var(--border,#dde1ef); cursor:pointer; transition:background .12s; }
-.inbox-item:hover { background:var(--bg,#f4f6fb); }
-.inbox-item.urgent { border-left:3px solid var(--red,#c05050); }
-.inbox-item.ai-action { border-left:3px solid var(--teal,#0d9b8a); }
+.inbox-item { padding:14px 18px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .12s; }
+.inbox-item:hover { background:var(--bg); }
+.inbox-item.urgent { border-left:3px solid var(--red); }
+.inbox-item.ai-action { border-left:3px solid var(--teal); }
 .inbox-item.read { opacity:.6; }
 .inbox-item-hdr { display:flex;align-items:flex-start;gap:10px; }
-.inbox-item-icon { width:32px;height:32px;border-radius:8px;background:var(--bg,#f4f6fb);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.inbox-item-icon { width:32px;height:32px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
 .inbox-item-icon svg { width:14px;height:14px; }
 .inbox-item-content { flex:1;min-width:0; }
-.inbox-item-title { font-size:13px;font-weight:600;color:var(--navy,#0f2744);line-height:1.4; }
-.inbox-item-body { font-size:12px;color:var(--text3,#8892a4);margin-top:3px;line-height:1.5; }
-.inbox-item-time { font-size:10px;color:var(--muted,#8892a4);margin-top:4px; }
+.inbox-item-title { font-size:13px;font-weight:600;color:var(--navy);line-height:1.4; }
+.inbox-item-body { font-size:12px;color:var(--text3);margin-top:3px;line-height:1.5; }
+.inbox-item-time { font-size:10px;color:var(--muted);margin-top:4px; }
 .inbox-act-btn { padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font,sans-serif);border:none; }
-.inbox-act-primary { background:var(--navy,#0f2744);color:white; }
-.inbox-act-secondary { background:var(--bg,#f4f6fb);color:var(--ink,#0c1420);border:1px solid var(--border,#dde1ef); }
-.inbox-act-ghost { background:transparent;color:var(--muted,#8892a4); }
-.inbox-ai-tag { font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal,#0d9b8a);margin-bottom:4px; }
+.inbox-act-primary { background:var(--navy);color:white; }
+.inbox-act-secondary { background:var(--bg);color:var(--ink);border:1px solid var(--border); }
+.inbox-act-ghost { background:transparent;color:var(--muted); }
+.inbox-ai-tag { font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin-bottom:4px; }
 .inbox-empty { text-align:center;padding:48px 20px; }
-.inbox-empty svg { width:32px;height:32px;stroke:var(--border,#dde1ef);fill:none;stroke-width:1.5;margin-bottom:12px; }
-.inbox-empty-title { font-size:15px;font-weight:600;color:var(--navy,#0f2744);margin-bottom:4px; }
-.inbox-empty-sub { font-size:13px;color:var(--muted,#8892a4);line-height:1.6; }
+.inbox-empty svg { width:32px;height:32px;stroke:var(--border);fill:none;stroke-width:1.5;margin-bottom:12px; }
+.inbox-empty-title { font-size:15px;font-weight:600;color:var(--navy);margin-bottom:4px; }
+.inbox-empty-sub { font-size:13px;color:var(--muted);line-height:1.6; }
 
 /* ── FORMS & MISC ────────────────────────────────────────── */
-.field { width:100%;border:1.5px solid var(--border,#dde1ef);border-radius:var(--r-md,10px);padding:10px 13px;font-size:14px;font-family:var(--font,sans-serif);color:var(--ink,#0c1420);background:var(--surface,#fff);outline:none;box-sizing:border-box; }
-.field:focus { border-color:var(--teal,#0d9b8a); }
-.slabel { display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal,#0d9b8a);margin:18px 0 10px; }
-.chip { padding:6px 14px;border:1.5px solid var(--border,#dde1ef);border-radius:20px;background:var(--surface,#fff);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font,sans-serif);color:var(--text,#3a4a5a);transition:all .12s; }
-.chip.on { background:var(--navy,#0f2744);color:white;border-color:var(--navy,#0f2744); }
+.field { width:100%;border:1.5px solid var(--border);border-radius:var(--r-md,10px);padding:10px 13px;font-size:14px;font-family:var(--font,sans-serif);color:var(--ink);background:var(--surface);outline:none;box-sizing:border-box; }
+.field:focus { border-color:var(--teal); }
+.slabel { display:block;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:18px 0 10px; }
+.chip { padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;background:var(--surface);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font,sans-serif);color:var(--text);transition:all .12s; }
+.chip.on { background:var(--navy);color:white;border-color:var(--navy); }
 .chips { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px; }
-.hint { font-size:11px;color:var(--muted,#8892a4);margin-bottom:8px;line-height:1.5; }
-.errbox { background:var(--red-bg,var(--red-lt));color:var(--red,#c05050);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:10px; }
-.genbtn { width:100%;padding:14px;background:var(--navy,#0f2744);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font,sans-serif);margin-top:12px;transition:background .2s; }
-.genbtn:hover { background:var(--teal,#0d9b8a); }
+.hint { font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5; }
+.errbox { background:var(--red-bg,var(--red-lt));color:var(--red);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:10px; }
+.genbtn { width:100%;padding:14px;background:var(--navy);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font,sans-serif);margin-top:12px;transition:background .2s; }
+.genbtn:hover { background:var(--teal); }
 .genbtn:disabled { opacity:.5;cursor:not-allowed; }
 
 /* ── MISC APP ELEMENTS ───────────────────────────────────── */
 .akwrap { display:flex;gap:6px;margin-bottom:6px; }
-.akinp { flex:1;border:1.5px solid var(--border,#dde1ef);border-radius:8px;padding:9px 12px;font-size:13px;font-family:var(--font-mono,monospace);color:var(--ink,#0c1420);outline:none; }
-.akinp:focus { border-color:var(--teal,#0d9b8a); }
-.aktgl { padding:9px 14px;border:1px solid var(--border,#dde1ef);border-radius:8px;background:var(--bg,#f4f6fb);font-size:12px;cursor:pointer;font-family:var(--font,sans-serif); }
+.akinp { flex:1;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:var(--font-mono,monospace);color:var(--ink);outline:none; }
+.akinp:focus { border-color:var(--teal); }
+.aktgl { padding:9px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-size:12px;cursor:pointer;font-family:var(--font,sans-serif); }
 .akst { display:flex;align-items:center;gap:6px;font-size:11px; }
 .akdot { width:7px;height:7px;border-radius:50%; }
 .swrap { max-width:540px;padding:4px 0 20px; }
-.stitle { font-size:22px;font-weight:700;color:var(--navy,#0f2744);margin-bottom:4px; }
-.ssub { font-size:13px;color:var(--muted,#8892a4);margin-bottom:20px; }
+.stitle { font-size:22px;font-weight:700;color:var(--navy);margin-bottom:4px; }
+.ssub { font-size:13px;color:var(--muted);margin-bottom:20px; }
 
 /* ── INTELLIGENCE SCREEN ─────────────────────────────────── */
 .intel-wrap { max-width:1200px; margin:0 auto; padding:0 24px 60px; }
 .intel-header {
-  padding:28px 0 20px; border-bottom:1px solid var(--border,#dde1ef); margin-bottom:24px;
+  padding:28px 0 20px; border-bottom:1px solid var(--border); margin-bottom:24px;
   display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;
 }
-.intel-title { font-family:var(--font-serif,Georgia,serif); font-size:28px; font-weight:300; color:var(--navy,#0f2744); letter-spacing:-.02em; }
-.intel-sub { font-size:13px; color:var(--muted,#8892a4); margin-top:4px; }
+.intel-title { font-family:var(--font-serif,Georgia,serif); font-size:28px; font-weight:300; color:var(--navy); letter-spacing:-.02em; }
+.intel-sub { font-size:13px; color:var(--muted); margin-top:4px; }
 .intel-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:20px; }
 @media (max-width:1000px) { .intel-grid { grid-template-columns:1fr 1fr; } }
 @media (max-width:640px)  { .intel-grid { grid-template-columns:1fr; } }
 .intel-card {
-  background:var(--surface,#fff); border:1px solid var(--border,#dde1ef);
+  background:var(--surface); border:1px solid var(--border);
   border-radius:16px; padding:20px; position:relative; overflow:hidden;
 }
 .intel-card-dark {
-  background:var(--navy,#0f2744); border-color:rgba(255,255,255,.06);
+  background:var(--navy); border-color:rgba(255,255,255,.06);
   color:white;
 }
 .intel-card-label {
   font-size:9px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--muted,#8892a4); margin-bottom:12px;
+  color:var(--muted); margin-bottom:12px;
   display:flex; align-items:center; gap:6px;
 }
 .intel-card-dark .intel-card-label { color:rgba(255,255,255,.35); }
 .intel-card-label::before { content:''; width:12px; height:1px; background:currentColor; }
-.intel-metric { font-family:var(--font-mono,'JetBrains Mono',monospace); font-size:36px; font-weight:700; color:var(--navy,#0f2744); line-height:1; }
+.intel-metric { font-family:var(--font-mono,'JetBrains Mono',monospace); font-size:36px; font-weight:700; color:var(--navy); line-height:1; }
 .intel-card-dark .intel-metric { color:white; }
-.intel-metric-sub { font-size:12px; color:var(--muted,#8892a4); margin-top:6px; }
+.intel-metric-sub { font-size:12px; color:var(--muted); margin-top:6px; }
 .intel-card-dark .intel-metric-sub { color:rgba(255,255,255,.4); }
 .intel-trend { display:inline-flex; align-items:center; gap:4px; font-size:11px; font-weight:700; padding:3px 8px; border-radius:20px; margin-top:8px; }
 .intel-trend.up { background:rgba(26,122,74,.1); color:#1a7a4a; }
-.intel-trend.dn { background:rgba(192,80,80,.1); color:var(--red,#c05050); }
+.intel-trend.dn { background:rgba(192,80,80,.1); color:var(--red); }
 .intel-chart { margin-top:16px; height:60px; position:relative; }
 .intel-ask-row {
-  background:linear-gradient(135deg,var(--navy,#0f2744),#0c2040);
+  background:linear-gradient(135deg,var(--navy),#0c2040);
   border-radius:16px; padding:20px 22px; margin-bottom:20px;
   display:flex; align-items:center; gap:16px; flex-wrap:wrap;
 }
@@ -655,18 +699,18 @@ button, input, textarea, select { font-family: inherit; }
 .intel-ask-input::placeholder { color:rgba(255,255,255,.3); }
 .intel-ask-input:focus { border-color:rgba(13,155,138,.5); }
 .intel-ask-btn {
-  background:var(--teal,#0d9b8a); color:white; border:none;
+  background:var(--teal); color:white; border:none;
   border-radius:10px; padding:12px 20px; font-size:14px; font-weight:700;
   cursor:pointer; font-family:var(--font,sans-serif); white-space:nowrap;
 }
 .intel-insights { display:flex; flex-direction:column; gap:10px; }
 .intel-insight {
-  background:var(--surface,#fff); border:1px solid var(--border,#dde1ef);
+  background:var(--surface); border:1px solid var(--border);
   border-radius:12px; padding:14px 18px; display:flex; align-items:flex-start; gap:12px;
 }
 .intel-insight-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:4px; }
-.intel-insight-title { font-size:13px; font-weight:600; color:var(--navy,#0f2744); margin-bottom:3px; }
-.intel-insight-body { font-size:12px; color:var(--text3,#8892a4); line-height:1.55; }
+.intel-insight-title { font-size:13px; font-weight:600; color:var(--navy); margin-bottom:3px; }
+.intel-insight-body { font-size:12px; color:var(--text3); line-height:1.55; }
 
 /* ── RESPONSIVE CONTENT WIDTH ────────────────────────────── */
 .cx { max-width:1100px; margin:0 auto; padding:28px 32px 60px; }
@@ -674,7 +718,7 @@ button, input, textarea, select { font-family: inherit; }
 
 /* ── ANOMALY / CLINICAL WARNINGS ─────────────────────────── */
 .anomaly-section {
-  background:var(--gold-lt); border-left:3px solid var(--gold,#c8a030);
+  background:var(--gold-lt); border-left:3px solid var(--gold);
   border-radius:var(--r-lg,14px); margin-bottom:16px; overflow:hidden;
   border:1px solid rgba(200,160,48,.2); border-left-width:3px;
 }
@@ -683,7 +727,7 @@ button, input, textarea, select { font-family: inherit; }
   padding:11px 16px; border-bottom:1px solid rgba(200,160,48,.15);
 }
 .anomaly-dot {
-  width:8px; height:8px; border-radius:50%; background:var(--gold,#c8a030); flex-shrink:0;
+  width:8px; height:8px; border-radius:50%; background:var(--gold); flex-shrink:0;
 }
 .anomaly-row {
   display:flex; align-items:flex-start; gap:10px;
@@ -693,57 +737,57 @@ button, input, textarea, select { font-family: inherit; }
 .anomaly-row:hover { background:rgba(0,0,0,.02); }
 .anomaly-row:last-child { border-bottom:none; }
 .anomaly-icon { flex-shrink:0; margin-top:3px; }
-.anomaly-name { font-size:13px; font-weight:600; color:var(--navy,#0f2744); }
-.anomaly-msg  { font-size:12px; color:var(--text2,#5a6a7a); margin-top:2px; line-height:1.4; }
+.anomaly-name { font-size:13px; font-weight:600; color:var(--navy); }
+.anomaly-msg  { font-size:12px; color:var(--text2); margin-top:2px; line-height:1.4; }
 .anomaly-tag  { font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; flex-shrink:0; white-space:nowrap; }
 
 /* ── DASHBOARD QUICK-ACCESS ──────────────────────────────── */
 .dash-qbtn { padding:9px 16px; border-radius:var(--r-md,10px); font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font,sans-serif); border:none; transition:all .15s; }
-.dash-qbtn-primary { background:var(--navy,#0f2744); color:white; }
-.dash-qbtn-primary:hover { background:var(--teal,#0d9b8a); }
-.dash-qbtn-secondary { background:var(--surface,#fff); color:var(--ink,#0c1420); border:1px solid var(--border,#dde1ef); }
-.dash-qbtn-secondary:hover { background:var(--bg,#f4f6fb); }
+.dash-qbtn-primary { background:var(--navy); color:white; }
+.dash-qbtn-primary:hover { background:var(--teal); }
+.dash-qbtn-secondary { background:var(--surface); color:var(--ink); border:1px solid var(--border); }
+.dash-qbtn-secondary:hover { background:var(--bg); }
 
 /* ── DR ROWS (dashboard patient rows) ───────────────────── */
-.dr-initials { width:36px; height:36px; border-radius:50%; background:var(--navy,#0f2744); color:white; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-mono,'JetBrains Mono',monospace); }
+.dr-initials { width:36px; height:36px; border-radius:50%; background:var(--navy); color:white; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-family:var(--font-mono,'JetBrains Mono',monospace); }
 .dr-info { flex:1; min-width:0; }
-.dr-name { font-size:13px; font-weight:600; color:var(--navy,#0f2744); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.dr-diag { font-size:11px; color:var(--muted,#8892a4); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.dr-date { font-size:10px; color:var(--muted,#8892a4); }
+.dr-name { font-size:13px; font-weight:600; color:var(--navy); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dr-diag { font-size:11px; color:var(--muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dr-date { font-size:10px; color:var(--muted); }
 .dr-badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; }
-.dash-row { display:flex; align-items:center; gap:10px; padding:9px 14px; border-bottom:1px solid var(--border2,#eef0f5); cursor:pointer; transition:background .12s; }
+.dash-row { display:flex; align-items:center; gap:10px; padding:9px 14px; border-bottom:1px solid var(--border2); cursor:pointer; transition:background .12s; }
 .dash-row:last-child { border-bottom:none; }
-.dash-row:hover { background:var(--bg,#f4f6fb); }
-.dash-empty { padding:16px 14px; font-size:12px; color:var(--muted,#8892a4); text-align:center; }
+.dash-row:hover { background:var(--bg); }
+.dash-empty { padding:16px 14px; font-size:12px; color:var(--muted); text-align:center; }
 
 /* ── STAT ROWS ───────────────────────────────────────────── */
-.dash-stat-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border2,#eef0f5); }
+.dash-stat-row { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--border2); }
 .dash-stat-row:last-child { border-bottom:none; }
-.dash-bar { height:4px; background:var(--border,#dde1ef); border-radius:2px; margin-top:3px; overflow:hidden; }
-.dash-bar-fill { height:100%; background:var(--teal,#0d9b8a); border-radius:2px; }
+.dash-bar { height:4px; background:var(--border); border-radius:2px; margin-top:3px; overflow:hidden; }
+.dash-bar-fill { height:100%; background:var(--teal); border-radius:2px; }
 
 /* ── CLINIC STATS PANEL ──────────────────────────────────── */
 .clinic-stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:16px; }
-.cstat { background:var(--surface,#fff); border:1px solid var(--border,#dde1ef); border-radius:var(--r-lg,14px); padding:16px 18px; }
-.cstat-val { font-size:24px; font-weight:700; color:var(--navy,#0f2744); font-family:var(--font-mono,'JetBrains Mono',monospace); line-height:1.1; }
-.cstat-lbl { font-size:11px; color:var(--muted,#8892a4); font-weight:600; text-transform:uppercase; letter-spacing:.07em; margin-top:4px; }
+.cstat { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg,14px); padding:16px 18px; }
+.cstat-val { font-size:24px; font-weight:700; color:var(--navy); font-family:var(--font-mono,'JetBrains Mono',monospace); line-height:1.1; }
+.cstat-lbl { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.07em; margin-top:4px; }
 
 /* ── LOADING SCREEN ──────────────────────────────────────── */
 .load-wrap { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; gap:16px; }
-.load-spinner { width:32px; height:32px; border:3px solid var(--border,#dde1ef); border-top-color:var(--teal,#0d9b8a); border-radius:50%; animation:spin .8s linear infinite; }
-.load-text { font-size:14px; color:var(--muted,#8892a4); }
+.load-spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--teal); border-radius:50%; animation:spin .8s linear infinite; }
+.load-text { font-size:14px; color:var(--muted); }
 
 /* ── FORM SCREEN ─────────────────────────────────────────── */
 .fwrap { max-width:680px; margin:0 auto; padding:8px 0; }
-.ftitle { font-family:var(--font-serif,Georgia,serif); font-size:22px; color:var(--navy,#0f2744); font-weight:400; margin-bottom:4px; }
-.fsub { font-size:13px; color:var(--muted,#8892a4); margin-bottom:20px; }
+.ftitle { font-family:var(--font-serif,Georgia,serif); font-size:22px; color:var(--navy); font-weight:400; margin-bottom:4px; }
+.fsub { font-size:13px; color:var(--muted); margin-bottom:20px; }
 .ferr { margin-bottom:10px; }
 .twocol { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .slwrap { margin-bottom:14px; }
 .slhd { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
-.sllbl { font-size:11px; font-weight:600; color:var(--text2,#5a6a7a); }
+.sllbl { font-size:11px; font-weight:600; color:var(--text2); }
 .slval { font-size:13px; font-weight:700; }
-.qi-wrap { background:var(--navy,#0f2744); border-radius:12px; padding:16px; margin-bottom:16px; }
+.qi-wrap { background:var(--navy); border-radius:12px; padding:16px; margin-bottom:16px; }
 .qi-title { font-size:13px; font-weight:700; color:white; margin-bottom:8px; }
 .qi-ta { width:100%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); border-radius:8px; padding:10px 12px; font-size:13px; color:white; font-family:var(--font,sans-serif); resize:none; outline:none; box-sizing:border-box; }
 .qi-actions { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:center; }
@@ -755,8 +799,8 @@ button, input, textarea, select { font-family: inherit; }
 
 /* ── PATIENT JOURNAL / DOC SCREEN ───────────────────────── */
 .swrap { max-width:720px; margin:0 auto; }
-.stitle { font-family:var(--font-serif,Georgia,serif); font-size:22px; font-weight:400; color:var(--navy,#0f2744); margin-bottom:4px; }
-.ssub { font-size:13px; color:var(--muted,#8892a4); margin-bottom:20px; }
+.stitle { font-family:var(--font-serif,Georgia,serif); font-size:22px; font-weight:400; color:var(--navy); margin-bottom:4px; }
+.ssub { font-size:13px; color:var(--muted); margin-bottom:20px; }
 
 /* ── NPF BACKDROP ────────────────────────────────────────── */
 .npf-backdrop { position:fixed;inset:0;background:rgba(7,16,30,.65);backdrop-filter:blur(5px);z-index:-1; }
@@ -768,9 +812,9 @@ button, input, textarea, select { font-family: inherit; }
 .soap-wrap { max-width:760px; margin:0 auto; }
 
 /* ── INSIGHT / BRIEFING PANEL ────────────────────────────── */
-.briefing-panel { background:var(--surface,#fff); border:1px solid var(--border,#dde1ef); border-radius:var(--r-lg,14px); padding:16px 18px; margin-bottom:16px; }
-.briefing-hdr { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted,#8892a4); margin-bottom:10px; }
-.briefing-text { font-size:13px; color:var(--text,#3a4a5a); line-height:1.75; }
+.briefing-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg,14px); padding:16px 18px; margin-bottom:16px; }
+.briefing-hdr { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:10px; }
+.briefing-text { font-size:13px; color:var(--text); line-height:1.75; }
 </style>
 
 </head><body>
@@ -824,7 +868,7 @@ button, input, textarea, select { font-family: inherit; }
   </div>
 </div>
 
-<div id="autosave-toast" style="display:none;position:fixed;bottom:80px;right:24px;background:var(--navy,#0f2744);color:white;padding:10px 18px;border-radius:20px;font-size:12px;font-weight:600;z-index:998;opacity:0;transition:opacity .3s;box-shadow:0 4px 16px rgba(0,0,0,.2)">Autosparad</div>
+<div id="autosave-toast" style="display:none;position:fixed;bottom:80px;right:24px;background:var(--navy);color:white;padding:10px 18px;border-radius:20px;font-size:12px;font-weight:600;z-index:998;opacity:0;transition:opacity .3s;box-shadow:0 4px 16px rgba(0,0,0,.2)">Autosparad</div>
 <div class="modal-ov" id="modal">
   <div class="modal">
     <div class="modal-title" id="mtitle"></div>
@@ -1657,49 +1701,63 @@ function renderInboxDrawer() {
   if (!dr) return;
 
   const all    = getInbox();
-  const urgent = all.filter(x => x.type === 'urgent');
-  const ai     = all.filter(x => x.type === 'ai_action');
-  const info   = all.filter(x => x.type === 'info');
+  const unread = all.filter(x => !x.read).length;
+  const tabs   = ['Alla','Kräver åtgärd','AI agerat'];
+  const S_tab  = dr._tab || 0;
 
-  let filtered;
-  if (_inboxTab === 'action') filtered = urgent;
-  else if (_inboxTab === 'ai')  filtered = ai;
-  else filtered = all;
+  function dotColor(type) {
+    return type==='urgent' ? 'var(--red)' : type==='ai_action' ? 'var(--teal)' : 'var(--muted)';
+  }
+  function dotBg(type) {
+    return type==='urgent' ? 'var(--red-lt)' : type==='ai_action' ? 'var(--teal-lt)' : 'var(--surface3)';
+  }
+  function typeIcon(type) {
+    if (type==='urgent') return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    if (type==='ai_action') return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  }
 
-  const unreadUrgent = urgent.filter(x=>!x.read).length;
-  const unreadAi     = ai.filter(x=>!x.read).length;
+  const filtered = S_tab===0 ? all : S_tab===1 ? all.filter(x=>x.type==='urgent') : all.filter(x=>x.type==='ai_action');
 
-  const itemsHtml = filtered.length
-    ? filtered.map((item, idx) => renderInboxItem(item, idx)).join('')
-    : `<div class="inbox-empty">
-        <svg viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-        <div class="inbox-empty-title">Allt klart</div>
-        <div class="inbox-empty-sub">Inga nya händelser att visa.<br>Hael bevakar dina patienter.</div>
-      </div>`;
+  const itemsHtml = filtered.length ? filtered.map(item => {
+    const pat = item.patId ? S.patients.find(p=>p.id===item.patId) : null;
+    const timeStr = formatInboxTime(item.ts);
+    return `<div class="inbox-item${item.read?' read':''} ${item.type==='urgent'?'urgent':item.type==='ai_action'?'ai-action':''}" onclick="markInboxRead('${item.id}');${item.patId?'closeInbox();openPat(\''+item.patId+'\')':''}">
+      <div class="inbox-item-hdr">
+        <div class="inbox-item-icon" style="background:${dotBg(item.type)}">${typeIcon(item.type)}</div>
+        <div class="inbox-item-content">
+          ${item.type==='ai_action'?'<div class="inbox-ai-tag">AI agerade</div>':''}
+          <div class="inbox-item-title">${e(item.title)}</div>
+          ${pat?'<div class="inbox-item-body">'+e(pat.name)+(item.body?' — '+e(item.body.slice(0,80)):'')+'</div>':item.body?'<div class="inbox-item-body">'+e(item.body.slice(0,100))+'</div>':''}
+          <div class="inbox-item-time">${timeStr}${!item.read?' · <span style="color:var(--teal);font-weight:700">Ny</span>':''}</div>
+        </div>
+      </div>
+      ${item.type==='urgent'&&pat?`<div style="display:flex;gap:6px;margin-top:8px;padding-left:42px">
+        <button onclick="event.stopPropagation();closeInbox();openPat('${pat.id}')" class="inbox-act-btn inbox-act-primary">Öppna kundkort</button>
+        <button onclick="event.stopPropagation();markInboxRead('${item.id}');this.closest('.inbox-item').style.opacity='.4'" class="inbox-act-btn inbox-act-ghost">Ignorera</button>
+      </div>`:''}
+    </div>`;
+  }).join('') : `<div class="inbox-empty">
+    <svg viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+    <div class="inbox-empty-title">Inget att visa</div>
+    <div class="inbox-empty-sub">Inga händelser i denna kategori</div>
+  </div>`;
 
   dr.innerHTML = `
-    <div class="inbox-hdr">
-      <div>
-        <div class="inbox-title">Inkorg</div>
-        <div class="inbox-subtitle">${all.length} händelser · ${getUnreadCount()} olästa</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        ${getUnreadCount() ? `<button class="inbox-act-btn inbox-act-secondary" style="font-size:10px;padding:4px 10px" onclick="markAllRead()">Markera alla lästa</button>` : ''}
-        <button class="inbox-close" onclick="closeInbox()">×</button>
-      </div>
+  <div class="inbox-hdr">
+    <div>
+      <div class="inbox-title">Inkorg</div>
+      <div class="inbox-subtitle">${all.length} händelse${all.length!==1?'r':''} · ${unread} oläst${unread!==1?'a':''}</div>
     </div>
-    <div class="inbox-tabs">
-      <button class="inbox-tab ${_inboxTab==='all'?'active':''}" onclick="_inboxTab='all';renderInboxDrawer()">
-        Alla ${all.filter(x=>!x.read).length ? `<span style="background:var(--border2);color:var(--ink2);font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px">${all.filter(x=>!x.read).length}</span>` : ''}
-      </button>
-      <button class="inbox-tab ${_inboxTab==='action'?'active':''}" onclick="_inboxTab='action';renderInboxDrawer()">
-        Kräver åtgärd ${unreadUrgent ? `<span style="background:var(--red);color:white;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px">${unreadUrgent}</span>` : ''}
-      </button>
-      <button class="inbox-tab ${_inboxTab==='ai'?'active':''}" onclick="_inboxTab='ai';renderInboxDrawer()">
-        AI agerat ${unreadAi ? `<span style="background:var(--accent);color:white;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px">${unreadAi}</span>` : ''}
-      </button>
+    <div style="display:flex;align-items:center;gap:8px">
+      ${unread>0?`<button onclick="markAllInboxRead();renderInboxDrawer()" style="background:none;border:none;font-size:11px;color:var(--teal);cursor:pointer;font-family:var(--font);font-weight:600">Markera alla lästa</button>`:''}
+      <button class="inbox-close" onclick="closeInbox()">×</button>
     </div>
-    <div class="inbox-body">${itemsHtml}</div>`;
+  </div>
+  <div class="inbox-tabs">
+    ${tabs.map((t,i)=>`<button class="inbox-tab${S_tab===i?' active':''}" onclick="document.getElementById('inbox-drawer')._tab=${i};renderInboxDrawer()">${t}${i===1&&all.filter(x=>x.type==='urgent').length>0?' <span style=\'background:var(--red);color:white;font-size:9px;padding:1px 5px;border-radius:8px;font-weight:700\'>'+(all.filter(x=>x.type==='urgent').length)+'</span>':''}</button>`).join('')}
+  </div>
+  <div class="inbox-body">${itemsHtml}</div>`;
 }
 
 function renderInboxItem(item, idx) {
@@ -1728,7 +1786,7 @@ function renderInboxItem(item, idx) {
   };
   const svg = iconSvg[item.category] || iconSvg.plan_adjusted;
   const iconColor = isUrgent ? 'var(--red)' : 'var(--muted)';
-  const iconBg    = isUrgent ? 'var(--red-bg)' : 'var(--surface3)';
+  const iconBg    = isUrgent ? 'var(--red-lt)' : 'var(--surface3)';
 
   const actBtns = (item.actions||[]).map(a =>
     `<button class="inbox-act-btn inbox-act-${a.style||'secondary'}"
@@ -3224,7 +3282,7 @@ function rTopbar() {
       </div>
       <div style="border-top:1px solid var(--sb-border);padding-top:10px">
         <div style="display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:var(--r-md)">
-          <div style="width:28px;height:28px;border-radius:50%;background:var(--accent-dim);border:1px solid rgba(13,155,138,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:var(--accent);font-family:var(--font-mono);letter-spacing:0">${initials}</div>
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--teal-lt);border:1px solid rgba(13,155,138,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:var(--accent);font-family:var(--font-mono);letter-spacing:0">${initials}</div>
           <div style="flex:1;min-width:0">
             <div style="font-size:11px;font-weight:600;color:var(--sb-text2);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e(email)}</div>
             <div style="font-size:10px;color:var(--sb-text);margin-top:1px" id="sync-status-sb">${e(CLINIC.name)}</div>
@@ -3299,242 +3357,8 @@ function togSettings(){
   go('settings');
 }
 
+// rDashboard v1 removed
 function rDashboard() {
-  var now = new Date();
-  var hour = now.getHours();
-  var dayName = now.toLocaleDateString('sv-SE',{weekday:'long'});
-  var dateStr = now.toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'});
-  var greeting = hour < 5 ? 'God natt' : hour < 12 ? 'God morgon' : hour < 17 ? 'God eftermiddag' : 'God kväll';
-  var clinicName = CLINIC.name || (_authUser && _authUser.email ? _authUser.email.split('@')[0] : 'Doktorn');
-
-  var total  = S.patients.length;
-  var active = S.patients.filter(function(p){return (p.visits||[])[0] && (p.visits||[])[0].status==='Aktiv';}).length;
-  var urgent = S.patients.filter(function(p){return _clinPriority(p).level>=3;});
-  var needsFollowup = S.patients.filter(function(p){return _clinPriority(p).level>=2;});
-
-  // Revenue
-  var thisMonth=now.getMonth(), thisYear=now.getFullYear();
-  var monthRevenue=0, lastMonthRevenue=0;
-  var last8=[0,0,0,0,0,0,0,0];
-  S.patients.forEach(function(p){
-    (p.visits||[]).forEach(function(v){
-      var d=new Date(v.date||''); if(isNaN(d)) return;
-      var amt=v.servicePrice||0;
-      if(d.getMonth()===thisMonth&&d.getFullYear()===thisYear) monthRevenue+=amt;
-      if(d.getMonth()===(thisMonth-1+12)%12&&d.getFullYear()===(thisMonth===0?thisYear-1:thisYear)) lastMonthRevenue+=amt;
-      var w=Math.floor((now-d)/(7*86400000));
-      if(w>=0&&w<8) last8[7-w]+=amt;
-    });
-  });
-  var revDelta = lastMonthRevenue>0 ? Math.round(((monthRevenue-lastMonthRevenue)/lastMonthRevenue)*100) : null;
-
-  // Dropout risk
-  var dropoutRisk = S.patients.filter(function(p){
-    var v=(p.visits||[])[0]; if(!v||!v.plan) return false;
-    var logs=getPassLogs(p.id);
-    var daysSince = logs.length
-      ? Math.floor((now-new Date(logs[0].ts||0))/86400000)
-      : Math.floor((now-new Date(v.date||0))/86400000);
-    return daysSince>=10;
-  });
-  var dropoutRevRisk = dropoutRisk.length*1800;
-
-  // Adherence
-  var withPlan=S.patients.filter(function(p){return (p.visits||[]).some(function(v){return v.plan;});}).length;
-  var activeLogs=S.patients.filter(function(p){
-    var logs=getPassLogs(p.id);
-    return logs.length>0 && Math.floor((now-new Date(logs[0].ts||0))/86400000)<=7;
-  }).length;
-  var adherence=withPlan>0?Math.round(activeLogs/withPlan*100):0;
-
-  // Recent
-  var recent=[].concat(S.patients).sort(function(a,b){return (b.updatedAt||0)-(a.updatedAt||0);}).slice(0,6);
-
-  // Sparkline
-  function spark(data, color) {
-    var max=Math.max.apply(null,data.concat([1]));
-    var W=100,H=28,pad=2;
-    var pts=data.map(function(v,i){
-      return (pad+(i/(data.length-1||1))*(W-pad*2)).toFixed(1)+','+(((H-pad)-((v/max)*(H-pad*2))).toFixed(1));
-    }).join(' ');
-    var fill='M'+pad+','+(H-pad)+' L'+pts.split(' ').map(function(p){return p;}).join(' L')+' L'+(W-pad)+','+(H-pad)+' Z';
-    return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:28px;display:block" preserveAspectRatio="none">'
-      +'<path d="'+fill+'" fill="'+color+'" opacity="0.12"/>'
-      +'<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'
-      +'</svg>';
-  }
-
-  // AI cards
-  var inbox=getInbox();
-  var urgentItems=inbox.filter(function(x){return x.type==='urgent';}).slice(0,3);
-  var aiItems=inbox.filter(function(x){return x.type==='ai_action';}).slice(0,2);
-
-  function aiCard(col,bg,border,title,body,patId) {
-    return '<div style="background:'+bg+';border:1px solid '+border+';border-radius:11px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:flex-start;gap:9px">'
-      +'<div style="width:7px;height:7px;border-radius:50%;background:'+col+';flex-shrink:0;margin-top:4px"></div>'
-      +'<div style="flex:1;min-width:0">'
-      +'<div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:2px">'+title+'</div>'
-      +'<div style="font-size:11px;color:var(--text3);line-height:1.5">'+body+'</div>'
-      +'</div>'
-      +(patId?'<button onclick="openPat(\''+patId+'\')" style="background:var(--navy);color:white;border:none;border-radius:7px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:var(--font);flex-shrink:0">→</button>':'')
-      +'</div>';
-  }
-
-  var aiCardsHtml='';
-  urgentItems.forEach(function(item){
-    aiCardsHtml+=aiCard('var(--red)','var(--red-lt)','rgba(192,80,80,.15)',item.title,e(item.patName||'')+(item.body?' — '+item.body.slice(0,70):''),item.patId);
-  });
-  aiItems.forEach(function(item){
-    aiCardsHtml+=aiCard('var(--gold)','var(--gold-lt)','rgba(200,160,48,.15)','AI: '+item.title,e(item.patName||'')+(item.body?' — '+item.body.slice(0,70):''),item.patId);
-  });
-  dropoutRisk.slice(0,2).forEach(function(p){
-    var logs=getPassLogs(p.id);
-    var days=logs.length?Math.floor((now-new Date(logs[0].ts||0))/86400000):Math.floor((now-new Date(((p.visits||[])[0]||{}).date||0))/86400000);
-    aiCardsHtml+=aiCard('var(--gold)','var(--gold-lt)','rgba(200,160,48,.15)','Avhoppsrisk — '+e(p.name),'Ingen aktivitet på '+days+' dagar',p.id);
-  });
-  if(!aiCardsHtml) aiCardsHtml='<div style="padding:20px;text-align:center;font-size:12px;color:var(--text3)">Inga åtgärder behövs just nu</div>';
-
-  // Recent rows
-  var recentHtml=recent.length?recent.map(function(p){
-    var initials=(p.name||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
-    var v=(p.visits||[])[0];
-    var d=v&&v.date?new Date(v.date).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}):'';
-    var pr=_clinPriority(p);
-    var avBg=pr.level>=3?'var(--red)':pr.level>=2?'#c8a030':'var(--navy)';
-    return '<div class="cc-row" onclick="openPat(\''+p.id+'\')"><div class="cc-row-av" style="background:'+avBg+'">'+initials+'</div>'
-      +'<div class="cc-row-main"><div class="cc-row-name">'+e(p.name)+'</div>'
-      +'<div class="cc-row-sub">'+e(p.diagnosis||(v&&v.service?v.service:''))+'</div></div>'
-      +'<div class="cc-row-meta">'+(d?'<div style="font-size:11px;color:var(--text3)">'+d+'</div>':'')+
-      '<div style="font-size:10px;color:var(--text3)">'+(p.visits||[]).length+' besök</div></div></div>';
-  }).join(''):'<div class="cc-empty">Inga patienter ännu</div>';
-
-  // Diagnosis bars
-  var diagCount={};
-  S.patients.forEach(function(p){var d=p.diagnosis||'Okänd';diagCount[d]=(diagCount[d]||0)+1;});
-  var topDiags=Object.entries(diagCount).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
-  var maxD=topDiags[0]?topDiags[0][1]:1;
-  var diagHtml=topDiags.map(function(d){
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border2)">'
-      +'<div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e(d[0])+'</div>'
-      +'<div style="height:3px;background:var(--border2);border-radius:2px;margin-top:4px;overflow:hidden"><div style="height:100%;background:var(--teal);border-radius:2px;width:'+Math.round(d[1]/maxD*100)+'%;transition:width .6s ease"></div></div></div>'
-      +'<div style="font-size:11px;font-family:var(--font-mono);color:var(--text3);flex-shrink:0;font-weight:600">'+d[1]+'</div></div>';
-  }).join('');
-
-  // KPI icons
-  function kpiIcon(svg, bg) {
-    return '<div class="cc-kpi-icon" style="background:'+bg+'">'+svg+'</div>';
-  }
-
-  document.getElementById('s-dashboard').innerHTML =
-    '<div class="cc-wrap">'
-
-    // HEADER
-    +'<div class="cc-header">'
-    +'<div>'
-    +'<div class="cc-greeting">'+greeting+', '+e(clinicName)+'</div>'
-    +'<div class="cc-date">'+dayName.charAt(0).toUpperCase()+dayName.slice(1)+' · '+dateStr+'</div>'
-    +'</div>'
-    +'<button class="cc-start-btn" onclick="startVisitFlow()">'
-    +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
-    +' Starta besök</button>'
-    +'</div>'
-
-    // AI BRIEFING
-    +'<div class="cc-briefing" id="cc-briefing-card">'
-    +'<div class="cc-briefing-lbl">Vela Intelligence · Daglig briefing</div>'
-    +'<div class="cc-briefing-text" id="cc-briefing-text" style="color:rgba(255,255,255,.3);font-style:italic">Genererar din briefing...</div>'
-    +'<button class="cc-briefing-btn" onclick="generateDailyBriefing()" id="cc-briefing-btn" style="display:none">Regenerera</button>'
-    +'</div>'
-
-    // KPI STRIP — 4 cards with sparklines
-    +'<div class="cc-kpi-row">'
-
-    +'<div class="cc-kpi">'
-    +kpiIcon('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0d9b8a" stroke-width="2" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>','rgba(13,155,138,.1)')
-    +'<div class="cc-kpi-val">'+(monthRevenue>0?monthRevenue.toLocaleString('sv-SE'):0)+'</div>'
-    +'<div class="cc-kpi-lbl">Intäkt '+now.toLocaleDateString('sv-SE',{month:'long'})+'</div>'
-    +(revDelta!==null?'<div class="cc-kpi-delta '+(revDelta>=0?'up':'dn')+'">'+(revDelta>=0?'↑':'↓')+' '+Math.abs(revDelta)+'%</div>':'<div class="cc-kpi-delta neu">Inget jmf.</div>')
-    +'<div class="cc-kpi-spark">'+spark(last8,'#0d9b8a')+'</div>'
-    +'</div>'
-
-    +'<div class="cc-kpi">'
-    +kpiIcon('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+(urgent.length>0?'#c05050':'#0c1f3d')+'" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>','rgba('+(urgent.length>0?'192,80,80':'12,31,61')+',.1)')
-    +'<div class="cc-kpi-val" style="color:'+(urgent.length>0?'var(--red)':'var(--navy)')+'">'+urgent.length+'</div>'
-    +'<div class="cc-kpi-lbl">Kräver åtgärd</div>'
-    +'<div class="cc-kpi-delta neu">'+needsFollowup.length+' att följa upp</div>'
-    +'</div>'
-
-    +'<div class="cc-kpi">'
-    +kpiIcon('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0d9b8a" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>','rgba(13,155,138,.1)')
-    +'<div class="cc-kpi-val">'+adherence+'%</div>'
-    +'<div class="cc-kpi-lbl">Följsamhet</div>'
-    +'<div style="margin-top:10px;height:4px;background:var(--border2);border-radius:2px;overflow:hidden"><div style="height:100%;background:'+(adherence>=70?'var(--teal)':adherence>=40?'var(--gold)':'var(--red)')+';border-radius:2px;width:'+adherence+'%;transition:width .8s ease"></div></div>'
-    +'</div>'
-
-    +'<div class="cc-kpi" style="'+(dropoutRisk.length>0?'border-color:rgba(200,160,48,.3)':'')+'">'
-    +kpiIcon('<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+(dropoutRisk.length>0?'#c8a030':'#0c1f3d')+'" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>','rgba('+(dropoutRisk.length>0?'200,160,48':'12,31,61')+',.1)')
-    +'<div class="cc-kpi-val" style="color:'+(dropoutRisk.length>0?'var(--gold)':'var(--navy)')+'">'+dropoutRisk.length+'</div>'
-    +'<div class="cc-kpi-lbl">Avhoppsrisk</div>'
-    +(dropoutRisk.length>0?'<div class="cc-kpi-delta dn">~'+dropoutRevRisk.toLocaleString('sv-SE')+' kr risk</div>':'<div class="cc-kpi-delta neu">Inga riskpatienter</div>')
-    +'</div>'
-
-    +'</div>'
-
-    // MAIN GRID
-    +'<div class="cc-grid">'
-
-    // Col 1: AI bevakning
-    +'<div class="cc-panel">'
-    +'<div class="cc-panel-hdr"><div class="cc-panel-title">AI-bevakning</div>'
-    +'<button class="cc-panel-link" onclick="openInbox()">Inkorg →</button></div>'
-    +'<div style="padding:10px 2px 4px">'+aiCardsHtml+'</div>'
-    +'</div>'
-
-    // Col 2: Senaste aktivitet
-    +'<div class="cc-panel">'
-    +'<div class="cc-panel-hdr"><div class="cc-panel-title">Senaste aktivitet</div>'
-    +'<button class="cc-panel-link" onclick="go(\'list\')">Alla →</button></div>'
-    +'<div class="cc-panel-body">'+recentHtml+'</div>'
-    +'</div>'
-
-    // Col 3: Intelligence (right)
-    +'<div class="cc-panel cc-col-right">'
-    +'<div class="cc-panel-hdr"><div class="cc-panel-title">Vela Intelligence</div>'
-    +'<button class="cc-panel-link" onclick="go(\'intelligence\')">Djupanalys →</button></div>'
-    +'<div style="padding:16px">'
-    +'<div style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.65">AI-driven analys av din klinik — intäkter, avhoppsrisk, protokolleffektivitet och marknadsposition.</div>'
-    +'<button onclick="go(\'intelligence\')" style="width:100%;padding:11px;background:var(--navy);color:white;border:none;border-radius:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:background .2s" onmouseover="this.style.background=\'var(--teal)\'" onmouseout="this.style.background=\'var(--navy)\'">Öppna Intelligence →</button>'
-    +'</div>'
-    +'</div>'
-
-    +'</div>'
-
-    // BOTTOM: Diagnoser + Klinikpuls
-    +'<div class="cc-bottom-row">'
-
-    +'<div class="cc-panel">'
-    +'<div class="cc-panel-hdr"><div class="cc-panel-title">Vanligaste diagnoser</div></div>'
-    +'<div style="padding:8px 18px 14px">'+(diagHtml||'<div class="cc-empty">Ingen data</div>')+'</div>'
-    +'</div>'
-
-    +'<div class="cc-panel">'
-    +'<div class="cc-panel-hdr"><div class="cc-panel-title">Klinikpuls</div></div>'
-    +'<div style="padding:14px 18px">'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;text-align:center">'
-    +'<div><div style="font-size:22px;font-weight:800;color:var(--navy);font-family:var(--font-mono)">'+(total>0?Math.round(withPlan/total*100):0)+'%</div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Med plan</div></div>'
-    +'<div><div style="font-size:22px;font-weight:800;color:var(--navy);font-family:var(--font-mono)">'+active+'</div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Aktiva</div></div>'
-    +'<div><div style="font-size:22px;font-weight:800;color:'+(urgent.length>0?'var(--red)':'var(--navy)')+';font-family:var(--font-mono)">'+urgent.length+'</div><div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px">Akuta</div></div>'
-    +'</div>'
-    +'<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Intäkt senaste 8 v.</div>'
-    +spark(last8,'#0d9b8a')
-    +'</div></div>'
-
-    +'</div>'
-    +'</div>';
-
-  setTimeout(function(){generateDailyBriefing();}, 400);
-  setTimeout(function(){checkAdaptivePlanAlerts(S.patients);}, 1000);
-}function rDashboard() {
   const now = new Date();
   const hour = now.getHours();
   const dayName = now.toLocaleDateString('sv-SE',{weekday:'long'});
@@ -3637,7 +3461,7 @@ function rDashboard() {
     + '<div class="cc-kpi" style="'+(dropoutRisk.length>0?'border-color:rgba(200,160,48,.3)':'')+'">'
     +   '<div class="cc-kpi-val" style="color:'+(dropoutRisk.length>0?'var(--gold)':'var(--navy)')+'">'+dropoutRisk.length+'</div>'
     +   '<div class="cc-kpi-lbl">Avhoppsrisk</div>'
-    +   (dropoutRisk.length>0 ? '<div class="cc-kpi-delta dn">~'+dropoutRevRisk.toLocaleString('sv-SE')+' kr risk</div>' : '<div class="cc-kpi-delta" style="color:var(--text3)">Inga riskpatienter</div>')
+    +   (dropoutRisk.length>0 ? '<div class="cc-kpi-delta dn" onclick="showDropoutList()" style="cursor:pointer">~'+dropoutRevRisk.toLocaleString('sv-SE')+' kr → lista</div>' : '<div class="cc-kpi-delta" style="color:var(--text3)">Inga riskpatienter</div>')
     + '</div>'
     + '</div>';
 
@@ -3739,10 +3563,7 @@ function rDashboard() {
     +     '<div class="cc-greeting">'+greeting+', '+e(clinicName)+'</div>'
     +     '<div class="cc-date">'+dayName.charAt(0).toUpperCase()+dayName.slice(1)+' · '+dateStr+'</div>'
     +   '</div>'
-    +   '<button class="cc-start-btn" onclick="startVisitFlow()">'
-    +     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
-    +     ' Starta besök'
-    +   '</button>'
+
     + '</div>'
 
     // AI BRIEFING
@@ -4087,7 +3908,7 @@ function rList(){
           <div class="vela-pat-status">
             ${!onboardComplete ? `
             <div style="display:flex;align-items:center;gap:5px" title="${stepsDone}/4 steg klara">
-              ${steps.map(s => `<div style="width:6px;height:6px;border-radius:50%;background:${s.done?'var(--accent)':'var(--border2, #dde)'}"></div>`).join('')}
+              ${steps.map(s => `<div style="width:6px;height:6px;border-radius:50%;background:${s.done?'var(--accent)':'var(--border, #dde)'}"></div>`).join('')}
               <div style="font-size:10px;color:var(--muted);margin-left:2px">${stepsDone}/4</div>
             </div>` : `
             <div style="font-size:11px;color:var(--muted)">${lastVisitDate ? new Date(lastVisitDate).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : '--'}</div>
@@ -4185,7 +4006,7 @@ function renderPhaseBar(pat) {
     const done = p.id < cur;
     const active = p.id === cur;
     const dotBg = active ? p.color : done ? 'var(--teal)' : 'var(--border)';
-    const labelColor = active ? 'var(--navy)' : done ? 'var(--teal)' : 'var(--text4)';
+    const labelColor = active ? 'var(--navy)' : done ? 'var(--teal)' : 'var(--text3)';
     const weight = active ? '700' : '400';
     return `<div onclick="setPhase(${p.id})" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex:1">
       <div style="width:10px;height:10px;border-radius:50%;background:${dotBg};transition:background .15s"></div>
@@ -4228,12 +4049,12 @@ function rDetail(){
   // Diagnoses
   const diagList = p.diagnoses?.length ? p.diagnoses : (p.diagnosis ? [p.diagnosis] : []);
   const diagHtml = `<div id="det-diag-block" style="margin-bottom:10px">
-    <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text4);margin-bottom:6px">
+    <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">
       Diagnoser
       <button onclick="openDiagEditor('${p.id}')" style="margin-left:8px;background:none;border:none;font-size:10px;color:var(--teal);cursor:pointer;font-family:'DM Sans',sans-serif;padding:0;font-weight:600">Redigera</button>
-      <button onclick="aiExtractDiagnoses('${p.id}')" style="margin-left:4px;background:none;border:none;font-size:10px;color:var(--text4);cursor:pointer;font-family:'DM Sans',sans-serif;padding:0">→ AI</button>
+      <button onclick="aiExtractDiagnoses('${p.id}')" style="margin-left:4px;background:none;border:none;font-size:10px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;padding:0">→ AI</button>
     </div>
-    ${diagList.length ? diagList.map((d,i)=>`<span style="display:inline-block;margin:0 5px 5px 0;padding:3px 10px;background:${i===0?'var(--navy)':'var(--bg2)'};color:${i===0?'white':'var(--text2)'};font-size:11px;font-weight:${i===0?'600':'400'}">${e(d)}</span>`).join('') : '<span style="font-size:12px;color:var(--text4)">Ingen diagnos angiven</span>'}
+    ${diagList.length ? diagList.map((d,i)=>`<span style="display:inline-block;margin:0 5px 5px 0;padding:3px 10px;background:${i===0?'var(--navy)':'var(--bg2)'};color:${i===0?'white':'var(--text2)'};font-size:11px;font-weight:${i===0?'600':'400'}">${e(d)}</span>`).join('') : '<span style="font-size:12px;color:var(--text3)">Ingen diagnos angiven</span>'}
   </div>`;
 
   // Sidebar actions
@@ -4316,17 +4137,17 @@ function rDetail(){
   const patHeader = `
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px">
       <div style="flex:1;min-width:0">
-        <div style="font-family:var(--font-serif,serif);font-size:22px;color:var(--ink,#1a2a3a);font-weight:400;letter-spacing:-.01em;line-height:1.2">${e(p.name||"Namnlös")}</div>
-        <div style="font-size:12px;color:var(--muted,#8892a4);margin-top:3px">${p.birthdate||""}${age&&!isNaN(age)?' · '+age+' år':''}</div>
+        <div style="font-family:var(--font-serif,serif);font-size:22px;color:var(--ink);font-weight:400;letter-spacing:-.01em;line-height:1.2">${e(p.name||"Namnlös")}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">${p.birthdate||""}${age&&!isNaN(age)?' · '+age+' år':''}</div>
         ${diagHtml}
       </div>
       <div style="text-align:right;flex-shrink:0">
-        ${totalRevenue ? `<div style="font-size:11px;color:var(--muted,#8892a4)">Intäkter</div><div style="font-size:15px;font-weight:700;color:var(--ink,#1a2a3a)">${totalRevenue.toLocaleString('sv-SE')} kr</div>` : ''}
-        <div style="font-size:11px;color:var(--muted,#8892a4);margin-top:4px">${(p.visits||[]).length} besök</div>
-        ${latestVisit?.date ? `<div style="font-size:11px;color:var(--muted,#8892a4)">Senast ${latestVisit.date}</div>` : ''}
+        ${totalRevenue ? `<div style="font-size:11px;color:var(--muted)">Intäkter</div><div style="font-size:15px;font-weight:700;color:var(--ink)">${totalRevenue.toLocaleString('sv-SE')} kr</div>` : ''}
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">${(p.visits||[]).length} besök</div>
+        ${latestVisit?.date ? `<div style="font-size:11px;color:var(--muted)">Senast ${latestVisit.date}</div>` : ''}
       </div>
     </div>
-    ${p.phone||p.email ? `<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--muted,#8892a4)">
+    ${p.phone||p.email ? `<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;font-size:12px;color:var(--muted)">
       ${p.phone?`<span>📞 ${e(p.phone)}</span>`:''}
       ${p.email?`<span>✉ ${e(p.email)}</span>`:''}
     </div>` : ''}`;
@@ -4371,7 +4192,7 @@ function rDetail(){
 
   // 5. Besökshistorik — open if has visits
   const visitContent = !hasVisits
-    ? `<div style="font-size:13px;color:var(--muted,#8892a4);padding:16px 0;text-align:center">Inga besök ännu. <a href="#" onclick="newVisit();return false" style="color:var(--teal,#0d9b8a)">Skapa första besöket</a></div>`
+    ? `<div style="font-size:13px;color:var(--muted);padding:16px 0;text-align:center">Inga besök ännu. <a href="#" onclick="newVisit();return false" style="color:var(--teal)">Skapa första besöket</a></div>`
     : renderVisitTimeline(p) + renderPendingPlanApproval(p) + renderIntakeReviewPanel(p.id) + renderPainGraph(p) + renderPatientReportsPanel(p.id);
   h += collapsible('det-visits-'+p.id, 'Besökshistorik', visitContent, true,
     hasVisits ? String((p.visits||[]).length) : '');
@@ -4425,15 +4246,15 @@ function renderOnboardingGuide(p, steps, nextStep) {
 
   // Only show if incomplete, and only show the NEXT step — not a full progress bar
   if (!nextStep) return '';
-  return '<div style="background:var(--surface2,#f4f6fb);border:1px solid var(--border,#dde1ef);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">' +
+  return '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">' +
     '<div style="width:28px;height:28px;border-radius:50%;background:rgba(13,155,138,.12);border:1.5px solid rgba(13,155,138,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0">' +
-    '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#0d9b8a)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>' +
+    '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>' +
     '</div>' +
     '<div style="flex:1;min-width:0">' +
-    '<div style="font-size:11px;color:var(--muted,#8892a4)">Nästa steg</div>' +
-    '<div style="font-size:13px;font-weight:600;color:var(--navy,#0f2744)">' + e(nextStep.label) + '</div>' +
+    '<div style="font-size:11px;color:var(--muted)">Nästa steg</div>' +
+    '<div style="font-size:13px;font-weight:600;color:var(--navy)">' + e(nextStep.label) + '</div>' +
     '</div>' +
-    (nextStep.action ? '<button onclick="' + nextStep.action + '" style="background:var(--navy,#0f2744);color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font,sans-serif);flex-shrink:0">Gör det →</button>' : '') +
+    (nextStep.action ? '<button onclick="' + nextStep.action + '" style="background:var(--navy);color:white;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font,sans-serif);flex-shrink:0">Gör det →</button>' : '') +
     '</div>';
 }
 
@@ -5381,11 +5202,11 @@ function newPatientFlow() {
         </div>
       </div>
       <div class="npf-full" style="margin-bottom:10px">
-        <div class="npf-label">Diagnos / besvär *</div>
+        <div class="npf-label">Huvuddiagnos / besvär *</div>
         <input id="npf-diagnosis" class="npf-input" placeholder="T.ex. Knäartros, diskbråck L4-L5, rotatorcufftendinit...">
       </div>
       <!-- Optional -->
-      <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text4);margin-bottom:10px">Valfritt -- kan kompletteras senare</div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Valfritt -- kan kompletteras senare</div>
       <div class="npf-row" style="margin-bottom:10px">
         <div>
           <div class="npf-label">Telefon</div>
@@ -5406,8 +5227,23 @@ function newPatientFlow() {
       </div>
     </div>
     <div class="npf-footer">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px">
+        <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:10px">Samtycken</div>
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:8px">
+          <input type="checkbox" id="consent-journal" checked style="margin-top:2px;accent-color:var(--teal);flex-shrink:0;width:14px;height:14px">
+          <span style="font-size:12px;color:var(--text);line-height:1.5">Journalföring och behandlingsdokumentation</span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:8px">
+          <input type="checkbox" id="consent-gdpr" checked style="margin-top:2px;accent-color:var(--teal);flex-shrink:0;width:14px;height:14px">
+          <span style="font-size:12px;color:var(--text);line-height:1.5">Personuppgiftsbehandling (GDPR)</span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+          <input type="checkbox" id="consent-hael" style="margin-top:2px;accent-color:var(--teal);flex-shrink:0;width:14px;height:14px">
+          <span style="font-size:12px;color:var(--text);line-height:1.5">Digital rehabplan via Hael</span>
+        </label>
+      </div>
       <div class="npf-err" id="npf-err">Namn och personnummer är obligatoriska.</div>
-      <button class="npf-btn-primary" onclick="createNewPatientAndChoose()">Skapa kundkort -></button>
+      <button class="npf-btn-primary" onclick="createNewPatientAndChoose()">Skapa kundkort →</button>
       <button class="npf-btn-ghost" onclick="document.getElementById('new-pat-flow').remove()">Avbryt</button>
     </div>
   </div>`;
@@ -5428,12 +5264,21 @@ function createNewPatientAndChoose() {
   const diagnosis = document.getElementById('npf-diagnosis')?.value.trim() || '';
   const birthYear = birthdateToYear(birthdate);
   const notes = document.getElementById('npf-notes')?.value.trim();
-  const pat = { id:'pat_'+Date.now(), name, birthdate, email, phone, address, birthYear, diagnosis, diagnoses: diagnosis ? [diagnosis] : [], notes, visits:[], consents:[], phase:1 };
+  const consentJournal = document.getElementById('consent-journal')?.checked || false;
+  const consentGdpr    = document.getElementById('consent-gdpr')?.checked || false;
+  const consentHael    = document.getElementById('consent-hael')?.checked || false;
+  const consents = [];
+  const ts = new Date().toISOString();
+  if (consentJournal) consents.push({ type: 'journal',    given: true, ts, method: 'registration' });
+  if (consentGdpr)    consents.push({ type: 'gdpr',       given: true, ts, method: 'registration' });
+  if (consentHael)    consents.push({ type: 'hael_plan',  given: true, ts, method: 'registration' });
+  const pat = { id:'pat_'+Date.now(), name, birthdate, email, phone, address, birthYear, diagnosis, diagnoses: diagnosis ? [diagnosis] : [], notes, visits:[], consents, phase:1 };
   const saved = savePat(pat);
   S.pat = saved;
   document.getElementById('new-pat-flow').remove();
-  // Auto-send intake link
-  setTimeout(() => _autoSendIntakeAfterRegistration(saved), 200);
+  openPat(saved.id);
+  // Show a subtle success toast (not an intake prompt)
+  showAutoSaveToast('Patient registrerad ✓');
 }
 
 function _autoSendIntakeAfterRegistration(pat) {
@@ -5509,7 +5354,7 @@ function renderPatientSearchResults() {
     const lastDate = p.visits&&p.visits[0]&&p.visits[0].date||'';
     const initials = (p.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const age = (p.birthdate||p.birthYear) ? new Date().getFullYear()-birthdateToYear(p.birthdate||p.birthYear||'') : '';
-    return `<button onclick="selectReturningPatient('${p.id}')" style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid #e8ecf0;border-radius:10px;padding:12px 14px;text-align:left;cursor:pointer;font-family:inherit;width:100%;transition:all .12s" onmouseover="this.style.borderColor='var(--teal)';this.style.background='var(--teal3)'" onmouseout="this.style.borderColor='#e8ecf0';this.style.background='white'">
+    return `<button onclick="selectReturningPatient('${p.id}')" style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid #e8ecf0;border-radius:10px;padding:12px 14px;text-align:left;cursor:pointer;font-family:inherit;width:100%;transition:all .12s" onmouseover="this.style.borderColor='var(--teal)';this.style.background='var(--teal-lt)'" onmouseout="this.style.borderColor='#e8ecf0';this.style.background='white'">
       <div style="width:38px;height:38px;border-radius:50%;background:var(--navy);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0">${initials}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e(p.name)}</div>
@@ -5579,7 +5424,7 @@ function showVisitActionChooser() {
       <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--navy);margin-bottom:10px">Åtgärd</div>
       <div style="display:flex;flex-direction:column;gap:6px">
         ${actions.map(a=>`
-        <button onclick="${a.fn}" style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid #e8ecf0;padding:12px 14px;text-align:left;cursor:pointer;font-family:inherit;width:100%;transition:all .12s" onmouseover="this.style.borderColor='var(--teal)';this.style.background='var(--teal3)'" onmouseout="this.style.borderColor='#e8ecf0';this.style.background='white'">
+        <button onclick="${a.fn}" style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid #e8ecf0;padding:12px 14px;text-align:left;cursor:pointer;font-family:inherit;width:100%;transition:all .12s" onmouseover="this.style.borderColor='var(--teal)';this.style.background='var(--teal-lt)'" onmouseout="this.style.borderColor='#e8ecf0';this.style.background='white'">
           <div style="width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:1px"></div>
           <div>
             <div style="font-size:13px;font-weight:600;color:var(--navy)">${a.label}</div>
@@ -6845,8 +6690,8 @@ function renderConsentBlock(p) {
       </div>`;
     } else {
       return `<div class="consent-row">
-        <div class="consent-dot" style="background:var(--text4)"></div>
-        <div class="consent-type" style="color:var(--text4)">${ct.label}</div>
+        <div class="consent-dot" style="background:var(--text3)"></div>
+        <div class="consent-type" style="color:var(--text3)">${ct.label}</div>
         <div style="margin-left:auto"><button class="btn" style="padding:3px 10px;font-size:10px" onclick="addConsent('${ct.key}')">+ Registrera</button></div>
       </div>`;
     }
@@ -7045,7 +6890,7 @@ function rPatJournal() {
           <div class="pjdoc-ftr-txt">
             <div>${e(CLINIC.name)} · ${e(CLINIC.address)}</div>
             <div>${e(CLINIC.phone)} · ${e(CLINIC.email)}</div>
-            <div style="margin-top:2px;color:var(--text4)">Konfidentiell patientjournal -- Hael · Vela</div>
+            <div style="margin-top:2px;color:var(--text3)">Konfidentiell patientjournal -- Hael · Vela</div>
           </div>
         </div>
       </div>
@@ -7290,11 +7135,11 @@ function rSBSsoap() {
       <div style="font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap">Jämför med:</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1">
         ${allVisits.map((v,i) => `
-          <button onclick="sbsSwitchPrev('${v.id}')" style="padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid ${v.id===prev.id?'var(--teal)':'var(--border)'};background:${v.id===prev.id?'var(--teal3)':'white'};color:${v.id===prev.id?'var(--teal)':'var(--text3)'};font-family:inherit">
+          <button onclick="sbsSwitchPrev('${v.id}')" style="padding:5px 11px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid ${v.id===prev.id?'var(--teal)':'var(--border)'};background:${v.id===prev.id?'var(--teal-lt)':'white'};color:${v.id===prev.id?'var(--teal)':'var(--text3)'};font-family:inherit">
             ${v.date||'Besök '+(i+1)}
           </button>`).join('')}
       </div>
-      <div style="font-size:11px;color:var(--text4)">${allVisits.length} besök</div>
+      <div style="font-size:11px;color:var(--text3)">${allVisits.length} besök</div>
     </div>` : ''}`;
 
   // Pain comparison row
@@ -7345,10 +7190,10 @@ function rSBSsoap() {
     h += `<div class="sbs-section">
       <div class="sbs-panel">
         <div class="sbs-phdr"><div class="sbs-letter ${letter}">${letter}</div><div class="sbs-pname">${labels[letter]} -- ${descs[letter]}</div></div>
-        <div class="sbs-prev-body">${prevText ? e(prevText) : '<span style="color:var(--text4);font-size:11px">Inget dokumenterat</span>'}</div>
+        <div class="sbs-prev-body">${prevText ? e(prevText) : '<span style="color:var(--text3);font-size:11px">Inget dokumenterat</span>'}</div>
       </div>
       <div class="sbs-panel" style="border-color:var(--teal)">
-        <div class="sbs-phdr" style="background:var(--teal3);justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><div class="sbs-letter ${letter}">${letter}</div><div class="sbs-pname">${labels[letter]} -- skriv nu</div></div>${micBtnHTML('sbs-'+letter, letter)}</div>
+        <div class="sbs-phdr" style="background:var(--teal-lt);justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><div class="sbs-letter ${letter}">${letter}</div><div class="sbs-pname">${labels[letter]} -- skriv nu</div></div>${micBtnHTML('sbs-'+letter, letter)}</div>
         <textarea class="sbs-curr-ta" id="sbs-${letter}" placeholder="${placeholder}"
           oninput="currentSOAP.soap['${letter}']=this.value;triggerClinicalAnalysis(sbsGetText());autoSaveJournalDraft()">${e(currSoap[letter]||'')}</textarea>
       </div>
@@ -7362,11 +7207,11 @@ function rSBSsoap() {
         <div class="sbs-phdr"><div style="font-size:12px;font-weight:600;color:var(--navy)">Övningar förra besöket</div></div>
         <div class="sbs-prev-exlist">`;
     prevPlan.exercises.forEach((ex,i) => {
-      h += `<div class="sbs-ex-row"><div class="sbs-ex-n">${i+1}</div><div style="flex:1">${e(ex.name)}</div><div style="font-size:10px;color:var(--text4);font-family:'DM Mono',monospace">${ex.sets}×${ex.reps}</div></div>`;
+      h += `<div class="sbs-ex-row"><div class="sbs-ex-n">${i+1}</div><div style="flex:1">${e(ex.name)}</div><div style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">${ex.sets}×${ex.reps}</div></div>`;
     });
     h += `</div></div>
       <div class="sbs-panel" style="border-color:var(--teal)">
-        <div class="sbs-phdr" style="background:var(--teal3)"><div style="font-size:12px;font-weight:600;color:var(--teal)">Kliniskt fokus för ny Hael-plan</div></div>
+        <div class="sbs-phdr" style="background:var(--teal-lt)"><div style="font-size:12px;font-weight:600;color:var(--teal)">Kliniskt fokus för ny Hael-plan</div></div>
         <textarea class="sbs-curr-ta" id="sbs-focus" placeholder="Vad ska ny plan fokusera på? Vilka övningar fungerade bra/dåligt? Anpassningar..."
           style="min-height:120px" oninput="currentSOAP.clinicalFocus=this.value;autoSaveJournalDraft()">${e(currentSOAP&&currentSOAP.clinicalFocus||'')}</textarea>
       </div>
@@ -7607,32 +7452,33 @@ Skicka länken via mail, SMS eller iMessage. Patienten öppnar den i mobilen -- 
   .visit-timeline{display:flex;flex-direction:column;gap:0;margin-top:12px;}
   .vt-item{display:flex;gap:0;position:relative;}
   .vt-connector{display:flex;flex-direction:column;align-items:center;width:28px;flex-shrink:0;}
-  .vt-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--accent);background:var(--surface);z-index:1;margin-top:14px;flex-shrink:0;}
+  .vt-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--accent);background:var(--surface);z-index:1;margin-top:14px;flex-shrink:0;transition:background .2s;}
   .vt-dot.first{background:var(--accent);}
   .vt-line{width:2px;background:var(--border);flex:1;min-height:20px;}
   .vt-last .vt-line{background:transparent;}
   .vt-body{flex:1;padding:10px 0 16px 12px;}
+  .vt-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-top:4px;}
+  .vt-card:hover{border-color:rgba(255,255,255,.12);}
   .vt-date{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.04em;margin-bottom:4px;}
   .vt-title{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px;}
 
   /* -- Collapsible sections in patient detail -- */
-  .det-collapsible{border:1px solid var(--border,#dde1ef);border-radius:10px;margin-bottom:10px;overflow:hidden;background:var(--surface,#fff);}
-  .det-collapsible-hdr{display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;list-style:none;user-select:none;font-size:13px;font-weight:700;color:var(--ink,#0c0f18);}
+  .det-collapsible{border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden;background:var(--surface);}
+  .det-collapsible-hdr{display:flex;align-items:center;gap:8px;padding:13px 16px;cursor:pointer;list-style:none;user-select:none;font-size:13px;font-weight:700;color:var(--ink);}
   .det-collapsible-hdr::-webkit-details-marker{display:none;}
-  .det-collapsible-hdr:hover{background:rgba(0,0,0,.02);}
+  .det-collapsible-hdr:hover{background:var(--surface2);}
   .det-collapsible-label{flex:1;}
-  .det-collapsible-badge{background:var(--accent,#0d9b8a);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
-  .det-collapsible-chevron{flex-shrink:0;color:var(--muted,#8892a4);transition:transform .2s;}
+  .det-collapsible-badge{background:var(--accent);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
+  .det-collapsible-chevron{flex-shrink:0;color:var(--muted);transition:transform .2s;}
   details[open] .det-collapsible-chevron{transform:rotate(180deg);}
-  .det-collapsible-body{padding:4px 16px 16px;border-top:1px solid var(--border,#dde1ef);}
-  /* Unread badge variant */
-  .det-collapsible-badge.unread{background:var(--red,#e53935);}
+  .det-collapsible-body{padding:8px 16px 16px;border-top:1px solid var(--border);}
+  .det-collapsible-badge.unread{background:var(--red);}
 
   /* -- Browser notification dot -- */
   .vela-notif-dot{position:fixed;top:0;left:0;width:0;height:0;}
 
 
-.visit-choice-btn:hover { border-color:var(--teal,#0d9b8a) !important; background:rgba(13,155,138,.04) !important; }
+.visit-choice-btn:hover { border-color:var(--teal) !important; background:rgba(13,155,138,.04) !important; }
 </style>
 </head>
 <body>
@@ -8070,7 +7916,7 @@ function printHomeCard(vid) {
   .login-logo{height:48px;margin-bottom:24px}
   .login-title{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--navy);font-weight:400;margin-bottom:4px}
   .login-sub{font-size:13px;color:var(--text3);margin-bottom:28px}
-  .login-field{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;margin-bottom:10px;background:white}
+  .login-field{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:8px;font-size:15px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;margin-bottom:10px;background:var(--surface)}
   .login-field:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(26,122,138,0.08)}
   .login-btn{width:100%;padding:13px;background:var(--navy);color:white;border:none;border-radius:8px;font-size:15px;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px;font-weight:600;letter-spacing:.02em}
   .login-btn:hover{background:#2a4a5a}
@@ -8078,7 +7924,7 @@ function printHomeCard(vid) {
   .login-hint{font-size:11px;color:var(--text3);margin-top:16px;line-height:1.6}
   .pub-wrap{max-width:600px;margin:0 auto;padding:0 0 40px}
   .pub-loading{text-align:center;padding:80px 20px;color:var(--muted);font-size:14px}
-  @media print{body{background:white}}
+  @media print{body{background:var(--surface)}}
 </style>
 </head>
 <body>
@@ -8231,7 +8077,7 @@ function setSyncStatus(state, msg) {
   // state: 'idle' | 'syncing' | 'ok' | 'error'
   const el = document.getElementById('sync-status');
   if (!el) return;
-  const colors = { idle:'var(--muted)', syncing:'var(--accent)', ok:'var(--green,#0aab7c)', error:'var(--red,#e53935)' };
+  const colors = { idle:'var(--muted)', syncing:'var(--accent)', ok:'var(--green)', error:'var(--red)' };
   el.textContent = msg || '';
   el.style.color = colors[state] || colors.idle;
 }
@@ -8623,8 +8469,8 @@ function rLogin() {
 
       <button class="ln-btn" id="ln-submit" onclick="doLogin()">Logga in -></button>
       <div class="ln-err" id="l-err"></div>
-      <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--muted,#8892a4)">
-        Ny kund? <a href="vela_setup.html" style="color:var(--teal,#0d9b8a);text-decoration:none;font-weight:600">Kom igång här →</a>
+      <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--muted)">
+        Ny kund? <a href="vela_setup.html" style="color:var(--teal);text-decoration:none;font-weight:600">Kom igång här →</a>
       </div>
 
       <div class="ln-trust">
@@ -8908,31 +8754,31 @@ function sendIntakeLink(patId, intakeType) {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
   overlay.innerHTML = `
-    <div style="background:var(--surface,#fff);border-radius:16px;padding:28px 24px 22px;max-width:440px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
+    <div style="background:var(--surface);border-radius:16px;padding:28px 24px 22px;max-width:440px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
         <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#0f2744,#0d9b8a);display:flex;align-items:center;justify-content:center;flex-shrink:0">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </div>
         <div>
-          <div style="font-size:15px;font-weight:700;color:var(--ink,#0c0f18)">${isNew ? 'Hälsoformulär — ny patient' : 'Uppdateringsformulär — återkommande'}</div>
-          <div style="font-size:11px;color:var(--muted,#8892a4);margin-top:2px">${e(p.name)}</div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink)">${isNew ? 'Hälsoformulär — ny patient' : 'Uppdateringsformulär — återkommande'}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${e(p.name)}</div>
         </div>
       </div>
 
-      <div style="background:var(--bg,#f7f8fc);border-radius:8px;padding:10px 13px;font-size:11px;color:var(--muted,#8892a4);font-family:'JetBrains Mono',monospace;word-break:break-all;margin-bottom:16px">${e(intakeUrl)}</div>
+      <div style="background:var(--bg);border-radius:8px;padding:10px 13px;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;word-break:break-all;margin-bottom:16px">${e(intakeUrl)}</div>
 
-      <div style="font-size:12px;color:var(--muted,#8892a4);margin-bottom:16px;line-height:1.6">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6">
         ${isNew
           ? 'Patienten besvarar frågor om smärta, funktion, sömnkvalitet och träningsförutsättningar. Du granskar svaren innan planen skapas.'
           : 'Kort uppföljning — hur har det gått, vad har förändrats sedan sist. Du granskar svaren och uppdaterar planen.'}
       </div>
 
       <div style="display:flex;gap:8px;margin-bottom:10px">
-        ${p.email ? `<button onclick="window.location.href='${mailtoUrl}'" style="flex:1;background:var(--teal,#0d9b8a);color:white;border:none;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Öppna i e-post</button>` : ''}
-        <button onclick="navigator.clipboard.writeText('${intakeUrl}').then(()=>this.textContent='Kopierat!')" style="${p.email ? 'flex:0 0 auto;' : 'flex:1;'}background:var(--bg2,#eef0f7);color:var(--ink,#0c0f18);border:1px solid var(--border,#dde1ef);border-radius:9px;padding:12px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">Kopiera länk</button>
+        ${p.email ? `<button onclick="window.location.href='${mailtoUrl}'" style="flex:1;background:var(--teal);color:white;border:none;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Öppna i e-post</button>` : ''}
+        <button onclick="navigator.clipboard.writeText('${intakeUrl}').then(()=>this.textContent='Kopierat!')" style="${p.email ? 'flex:0 0 auto;' : 'flex:1;'}background:var(--bg2);color:var(--ink);border:1px solid var(--border);border-radius:9px;padding:12px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">Kopiera länk</button>
       </div>
-      ${!p.email ? '<div style="font-size:11px;color:var(--amber,#e8960a);text-align:center;margin-bottom:8px">Ingen e-post registrerad — kopiera länken manuellt</div>' : ''}
-      <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;background:none;border:1px solid var(--border,#dde1ef);border-radius:9px;padding:10px;font-size:13px;color:var(--muted,#8892a4);cursor:pointer;font-family:'DM Sans',sans-serif">Stäng</button>
+      ${!p.email ? '<div style="font-size:11px;color:var(--amber);text-align:center;margin-bottom:8px">Ingen e-post registrerad — kopiera länken manuellt</div>' : ''}
+      <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;background:none;border:1px solid var(--border);border-radius:9px;padding:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif">Stäng</button>
     </div>`;
   document.body.appendChild(overlay);
   overlay.addEventListener('click', ev => { if (ev.target === overlay) overlay.remove(); });
@@ -8958,7 +8804,7 @@ function renderPendingPlanApproval(p) {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:14px">
           ${Object.entries(answers).filter(([,v])=>v).slice(0,6).map(([k,val]) => `
             <div style="background:var(--bg2);border-radius:6px;padding:6px 9px">
-              <div style="font-size:9px;color:var(--text4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1px">${e(INTAKE_LABELS[k]||k)}</div>
+              <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1px">${e(INTAKE_LABELS[k]||k)}</div>
               <div style="font-size:11px;color:var(--text)">${e(String(val))}</div>
             </div>`).join('')}
         </div>` : ''}
@@ -9065,81 +8911,81 @@ function renderIntakeReviewPanel(patId) {
   function fieldGrid(fields) {
     return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:10px">
       ${fields.map(([,label,val]) => `
-        <div style="background:var(--bg,#f7f8fc);border-radius:7px;padding:7px 9px">
-          <div style="font-size:9px;color:var(--muted,#8892a4);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">${label}</div>
-          <div style="font-size:12px;color:var(--ink,#0c0f18);line-height:1.4">${e(String(val))}</div>
+        <div style="background:var(--bg);border-radius:7px;padding:7px 9px">
+          <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px">${label}</div>
+          <div style="font-size:12px;color:var(--ink);line-height:1.4">${e(String(val))}</div>
         </div>`).join('')}
     </div>`;
   }
 
   const sugHtml = suggestions.length
     ? suggestions.map((s, i) => `
-        <div id="intake-sug-${i}" style="border:1px solid var(--border,#dde1ef);border-radius:10px;padding:12px 14px;margin-bottom:7px">
+        <div id="intake-sug-${i}" style="border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:7px">
           <div style="display:flex;align-items:flex-start;gap:10px">
             <div style="flex:1">
-              <div style="font-size:12px;font-weight:700;color:var(--ink,#0c0f18);margin-bottom:3px">${e(s.change||'')}</div>
-              <div style="font-size:11px;color:var(--muted,#8892a4);line-height:1.55">${e(s.reason||'')}</div>
+              <div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:3px">${e(s.change||'')}</div>
+              <div style="font-size:11px;color:var(--muted);line-height:1.55">${e(s.reason||'')}</div>
             </div>
             <div style="display:flex;gap:5px;flex-shrink:0;margin-top:1px">
               <button onclick="intakeApproveSuggestion('${patId}','${latest.ts}',${i})"
-                style="padding:5px 11px;background:var(--teal,#0d9b8a);color:white;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">✓</button>
+                style="padding:5px 11px;background:var(--teal);color:white;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">✓</button>
               <button onclick="intakeRejectSuggestion('${patId}','${latest.ts}',${i})"
-                style="padding:5px 11px;background:var(--bg2,#eef0f7);color:var(--muted,#8892a4);border:1px solid var(--border,#dde1ef);border-radius:6px;font-size:11px;cursor:pointer">✕</button>
+                style="padding:5px 11px;background:var(--bg2);color:var(--muted);border:1px solid var(--border);border-radius:6px;font-size:11px;cursor:pointer">✕</button>
             </div>
           </div>
         </div>`).join('')
-    : `<div style="font-size:12px;color:var(--muted,#8892a4);padding:8px 0">Analyserar — eller inga planändringar föreslogs.</div>`;
+    : `<div style="font-size:12px;color:var(--muted);padding:8px 0">Analyserar — eller inga planändringar föreslogs.</div>`;
 
   const isGenerating = latest._planGenerating;
   const generatedVisitId = latest._planGenerated;
 
   return `
-    <div style="background:var(--surface,#fff);border:1.5px solid #e8a530;border-radius:14px;padding:18px 18px 14px;margin-bottom:18px">
+    <div style="background:var(--surface);border:1.5px solid #e8a530;border-radius:14px;padding:18px 18px 14px;margin-bottom:18px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
         <div style="width:8px;height:8px;border-radius:50%;background:#e8a530;flex-shrink:0;animation:pulse 2s infinite"></div>
-        <div style="font-size:13px;font-weight:700;color:var(--ink,#0c0f18)">
+        <div style="font-size:13px;font-weight:700;color:var(--ink)">
           ${isNew ? 'Ny patient — intake-svar' : 'Uppföljningsformulär'} — inväntar granskning
         </div>
-        <div style="margin-left:auto;font-size:10px;color:var(--muted,#8892a4)">${new Date(latest.ts).toLocaleDateString('sv-SE')}</div>
+        <div style="margin-left:auto;font-size:10px;color:var(--muted)">${new Date(latest.ts).toLocaleDateString('sv-SE')}</div>
       </div>
 
       ${clinicalFields.length ? `
-        <div style="font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted,#8892a4);margin-bottom:8px">Klinisk bild</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Klinisk bild</div>
         ${fieldGrid(clinicalFields)}` : ''}
 
       ${trainingFields.length ? `
-        <div style="font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted,#8892a4);margin-bottom:8px">Träningsförutsättningar</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Träningsförutsättningar</div>
         ${fieldGrid(trainingFields)}` : ''}
 
       ${goalFields.length ? `
-        <div style="font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted,#8892a4);margin-bottom:8px">Mål & övrigt</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Mål & övrigt</div>
         ${fieldGrid(goalFields)}` : ''}
 
-      <div style="border-top:1px solid var(--border,#dde1ef);margin:14px 0 12px"></div>
+      <div style="border-top:1px solid var(--border);margin:14px 0 12px"></div>
 
       ${isGenerating ? `
-        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;color:var(--muted,#8892a4);font-size:12px">
-          <div style="width:16px;height:16px;border:2px solid var(--teal,#0d9b8a);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 0;color:var(--muted);font-size:12px">
+          <div style="width:16px;height:16px;border:2px solid var(--teal);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div>
           AI genererar plan från svaren...
         </div>` : generatedVisitId ? `
         <div style="background:rgba(13,155,138,.06);border:1px solid rgba(13,155,138,.2);border-radius:9px;padding:12px 14px;margin-bottom:12px">
-          <div style="font-size:12px;font-weight:700;color:var(--teal,#0d9b8a);margin-bottom:2px">Plan genererad och redo för godkännande</div>
-          <div style="font-size:11px;color:var(--muted,#8892a4)">Scrolla ner för att granska och godkänna planen.</div>
+          <div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:2px">Plan genererad och redo för godkännande</div>
+          <div style="font-size:11px;color:var(--muted)">Scrolla ner för att granska och godkänna planen.</div>
         </div>` : `
         <div style="margin-bottom:12px">
-          <div style="font-size:11px;color:var(--muted,#8892a4);margin-bottom:10px">Skapa Hael-plan baserad på dessa svar:</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Skapa Hael-plan baserad på dessa svar:</div>
           <button onclick="generatePlanFromIntake('${patId}','${latest.ts}')"
-            style="width:100%;padding:12px;background:var(--teal,#0d9b8a);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">
+            style="width:100%;padding:12px;background:var(--teal);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">
             Generera Hael-plan från svaren
           </button>
         </div>`}
 
       ${!isGenerating && !generatedVisitId ? `
-        <div style="font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted,#8892a4);margin-bottom:8px">AI-förslag på justeringar</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">AI-förslag på justeringar</div>
         ${sugHtml}` : ''}
 
       <button onclick="intakeMarkReviewed('${patId}','${latest.ts}')"
-        style="margin-top:8px;width:100%;padding:9px;background:none;border:1px solid var(--border,#dde1ef);border-radius:8px;font-size:12px;color:var(--muted,#8892a4);cursor:pointer;font-family:'DM Sans',sans-serif">
+        style="margin-top:8px;width:100%;padding:9px;background:none;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif">
         Markera som granskad utan åtgärd
       </button>
     </div>`;
@@ -11239,7 +11085,7 @@ function openDictationModal(fieldId, letter) {
 
     <!-- Guidestrukturer -->
     <div style="padding:12px 16px 10px;flex-shrink:0;background:#f9fafc;border-bottom:1px solid #eef0f3">
-      <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text4);margin-bottom:8px">Täck gärna in</div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:8px">Täck gärna in</div>
       <div id="dict-prompts" style="display:flex;flex-direction:column;gap:5px">
         ${fieldPrompts.map((p,i) => `<div class="dict-prompt-row" id="dprow-${i}" onclick="markPromptDone(${i})" style="display:flex;align-items:flex-start;gap:7px;cursor:pointer;padding:4px 6px;border-radius:6px">
           <div class="dict-prompt-check" id="dpchk-${i}" style="width:14px;height:14px;border-radius:3px;border:1.5px solid #b8c4d4;flex-shrink:0;margin-top:1px"></div>
@@ -11250,9 +11096,9 @@ function openDictationModal(fieldId, letter) {
 
     <!-- Live transkription -->
     <div style="flex:1;overflow-y:auto;padding:14px 16px 0;min-height:80px">
-      <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text4);margin-bottom:6px">Inspelad text</div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px">Inspelad text</div>
       <div id="dict-live" style="font-size:13px;color:var(--text);line-height:1.7;min-height:60px;white-space:pre-wrap;word-break:break-word"></div>
-      <div id="dict-interim" style="font-size:13px;color:var(--text4);font-style:italic;margin-top:2px"></div>
+      <div id="dict-interim" style="font-size:13px;color:var(--text3);font-style:italic;margin-top:2px"></div>
     </div>
 
     <!-- AI-förhandsgranskning -->
@@ -11691,7 +11537,7 @@ function renderClinicInsightsHTML(patients) {
     </div>
     <div style="padding:8px 16px 14px">
       ${insights.map(ins => `
-        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border2,#eef0f5)">
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border,#eef0f5)">
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;color:var(--navy,#0f2744);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e(ins.name)}</div>
             <div style="height:4px;background:var(--border,#dde1ef);border-radius:2px;margin-top:4px;overflow:hidden">
@@ -12448,9 +12294,9 @@ function renderPatientReportsPanel(patId) {
           ${xs.map((x,i)=>`<circle cx="${x}" cy="${ys[i]}" r="2.5" fill="${trend}"/>`).join('')}
         </svg>
         <div style="display:flex;gap:14px;flex-wrap:wrap">
-          <div><div style="font-size:9px;color:var(--text4);text-transform:uppercase;letter-spacing:.08em">Senaste NRS</div><div style="font-size:18px;font-weight:700;color:var(--navy);font-family:'DM Mono',monospace">${recent[0].pain}/10</div></div>
-          <div><div style="font-size:9px;color:var(--text4);text-transform:uppercase;letter-spacing:.08em">Pass totalt</div><div style="font-size:18px;font-weight:700;color:var(--navy);font-family:'DM Mono',monospace">${logs.length}</div></div>
-          <div><div style="font-size:9px;color:var(--text4);text-transform:uppercase;letter-spacing:.08em">I rad</div><div style="font-size:18px;font-weight:700;color:var(--navy);font-family:'DM Mono',monospace">${calcStreak(logs)}</div></div>
+          <div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Senaste NRS</div><div style="font-size:18px;font-weight:700;color:var(--navy);font-family:'DM Mono',monospace">${recent[0].pain}/10</div></div>
+          <div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">Pass totalt</div><div style="font-size:18px;font-weight:700;color:var(--navy);font-family:'DM Mono',monospace">${logs.length}</div></div>
+          <div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em">I rad</div><div style="font-size:18px;font-weight:700;color:var(--navy);font-family:'DM Mono',monospace">${calcStreak(logs)}</div></div>
         </div>
       </div>
       ${recent.map(l => {
@@ -12910,78 +12756,101 @@ function printRemiss(patId) {
 // -- STARTUP ------------------------------------------------------------------
 
 // ── DAILY BRIEFING ─────────────────────────────────────────
-let _briefingCache = { date: '', text: '' };
+let _briefingCache = []; // array of {date, time, text}
 
-async function generateDailyBriefing() {
+async function generateDailyBriefing(forceNew) {
   const today = new Date().toISOString().slice(0,10);
-  const el = document.getElementById('cc-briefing-text');
+  const el  = document.getElementById('cc-briefing-text');
   const btn = document.getElementById('cc-briefing-btn');
+  const hist = document.getElementById('cc-briefing-hist');
   if (!el) return;
 
-  // Use cache if same day
-  if (_briefingCache.date === today && _briefingCache.text) {
-    el.textContent = _briefingCache.text;
-    el.style.cssText = 'font-size:13px;color:rgba(255,255,255,.75);line-height:1.75;font-style:normal';
-    if (btn) btn.style.display = 'inline-block';
+  // Show latest cached entry if same day and not forced
+  if (!forceNew && _briefingCache.length > 0 && _briefingCache[0].date === today) {
+    _renderBriefing(_briefingCache[0]);
     return;
   }
 
   const key = getKey();
   if (!key) {
-    el.textContent = 'Ange din API-nyckel i Inställningar för att aktivera daglig briefing.';
+    el.innerHTML = '<span style="color:var(--muted);font-style:italic">Ange API-nyckel i Inställningar för daglig briefing.</span>';
     return;
   }
 
-  // Build patient context
+  el.innerHTML = '<span style="color:rgba(255,255,255,.3);font-style:italic">Genererar briefing...</span>';
+  if (btn) btn.style.display = 'none';
+
+  // Build context
   const now = new Date();
   const urgent = S.patients.filter(p => _clinPriority(p).level >= 3).slice(0,4);
   const overdue = S.patients.filter(p => {
-    const v = (p.visits||[])[0]; if (!v?.date) return false;
-    const fw = v.form?.followup || 4;
-    const due = new Date(v.date); due.setDate(due.getDate() + fw*7);
-    return due <= now;
+    const v=(p.visits||[])[0]; if(!v?.date) return false;
+    const due=new Date(v.date); due.setDate(due.getDate()+(v.form?.followup||4)*7);
+    return due<=now;
   }).slice(0,4);
-
-  const thisMonth = now.getMonth(); const thisYear = now.getFullYear();
+  const thisMonth = now.getMonth();
   let monthRevenue = 0;
-  S.patients.forEach(p => (p.visits||[]).forEach(v => {
-    const d = new Date(v.date||''); if (isNaN(d)) return;
-    if (d.getMonth()===thisMonth && d.getFullYear()===thisYear) monthRevenue += (v.servicePrice||0);
+  S.patients.forEach(p=>(p.visits||[]).forEach(v=>{
+    const d=new Date(v.date||''); if(isNaN(d)) return;
+    if(d.getMonth()===thisMonth) monthRevenue+=(v.servicePrice||0);
   }));
 
-  const context = `Klinik: ${CLINIC.name || 'Kliniken'}
+  const ctx = `Klinik: ${CLINIC.name||'Kliniken'}
 Datum: ${now.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})}
 Totalt patienter: ${S.patients.length}, Aktiva: ${S.patients.filter(p=>(p.visits||[])[0]?.status==='Aktiv').length}
-Månadsintäkt hittills: ${monthRevenue.toLocaleString('sv-SE')} kr
-Kräver åtgärd: ${urgent.map(p=>p.name+' ('+_clinPriority(p).primary+')').join(', ')||'inga'}
+Månadsintäkt: ${monthRevenue.toLocaleString('sv-SE')} kr
+Kräver åtgärd: ${urgent.map(p=>p.name+'('+_clinPriority(p).primary+')').join(', ')||'inga'}
 Förfallna återbesök: ${overdue.map(p=>p.name).join(', ')||'inga'}`;
 
-  const prompt = `Du är en AI-assistent för en kliniker. Skriv en kort, professionell morgonbriefing på 2-3 meningar. 
-Tonen ska vara koncis och handlingsinriktad — som en erfaren kollega som sammanfattar läget.
-Nämn de viktigaste sakerna att agera på idag. Inga listor, bara löpande text.
-Avsluta INTE med "Ha en bra dag" eller liknande.
-
-${context}`;
+  const prompt = `Du är AI-assistent för en kliniker. Skriv en kort morgonbriefing på 2-3 meningar på svenska. Tonen ska vara konkret och handlingsinriktad — som en erfaren kollega som sammanfattar läget. Nämn det viktigaste att agera på. Inga listor. Avsluta inte med "Ha en bra dag".\n\n${ctx}`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body: JSON.stringify({model:MODEL_HAIKU, max_tokens:200, messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({model:MODEL_HAIKU,max_tokens:200,messages:[{role:'user',content:prompt}]})
     });
     const data = await res.json();
     const text = (data.content||[]).map(b=>b.text||'').join('').trim();
     if (text) {
-      _briefingCache = { date: today, text };
-      if (el) {
-        el.textContent = text;
-        el.style.cssText = 'font-size:13px;color:rgba(255,255,255,.75);line-height:1.75;font-style:normal';
-      }
-      if (btn) btn.style.display = 'inline-block';
+      const entry = {
+        date: today,
+        time: now.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'}),
+        text
+      };
+      _briefingCache.unshift(entry);
+      if (_briefingCache.length > 5) _briefingCache.pop(); // keep last 5
+      _renderBriefing(entry);
     }
   } catch(err) {
-    if (el) el.textContent = 'Briefing ej tillgänglig — kontrollera API-nyckel.';
+    el.innerHTML = '<span style="color:rgba(255,255,255,.4);font-style:italic">Briefing ej tillgänglig — kontrollera API-nyckel.</span>';
   }
+}
+
+let _briefingIdx = 0;
+function _renderBriefing(entry) {
+  const el  = document.getElementById('cc-briefing-text');
+  const btn = document.getElementById('cc-briefing-btn');
+  if (!el) return;
+  el.style.cssText = 'font-size:14px;color:rgba(255,255,255,.8);line-height:1.8;font-style:normal';
+  el.textContent = entry.text;
+  // Show controls
+  const wrap = document.getElementById('cc-briefing-card');
+  if (!wrap) return;
+  let ctrl = document.getElementById('cc-briefing-ctrl');
+  if (!ctrl) {
+    ctrl = document.createElement('div');
+    ctrl.id = 'cc-briefing-ctrl';
+    ctrl.style.cssText = 'display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap';
+    wrap.appendChild(ctrl);
+  }
+  const idx = _briefingCache.indexOf(entry);
+  const total = _briefingCache.length;
+  ctrl.innerHTML =
+    (total > 1 ? '<button onclick="if(_briefingIdx<_briefingCache.length-1){_briefingIdx++;_renderBriefing(_briefingCache[_briefingIdx])}" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:7px;padding:5px 11px;font-size:11px;cursor:pointer;font-family:var(--font)">← Äldre</button>' : '')
+    +'<span style="font-size:10px;color:rgba(255,255,255,.3);flex:1">'+entry.date+' '+entry.time+(total>1?' · '+(idx+1)+'/'+total:'')+'</span>'
+    +(idx > 0 ? '<button onclick="_briefingIdx--;_renderBriefing(_briefingCache[_briefingIdx])" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:7px;padding:5px 11px;font-size:11px;cursor:pointer;font-family:var(--font)">Nyare →</button>' : '')
+    +'<button onclick="generateDailyBriefing(true)" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:7px;padding:5px 11px;font-size:11px;cursor:pointer;font-family:var(--font)">Regenerera</button>';
 }
 
 // ── STARTA BESÖK — unified entry point ─────────────────────
@@ -13010,7 +12879,7 @@ function startVisitFlow() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
         </div>
         <div>
-          <div style="font-size:15px;font-weight:700;color:var(--navy)">Ny patient</div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink)">Ny patient</div>
           <div style="font-size:12px;color:var(--text3);margin-top:2px">Registrera och starta första besök</div>
         </div>
       </button>
@@ -13021,7 +12890,7 @@ function startVisitFlow() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
         <div>
-          <div style="font-size:15px;font-weight:700;color:var(--navy)">Återkommande patient</div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink)">Återkommande patient</div>
           <div style="font-size:12px;color:var(--text3);margin-top:2px">Sök bland befintliga patienter</div>
         </div>
       </button>
@@ -13236,7 +13105,7 @@ function rIntelligence() {
   // Diag bars
   const maxD = topDiags[0]?.[1] || 1;
   const diagHtml = topDiags.map(([d,c]) => `
-    <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border2,#eef0f5)">
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border,#eef0f5)">
       <div style="flex:1;min-width:0">
         <div style="font-size:12px;color:var(--navy,#0f2744);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e(d)}</div>
         <div style="height:4px;background:var(--border,#dde1ef);border-radius:2px;margin-top:4px;overflow:hidden">
@@ -13316,7 +13185,7 @@ function rIntelligence() {
 
       <div class="intel-card">
         <div class="intel-card-label">Diagnosfördelning</div>
-        <div style="margin-top:4px">${diagHtml || '<div style="font-size:13px;color:var(--muted,#8892a4);padding:12px 0">Ingen data ännu</div>'}</div>
+        <div style="margin-top:8px">${diagBars || '<div style="font-size:13px;color:var(--muted);padding:12px 0">Ingen data ännu</div>'}</div>
       </div>
 
       <div class="intel-card">
@@ -13598,6 +13467,159 @@ function removeClinicLogo() {
   saveClinicConfig(cfg);
   rNavLogo();
   rSettingsTab(0);
+}
+
+
+
+// ── SHOW DROPOUT LIST ──────────────────────────────────────────
+function showDropoutList() {
+  const now = new Date();
+  const pats = S.patients.filter(function(p) {
+    var v = (p.visits||[])[0]; if (!v || !v.plan) return false;
+    var logs = getPassLogs(p.id);
+    var days = logs.length
+      ? Math.floor((now - new Date(logs[0].ts||0)) / 86400000)
+      : Math.floor((now - new Date(v.date||0)) / 86400000);
+    return days >= 10;
+  }).map(function(p) {
+    var v = (p.visits||[])[0];
+    var logs = getPassLogs(p.id);
+    var days = logs.length
+      ? Math.floor((now - new Date(logs[0].ts||0)) / 86400000)
+      : Math.floor((now - new Date(v.date||0)) / 86400000);
+    var revRisk = 1800;
+    return { p, days, revRisk };
+  }).sort(function(a,b) { return b.days - a.days; });
+
+  var ov = document.createElement('div');
+  ov.id = 'dropout-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeInOv .18s ease';
+  ov.onclick = function(ev) { if(ev.target===ov) ov.remove(); };
+
+  var rows = pats.map(function(x) {
+    var initials = (x.p.name||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+    var urgency = x.days >= 21 ? '#e05555' : x.days >= 14 ? '#d4a843' : 'var(--text3)';
+    var patId = x.p.id;
+    var row = document.createElement('div');
+    row.className = 'dropout-list-row';
+    row.innerHTML = '<div style="width:36px;height:36px;border-radius:50%;background:var(--surface3);color:var(--ink);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);flex-shrink:0">'+initials+'</div>'
+      + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--ink)">'+e(x.p.name)+'</div><div style="font-size:11px;color:var(--text3);margin-top:1px">'+e(x.p.diagnosis||'')+'</div></div>'
+      + '<div style="text-align:right;flex-shrink:0"><div style="font-size:13px;font-weight:700;color:'+urgency+'">'+x.days+' dagar</div><div style="font-size:10px;color:var(--text3)">~'+x.revRisk.toLocaleString('sv-SE')+' kr risk</div></div>';
+    row.onclick = function() { document.getElementById('dropout-ov').remove(); openPat(patId); };
+    return row.outerHTML;
+  }).join('');
+  var totalRisk = pats.reduce(function(s,x){return s+x.revRisk;},0);
+
+  ov.innerHTML = '<div style="background:var(--surface);border-radius:18px;width:100%;max-width:520px;overflow:hidden;box-shadow:var(--shadow-lg)" onclick="event.stopPropagation()">'
+    + '<div style="background:var(--navy2);padding:20px 22px;display:flex;align-items:flex-start;justify-content:space-between">'
+    + '<div>'
+    + '<div style="font-size:16px;font-weight:700;color:white">Avhoppsrisk</div>'
+    + '<div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px">'+pats.length+' patienter · ~'+totalRisk.toLocaleString('sv-SE')+' kr i riskintäkt</div>'
+    + '</div>'
+    + '<button onclick="document.getElementById(\'dropout-ov\').remove()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1;padding:0">×</button>'
+    + '</div>'
+    + '<div style="max-height:400px;overflow-y:auto">'
+    + (rows || '<div style="padding:32px;text-align:center;font-size:13px;color:var(--text3)">Inga riskpatienter just nu</div>')
+    + '</div>'
+    + '<div style="padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:8px">'
+    + '<button onclick="document.getElementById(\'dropout-ov\').remove()" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:13px;cursor:pointer;font-family:var(--font);color:var(--ink)">Stäng</button>'
+    + '<button onclick="document.getElementById(\'dropout-ov\').remove();openInbox()" style="flex:1;padding:10px;background:var(--navy);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Skicka påminnelser →</button>'
+    + '</div>'
+    + '</div>';
+
+  document.body.appendChild(ov);
+}
+
+
+
+function renderBriefingNav() {
+  const nav = document.getElementById('cc-briefing-nav');
+  const el = document.getElementById('cc-briefing-text');
+  if (!nav || !_briefingCache.entries || _briefingCache.entries.length < 2) {
+    if (nav) nav.style.display = 'none';
+    return;
+  }
+  nav.style.display = 'flex';
+  const entries = _briefingCache.entries;
+  nav.innerHTML = '<span style="font-size:10px;color:rgba(255,255,255,.3)">Versioner:</span>'
+    + entries.map(function(entry, i) {
+      var t = new Date(entry.ts).toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
+      var isLast = i === entries.length-1;
+      return '<button onclick="showBriefingVersion('+i+')" style="font-size:10px;padding:2px 8px;border-radius:6px;border:1px solid rgba(255,255,255,.15);background:'+(isLast?'rgba(255,255,255,.12)':'transparent')+';color:rgba(255,255,255,.5);cursor:pointer;font-family:var(--font)">'+t+'</button>';
+    }).join('');
+}
+
+function showBriefingVersion(idx) {
+  const el = document.getElementById('cc-briefing-text');
+  if (!el || !_briefingCache.entries) return;
+  const entry = _briefingCache.entries[idx];
+  if (!entry) return;
+  const t = new Date(entry.ts).toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
+  el.innerHTML = entry.text + '<div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:8px">' + t + '</div>';
+}
+
+
+function showDropoutModal() {
+  const now = new Date();
+  const dropoutRisk = S.patients.filter(function(p) {
+    var v=(p.visits||[])[0]; if(!v||!v.plan) return false;
+    var logs=getPassLogs(p.id);
+    var daysSince = logs.length
+      ? Math.floor((now-new Date(logs[0].ts||0))/86400000)
+      : Math.floor((now-new Date(v.date||0))/86400000);
+    return daysSince>=10;
+  });
+
+  if (!dropoutRisk.length) return;
+
+  var ov = document.createElement('div');
+  ov.id = 'dropout-modal-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(5,12,24,.8);backdrop-filter:blur(8px);animation:fadeInOv .18s ease';
+  ov.onclick = function(e){ if(e.target===ov) ov.remove(); };
+
+  var rows = dropoutRisk.map(function(p) {
+    var v = (p.visits||[])[0];
+    var logs = getPassLogs(p.id);
+    var daysSince = logs.length
+      ? Math.floor((now-new Date(logs[0].ts||0))/86400000)
+      : Math.floor((now-new Date(v&&v.date||0))/86400000);
+    var reason = daysSince >= 21 ? 'Kritisk — '+daysSince+' dagar utan aktivitet'
+               : daysSince >= 14 ? 'Hög risk — '+daysSince+' dagar inaktiv'
+               : 'Risk — '+daysSince+' dagar sedan senaste pass';
+    var dotColor = daysSince>=21?'var(--red)':'var(--gold)';
+    var initials = (p.name||'?').split(' ').map(function(w){return w[0]||'';}).join('').slice(0,2).toUpperCase();
+    return '<div style="display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s" onclick="document.getElementById(\'dropout-modal-ov\').remove();openPat(\''+p.id+'\')" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'">'
+      +'<div style="width:36px;height:36px;border-radius:50%;background:var(--surface2);color:var(--ink);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);flex-shrink:0">'+initials+'</div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--ink)">'+e(p.name)+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-top:1px">'+e(p.diagnosis||'')+'</div>'
+      +'</div>'
+      +'<div style="text-align:right;flex-shrink:0">'
+      +'<div style="font-size:11px;font-weight:700;color:'+dotColor+';margin-bottom:2px">'+reason+'</div>'
+      +'<div style="font-size:10px;color:var(--muted)">~1 800 kr risk</div>'
+      +'</div>'
+      +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><path d="M9 18l6-6-6-6"/></svg>'
+      +'</div>';
+  }).join('');
+
+  var totalRisk = dropoutRisk.length * 1800;
+
+  ov.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;width:100%;max-width:520px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5)" onclick="event.stopPropagation()">'
+    +'<div style="padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between">'
+    +'<div>'
+    +'<div style="font-size:16px;font-weight:700;color:var(--ink)">Avhoppsrisk — '+dropoutRisk.length+' patienter</div>'
+    +'<div style="font-size:12px;color:var(--muted);margin-top:3px">Ingen aktivitet på 10+ dagar · Totalt ~'+totalRisk.toLocaleString('sv-SE')+' kr i risk</div>'
+    +'</div>'
+    +'<button onclick="document.getElementById(\'dropout-modal-ov\').remove()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">×</button>'
+    +'</div>'
+    +'<div style="overflow-y:auto;flex:1">'+rows+'</div>'
+    +'<div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px">'
+    +'<button onclick="document.getElementById(\'dropout-modal-ov\').remove()" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text);cursor:pointer;font-family:var(--font)">Stäng</button>'
+    +'<button onclick="document.getElementById(\'dropout-modal-ov\').remove();go(\'list\')" style="flex:1;padding:10px;background:var(--navy);color:white;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Se alla patienter →</button>'
+    +'</div>'
+    +'</div>';
+
+  document.body.appendChild(ov);
 }
 
 

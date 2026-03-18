@@ -9911,19 +9911,22 @@ async function loadPublicPlan(patId, visitId) {
     }
   } catch(e) { console.warn('localStorage fallback failed:', e); }
 
-  // 3. Nothing worked
-  el.innerHTML = `<div style="text-align:center;padding:80px 24px;font-family:var(--font)">
-    <div style="font-family:var(--font-serif);font-size:26px;color:#0f2744;margin-bottom:12px">Kunde inte ladda planen</div>
-    <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:24px">
-      Kontrollera att du är online och försök igen.<br>
-      Om problemet kvarstår, kontakta din behandlare.
-    </div>
-    <button onclick="loadPublicPlan('${patId.replace(/'/g,"\\'")}','${visitId.replace(/'/g,"\\'")}');"
-      style="background:#0f2744;color:white;border:none;padding:14px 28px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font)">
-      Försök igen
-    </button>
-  </div>`;
-}
+  // 3. Nothing worked — dark themed error
+  var _patIdRetry = (patId||'').replace(/'/g, "\\'");
+  var _visitIdRetry = (visitId||'').replace(/'/g, "\\'");
+  el.innerHTML = '<div style="min-height:100vh;background:#0e1825;display:flex;align-items:center;justify-content:center;padding:24px;font-family:system-ui,sans-serif">'
+    + '<div style="max-width:360px;text-align:center">'
+    + '<div style="width:48px;height:48px;border-radius:50%;background:rgba(224,85,85,.15);display:flex;align-items:center;justify-content:center;margin:0 auto 20px">'
+    + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e05555" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>'
+    + '<div style="font-size:20px;font-weight:700;color:white;margin-bottom:8px">Kunde inte ladda planen</div>'
+    + '<div style="font-size:14px;color:rgba(255,255,255,.45);line-height:1.7;margin-bottom:24px">Kontrollera att du \u00e4r online och f\u00f6rs\u00f6k igen.<br>Om problemet kvarst\u00e5r, kontakta din behandlare.</div>'
+    + '<button onclick="loadPublicPlan('' + _patIdRetry + '','' + _visitIdRetry + '')" style="background:#0d9b8a;color:white;border:none;padding:14px 28px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:system-ui,sans-serif">F\u00f6rs\u00f6k igen</button>'
+    + '</div></div>';
+  var _retryBtn = document.getElementById('pub-retry-btn');
+  if (_retryBtn) {
+    _retryBtn.onclick = function() { loadPublicPlan(patId, visitId); };
+  }
+}}
 
 // Pass button handler: first click reveals check-in form; submitting the form logs the pass.
 function _zpHandlePassBtn(patId, visitId) {
@@ -13698,7 +13701,9 @@ function showDropoutModal() {
 
 document.addEventListener('DOMContentLoaded', function() {
   // Safety: always show app after 2.5s even if auth fails
+  // But NOT if this is a public plan view (patient-facing)
   setTimeout(function() {
+    if (window._isPublicPlan) return;
     var l=document.getElementById('page-loader');
     var s=document.getElementById('app-shell');
     var t=document.getElementById('mobile-topbar');
@@ -13715,24 +13720,36 @@ const _hashIntakeId = _hashParams.get('intake');
 if (_hashIntakeId) {
   // Intake form view -- no login needed
   window._isPublicPlan = true;
+  const _iShell = document.getElementById('app-shell');
+  if (_iShell) _iShell.style.display = 'none';
   const tb = document.querySelector('.topbar');
   if (tb) tb.style.display = 'none';
   const at = document.getElementById('autosave-toast');
   if (at) at.style.display = 'none';
-  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-  document.getElementById('s-public-plan').classList.add('active');
+  window._isPublicPlan = true;
+  var _appShell2 = document.getElementById('app-shell');
+  if (_appShell2) _appShell2.style.display = 'none';
+  var _ld2 = document.getElementById('page-loader');
+  if (_ld2) { _ld2.style.opacity='0'; setTimeout(function(){try{_ld2.parentNode.removeChild(_ld2);}catch(e){}},200); }
+  document.getElementById('s-public-plan').style.cssText = 'display:block;min-height:100vh;background:#f4f7fb';
   const _hashIntakeVisitId = _hashParams.get('visit') || '';
   renderPublicIntakeForm(_hashIntakeId, _hashIntakeVisitId);
 } else if (_hashPatId && _hashVisitId) {
   // Public plan view -- no login needed
-  window._isPublicPlan = true; // suppress all clinic UI
-  const tb = document.querySelector('.topbar');
-  if (tb) tb.style.display = 'none';
-  const at = document.getElementById('autosave-toast');
-  if (at) at.style.display = 'none';
-  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-  document.getElementById('s-public-plan').classList.add('active');
-  document.getElementById('s-public-plan').innerHTML = '<div class="pub-loading">Hämtar din Hael-plan...</div>';
+  window._isPublicPlan = true;
+  // Hide ALL clinic UI immediately
+  var _appShell = document.getElementById('app-shell');
+  if (_appShell) _appShell.style.display = 'none';
+  var _topbar = document.getElementById('mobile-topbar');
+  if (_topbar) _topbar.style.display = 'none';
+  var _loader = document.getElementById('page-loader');
+  if (_loader) { _loader.style.opacity='0'; setTimeout(function(){try{_loader.parentNode.removeChild(_loader);}catch(e){}},200); }
+  var _at = document.getElementById('autosave-toast');
+  if (_at) _at.style.display = 'none';
+  // Show public plan screen full-width
+  document.body.style.cssText = 'background:#0e1825;margin:0;padding:0';
+  document.getElementById('s-public-plan').style.cssText = 'display:block;min-height:100vh;background:#0e1825';
+  document.getElementById('s-public-plan').innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0e1825"><div style="text-align:center"><div style="width:32px;height:32px;border:2.5px solid rgba(13,155,138,.2);border-top-color:#0d9b8a;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px"></div><div style="font-size:12px;color:rgba(255,255,255,.3);font-family:system-ui">Hämtar din plan...</div></div></div>';
   loadPublicPlan(_hashPatId, _hashVisitId);
 } else {
   const _storedAuth = getStoredAuth();

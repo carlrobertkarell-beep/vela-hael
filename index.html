@@ -4239,36 +4239,33 @@ function rDetail(){
   // ── ASSEMBLE MAIN CONTENT ───────────────────────────────────────────────────
   let h = '';
 
-  // 1. Briefing (always visible if has visits)
+  // 1. Patient header — always first
+  h += patHeader;
+
+  // 2. Briefing (AI, async — loads after render)
   if (hasVisits && getKey()) {
     h += renderBriefingShell(p.id);
   }
 
-  // 2. Onboarding guide (only until complete)
+  // 3. Onboarding guide (only until complete)
   if (!allDone) {
     h += renderOnboardingGuide(p, onboardSteps, nextStep);
   }
 
-  // 3. Meddelanden — always open, badge if unread
-  h += collapsible(
-    'det-msgs-'+p.id,
-    'Meddelanden',
-    renderMsgPanel(p.id),
-    true,
-    unreadMsgs ? `${unreadMsgs} nytt` : ''
-  );
-
-  // 4. Patient info (compact, always visible)
-  h += patHeader;
-
-  // 5. Besökshistorik — open if has visits
+  // 4. Besökshistorik — open if has visits
   const visitContent = !hasVisits
     ? `<div style="font-size:13px;color:var(--muted);padding:16px 0;text-align:center">Inga besök ännu. <a href="#" onclick="newVisit();return false" style="color:var(--teal)">Skapa första besöket</a></div>`
     : renderVisitTimeline(p) + renderPendingPlanApproval(p) + renderIntakeReviewPanel(p.id) + renderPainGraph(p) + renderPatientReportsPanel(p.id);
   h += collapsible('det-visits-'+p.id, 'Besökshistorik', visitContent, true,
     hasVisits ? String((p.visits||[]).length) : '');
 
-  // 6. Aktivitetslogg — collapsed by default
+  // 6. Meddelanden — collapsed, badge if unread
+  h += collapsible(
+    'det-msgs-'+p.id, 'Meddelanden', renderMsgPanel(p.id), false,
+    unreadMsgs ? String(unreadMsgs) : ''
+  );
+
+  // 7. Aktivitetslogg — collapsed by default
   h += collapsible('det-log-'+p.id, 'Aktivitetslogg', renderActivityLog(p), false);
 
   // 7. Admin (samtycke + betalning) — collapsed

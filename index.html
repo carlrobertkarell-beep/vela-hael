@@ -1830,6 +1830,7 @@ function inboxAction(itemId, fnName) {
 const AGENT_LAST_RUN_KEY = 'zenya:agent-last-run';
 
 async function runInboxAgent(patients) {
+  patients = patients || S.patients || [];
   _checkNewPatientActivity(patients);
   _updateTabTitle();
   if (!getKey()) return;
@@ -13740,34 +13741,18 @@ if (_hashIntakeId) {
 } else if (_hashPatId && _hashVisitId) {
   // Public plan view -- no login needed
   window._isPublicPlan = true;
-  // Hide ALL clinic UI immediately
-  var _appShell = document.getElementById('app-shell');
-  if (_appShell) _appShell.style.display = 'none';
-  var _topbar = document.getElementById('mobile-topbar');
-  if (_topbar) _topbar.style.display = 'none';
+  // Remove loader
   var _loader = document.getElementById('page-loader');
   if (_loader) { _loader.style.opacity='0'; setTimeout(function(){try{_loader.parentNode.removeChild(_loader);}catch(e){}},200); }
-  var _at = document.getElementById('autosave-toast');
-  if (_at) _at.style.display = 'none';
-  // Show public plan screen full-width
-  document.body.style.cssText = 'background:#0e1825;margin:0;padding:0';
-  document.body.style.cssText = 'margin:0;padding:0;background:#0e1825;overflow-x:hidden';
-  var _pubEl = document.getElementById('s-public-plan');
-  _pubEl.style.cssText = 'display:block!important;min-height:100vh;width:100%;background:#0e1825;position:relative;z-index:1';
-  _pubEl.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:#0e1825"><div style="width:32px;height:32px;border:2.5px solid rgba(13,155,138,.2);border-top-color:#0d9b8a;border-radius:50%;animation:spin .7s linear infinite"></div><div style="font-size:12px;color:rgba(255,255,255,.35);font-family:system-ui,sans-serif;letter-spacing:.04em">Hämtar din plan...</div></div>';
-  // Safety: if plan doesn't load in 10s, show error
-  var _pubTimeout = setTimeout(function(){
-    var _el = document.getElementById('s-public-plan');
-    if (_el && _el.innerHTML.indexOf('zp-topbar') === -1) {
-      _el.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#0e1825;font-family:system-ui">'
-        + '<div style="text-align:center;max-width:340px">'
-        + '<div style="font-size:18px;font-weight:700;color:white;margin-bottom:8px">Det tog f\u00f6r l\u00e5ng tid</div>'
-        + '<div style="font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px">Kontrollera uppkopplingen och f\u00f6rs\u00f6k igen.</div>'
-        + '<button onclick="location.reload()" style="background:#0d9b8a;color:white;border:none;border-radius:10px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer">F\u00f6rs\u00f6k igen</button>'
-        + '</div></div>';
-    }
-  }, 10000);
-  window._pubLoadTimeout = _pubTimeout;
+  // Create a fresh full-screen overlay — bypass app-shell/main-content entirely
+  var _pubDiv = document.createElement('div');
+  _pubDiv.id = 's-public-plan';
+  _pubDiv.style.cssText = 'position:fixed;inset:0;z-index:9000;background:#0e1825;overflow-y:auto;-webkit-overflow-scrolling:touch';
+  _pubDiv.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px"><div style="width:32px;height:32px;border:2.5px solid rgba(13,155,138,.2);border-top-color:#0d9b8a;border-radius:50%;animation:spin .7s linear infinite"></div><div style="font-size:12px;color:rgba(255,255,255,.35);font-family:system-ui;letter-spacing:.04em">Hämtar din plan...</div></div>';
+  // Rename existing s-public-plan so getElementById finds our new one
+  var _oldPub = document.getElementById('s-public-plan');
+  if (_oldPub) _oldPub.removeAttribute('id');
+  document.body.appendChild(_pubDiv);
   loadPublicPlan(_hashPatId, _hashVisitId);
 } else {
   const _storedAuth = getStoredAuth();
@@ -13777,7 +13762,7 @@ if (_hashIntakeId) {
     loadClinicSettings();
     setTimeout(() => syncFromCloud(), 1500);
     setTimeout(() => sbKeepAlive(), 3000);
-    setTimeout(() => runInboxAgent(), 4000);
+    setTimeout(() => runInboxAgent(S.patients||[]), 4000);
   } else {
     const tb = document.querySelector('.topbar');
     if (tb) tb.style.display = 'none';

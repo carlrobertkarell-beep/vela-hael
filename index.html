@@ -10211,130 +10211,484 @@ function renderPublicPlan(plan, pat) {
     const s = document.createElement('style');
     s.id = 'hael-plan-css';
     s.textContent = `
-      /* ── Page & Hero ─────────────────────────────────────────── */
-      .zp-page { background:#07101e; min-height:100vh; padding-bottom:40px; font-family:'Plus Jakarta Sans',-apple-system,sans-serif; }
-      .zp-hero { background:linear-gradient(160deg,#0c1929 0%,#07101e 100%); padding:20px 16px 24px; position:relative; }
-      .zp-footer { padding:24px 16px 20px; text-align:center; }
+      /* ── Hael Plan — Complete redesign ──────────────────────── */
+      * { box-sizing: border-box; margin: 0; padding: 0; }
 
-      /* ── Sections ────────────────────────────────────────────── */
-      .zp-section { background:var(--surface); margin:0 14px 12px; border-radius:16px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-      .zp-sec-hdr { padding:14px 18px 0; }
-      .zp-sec-title { font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); padding-bottom:10px; border-bottom:1px solid #f0f2f5; }
+      /* Page layout: sidebar + content */
+      .zp-page {
+        background: #0e1825;
+        min-height: 100vh;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        color: #e8edf4;
+        display: flex;
+        flex-direction: column;
+      }
 
-      /* ── Exercise cards ──────────────────────────────────────── */
-      .zp-excard { background:var(--surface); border-radius:16px; margin:0 14px 10px; border:1.5px solid #eef0f5; overflow:hidden; transition:all .2s ease; }
-      .zp-excard.done { opacity:.72; border-color:#d0f0eb; background:#f7fdfc; }
-      .zp-excard.open .zp-chevron { transform:rotate(90deg); }
-      .zp-exhdr { display:flex; align-items:center; }
-      .zp-exhdr-tap { display:flex; align-items:center; gap:12px; flex:1; padding:14px 8px 14px 16px; cursor:pointer; min-width:0; -webkit-tap-highlight-color:transparent; }
-      .zp-exnum { width:26px; height:26px; border-radius:50%; background:#f0f2f7; font-size:11px; font-weight:700; color:var(--muted); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-      .zp-excard.done .zp-exnum { background:#d0f0eb; color:#0d9b8a; }
-      .zp-exbody { display:none; padding:0 16px 16px; border-top:1px solid #f0f2f5; }
-      .zp-exbody.open { display:block; }
-      .zp-chevron { color:#c0c8d8; font-size:12px; padding:0 14px; transition:transform .2s; flex-shrink:0; }
-      .zp-step { display:flex; gap:10px; padding:6px 0; border-bottom:1px solid #f4f5f8; }
-      .zp-step:last-child { border-bottom:none; }
-      .zp-step-num { width:20px; height:20px; border-radius:50%; background:#e8eaf2; font-size:10px; font-weight:700; color:#6070a0; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+      /* ── TOP BAR ─────────────────────────────────────────────── */
+      .zp-topbar {
+        background: #0a1628;
+        border-bottom: 1px solid rgba(255,255,255,.07);
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      .zp-topbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .zp-topbar-name {
+        font-family: 'Fraunces', Georgia, serif;
+        font-size: 18px;
+        font-weight: 400;
+        color: white;
+        letter-spacing: -.01em;
+      }
+      .zp-topbar-diag {
+        font-size: 11px;
+        color: rgba(255,255,255,.4);
+        margin-top: 1px;
+      }
+      .zp-topbar-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .zp-chip {
+        background: rgba(13,155,138,.15);
+        border: 1px solid rgba(13,155,138,.25);
+        color: #3dcfbd;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
+      }
+      .zp-chip.accent {
+        background: rgba(212,168,67,.15);
+        border-color: rgba(212,168,67,.25);
+        color: #d4a843;
+      }
 
-      /* ── Check ring ──────────────────────────────────────────── */
-      .zp-check-btn { background:none; border:none; cursor:pointer; padding:8px 14px 8px 8px; -webkit-tap-highlight-color:transparent; }
-      .zp-check-ring { width:32px; height:32px; border-radius:50%; border:2px solid rgba(13,155,138,.35); background:transparent; display:flex; align-items:center; justify-content:center; transition:all .2s cubic-bezier(.34,1.56,.64,1); flex-shrink:0; }
-      .zp-check-ring.checked { background:#0d9b8a; border-color:#0d9b8a; box-shadow:0 0 0 4px rgba(13,155,138,.18); }
-      .zp-check-ring svg { opacity:0; transition:opacity .15s; }
-      .zp-check-ring.checked svg { opacity:1; }
+      /* ── MAIN LAYOUT ─────────────────────────────────────────── */
+      .zp-layout {
+        display: flex;
+        flex: 1;
+        max-width: 1000px;
+        margin: 0 auto;
+        width: 100%;
+        padding: 0 16px;
+        gap: 20px;
+        padding-bottom: 40px;
+      }
 
-      /* ── Session strip ───────────────────────────────────────── */
-      .zp-session-strip { background:var(--surface); border-radius:14px; margin:0 14px 12px; padding:14px 16px; border:1.5px solid #eef0f5; }
-      .zp-session-strip.active { border-color:rgba(13,155,138,.3); }
-      .zp-session-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-      .zp-session-label { font-size:12px; font-weight:700; color:var(--text2); }
-      .zp-session-count { font-size:12px; font-weight:700; color:var(--muted); font-family:'JetBrains Mono',monospace; }
-      .zp-session-count.done { color:#0d9b8a; }
-      .zp-session-bar-bg { height:4px; background:#eef0f5; border-radius:2px; overflow:hidden; }
-      .zp-session-bar-fill { height:100%; background:#0d9b8a; border-radius:2px; transition:width .4s ease; }
+      /* ── CONTENT AREA ────────────────────────────────────────── */
+      .zp-content {
+        flex: 1;
+        min-width: 0;
+        padding-top: 20px;
+      }
 
-      /* ── Pass button ─────────────────────────────────────────── */
-      .zp-pass-bar { padding:12px 14px 20px; }
-      .zp-pass-btn { width:100%; padding:16px; border:none; border-radius:14px; background:#1a2a3a; color:rgba(255,255,255,.4); font-size:15px; font-weight:700; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .25s; letter-spacing:.01em; -webkit-tap-highlight-color:transparent; }
-      .zp-pass-btn.all-done { background:#0d9b8a; color:white; box-shadow:0 6px 24px rgba(13,155,138,.4); transform:scale(1.02); }
+      /* ── SIDEBAR ─────────────────────────────────────────────── */
+      .zp-sidebar {
+        width: 240px;
+        flex-shrink: 0;
+        padding-top: 20px;
+      }
+      .zp-sidebar-card {
+        background: #162030;
+        border: 1px solid rgba(255,255,255,.08);
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 12px;
+      }
+      .zp-sidebar-label {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,.3);
+        margin-bottom: 10px;
+      }
+      .zp-sidebar-stat {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 7px 0;
+        border-bottom: 1px solid rgba(255,255,255,.06);
+        font-size: 12px;
+      }
+      .zp-sidebar-stat:last-child { border-bottom: none; }
+      .zp-sidebar-stat-lbl { color: rgba(255,255,255,.45); }
+      .zp-sidebar-stat-val { color: white; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+      .zp-sidebar-btn {
+        display: block;
+        width: 100%;
+        padding: 11px 14px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 8px;
+        transition: all .15s;
+        text-decoration: none;
+      }
+      .zp-sidebar-btn.primary {
+        background: #0d9b8a;
+        color: white;
+      }
+      .zp-sidebar-btn.primary:hover { background: #0a7a6e; }
+      .zp-sidebar-btn.secondary {
+        background: rgba(255,255,255,.06);
+        color: rgba(255,255,255,.65);
+        border: 1px solid rgba(255,255,255,.1);
+      }
+      .zp-sidebar-btn.secondary:hover { background: rgba(255,255,255,.1); }
 
-      /* ── Messages ────────────────────────────────────────────── */
-      .zp-msg-section { background:var(--surface); margin:0 14px 12px; border-radius:16px; padding:16px 18px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-      .zp-msg-label { font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
-      .zp-msg-bubble { padding:10px 14px; border-radius:12px; margin-bottom:8px; }
-      .zp-msg-text { font-size:13px; line-height:1.6; }
-      .zp-msg-date { font-size:10px; color:#aab; margin-top:4px; }
-      .zp-reply-label { font-size:11px; font-weight:700; color:var(--text2); margin-bottom:8px; }
-      .zp-reply-btns { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
-      .zp-reply-btn { padding:9px 14px; border:1.5px solid #e0e4ee; border-radius:9px; background:var(--surface); font-size:12px; font-weight:600; color:#07101e; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .12s; -webkit-tap-highlight-color:transparent; }
-      .zp-reply-btn:hover { border-color:#0d9b8a; color:#0d9b8a; }
-      .zp-reply-btn.selected { background:#0d9b8a; color:white; border-color:#0d9b8a; }
+      /* ── SECTIONS ────────────────────────────────────────────── */
+      .zp-section {
+        background: #162030;
+        border: 1px solid rgba(255,255,255,.07);
+        border-radius: 14px;
+        margin-bottom: 12px;
+        overflow: hidden;
+      }
+      .zp-sec-hdr {
+        padding: 14px 18px 12px;
+        border-bottom: 1px solid rgba(255,255,255,.06);
+      }
+      .zp-sec-title {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,.35);
+      }
 
-      /* ── Countdown ───────────────────────────────────────────── */
-      .zp-countdown { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:16px; margin:0 14px 14px; padding:18px 18px 16px; }
-      .zp-countdown-left { display:flex; align-items:baseline; gap:6px; margin-bottom:4px; }
-      .zp-countdown-days { font-family:'JetBrains Mono',monospace; font-size:42px; font-weight:700; color:white; line-height:1; }
-      .zp-countdown-unit { font-size:13px; color:rgba(255,255,255,.5); }
-      .zp-countdown-label { font-size:11px; color:rgba(255,255,255,.4); margin-bottom:12px; }
-      .zp-countdown-body { font-size:13px; color:rgba(255,255,255,.65); line-height:1.6; margin-bottom:14px; }
-      .zp-countdown-sub { font-size:11px; color:rgba(255,255,255,.3); font-style:italic; margin-bottom:14px; }
-      .zp-countdown-btn { display:block; width:100%; padding:13px; background:#0d9b8a; color:white; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; text-align:center; text-decoration:none; -webkit-tap-highlight-color:transparent; }
+      /* ── EXERCISE CARDS ──────────────────────────────────────── */
+      .zp-excard {
+        background: #162030;
+        border: 1px solid rgba(255,255,255,.07);
+        border-radius: 14px;
+        margin-bottom: 10px;
+        overflow: hidden;
+        transition: border-color .2s;
+      }
+      .zp-excard.done {
+        border-color: rgba(13,155,138,.3);
+        opacity: .75;
+      }
+      .zp-excard.open .zp-chevron { transform: rotate(90deg); }
+      .zp-exhdr { display: flex; align-items: center; }
+      .zp-exhdr-tap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+        padding: 14px 8px 14px 16px;
+        cursor: pointer;
+        min-width: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .zp-exnum {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.08);
+        font-size: 11px;
+        font-weight: 700;
+        color: rgba(255,255,255,.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .zp-excard.done .zp-exnum {
+        background: rgba(13,155,138,.2);
+        color: #3dcfbd;
+      }
+      .zp-extitle {
+        font-size: 14px;
+        font-weight: 600;
+        color: white;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .zp-exmeta {
+        font-size: 11px;
+        color: rgba(255,255,255,.4);
+        margin-top: 2px;
+      }
+      .zp-ring-wrap { padding: 14px 16px 14px 0; flex-shrink: 0; }
+      .zp-ring {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2.5px solid rgba(255,255,255,.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all .2s;
+      }
+      .zp-ring.checked {
+        background: #0d9b8a;
+        border-color: #0d9b8a;
+      }
+      .zp-ring svg { width: 16px; height: 16px; }
+      .zp-chevron { color: rgba(255,255,255,.3); transition: transform .2s; margin-left: 4px; }
+      .zp-exbody {
+        padding: 0 16px 16px;
+        border-top: 1px solid rgba(255,255,255,.06);
+        display: none;
+      }
+      .zp-excard.open .zp-exbody { display: block; }
+      .zp-desc {
+        font-size: 13px;
+        color: rgba(255,255,255,.65);
+        line-height: 1.7;
+        margin: 12px 0;
+      }
+      .zp-sets-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 12px 0;
+      }
+      .zp-set-box {
+        background: rgba(255,255,255,.05);
+        border-radius: 10px;
+        padding: 10px 8px;
+        text-align: center;
+      }
+      .zp-set-val {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 20px;
+        font-weight: 700;
+        color: white;
+      }
+      .zp-set-lbl {
+        font-size: 10px;
+        color: rgba(255,255,255,.35);
+        margin-top: 3px;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+      }
 
-      /* ── Paywall / renewal ───────────────────────────────────── */
-      .zp-renewal { background:#07101e; min-height:100vh; font-family:'Plus Jakarta Sans',sans-serif; }
-      .zp-renewal-hero { background:linear-gradient(160deg,#0c1929,#07101e); padding:32px 20px 24px; text-align:center; }
-      .zp-renewal-logo { height:32px; margin-bottom:20px; }
-      .zp-renewal-title { font-family:'Fraunces',Georgia,serif; font-size:28px; font-weight:300; color:white; margin-bottom:8px; line-height:1.2; }
-      .zp-renewal-sub { font-size:14px; color:rgba(255,255,255,.5); line-height:1.7; max-width:300px; margin:0 auto; }
-      .zp-renewal-body { padding:20px 14px; }
-      .zp-renewal-footer { padding:0 14px 40px; }
-      .zp-tier-cards { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
-      .zp-tier-card { border:1.5px solid rgba(255,255,255,.1); border-radius:16px; padding:18px; background:rgba(255,255,255,.04); transition:all .2s; }
-      .zp-tier-card.featured { border-color:#0d9b8a; background:rgba(13,155,138,.08); }
-      .zp-tier-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
-      .zp-tier-name { font-size:16px; font-weight:700; color:white; }
-      .zp-tier-badge { font-size:9px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; background:#0d9b8a; color:white; padding:3px 8px; border-radius:10px; }
-      .zp-tier-pricing { margin-bottom:14px; }
-      .zp-tier-price { font-family:'JetBrains Mono',monospace; font-size:28px; font-weight:700; color:white; }
-      .zp-tier-permth { font-size:12px; color:rgba(255,255,255,.4); }
-      .zp-tier-tag { font-size:11px; color:rgba(255,255,255,.4); margin-top:2px; }
-      .zp-tier-feats { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
-      .zp-tier-feat { font-size:12px; color:rgba(255,255,255,.65); display:flex; gap:8px; align-items:flex-start; }
-      .zp-tier-cta { width:100%; padding:14px; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; background:rgba(255,255,255,.1); color:white; transition:background .2s; }
-      .zp-tier-card.featured .zp-tier-cta { background:#0d9b8a; }
-      .zp-length-row { display:flex; gap:8px; margin-bottom:16px; }
-      .zp-length-btn { flex:1; padding:12px 8px; border:1.5px solid rgba(255,255,255,.1); border-radius:10px; background:rgba(255,255,255,.04); color:rgba(255,255,255,.6); font-size:12px; font-weight:600; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; text-align:center; transition:all .15s; }
-      .zp-length-btn.sel { border-color:#0d9b8a; background:rgba(13,155,138,.15); color:white; }
-      .zp-length-save { font-size:11px; color:#0d9b8a; font-weight:600; text-align:center; margin-bottom:16px; }
-      .zp-social-proof { display:flex; align-items:center; gap:8px; justify-content:center; margin-bottom:16px; }
-      .zp-social-proof-dot { width:6px; height:6px; border-radius:50%; background:#0d9b8a; }
-      .zp-guarantee { border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:14px 16px; margin-bottom:16px; display:flex; gap:12px; align-items:flex-start; }
-      .zp-guarantee-text { font-size:12px; color:rgba(255,255,255,.5); line-height:1.6; }
-      .zp-back-btn { background:none; border:none; color:rgba(255,255,255,.4); font-size:13px; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; padding:8px 0; display:block; width:100%; text-align:center; }
+      /* ── CHECKIN STRIP ───────────────────────────────────────── */
+      .zp-session-strip {
+        background: rgba(255,255,255,.03);
+        border: 1px solid rgba(255,255,255,.07);
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .zp-session-strip.active {
+        border-color: rgba(13,155,138,.3);
+        background: rgba(13,155,138,.05);
+      }
+      .zp-session-bar-wrap {
+        flex: 1;
+        height: 4px;
+        background: rgba(255,255,255,.08);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .zp-session-bar {
+        height: 100%;
+        background: #0d9b8a;
+        border-radius: 2px;
+        transition: width .4s ease;
+        width: 0%;
+      }
+      .zp-session-count {
+        font-size: 12px;
+        font-weight: 700;
+        color: rgba(255,255,255,.4);
+        font-family: 'JetBrains Mono', monospace;
+        flex-shrink: 0;
+      }
+      .zp-session-count.done { color: #3dcfbd; }
 
-      /* ── Achievements ────────────────────────────────────────── */
-      .zp-achievement-row { display:flex; gap:8px; margin:0 14px 12px; overflow-x:auto; padding-bottom:4px; }
-      .zp-achievement { flex-shrink:0; width:72px; text-align:center; }
-      .zp-achievement-val { font-size:24px; margin-bottom:2px; }
-      .zp-achievement-lbl { font-size:9px; color:rgba(255,255,255,.4); line-height:1.3; }
+      /* ── SYMPTOM JOURNAL ─────────────────────────────────────── */
+      .zp-journal-entry {
+        border-bottom: 1px solid rgba(255,255,255,.06);
+        padding: 12px 0;
+      }
+      .zp-journal-entry:last-child { border-bottom: none; }
+      .zp-nrs-row {
+        display: flex;
+        gap: 6px;
+        margin: 10px 0;
+        flex-wrap: wrap;
+      }
+      .zp-nrs-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        border: 1.5px solid rgba(255,255,255,.1);
+        background: rgba(255,255,255,.04);
+        color: rgba(255,255,255,.6);
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'JetBrains Mono', monospace;
+        transition: all .15s;
+      }
+      .zp-nrs-btn.sel {
+        background: #0d9b8a;
+        border-color: #0d9b8a;
+        color: white;
+      }
+      .zp-textarea {
+        width: 100%;
+        background: rgba(255,255,255,.05);
+        border: 1px solid rgba(255,255,255,.1);
+        border-radius: 10px;
+        padding: 10px 13px;
+        font-size: 13px;
+        color: white;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        resize: none;
+        outline: none;
+        line-height: 1.6;
+      }
+      .zp-textarea::placeholder { color: rgba(255,255,255,.25); }
+      .zp-textarea:focus { border-color: rgba(13,155,138,.5); }
+      .zp-submit-btn {
+        width: 100%;
+        padding: 13px;
+        background: #0d9b8a;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        margin-top: 10px;
+        transition: background .2s;
+      }
+      .zp-submit-btn:hover { background: #0a7a6e; }
+      .zp-pass-btn {
+        width: 100%;
+        padding: 11px;
+        background: rgba(255,255,255,.06);
+        color: rgba(255,255,255,.5);
+        border: 1px solid rgba(255,255,255,.1);
+        border-radius: 12px;
+        font-size: 13px;
+        cursor: pointer;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        margin-top: 8px;
+        transition: all .15s;
+      }
+      .zp-pass-btn:hover { background: rgba(255,255,255,.1); color: white; }
 
-      /* ── Next steps ──────────────────────────────────────────── */
-      .zp-next-steps { margin:0 14px 12px; }
-      .zp-next-step { display:flex; gap:12px; align-items:flex-start; padding:12px 0; border-bottom:1px solid rgba(255,255,255,.06); }
-      .zp-next-step:last-child { border-bottom:none; }
-      .zp-next-num { width:24px; height:24px; border-radius:50%; background:rgba(13,155,138,.2); color:#0d9b8a; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
-      .zp-next-text { font-size:13px; color:rgba(255,255,255,.7); line-height:1.55; }
+      /* ── PAYWALL ─────────────────────────────────────────────── */
+      .zp-paywall {
+        background: linear-gradient(135deg, #0c1929 0%, #0a1e30 100%);
+        border: 1px solid rgba(255,255,255,.1);
+        border-radius: 16px;
+        padding: 20px;
+        margin: 0 0 12px;
+        position: relative;
+        overflow: hidden;
+      }
+      .zp-paywall::after {
+        content: '';
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(13,155,138,.15) 0%, transparent 70%);
+        pointer-events: none;
+      }
+      .zp-paywall-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 4px;
+      }
+      .zp-paywall-sub {
+        font-size: 12px;
+        color: rgba(255,255,255,.45);
+        margin-bottom: 14px;
+        line-height: 1.6;
+      }
+      .zp-paywall-features {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+      .zp-paywall-feat {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: rgba(255,255,255,.6);
+      }
+      .zp-paywall-feat::before {
+        content: '';
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #3dcfbd;
+        flex-shrink: 0;
+      }
+      .zp-buy-btn {
+        display: block;
+        width: 100%;
+        padding: 13px;
+        background: #0d9b8a;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        text-align: center;
+        text-decoration: none;
+        transition: background .2s;
+      }
+      .zp-buy-btn:hover { background: #0a7a6e; }
 
-      /* ── Chips ───────────────────────────────────────────────── */
-      .zp-chip { display:inline-flex; align-items:center; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600; color:rgba(255,255,255,.55); background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1); }
-      .zp-chip.accent { color:#e07060; background:rgba(220,80,60,.12); border-color:rgba(220,80,60,.3); }
+      /* ── FOOTER ──────────────────────────────────────────────── */
+      .zp-footer {
+        text-align: center;
+        padding: 20px 16px 32px;
+        border-top: 1px solid rgba(255,255,255,.06);
+        margin-top: 8px;
+      }
 
-      /* ── Animations ──────────────────────────────────────────── */
-      @keyframes slideUpBanner { from{transform:translateY(100%)} to{transform:translateY(0)} }
-      @keyframes fadeInOv  { from{opacity:0} to{opacity:1} }
-      @keyframes fadeOutOv { from{opacity:1} to{opacity:0} }
-      @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-      @keyframes spin { to{transform:rotate(360deg)} }
+      /* ── MOBILE ──────────────────────────────────────────────── */
+      @media (max-width: 700px) {
+        .zp-sidebar { display: none; }
+        .zp-layout { padding: 0 10px; }
+        .zp-topbar { padding: 12px 14px; }
+      }
+      @media (max-width: 480px) {
+        .zp-topbar-name { font-size: 16px; }
+        .zp-sets-grid { grid-template-columns: repeat(2, 1fr); }
+      }
     `;
     document.head.appendChild(s);
   }
@@ -10376,7 +10730,7 @@ function renderPublicPlan(plan, pat) {
       const abandonKey = 'zp-renewal-viewed:' + (pat?.id||'');
       const msgLabel = daysLeft === 0 ? 'Sista dagen'
                      : daysLeft === 1 ? 'Imorgon löper det ut'
-                     : `${daysLeft} dagar kvar`;
+                     : daysLeft + ' dagar kvar';
       const msgSub = urgent
         ? `${patFirstName ? patFirstName + '\u00a0\u2014 f' : 'F'}örsumma inte det du byggt upp. Välj en plan och fortsätt direkt.`
         : `Ditt program avslutas snart. Välj en fortsättning nu -- det tar under en minut.`;
@@ -10627,338 +10981,88 @@ function renderPublicPlan(plan, pat) {
     </div>`;
 
   // -- MAIN HTML -------------------------------------------------------------
-  el.innerHTML = `<div class="zp-page">
+  // -- SAFE HTML BUILD (no nested multi-line template literals) ----------------
+  var _html = '';
+  _html += '<div class="zp-page">';
 
-    <!-- HERO HEADER -->
-    <div class="zp-hero">
+  // TOP BAR
+  _html += '<div class="zp-topbar">'
+    + '<div class="zp-topbar-brand"><div>'
+    + '<div class="zp-topbar-name">' + patName + '</div>'
+    + '<div class="zp-topbar-diag">' + diag + '</div>'
+    + '</div></div>'
+    + '<div class="zp-topbar-meta">' + chips
+    + '<div style="font-size:10px;color:rgba(255,255,255,.25);margin-left:4px">' + today + '</div>'
+    + '</div></div>';
 
-      <!-- Brand strip: Vela + Hael -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div>
-            <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.38)">En tjänst från</div>
-            <div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.85);letter-spacing:.01em">${e(CLINIC.name)}</div>
-          </div>
-          <div style="width:1px;height:28px;background:rgba(255,255,255,.12)"></div>
-          <img src="${LOGO}" style="height:20px;opacity:.6">
-        </div>
-        <div style="font-size:9px;color:rgba(255,255,255,.28);text-align:right;line-height:1.5">${today}</div>
-      </div>
+  // LAYOUT OPEN
+  _html += '<div class="zp-layout"><div class="zp-content">';
 
-      <!-- Patient + Diagnosis -->
-      <div style="margin-bottom:16px">
-        <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:6px">Din Hael-plan</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:400;color:white;line-height:1.05;margin-bottom:5px">${patName}</div>
-        <div style="font-size:14px;color:rgba(255,255,255,.55);margin-bottom:14px">${diag}</div>
-        <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">${chips}${plan.visitDate||plan.visitId?`<span style="font-size:10px;color:rgba(255,255,255,.28);padding-left:4px">${plan.visitDate?'Journal '+plan.visitDate:''}</span>`:''}
-        </div>
-      </div>
+  // Progress + countdown
+  if (progressGraph) _html += progressGraph;
+  if (weekProgressHtml) _html += weekProgressHtml;
+  if (countdownHtml) _html += countdownHtml;
 
-      <!-- Greeting -->
-      ${plan.greeting ? `<div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px;font-size:14px;color:rgba(255,255,255,.75);line-height:1.7;margin-bottom:12px">${e(plan.greeting)}</div>` : ''}
+  // Greeting
+  if (greetingHtml) _html += greetingHtml;
 
-      <!-- Therapist message -- updates without new visit -->
-      ${plan.therapistMessage ? `
-      <div style="background:rgba(26,200,150,.12);border:1px solid rgba(26,200,150,.2);border-radius:12px;padding:14px 16px;margin-bottom:16px">
-        <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(140,240,200,.7);margin-bottom:6px">Meddelande från ${e(CLINIC.name)}</div>
-        <div style="font-size:14px;color:rgba(255,255,255,.88);line-height:1.7;font-style:italic">${e(plan.therapistMessage)}</div>
-        ${plan.therapistMessageDate ? `<div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:8px">${new Date(plan.therapistMessageDate).toLocaleDateString('sv-SE',{day:'numeric',month:'long'})}</div>` : ''}
-      </div>` : ''}
-
-      <!-- Tab spacer -->
-      <div style="height:16px"></div>
-    </div>
-
-    ${progressGraph}
-    ${countdownHtml}
-    ${weekProgressHtml}
-    ${_hasStats ? zpContextualMsg(pat, plan.visitId||visitIdSafe, plan) : _zpFeatureUpsell('ai_messages', patIdSafe, visitIdSafe)}
-    ${!_hasStats ? zpLockedFeatureSection(patIdSafe, visitIdSafe) : ''}
-    ${_hasMsgs ? pubMsgSectionHTML(pat, plan.visitId||'') : ''}
-    ${pubBookingRequestHTML(pat, plan)}
-    ${_access.features.includes('symptom_journal') ? renderSymptomJournal(pat?.id||'', plan.visitId||visitIdSafe) : _zpFeatureUpsell('symptom_journal', patIdSafe, visitIdSafe)}
-    ${pubProgressSectionHTML(pat?.id||'')}
-
-    <!-- GOALS -->
-    ${goalsHtml}
-
-    <!-- EXERCISES -->
-    ${(plan.exercises||[]).length ? `
-    <div class="zp-section">
-      <div class="zp-sec-hdr"><div class="zp-sec-title">Övningsprogram -- ${plan.exercises.length} övningar</div></div>
-      ${sessionStripHtml}
-      ${exHtml}
-    </div>` : ''}
-
-    ${painHtml}
-    ${tipsHtml}
-    ${schedHtml}
-    ${clinicalBgHtml}
-    ${followupHtml}
-
-    <!-- PASS BUTTON -->
-    ${passBtn}
-
-    <!-- DIN RESA — delning -->
-    ${pubShareSectionHTML(pat, plan)}
-
-    <!-- FOOTER -->
-    <div class="zp-footer" style="text-align:center;margin-bottom:20px">
-      <img src="${LOGO}" style="height:24px;opacity:.55;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto">
-      <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.6);margin-bottom:4px">${e(CLINIC.name)}</div>
-      <div style="font-size:11px;color:rgba(255,255,255,.35);line-height:1.9">${e(CLINIC.address)}<br>${[CLINIC.phone, CLINIC.email].filter(Boolean).map(x => e(x)).join(' · ')}</div>
-      ${CLINIC.phone ? `<a href="tel:${CLINIC.phone}" style="display:inline-block;margin-top:14px;background:rgba(255,255,255,.1);color:white;font-size:13px;font-weight:600;padding:10px 24px;border-radius:9px;text-decoration:none;border:1px solid rgba(255,255,255,.12)">Ring oss</a>` : ''}
-      <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);font-size:10px;color:rgba(255,255,255,.2);line-height:1.8">
-        Hael — ett rehabiliteringsprogram från <span style="color:rgba(255,255,255,.35);font-weight:600">Vela</span><br>
-        Framtaget av ${e(CLINIC.name)}
-      </div>
-    </div>
-
-  </div>`;
-
-  // Restore today's exercise session state
-  if (pat?.id && plan.visitId) {
-    setTimeout(() => zpInitSession(pat.id, plan.visitId, (plan.exercises||[]).length), 50);
-    setTimeout(() => _zpShowDailyCheckIn(pat.id), 1200);
+  // Goals
+  if (goalsHtml) {
+    _html += '<div class="zp-section"><div class="zp-sec-hdr"><div class="zp-sec-title">Mål med rehabiliteringen</div></div>'
+      + '<div style="padding:8px 18px 16px">' + goalsHtml + '</div></div>';
   }
+
+  // Exercises
+  if (exercisesHtml) _html += exercisesHtml;
+
+  // Pass button
+  _html += passBtn;
+
+  // Schedule
+  if (schedHtml) _html += schedHtml;
+
+  // AI messages / upsell
+  _html += _hasStats ? zpContextualMsg(pat, plan.visitId||visitIdSafe, plan) : _zpFeatureUpsell('ai_messages', patIdSafe, visitIdSafe);
+  if (!_hasStats) _html += zpLockedFeatureSection(patIdSafe, visitIdSafe);
+  if (_hasMsgs) _html += pubMsgSectionHTML(pat, plan.visitId||'');
+  _html += pubBookingRequestHTML(pat, plan);
+  if (_access.features.includes('symptom_journal')) _html += renderSymptomJournal(pat?.id||'', plan.visitId||visitIdSafe, plan);
+
+  // Close content, open sidebar
+  _html += '</div><div class="zp-sidebar">';
+
+  // Sidebar: plan info
+  var _sideInfo = '<div class="zp-sidebar-card"><div class="zp-sidebar-label">Din plan</div>';
+  _sideInfo += '<div class="zp-sidebar-stat"><span class="zp-sidebar-stat-lbl">Övningar</span><span class="zp-sidebar-stat-val">' + (plan.exercises||[]).length + '</span></div>';
+  if (plan.form && plan.form.followup) _sideInfo += '<div class="zp-sidebar-stat"><span class="zp-sidebar-stat-lbl">Återbesök</span><span class="zp-sidebar-stat-val">om ' + plan.form.followup + ' v</span></div>';
+  if (plan.form && plan.form.pain != null) _sideInfo += '<div class="zp-sidebar-stat"><span class="zp-sidebar-stat-lbl">Smärta vid start</span><span class="zp-sidebar-stat-val">' + plan.form.pain + '/10</span></div>';
+  _sideInfo += '<div class="zp-sidebar-stat"><span class="zp-sidebar-stat-lbl">Fas</span><span class="zp-sidebar-stat-val">' + (PHASES[(pat&&pat.phase?pat.phase:1)-1]&&PHASES[(pat&&pat.phase?pat.phase:1)-1].label||'Fas 1') + '</span></div>';
+  _sideInfo += '</div>';
+  _html += _sideInfo;
+
+  // Sidebar: clinic contact
+  var _sideClinic = '<div class="zp-sidebar-card"><div class="zp-sidebar-label">' + e(CLINIC.name) + '</div>';
+  if (CLINIC.phone) _sideClinic += '<a href="tel:' + CLINIC.phone + '" class="zp-sidebar-btn primary">Ring kliniken</a>';
+  if (plan.followupNote || followupStr) _sideClinic += '<div style="font-size:11px;color:rgba(255,255,255,.4);line-height:1.6;margin-top:6px">' + e(plan.followupNote || followupStr) + '</div>';
+  _sideClinic += '<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07);font-size:11px;color:rgba(255,255,255,.35)">Planen är utformad individuellt av din behandlare.</div>';
+  _sideClinic += '</div>';
+  _html += _sideClinic;
+
+  if (painHtml) _html += '<div class="zp-sidebar-card"><div class="zp-sidebar-label">Smärthantering</div>' + painHtml + '</div>';
+  if (tipsHtml) _html += '<div class="zp-sidebar-card"><div class="zp-sidebar-label">Livsstilsråd</div><ul style="padding-left:16px;font-size:12px;color:rgba(255,255,255,.55);line-height:1.8">' + tipsHtml + '</ul></div>';
+
+  // Close sidebar + layout
+  _html += '</div></div>';
+
+  // Footer
+  _html += '<div class="zp-footer">'
+    + '<img src="' + LOGO + '" style="height:20px;opacity:.35;margin-bottom:10px;display:block;margin-left:auto;margin-right:auto">'
+    + '<div style="font-size:11px;color:rgba(255,255,255,.2);line-height:1.8">Hael \u2014 ett rehabiliteringsprogram fr\u00e5n <span style="color:rgba(255,255,255,.35);font-weight:600">Vela</span><br>Framtaget av ' + e(CLINIC.name) + '</div>'
+    + '</div>';
+
+  _html += '</div>';
+  el.innerHTML = _html;
 }
-
-
-
-
-// ============================================================================
-// AI FEATURES MODULE -- Hael Intelligence Layer
-// 1. Smart intag   2. Röstjournal   3. Avvikelsedetektering
-// 4. Klinikinsikter  5. Adaptiv plan  6. Kollegakonsultation  7. Epikris
-// ============================================================================
-
-// -- 1. SMART INTAG -- Fri text -> ifyllt formulär ---------------------------
-
-function showSmartIntake() {
-  const box = document.getElementById('smart-intake-box');
-  if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
-}
-
-async function aiParseIntake() {
-  const ta = document.getElementById('qi-textarea');
-  const text = ta ? ta.value.trim() : '';
-  if (!text) return;
-  const key = getKey();
-  if (!key) { alert('API-nyckel saknas.'); return; }
-  const statusEl = document.getElementById('qi-status');
-  if (statusEl) statusEl.textContent = 'Tolkar...';
-  const btn = document.getElementById('qi-parse-btn');
-  if (btn) btn.disabled = true;
-
-  const prompt = `Du är en assistent som tolkar kliniska noteringar. Extrahera följande fält från texten nedan och svara ENBART med JSON utan backticks eller förklaringar.
-
-Text: "${text}"
-
-JSON-format (använd null om fältet inte finns):
-{
-  "name": "Patientens fullständiga namn",
-  "birthdate": "Personnummer/födelsedatum i formatet YYYYMMDD eller YYYY-MM-DD, annars null",
-  "diagnosis": "Närmaste match från listan: Ländryggssmärta, Nacksmärta/whiplash, Knäbesvär, Höftbesvär, Axelbesvär, Tennisarmbåge, Hälseneproblem, Plantarfasciit, Frozen shoulder, Spinal stenos, Diskbråck, Postoperativ rehab, Fibromyalgi, Osteoporos, Artros, Annan / fritext",
-  "customDiag": "Om diagnosen är Annan / fritext, beskriv kort här annars null",
-  "pain": 0-10 som heltal,
-  "motivation": 1-10 som heltal (uppskatta om ej angett: 6),
-  "history": "ingen" | "sporadisk" | "regelbunden",
-  "knowledge": "låg" | "medel" | "hög",
-  "location": "hem" | "gym",
-  "followup": antal veckor som heltal (4 om ej angett),
-  "exercises": antal övningar som heltal (5 om ej angett),
-  "notes": "Övrig klinisk information som inte passar i ovanstående fält, annars tom sträng"
-}`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body: JSON.stringify({model:MODEL_HAIKU, max_tokens:600, messages:[{role:'user',content:prompt}]})
-    });
-    const data = await res.json();
-    const raw = (data.content||[]).map(b=>b.text||'').join('').trim();
-    const parsed = JSON.parse(raw.replace(/```json|```/g,'').trim());
-
-    if (parsed.name) S.form.name = parsed.name;
-    if (parsed.birthdate) S.form.birthdate = parseBirthdate(parsed.birthdate);
-    if (parsed.diagnosis) S.form.diagnosis = parsed.diagnosis;
-    if (parsed.customDiag) S.form.customDiag = parsed.customDiag;
-    if (parsed.pain != null) S.form.pain = parseInt(parsed.pain)||5;
-    if (parsed.motivation != null) S.form.motivation = parseInt(parsed.motivation)||6;
-    if (parsed.history) S.form.history = parsed.history;
-    if (parsed.knowledge) S.form.knowledge = parsed.knowledge;
-    if (parsed.location) S.form.location = parsed.location;
-    if (parsed.followup) S.form.followup = parseInt(parsed.followup)||4;
-    if (parsed.exercises) S.form.exercises = parseInt(parsed.exercises)||5;
-    if (parsed.notes) S.form.notes = parsed.notes;
-
-    if (statusEl) statusEl.textContent = 'Formulär ifyllt';
-    rForm();
-    showAutoSaveToast('Formulär ifyllt');
-  } catch(err) {
-    if (statusEl) statusEl.textContent = 'Fel -- prova igen';
-    console.error('Smart intake error:', err);
-  }
-  if (btn) btn.disabled = false;
-}
-
-// Generate SOAP draft from free text -> preview modal -> save to currentSOAP
-async function aiGenerateSOAPFromIntake() {
-  const ta = document.getElementById('qi-textarea');
-  const text = ta ? ta.value.trim() : '';
-  if (!text) { alert('Skriv eller diktera text först.'); return; }
-  const key = getKey();
-  if (!key) { alert('API-nyckel saknas.'); return; }
-
-  const statusEl = document.getElementById('qi-status');
-  const soapBtn = document.getElementById('qi-soap-btn');
-  if (statusEl) statusEl.textContent = 'Genererar SOAP...';
-  if (soapBtn) soapBtn.disabled = true;
-
-  const prompt = `Du är leg. fysioterapeut. Omstrukturera nedanstående fritext till en klinisk SOAP-journalanteckning på svenska. Svara ENBART med JSON utan backticks.
-
-Regler för klinisk terminologi:
-- höger -> dextra/dx, vänster -> sinistra/sin
-- framsida -> anteriort, baksida -> posteriort, insida -> medialt, utsida -> lateralt
-- knäskål -> patella, hälsena -> tendo Achillis, inklämning -> impingement
-- menisk insida -> medial menisk, menisk utsida -> lateral menisk
-- korsbandet fram -> ACL (ligamentum cruciatum anterius), bak -> PCL
-- axelled -> glenohumeralt, axelblad -> scapula, nyckelben -> clavicula
-- rygg (länd) -> lumbalt, rygg (bröst) -> thorakalt, nacke -> cervikalt
-- Skriv löpande meningar i journalstil, inga liststrecken, inga rubriker inuti fälten
-- Lägg bara information i det fält det hör hemma -- hitta ingenting på
-- Lämna fält som tom sträng om info saknas
-
-Fritext: "${text}"
-
-JSON:
-{
-  "S": "Subjektivt -- patientens berättelse, symtom, smärtbeskrivning på klinisk svenska",
-  "O": "Objektivt -- undersökningsfynd, tester, rörelseomfång om angivet",
-  "A": "Bedömning -- klinisk diagnos med korrekt terminologi, funktionsnivå, ev differentialdiagnos",
-  "P": "Plan -- behandling, hemprogram, återbesök"
-}`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:MODEL_HAIKU, max_tokens:900, messages:[{role:'user',content:prompt}]})
-    });
-    const data = await res.json();
-    const raw = (data.content||[]).map(b=>b.text||'').join('').trim();
-    const soap = JSON.parse(raw.replace(/```json|```/g,'').trim());
-    if (statusEl) statusEl.textContent = '';
-    openSOAPPreviewModal(soap);
-  } catch(err) {
-    if (statusEl) statusEl.textContent = 'Fel -- prova igen';
-    console.error('SOAP from intake error:', err);
-  }
-  if (soapBtn) soapBtn.disabled = false;
-}
-
-function openSOAPPreviewModal(soap) {
-  document.getElementById('soap-preview-ov')?.remove();
-  const LABELS = {S:'Subjektivt',O:'Objektivt',A:'Bedömning',P:'Plan'};
-  const COLORS = {S:{bg:'#dceef8',c:'#1a5a8a'},O:{bg:'#dcf0e4',c:'#1a6a3a'},A:{bg:'#fdf3d8',c:'#7a5a00'},P:{bg:'#ede0f8',c:'#5a20a0'}};
-
-  const ov = document.createElement('div');
-  ov.id = 'soap-preview-ov';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,20,35,.72);backdrop-filter:blur(4px);animation:fadeInOv .15s ease';
-  ov.onclick = e => { if(e.target===ov) ov.remove(); };
-
-  const fields = ['S','O','A','P'].map(l => {
-    const col = COLORS[l];
-    const val = soap[l]||'';
-    return `<div style="margin-bottom:12px">
-      <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
-        <div style="width:22px;height:22px;border-radius:4px;background:${col.bg};color:${col.c};font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;flex-shrink:0">${l}</div>
-        <div style="font-size:11px;font-weight:600;color:var(--text3)">${LABELS[l]}</div>
-      </div>
-      <textarea id="soapp-${l}" style="width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;line-height:1.65;font-family:'DM Sans',sans-serif;resize:vertical;min-height:${val?'64':'36'}px;outline:none;color:var(--text);background:${val?'white':'#fafbfc'}" placeholder="(inget innehåll -- lämna tomt eller skriv till)">${e(val)}</textarea>
-    </div>`;
-  }).join('');
-
-  ov.innerHTML = `
-  <div style="background:var(--surface);border-radius:16px;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 48px rgba(0,0,0,.22)" onclick="event.stopPropagation()">
-    <div style="padding:16px 18px 12px;border-bottom:1px solid #eef0f3;display:flex;align-items:center;gap:10px;flex-shrink:0">
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:600;color:var(--navy)">SOAP-utkast -- granska och redigera</div>
-        <div style="font-size:11px;color:var(--text3)">AI har strukturerat och reformulerat din text kliniskt. Redigera innan du sparar.</div>
-      </div>
-      <button onclick="document.getElementById('soap-preview-ov').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3);line-height:1">×</button>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:16px 18px">${fields}</div>
-    <div style="padding:12px 18px 24px;border-top:1px solid #eef0f3;display:flex;gap:8px;flex-shrink:0">
-      <button onclick="saveSOAPDraftFromIntake()" style="flex:1;background:var(--navy);color:white;border:none;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Spara som journalutkast -></button>
-      <button onclick="document.getElementById('soap-preview-ov').remove()" style="background:none;border:1px solid var(--border);border-radius:9px;padding:12px 18px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--text3)">Avbryt</button>
-    </div>
-  </div>`;
-  document.body.appendChild(ov);
-}
-
-function saveSOAPDraftFromIntake() {
-  const soap = {};
-  ['S','O','A','P'].forEach(l => {
-    const ta = document.getElementById('soapp-'+l);
-    if (ta) soap[l] = ta.value.trim();
-  });
-  // Store as journal draft in sessionStorage -- same key as autoSaveJournalDraft
-  const draftData = {
-    patId: S.pat?.id || '',
-    ts: Date.now(),
-    soap,
-    source: 'smart-intake'
-  };
-  try { sessionStorage.setItem('hael:journaldraft', JSON.stringify(draftData)); } catch(e) {}
-  // Also pre-fill currentSOAP if it exists
-  if (typeof currentSOAP !== 'undefined' && currentSOAP) {
-    currentSOAP.soap = {...(currentSOAP.soap||{}), ...soap};
-  }
-  document.getElementById('soap-preview-ov')?.remove();
-  showAutoSaveToast('SOAP-utkast sparat');
-}
-
-let _qiSR = null;
-function toggleQiDictation() {
-  const btn = document.getElementById('qi-mic-btn');
-  if (_qiSR) {
-    _qiSR.stop(); _qiSR = null;
-    if (btn) { btn.classList.remove('listening'); btn.innerHTML = '<span class="mic-btn-dot"></span> Diktera'; }
-    return;
-  }
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('Kräver Chrome.'); return; }
-  const sr = new SR(); sr.lang='sv-SE'; sr.continuous=true; sr.interimResults=false;
-  sr.onresult = ev => {
-    const ta = document.getElementById('qi-textarea'); if (!ta) return;
-    for (let i=ev.resultIndex;i<ev.results.length;i++) if (ev.results[i].isFinal) { ta.value += (ta.value?' ':'') + ev.results[i][0].transcript; }
-  };
-  sr.onend = () => { _qiSR=null; if(btn){btn.classList.remove('listening');btn.innerHTML='<span class="mic-btn-dot"></span> Diktera';} };
-  sr.start(); _qiSR=sr;
-  if (btn) { btn.classList.add('listening'); btn.innerHTML='<span class="mic-btn-dot"></span> Stoppa'; }
-}
-
-function smartIntakeHTML() {
-  return `<div class="qi-wrap" id="smart-intake-box">
-    <div class="qi-title">Snabbintag -- beskriv fritt</div>
-    <textarea class="qi-ta" id="qi-textarea" placeholder="T.ex: Anna Lindqvist 1978, diskbråck L4, smärta höger ben NRS 7, strålar till foten, förvärras vid framåtböjning. Kontorsarbete. Tränar sällan. Hemträning." rows="3"></textarea>
-    <div class="qi-actions">
-      <button class="qi-btn qi-btn-parse" id="qi-parse-btn" onclick="aiParseIntake()" style="background:rgba(255,255,255,.15);color:white">Fyll i formuläret</button>
-      <button class="qi-btn" id="qi-soap-btn" onclick="aiGenerateSOAPFromIntake()" style="background:rgba(26,200,150,.25);color:rgba(200,255,230,.95);border:1px solid rgba(26,200,150,.3)">Generera SOAP</button>
-      <button class="mic-btn" id="qi-mic-btn" onclick="toggleQiDictation()" style="background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.7)">
-        <span class="mic-btn-dot"></span> Diktera
-      </button>
-      <span class="qi-status" id="qi-status" style="color:rgba(255,255,255,.5)"></span>
-    </div>
-    <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:8px;line-height:1.6">
-      <strong style="color:rgba(255,255,255,.45)">Formuläret</strong> fyller i sliders och val. &nbsp;·&nbsp;
-      <strong style="color:rgba(255,255,255,.45)">SOAP</strong> strukturerar texten kliniskt och sparar som journalutkast.
-    </div>
-  </div>`;
-}
-
 // -- 2. RÖSTJOURNAL -- Strukturerad diktering med AI-reformulering ---------
 
 // Default structured prompts per SOAP letter -- editable per clinic

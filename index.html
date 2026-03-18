@@ -818,11 +818,15 @@ button, input, textarea, select { font-family: inherit; }
 </style>
 
 </head><body>
+<div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0e1825;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+  <div style="width:36px;height:36px;border:2.5px solid rgba(13,155,138,.2);border-top-color:#0d9b8a;border-radius:50%;animation:spin .7s linear infinite"></div>
+  <div style="font-size:12px;color:rgba(255,255,255,.3);font-family:system-ui,sans-serif;letter-spacing:.06em">VELA</div>
+</div>
 <!-- Mobile sidebar overlay -->
 <div id="sb-overlay" onclick="togSidebar()" style="display:none;position:fixed;inset:0;z-index:149;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);cursor:pointer"></div>
-<div class="topbar" id="mobile-topbar"></div>
+<div class="topbar" id="mobile-topbar" style="display:none"></div>
 
-<div class="app-shell">
+<div class="app-shell" id="app-shell" style="display:none">
   <nav class="nav-sidebar" id="nav-sidebar">
     <div class="nav-logo" id="nav-logo-wrap">
     <div id="nav-logo-inner"><!-- rendered by rNavLogo() --></div>
@@ -8219,6 +8223,10 @@ function getStoredAuth() {
 }
 
 function rLogin() {
+  var _shell=document.getElementById('app-shell'),_tb=document.getElementById('mobile-topbar'),_ld=document.getElementById('page-loader');
+  if(_shell)_shell.style.display='';
+  if(_tb)_tb.style.display='';
+  if(_ld){_ld.style.opacity='0';_ld.style.transition='opacity .15s';setTimeout(function(){_ld.remove();},200);}
   document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
   document.getElementById('s-login').classList.add('active');
   // Hide topbar + fixed elements on login
@@ -8509,7 +8517,7 @@ async function doLogin() {
     if (cb) cb.style.display = 'none'; // keep hidden unless crash occurs
     const at = document.getElementById('autosave-toast');
     if (at) at.style.display = '';
-    loadPats(); S.apiKey = getKey(); startAutoSave(); go('dashboard'); initVelaAsk(); setTimeout(rNavLogo, 100);
+    loadPats(); S.apiKey = getKey(); startAutoSave(); var _l=document.getElementById('page-loader'); if(_l){_l.style.opacity='0';_l.style.transition='opacity .2s';setTimeout(function(){_l.remove();},250);} go('dashboard'); initVelaAsk(); setTimeout(rNavLogo, 100);
     setTimeout(() => syncFromCloud(), 800);
     setTimeout(() => sbKeepAlive(), 2000);
     setTimeout(() => runInboxAgent(S.patients), 3500);

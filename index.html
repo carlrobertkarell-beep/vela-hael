@@ -18,49 +18,85 @@
 <style id="vela-app-css">
 /* ── DESIGN TOKENS ─────────────────────────────────────────── */
 :root {
+  /* ── Brand ─────────────────────────────────────────────── */
   --navy:    #0c1f3d;
   --navy2:   #091629;
   --teal:    #0d9b8a;
-  --teal-lt: #e6f7f5;
+  --teal-lt: rgba(13,155,138,.12);
   --teal-dk: #0a7a6e;
   --accent:  #0d9b8a;
-  --gold:    #c8a030;
-  --gold-lt: #fdf6e3;
-  --red:     #c05050;
-  --red-lt:  #fdf0f0;
-  --green:   #1a7a4a;
-  --green-lt:#f0faf5;
-  --ink:     #0c1a2e;
-  --text:    #3a4a5a;
-  --text2:   #5a6a7a;
-  --text3:   #8896a8;
-  --muted:   #8896a8;
-  --border:  #e4e9f0;
-  --border2: #f0f3f8;
-  --surface: #ffffff;
-  --surface2:#f6f8fc;
-  --surface3:#eef1f7;
-  --bg:      #f4f7fb;
-  --font:    'Plus Jakarta Sans', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', 'DM Mono', 'Fira Mono', monospace;
+  --gold:    #d4a843;
+  --gold-lt: rgba(212,168,67,.12);
+  --red:     #e05555;
+  --red-lt:  rgba(224,85,85,.12);
+  --green:   #1fa060;
+  --green-lt:rgba(31,160,96,.12);
+
+  /* ── Dark theme (default) ──────────────────────────────── */
+  --bg:       #0e1825;
+  --bg2:      #111e2d;
+  --surface:  #162030;
+  --surface2: #1c2a3e;
+  --surface3: #223248;
+  --ink:      #e8edf4;
+  --text:     #b8c4d4;
+  --text2:    #8898aa;
+  --text3:    #5a6e84;
+  --muted:    #5a6e84;
+  --border:   rgba(255,255,255,.08);
+  --border2:  rgba(255,255,255,.05);
+
+  /* ── Typography ────────────────────────────────────────── */
+  --font:       'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono:  'JetBrains Mono', 'DM Mono', monospace;
   --font-serif: 'Fraunces', Georgia, serif;
+
+  /* ── Geometry ──────────────────────────────────────────── */
   --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px;
+
+  /* ── Shadows (elevated on dark) ────────────────────────── */
+  --shadow-xs: 0 1px 4px rgba(0,0,0,.3);
+  --shadow-sm: 0 2px 10px rgba(0,0,0,.35);
+  --shadow-md: 0 4px 24px rgba(0,0,0,.4);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,.5);
+
+  /* ── Sidebar ───────────────────────────────────────────── */
+  --sb-bg:        #0a1628;
+  --sb-border:    rgba(255,255,255,.06);
+  --sb-text:      rgba(255,255,255,.35);
+  --sb-text2:     rgba(255,255,255,.72);
+  --sb-hover:     rgba(255,255,255,.05);
+  --sb-active-bg: rgba(13,155,138,.18);
+  --sb-active-col:#3dcfbd;
+}
+
+/* ── Light mode override (optional, future toggle) ────────── */
+body.light {
+  --bg:       #f4f7fb;
+  --bg2:      #eef1f7;
+  --surface:  #ffffff;
+  --surface2: #f6f8fc;
+  --surface3: #eef1f7;
+  --ink:      #0c1a2e;
+  --text:     #3a4a5a;
+  --text2:    #5a6a7a;
+  --text3:    #8896a8;
+  --muted:    #8896a8;
+  --border:   #e4e9f0;
+  --border2:  #f0f3f8;
+  --teal-lt:  #e6f7f5;
+  --gold-lt:  #fdf6e3;
+  --red-lt:   #fdf0f0;
+  --green-lt: #f0faf5;
   --shadow-xs: 0 1px 3px rgba(0,0,0,.06);
   --shadow-sm: 0 2px 8px rgba(0,0,0,.07);
   --shadow-md: 0 4px 20px rgba(0,0,0,.09);
   --shadow-lg: 0 8px 36px rgba(0,0,0,.12);
-  --sb-bg: #0c1f3d;
-  --sb-border: rgba(255,255,255,.07);
-  --sb-text: rgba(255,255,255,.4);
-  --sb-text2: rgba(255,255,255,.75);
-  --sb-hover: rgba(255,255,255,.06);
-  --sb-active-bg: rgba(13,155,138,.15);
-  --sb-active-col: #3dcfbd;
 }
 
 /* ── RESET ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; font-family: var(--font); color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
+html, body { height: 100%; font-family: var(--font); color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; color-scheme: dark; }
 button, input, textarea, select { font-family: inherit; }
 
 /* ── APP SHELL ──────────────────────────────────────────────── */
@@ -141,7 +177,7 @@ button, input, textarea, select { font-family: inherit; }
 }
 .cc-date { font-size: 12px; color: var(--text3); margin-top: 5px; }
 .cc-start-btn {
-  background: var(--navy); color: white; border: none;
+  background:var(--navy); color: white; border: none;
   border-radius: 12px; padding: 12px 22px; font-size: 13px;
   font-weight: 700; cursor: pointer; font-family: var(--font);
   display: flex; align-items: center; gap: 8px;
@@ -162,7 +198,7 @@ button, input, textarea, select { font-family: inherit; }
   transition: box-shadow .2s, transform .2s;
   box-shadow: var(--shadow-xs);
 }
-.cc-kpi:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.cc-kpi:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); border-color: rgba(255,255,255,.14); }
 .cc-kpi-icon {
   width: 34px; height: 34px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
@@ -229,7 +265,7 @@ button, input, textarea, select { font-family: inherit; }
 }
 .cc-panel-hdr {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 18px 12px; border-bottom: 1px solid var(--border2);
+  padding: 14px 18px 12px; border-bottom: 1px solid var(--border);
 }
 .cc-panel-title {
   font-size: 11px; font-weight: 700; color: var(--navy);
@@ -250,9 +286,9 @@ button, input, textarea, select { font-family: inherit; }
   cursor: pointer; transition: background .12s;
 }
 .cc-row:last-child { border-bottom: none; }
-.cc-row:hover { background: var(--surface2); }
+.cc-row:hover { background: var(--surface2); border-radius: 0; }
 .cc-row-av {
-  width: 36px; height: 36px; border-radius: 50%; background: var(--navy);
+  width: 36px; height: 36px; border-radius: 50%; background:var(--navy);
   color: white; font-size: 11px; font-weight: 700; display: flex;
   align-items: center; justify-content: center; flex-shrink: 0;
   font-family: var(--font-mono); letter-spacing: -.02em;
@@ -283,7 +319,7 @@ button, input, textarea, select { font-family: inherit; }
 .vela-ask-bubble {
   position: fixed; bottom: 24px; right: 24px; z-index: 400;
   width: 52px; height: 52px; border-radius: 50%;
-  background: var(--navy); border: none; cursor: pointer;
+  background:var(--navy); border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   box-shadow: 0 4px 20px rgba(12,31,61,.3);
   transition: transform .2s, box-shadow .2s;
@@ -321,7 +357,7 @@ button, input, textarea, select { font-family: inherit; }
 .consult-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
 .consult-bubble { padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.65; max-width: 88%; }
 .consult-bubble.ai   { background: var(--surface2); color: var(--ink); border-radius: 4px 14px 14px 14px; align-self: flex-start; }
-.consult-bubble.user { background: var(--navy); color: white; border-radius: 14px 14px 4px 14px; align-self: flex-end; }
+.consult-bubble.user { background:var(--navy); color: white; border-radius: 14px 14px 4px 14px; align-self: flex-end; }
 .consult-input-row { display: flex; gap: 10px; padding: 12px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
 .consult-inp { flex: 1; border: 1.5px solid var(--border); border-radius: var(--r-md); padding: 10px 14px; font-size: 14px; font-family: var(--font); color: var(--ink); outline: none; background: var(--surface2); }
 .consult-inp:focus { border-color: var(--teal); }
@@ -329,7 +365,7 @@ button, input, textarea, select { font-family: inherit; }
 /* ── MODAL ──────────────────────────────────────────────────── */
 .modal-ov { display: none; position: fixed; inset: 0; z-index: 800; background: rgba(12,31,61,.55); backdrop-filter: blur(6px); align-items: center; justify-content: center; padding: 20px; }
 .modal-ov.open { display: flex; animation: fadeInOv .18s ease; }
-.modal { background: var(--surface); border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow-lg); }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 28px 24px; width: 100%; max-width: 400px; box-shadow: var(--shadow-lg); }
 .modal-title { font-size: 17px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
 .modal-text  { font-size: 14px; color: var(--text); line-height: 1.6; margin-bottom: 20px; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
@@ -343,7 +379,7 @@ button, input, textarea, select { font-family: inherit; }
 .det-action-card-hdr { font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text3); padding: 11px 16px 8px; border-bottom: 1px solid var(--border2); }
 .det-action-card-body { padding: 6px 8px; display: flex; flex-direction: column; gap: 1px; }
 .det-action-btn { display: flex; align-items: center; gap: 9px; width: 100%; padding: 9px 10px; border: none; background: transparent; color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; border-radius: 8px; font-family: var(--font); text-align: left; transition: background .12s; }
-.det-action-btn:hover { background: var(--surface2); }
+.det-action-btn:hover { background: var(--surface3); }
 .det-action-btn.primary { color: var(--teal); font-weight: 700; }
 .det-action-btn.danger  { color: var(--red); }
 .det-action-btn svg     { flex-shrink: 0; opacity: .55; }
@@ -365,16 +401,16 @@ button, input, textarea, select { font-family: inherit; }
 .field:focus { border-color: var(--teal); }
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: all .15s; }
 .btn:hover { background: var(--surface2); }
-.btn.btn-p { background: var(--navy); color: white; border-color: var(--navy); }
+.btn.btn-p { background:var(--navy); color: white; border-color: var(--navy); }
 .btn.btn-p:hover { background: var(--teal); border-color: var(--teal); transform: translateY(-1px); }
 .btn.btn-d { background: var(--red-lt); color: var(--red); border-color: rgba(192,80,80,.2); }
 .slabel { display: block; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--teal); margin: 16px 0 8px; }
 .chip { padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 20px; background: var(--surface); font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font); color: var(--text); transition: all .12s; }
-.chip.on { background: var(--navy); color: white; border-color: var(--navy); }
+.chip.on { background:var(--navy); color: white; border-color: var(--navy); }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
 .hint  { font-size: 11px; color: var(--muted); margin-bottom: 8px; line-height: 1.5; }
 .errbox { background: var(--red-lt); color: var(--red); border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 10px; }
-.genbtn { width: 100%; padding: 13px; background: var(--navy); color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font); margin-top: 12px; transition: all .2s; }
+.genbtn { width: 100%; padding: 13px; background:var(--navy); color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font); margin-top: 12px; transition: all .2s; }
 .genbtn:hover { background: var(--teal); transform: translateY(-1px); }
 .genbtn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
@@ -386,7 +422,7 @@ button, input, textarea, select { font-family: inherit; }
 .akst  { display: flex; align-items: center; gap: 6px; font-size: 11px; }
 .akdot { width: 7px; height: 7px; border-radius: 50%; }
 .dash-qbtn { padding: 9px 16px; border-radius: var(--r-md); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); border: none; transition: all .15s; }
-.dash-qbtn-primary   { background: var(--navy); color: white; }
+.dash-qbtn-primary   { background:var(--navy); color: white; }
 .dash-qbtn-primary:hover { background: var(--teal); }
 .dash-qbtn-secondary { background: var(--surface); color: var(--ink); border: 1px solid var(--border); }
 .dash-qbtn-secondary:hover { background: var(--surface2); }
@@ -394,10 +430,10 @@ button, input, textarea, select { font-family: inherit; }
 .cstat-val { font-size: 22px; font-weight: 700; color: var(--navy); font-family: var(--font-mono); line-height: 1.1; }
 .cstat-lbl { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .07em; margin-top: 4px; }
 .clinic-stats-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 12px; margin-bottom: 16px; }
-.dr-initials { width: 36px; height: 36px; border-radius: 50%; background: var(--navy); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: var(--font-mono); }
+.dr-initials { width: 36px; height: 36px; border-radius: 50%; background:var(--navy); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-family: var(--font-mono); }
 .visit-choice-btn:hover { border-color: var(--teal) !important; background: rgba(13,155,138,.03) !important; }
-.npf-sheet { background: white; border-radius: 20px 20px 0 0; width: 100%; max-width: 520px; }
-.npf-header { background: var(--navy); border-radius: 20px 20px 0 0; padding: 22px 24px 18px; }
+.npf-sheet { background: var(--surface); border-radius: 20px 20px 0 0; width: 100%; max-width: 520px; }
+.npf-header { background:var(--navy); border-radius: 20px 20px 0 0; padding: 22px 24px 18px; }
 .npf-title { font-size: 20px; font-weight: 700; color: white; letter-spacing: -.01em; }
 .npf-sub { font-size: 12px; color: rgba(255,255,255,.45); margin-top: 3px; }
 .npf-body { padding: 20px 24px; }
@@ -408,7 +444,7 @@ button, input, textarea, select { font-family: inherit; }
 .npf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .npf-full { margin-bottom: 14px; }
 .npf-err { font-size: 12px; color: var(--red); display: none; margin-bottom: 8px; }
-.npf-btn-primary { width: 100%; padding: 14px; background: var(--navy); color: white; border: none; border-radius: var(--r-md); font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font); }
+.npf-btn-primary { width: 100%; padding: 14px; background:var(--navy); color: white; border: none; border-radius: var(--r-md); font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font); }
 .npf-btn-primary:hover { background: var(--teal); }
 .npf-btn-ghost { width: 100%; padding: 12px; background: transparent; color: var(--text2); border: 1px solid var(--border); border-radius: var(--r-md); font-size: 14px; cursor: pointer; font-family: var(--font); }
 .npf-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.4); }
@@ -422,7 +458,7 @@ button, input, textarea, select { font-family: inherit; }
 @media (max-width: 1000px) { .intel-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 640px)  { .intel-grid { grid-template-columns: 1fr; } }
 .intel-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px; position: relative; overflow: hidden; box-shadow: var(--shadow-xs); }
-.intel-card-dark { background: var(--navy); border-color: rgba(255,255,255,.06); }
+.intel-card-dark { background:var(--navy); border-color: rgba(255,255,255,.06); }
 .intel-card-label { font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
 .intel-card-dark .intel-card-label { color: rgba(255,255,255,.35); }
 .intel-card-label::before { content: ''; width: 12px; height: 1px; background: currentColor; }
@@ -442,6 +478,13 @@ button, input, textarea, select { font-family: inherit; }
 .intel-insight-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
 .intel-insight-title { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 3px; }
 .intel-insight-body { font-size: 12px; color: var(--text3); line-height: 1.55; }
+
+/* ── SCROLLBARS (dark) ──────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.12); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.2); }
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.12) transparent; }
 
 /* ── ANIMATIONS ─────────────────────────────────────────────── */
 @keyframes fadeInOv { from{opacity:0} to{opacity:1} }
@@ -548,7 +591,7 @@ button, input, textarea, select { font-family: inherit; }
 .chip.on { background:var(--navy,#0f2744);color:white;border-color:var(--navy,#0f2744); }
 .chips { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px; }
 .hint { font-size:11px;color:var(--muted,#8892a4);margin-bottom:8px;line-height:1.5; }
-.errbox { background:var(--red-bg,#fde8e8);color:var(--red,#c05050);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:10px; }
+.errbox { background:var(--red-bg,var(--red-lt));color:var(--red,#c05050);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:10px; }
 .genbtn { width:100%;padding:14px;background:var(--navy,#0f2744);color:white;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font,sans-serif);margin-top:12px;transition:background .2s; }
 .genbtn:hover { background:var(--teal,#0d9b8a); }
 .genbtn:disabled { opacity:.5;cursor:not-allowed; }
@@ -631,7 +674,7 @@ button, input, textarea, select { font-family: inherit; }
 
 /* ── ANOMALY / CLINICAL WARNINGS ─────────────────────────── */
 .anomaly-section {
-  background:#fffcf0; border-left:3px solid var(--gold,#c8a030);
+  background:var(--gold-lt); border-left:3px solid var(--gold,#c8a030);
   border-radius:var(--r-lg,14px); margin-bottom:16px; overflow:hidden;
   border:1px solid rgba(200,160,48,.2); border-left-width:3px;
 }
@@ -888,13 +931,13 @@ window.onerror = function(msg, src, lineNo, colNo, err) {
   ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(15,39,68,.92);display:flex;align-items:center;justify-content:center;padding:24px';
   const pre = document.createElement('pre');
   pre.textContent = detail;
-  pre.style.cssText = 'font-size:10px;color:#4a5a6a;margin-bottom:16px;font-family:monospace;background:#f4f6f8;padding:8px;border-radius:6px;word-break:break-all;white-space:pre-wrap;max-height:200px;overflow-y:auto';
+  pre.style.cssText = 'font-size:10px;color:var(--text2);margin-bottom:16px;font-family:monospace;background:var(--surface2);padding:8px;border-radius:6px;word-break:break-all;white-space:pre-wrap;max-height:200px;overflow-y:auto';
   const btn = document.createElement('button');
   btn.textContent = 'Stäng och fortsätt';
   btn.style.cssText = 'background:#0f2744;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;cursor:pointer;font-family:inherit';
   btn.onclick = function(){ ov.remove(); };
   const box = document.createElement('div');
-  box.style.cssText = 'background:white;border-radius:16px;padding:28px 24px;max-width:440px;width:100%';
+  box.style.cssText = 'background:var(--surface);border-radius:16px;padding:28px 24px;max-width:440px;width:100%';
   const h = document.createElement('div');
   h.textContent = 'Fel -- detaljer:';
   h.style.cssText = 'font-size:13px;font-weight:700;color:#c07070;margin-bottom:8px';
@@ -909,13 +952,13 @@ window.addEventListener('unhandledrejection', function(e) {
   ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(15,39,68,.92);display:flex;align-items:center;justify-content:center;padding:24px';
   const pre = document.createElement('pre');
   pre.textContent = 'Promise-fel: ' + msg;
-  pre.style.cssText = 'font-size:10px;color:#4a5a6a;margin-bottom:16px;font-family:monospace;background:#f4f6f8;padding:8px;border-radius:6px;word-break:break-all;white-space:pre-wrap;max-height:200px;overflow-y:auto';
+  pre.style.cssText = 'font-size:10px;color:var(--text2);margin-bottom:16px;font-family:monospace;background:var(--surface2);padding:8px;border-radius:6px;word-break:break-all;white-space:pre-wrap;max-height:200px;overflow-y:auto';
   const btn = document.createElement('button');
   btn.textContent = 'Stäng';
   btn.style.cssText = 'background:#0f2744;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;cursor:pointer';
   btn.onclick = function(){ ov.remove(); };
   const box = document.createElement('div');
-  box.style.cssText = 'background:white;border-radius:16px;padding:28px 24px;max-width:440px;width:100%';
+  box.style.cssText = 'background:var(--surface);border-radius:16px;padding:28px 24px;max-width:440px;width:100%';
   const h = document.createElement('div');
   h.textContent = 'Async-fel -- detaljer:';
   h.style.cssText = 'font-size:13px;font-weight:700;color:#c07070;margin-bottom:8px';
@@ -987,11 +1030,11 @@ const SERVICES = [
   {name:'Övrigt',              price:0},
 ];
 const SOPTS=["Aktiv","Uppföljning","Avslutad"];
-const SCOL={Aktiv:{bg:'#e8f5ee',col:'#1a7a4a'},Uppföljning:{bg:'#fdf3d8',col:'#8a6000'},Avslutad:{bg:'#eef0f3',col:'#5a6a7a'}};
+const SCOL={Aktiv:{bg:'var(--green-lt)',col:'#1a7a4a'},Uppföljning:{bg:'var(--gold-lt)',col:'#8a6000'},Avslutad:{bg:'#eef0f3',col:'#5a6a7a'}};
 const PHASES=[
-  {id:1,label:'Akut',name:'Smärtlindring',desc:'Minska smärta, skydda vävnad, återfå basrörelser',color:'#c03030',bg:'#fde8e8',icon:''},
-  {id:2,label:'Rehabilitering',name:'Styrka & stabilitet',desc:'Muskelstyrka, funktion, neuromuskulär kontroll',color:'#8a6000',bg:'#fdf3d8',icon:''},
-  {id:3,label:'Underhåll',name:'Förebyggande & friskvård',desc:'Upprätthålla, förebygga återfall, långsiktig hälsa',color:'#1a7a4a',bg:'#e8f5ee',icon:''}
+  {id:1,label:'Akut',name:'Smärtlindring',desc:'Minska smärta, skydda vävnad, återfå basrörelser',color:'#c03030',bg:'var(--red-lt)',icon:''},
+  {id:2,label:'Rehabilitering',name:'Styrka & stabilitet',desc:'Muskelstyrka, funktion, neuromuskulär kontroll',color:'#8a6000',bg:'var(--gold-lt)',icon:''},
+  {id:3,label:'Underhåll',name:'Förebyggande & friskvård',desc:'Upprätthålla, förebygga återfall, långsiktig hälsa',color:'#1a7a4a',bg:'var(--green-lt)',icon:''}
 ];
 let S={screen:"list",patients:[],pat:null,visitId:null,plan:null,locked:{},form:dform(),search:"",apiKey:"",apiVis:false};
 
@@ -4416,10 +4459,10 @@ function renderVisitTimeline(pat) {
     // Clinical signals from this visit
     const cs = v.clinicalSignals;
     const signalHTML = cs ? (() => {
-      const flags = [...(cs.redFlags||[]).map(f => `<span style="font-size:10px;background:#fde8e8;color:#8a2020;padding:1px 7px;border-radius:8px">${e(f)}</span>`),
-        ...(cs.yellowFlags||[]).map(f => `<span style="font-size:10px;background:#fdf3d8;color:#7a5000;padding:1px 7px;border-radius:8px">${e(f)}</span>`)].join('');
+      const flags = [...(cs.redFlags||[]).map(f => `<span style="font-size:10px;background:var(--red-lt);color:#8a2020;padding:1px 7px;border-radius:8px">${e(f)}</span>`),
+        ...(cs.yellowFlags||[]).map(f => `<span style="font-size:10px;background:var(--gold-lt);color:#7a5000;padding:1px 7px;border-radius:8px">${e(f)}</span>`)].join('');
       const trend = { improving:'Förbättring', stable:'Stabil', worsening:'Försämring' }[cs.painTrend] || '';
-      return flags || trend ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">${flags}${trend?`<span style="font-size:10px;color:${cs.painTrend==='improving'?'#1a7a4a':cs.painTrend==='worsening'?'#8a2020':'#8a9aaa'};font-weight:600">${trend}</span>`:''}</div>` : '';
+      return flags || trend ? `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:5px">${flags}${trend?`<span style="font-size:10px;color:${cs.painTrend==='improving'?'#1a7a4a':cs.painTrend==='worsening'?'#8a2020':'var(--muted)'};font-weight:600">${trend}</span>`:''}</div>` : '';
     })() : '';
 
     return `
@@ -4434,9 +4477,9 @@ function renderVisitTimeline(pat) {
             <div class="vt-date">${v.date || '--'}${service ? ' · ' + e(service) : ''}${price ? ' · ' + price : ''}</div>
             <div class="vt-title">${diag || e(icd || 'Besök ' + (visits.length - idx))}</div>
             <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">
-              <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${hasSoap?'#e8f4f6':'#f0f0f0'};color:${hasSoap?'var(--teal)':'#aaa'}">${hasSoap?'Journal':'Ingen journal'}</span>
-              <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${hasPlan?'#e8f5ee':'#f0f0f0'};color:${hasPlan?'#1a7a4a':'#aaa'}">${hasPlan?`Plan · ${exCount} övn`:'Ingen plan'}</span>
-              ${pain != null ? `<span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:#f4f6f9;color:#5a6a7a">NRS ${pain}/10</span>` : ''}
+              <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${hasSoap?'var(--teal-lt)':'#f0f0f0'};color:${hasSoap?'var(--teal)':'#aaa'}">${hasSoap?'Journal':'Ingen journal'}</span>
+              <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${hasPlan?'var(--green-lt)':'#f0f0f0'};color:${hasPlan?'#1a7a4a':'#aaa'}">${hasPlan?`Plan · ${exCount} övn`:'Ingen plan'}</span>
+              ${pain != null ? `<span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:var(--surface2);color:var(--text2)">NRS ${pain}/10</span>` : ''}
               <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${sc.bg};color:${sc.col}">${st}</span>
             </div>
             ${signalHTML}
@@ -4474,7 +4517,7 @@ function renderVisitTimeline(pat) {
             ).join('')}
           </div>` : ''}
           <div id="passlog-${v.id}" style="margin:8px 0">
-            <div style="font-size:11px;color:#8a9aaa">Läser genomförda pass...</div>
+            <div style="font-size:11px;color:var(--muted)">Läser genomförda pass...</div>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
             <button onclick="S.visitId='${v.id}';startManualSOAP()" style="font-size:11px;font-weight:600;color:var(--teal);background:rgba(13,155,138,.06);border:1px solid rgba(13,155,138,.15);border-radius:6px;padding:5px 10px;cursor:pointer;font-family:var(--font)">${hasSoap?'Redigera journal':'Ny journal'}</button>
@@ -4516,7 +4559,7 @@ function openDiagEditor(patId) {
   ov.style.cssText = 'position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,20,35,.72);backdrop-filter:blur(5px)';
   ov.onclick = e => { if(e.target===ov) ov.remove(); };
   ov.innerHTML = `
-  <div style="background:white;width:100%;max-width:400px;position:relative;z-index:1;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
+  <div style="background:var(--surface);width:100%;max-width:400px;position:relative;z-index:1;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
     <div style="background:var(--navy);padding:18px 20px">
       <div style="font-size:16px;font-weight:600;color:white">Diagnoser</div>
       <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">En diagnos per rad · Första raden = primärdiagnos</div>
@@ -4525,7 +4568,7 @@ function openDiagEditor(patId) {
       <textarea id="diag-edit-ta" style="width:100%;border:1px solid var(--border);padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;line-height:1.7;resize:vertical;min-height:100px;outline:none;color:var(--text)">${e(current)}</textarea>
       <div style="display:flex;gap:8px;margin-top:14px">
         <button onclick="saveDiagEdit('${patId}')" style="flex:1;background:var(--navy);color:white;border:none;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Spara</button>
-        <button onclick="document.getElementById('diag-edit-ov').remove()" style="flex:1;background:white;color:var(--text2);border:1px solid var(--border);padding:11px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">Avbryt</button>
+        <button onclick="document.getElementById('diag-edit-ov').remove()" style="flex:1;background:var(--surface);color:var(--text2);border:1px solid var(--border);padding:11px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">Avbryt</button>
       </div>
     </div>
   </div>`;
@@ -4556,7 +4599,7 @@ async function loadPassLog(visitId, patId) {
     if (!r.ok) { el.innerHTML = ''; return; }
     const rows = await r.json();
     if (!rows || !rows.length) { el.innerHTML = ''; return; }
-    el.innerHTML = `<div style="padding:10px 12px;background:#e8f5ee;border-radius:8px;border-left:3px solid #4a9860">
+    el.innerHTML = `<div style="padding:10px 12px;background:var(--green-lt);border-radius:8px;border-left:3px solid #4a9860">
       <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1a5a30;margin-bottom:6px">Genomförda pass -- ${rows.length} st</div>
       ${rows.slice(0,5).map(r=>`<div style="font-size:11px;color:#2a5a38;font-family:'DM Mono',monospace">${new Date(r.logged_at).toLocaleString('sv-SE',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`).join('')}
       ${rows.length>5?`<div style="font-size:10px;color:#4a7a54;margin-top:3px">+ ${rows.length-5} tidigare</div>`:''}
@@ -4593,7 +4636,7 @@ function rForm(){
     ${S.pat?`<div class="phase-next" style="margin-bottom:16px"><div class="phase-next-txt"><strong>${PHASES[ph-1].label} -- ${PHASES[ph-1].name}</strong>${PHASES[ph-1].desc}</div><button class="btn" style="font-size:11px;padding:5px 12px;flex-shrink:0" onclick="go('detail')">Ändra fas</button></div>`:""}
     <div id="ferr"></div>
     <span class="slabel">Patient</span>
-    <div style="background:#f4f6f9;border:1px solid var(--border);padding:11px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+    <div style="background:var(--surface2);border:1px solid var(--border);padding:11px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
       <div>
         <div style="font-size:14px;font-weight:600;color:var(--navy)">${e(S.pat.name)}</div>
         <div style="font-size:11px;color:var(--text3)">${S.pat.birthdate||''}${S.pat.diagnosis?' · '+S.pat.diagnosis:''}</div>
@@ -4603,8 +4646,8 @@ function rForm(){
     <span class="slabel">Diagnos</span>
     <select class="field" style="margin-bottom:9px" onchange="S.form.diagnosis=this.value;rForm();setTimeout(()=>fetchClinHint(S.form.diagnosis),50)">${DIAGS.map(d=>`<option ${d===f.diagnosis?"selected":""}>${e(d)}</option>`).join("")}</select>
     ${f.diagnosis==="Annan / fritext"?`<input class="field" style="margin-bottom:11px" placeholder="Beskriv diagnos..." value="${e(f.customDiag)}" oninput="S.form.customDiag=this.value">`:""}`;
-  h+=`<span class="slabel">Klinisk bedömning</span>${sl("Smärtskala (NRS)","pain",0,10,pc,"")}${sl("Motivation","motivation",1,10,mc,"")}<div class="twocol">${sl("Antal övningar","exercises",3,8,"var(--teal-l)","")}${sl("Återbesök om","followup",1,12,"#8a9aaa"," v")}</div>`;
-  h+=`<span class="slabel">Bakgrund</span><div style="font-size:11px;color:#5a6a7a;margin-bottom:5px">Träningshistorik</div><div class="chips">${ch("history",["ingen","sporadisk","regelbunden"],["Ingen","Sporadisk","Regelbunden"])}</div><div style="font-size:11px;color:#5a6a7a;margin-bottom:5px">Kunskapsnivå</div><div class="chips">${ch("knowledge",["låg","medel","hög"],["Låg","Medel","Hög"])}</div><div style="font-size:11px;color:#5a6a7a;margin-bottom:5px">Träningsplats</div><div class="chips">${ch("location",["hem","gym"],["Hemma","Gym"])}</div>`;
+  h+=`<span class="slabel">Klinisk bedömning</span>${sl("Smärtskala (NRS)","pain",0,10,pc,"")}${sl("Motivation","motivation",1,10,mc,"")}<div class="twocol">${sl("Antal övningar","exercises",3,8,"var(--teal-l)","")}${sl("Återbesök om","followup",1,12,"var(--muted)"," v")}</div>`;
+  h+=`<span class="slabel">Bakgrund</span><div style="font-size:11px;color:var(--text2);margin-bottom:5px">Träningshistorik</div><div class="chips">${ch("history",["ingen","sporadisk","regelbunden"],["Ingen","Sporadisk","Regelbunden"])}</div><div style="font-size:11px;color:var(--text2);margin-bottom:5px">Kunskapsnivå</div><div class="chips">${ch("knowledge",["låg","medel","hög"],["Låg","Medel","Hög"])}</div><div style="font-size:11px;color:var(--text2);margin-bottom:5px">Träningsplats</div><div class="chips">${ch("location",["hem","gym"],["Hemma","Gym"])}</div>`;
   h+=`<span class="slabel">Kliniskt fokus</span><div id="clin-suggest" style="margin-bottom:12px"></div>
 <div class="hint">Styr AI:ns övningsval -- lokalisering, rörelsemönster, undvikanden, mål.</div><textarea class="field" rows="4" style="resize:vertical;line-height:1.6" placeholder="Exempel:&#10;-- Artros medialt knäled höger sida&#10;-- Fokus på höftstabilitet&#10;-- Undvik axiell belastning" oninput="S.form.notes=this.value">${e(f.notes)}</textarea>
 <button class="genbtn" id="gbtn" onclick="doGen()">${S.visitId?"Regenerera plan":"Generera rehabplan"}</button></div>`;
@@ -5098,7 +5141,7 @@ function rDoc(){
   // -- THERAPIST MESSAGE TO PATIENT ------------------------------------------
   const savedMsg = plan.therapistMessage || '';
   h += `
-  <div style="margin:12px 16px 0;background:white;border-radius:14px;padding:16px 18px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+  <div style="margin:12px 16px 0;background:var(--surface);border-radius:14px;padding:16px 18px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div>
         <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)">Meddelande till patienten</div>
@@ -5121,21 +5164,21 @@ function rDoc(){
 
   // -- GREETING CARD ---------------------------------------------------------
   if(plan.greeting) h+=`
-  <div style="margin:16px 16px 0;background:white;border-radius:14px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+  <div style="margin:16px 16px 0;background:var(--surface);border-radius:14px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
     <div class="dgreet">${e(plan.greeting)}</div>
   </div>`;
 
   // -- GOALS -----------------------------------------------------------------
   if(plan.goals&&plan.goals.length){
-    h+=`<div style="margin:12px 16px 0;background:white;border-radius:14px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+    h+=`<div style="margin:12px 16px 0;background:var(--surface);border-radius:14px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
     <div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:14px">Mål med rehabiliteringen</div>
     <div style="display:flex;flex-direction:column;gap:10px">`;
     plan.goals.forEach((g,i)=>{
       const icons=['','',''];
-      h+=`<div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:#f8f9fa;border-radius:10px" data-goal-idx="${i}">
+      h+=`<div style="display:flex;gap:12px;align-items:flex-start;padding:12px;background:var(--surface2);border-radius:10px" data-goal-idx="${i}">
         <div style="font-size:18px;flex-shrink:0;margin-top:1px">${icons[i]||"*"}</div>
         <div><div style="font-size:10px;font-weight:700;color:var(--teal);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">${e(g.title)}</div>
-        <div style="font-size:13px;color:#3a4a5a;line-height:1.5" data-goal-text="${i}">${e(g.text)}</div></div>
+        <div style="font-size:13px;color:var(--text);line-height:1.5" data-goal-text="${i}">${e(g.text)}</div></div>
       </div>`;
     });
     h+=`</div></div>`;
@@ -5146,30 +5189,30 @@ function rDoc(){
     h+=`<div style="margin:12px 16px 0">
     <div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;padding-left:4px">Övningsprogram</div>`;
     plan.exercises.forEach((ex,i)=>{
-      h+=`<div class="mob-excard" style="background:white;border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+      h+=`<div class="mob-excard" style="background:var(--surface);border-radius:14px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06)">
         <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid #f0f2f4;cursor:pointer" onclick="const b=this.parentElement.querySelector('.mob-exbody');b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.ex-chevron').style.transform=b.style.display==='block'?'rotate(90deg)':''">
           <div style="width:34px;height:34px;border-radius:10px;background:var(--navy);color:white;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
           <div style="flex:1;min-width:0">
             <div style="font-size:15px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span data-ex-name="${i}">${e(ex.name)}</span>${S.pat?renderExHistoryBadge(ex.name,S.pat):""}</div>
             <div style="font-size:11px;color:var(--teal);margin-top:2px;font-weight:600;font-family:'DM Mono',monospace">${[ex.sets&&(ex.sets+' set'), ex.reps&&(ex.reps+' reps'), ex.rest&&(ex.rest+' vila')].filter(Boolean).join(' · ')||'--'}</div>
           </div>
-          <div style="color:#8a9aaa;font-size:18px;flex-shrink:0;transition:transform .2s" class="ex-chevron">></div>
+          <div style="color:var(--muted);font-size:18px;flex-shrink:0;transition:transform .2s" class="ex-chevron">></div>
         </div>
         <div class="mob-exbody" style="display:none;padding:14px 16px">
-          <div style="font-size:12px;color:#5a6a7a;font-style:italic;margin-bottom:12px;padding:10px 12px;background:#f8f9fa;border-radius:8px">${e(ex.purpose)}</div>
-          <div style="font-size:10px;font-weight:700;color:#8a9aaa;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Startposition</div>
-          <div style="font-size:13px;color:#3a4a5a;margin-bottom:12px">${e(ex.startPosition)}</div>
-          <div style="font-size:10px;font-weight:700;color:#8a9aaa;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Utförande</div>
+          <div style="font-size:12px;color:var(--text2);font-style:italic;margin-bottom:12px;padding:10px 12px;background:var(--surface2);border-radius:8px">${e(ex.purpose)}</div>
+          <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px">Startposition</div>
+          <div style="font-size:13px;color:var(--text);margin-bottom:12px">${e(ex.startPosition)}</div>
+          <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Utförande</div>
           <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">`;
       (ex.steps||[]).forEach((s,j)=>{
         h+=`<div style="display:flex;gap:10px;align-items:flex-start">
           <div style="width:22px;height:22px;border-radius:6px;background:var(--navy);color:white;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${j+1}</div>
-          <div style="font-size:13px;color:#2a3a4a;line-height:1.5;padding-top:2px">${e(s)}</div>
+          <div style="font-size:13px;color:var(--ink);line-height:1.5;padding-top:2px">${e(s)}</div>
         </div>`;
       });
       h+=`</div>`;
-      if(ex.tip) h+=`<div style="background:#fff8e8;border-left:3px solid #f5c842;border-radius:0 8px 8px 0;padding:9px 12px;font-size:12px;color:#8a6000;margin-bottom:8px">${e(ex.tip)}</div>`;
-      if(ex.correctFeel) h+=`<div style="background:#e8f5ee;border-left:3px solid #4a9860;border-radius:0 8px 8px 0;padding:9px 12px;font-size:12px;color:#1a5a30;margin-bottom:8px">${e(ex.correctFeel)}</div>`;
+      if(ex.tip) h+=`<div style="background:var(--gold-lt);border-left:3px solid #f5c842;border-radius:0 8px 8px 0;padding:9px 12px;font-size:12px;color:#8a6000;margin-bottom:8px">${e(ex.tip)}</div>`;
+      if(ex.correctFeel) h+=`<div style="background:var(--green-lt);border-left:3px solid #4a9860;border-radius:0 8px 8px 0;padding:9px 12px;font-size:12px;color:#1a5a30;margin-bottom:8px">${e(ex.correctFeel)}</div>`;
       h+=`</div></div>`;
     });
     h+=`</div>`;
@@ -5177,13 +5220,13 @@ function rDoc(){
 
   // -- SCHEDULE --------------------------------------------------------------
   if(plan.schedule&&plan.schedule.length){
-    h+=`<div style="margin:12px 16px 0;background:white;border-radius:14px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+    h+=`<div style="margin:12px 16px 0;background:var(--surface);border-radius:14px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
     <div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:14px">Veckoschema</div>
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">`;
     plan.schedule.forEach(d=>{
       const act=d.activity&&(d.activity.toLowerCase().includes("övning")||d.activity.toLowerCase().includes("program"));
       h+=`<div style="text-align:center;padding:8px 2px;border-radius:8px;background:${act?"var(--navy)":"#f0f2f4"}">
-        <div style="font-size:8px;font-weight:700;letter-spacing:.06em;color:${act?"rgba(255,255,255,.7)":"#8a9aaa"};margin-bottom:3px">${d.day.slice(0,3).toUpperCase()}</div>
+        <div style="font-size:8px;font-weight:700;letter-spacing:.06em;color:${act?"rgba(255,255,255,.7)":"var(--muted)"};margin-bottom:3px">${d.day.slice(0,3).toUpperCase()}</div>
         <div style="font-size:8px;line-height:1.3;color:${act?"white":"#6a7a8a"}">${e(d.activity)}</div>
       </div>`;
     });
@@ -5192,24 +5235,24 @@ function rDoc(){
 
   // -- PAIN ADVICE -----------------------------------------------------------
   if(plan.painAdvice){
-    h+=`<div style="margin:12px 16px 0;background:white;border-radius:14px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+    h+=`<div style="margin:12px 16px 0;background:var(--surface);border-radius:14px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
     <div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:14px">Smärthantering</div>
     <div style="display:flex;flex-direction:column;gap:8px">
-      <div style="padding:12px 14px;border-radius:10px;background:#e8f5ee;border-left:4px solid #4a9860"><div style="font-size:10px;font-weight:700;color:#1a5a30;margin-bottom:3px">Grön -- fortsätt</div><div style="font-size:13px;color:#1a4a28">${e(plan.painAdvice.green)}</div></div>
-      <div style="padding:12px 14px;border-radius:10px;background:#fdf3d8;border-left:4px solid #c8a030"><div style="font-size:10px;font-weight:700;color:#7a5000;margin-bottom:3px">Gul -- modifiera</div><div style="font-size:13px;color:#6a4000">${e(plan.painAdvice.yellow)}</div></div>
-      <div style="padding:12px 14px;border-radius:10px;background:#fde8e8;border-left:4px solid #c07070"><div style="font-size:10px;font-weight:700;color:#7a2020;margin-bottom:3px">Röd -- stopp</div><div style="font-size:13px;color:#6a1010">${e(plan.painAdvice.red)}</div></div>
+      <div style="padding:12px 14px;border-radius:10px;background:var(--green-lt);border-left:4px solid #4a9860"><div style="font-size:10px;font-weight:700;color:#1a5a30;margin-bottom:3px">Grön -- fortsätt</div><div style="font-size:13px;color:#1a4a28">${e(plan.painAdvice.green)}</div></div>
+      <div style="padding:12px 14px;border-radius:10px;background:var(--gold-lt);border-left:4px solid #c8a030"><div style="font-size:10px;font-weight:700;color:#7a5000;margin-bottom:3px">Gul -- modifiera</div><div style="font-size:13px;color:#6a4000">${e(plan.painAdvice.yellow)}</div></div>
+      <div style="padding:12px 14px;border-radius:10px;background:var(--red-lt);border-left:4px solid #c07070"><div style="font-size:10px;font-weight:700;color:#7a2020;margin-bottom:3px">Röd -- stopp</div><div style="font-size:13px;color:#6a1010">${e(plan.painAdvice.red)}</div></div>
     </div></div>`;
   }
 
   // -- LIFESTYLE TIPS --------------------------------------------------------
   if(plan.lifestyleTips&&plan.lifestyleTips.length){
-    h+=`<div style="margin:12px 16px 0;background:white;border-radius:14px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+    h+=`<div style="margin:12px 16px 0;background:var(--surface);border-radius:14px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
     <div style="font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:14px">Livsstilsråd</div>
     <div style="display:flex;flex-direction:column;gap:8px">`;
     plan.lifestyleTips.forEach(t=>{
-      h+=`<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:#f8f9fa;border-radius:8px">
+      h+=`<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:var(--surface2);border-radius:8px">
         <div style="color:var(--teal);font-size:14px;flex-shrink:0;margin-top:1px">-></div>
-        <div style="font-size:13px;color:#3a4a5a;line-height:1.5" data-tip-text="${t}">${e(t)}</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.5" data-tip-text="${t}">${e(t)}</div>
       </div>`;
     });
     h+=`</div></div>`;
@@ -5223,7 +5266,7 @@ function rDoc(){
   }
 
   // -- FOOTER ----------------------------------------------------------------
-  h+=`<div style="margin:20px 16px 0;text-align:center;padding:16px;font-size:10px;color:#8a9aaa;line-height:1.8">
+  h+=`<div style="margin:20px 16px 0;text-align:center;padding:16px;font-size:10px;color:var(--muted);line-height:1.8">
     <img src="${LOGO}" style="height:24px;opacity:.3;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto">
     ${e(CLINIC.name)}<br>${e(CLINIC.address)}<br>${e(CLINIC.phone)} · ${e(CLINIC.email)}
   </div>
@@ -5278,30 +5321,30 @@ function newVisit(){
   ov.style.cssText='position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,20,35,.72);backdrop-filter:blur(5px);animation:fadeInOv .15s ease';
   ov.onclick=function(e){if(e.target===ov)ov.remove();};
   ov.innerHTML=`
-  <div style="position:relative;z-index:1;background:white;border-radius:16px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto;padding:24px 20px 20px;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
+  <div style="position:relative;z-index:1;background:var(--surface);border-radius:16px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto;padding:24px 20px 20px;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
     <div style="font-size:18px;font-weight:600;color:var(--navy);margin-bottom:4px">Nytt besök</div>
     <div style="font-size:13px;color:var(--text3);margin-bottom:20px">${e(p.name)} -- ${e(p.diagnosis||'')}</div>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <button onclick="document.getElementById('new-visit-overlay').remove();startMeeting()" style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit;width:100%">
+      <button onclick="document.getElementById('new-visit-overlay').remove();startMeeting()" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit;width:100%">
         <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:2px">Spela in möte</div>
         <div style="font-size:12px;color:var(--text3)">Transkribera samtal automatiskt och skapa journal</div>
       </button>
       ${prevWithSoap
-        ? `<button onclick="document.getElementById('new-visit-overlay').remove();startSBSsoap(window._sbsPrevVisit)" style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit;width:100%">
+        ? `<button onclick="document.getElementById('new-visit-overlay').remove();startSBSsoap(window._sbsPrevVisit)" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit;width:100%">
             <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:2px">Skriv journal</div>
             <div style="font-size:12px;color:var(--text3)">Jämför med förra besöket (${prevWithSoap.date||''})</div>
            </button>`
-        : `<button onclick="document.getElementById('new-visit-overlay').remove();startManualSOAP()" style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit;width:100%">
+        : `<button onclick="document.getElementById('new-visit-overlay').remove();startManualSOAP()" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit;width:100%">
             <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:2px">Skriv journal manuellt</div>
             <div style="font-size:12px;color:var(--text3)">Fyll i SOAP-anteckning direkt</div>
            </button>`
       }
-      <button onclick="document.getElementById('new-visit-overlay').remove();prepVisitForm(S.pat?.id);go('form')" style="background:white;border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit;width:100%">
+      <button onclick="document.getElementById('new-visit-overlay').remove();prepVisitForm(S.pat?.id);go('form')" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit;width:100%">
         <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:2px">Skapa Hael-plan</div>
         <div style="font-size:12px;color:var(--text3)">Generera ny träningsplan utan journal</div>
       </button>
     </div>
-    <button onclick="document.getElementById('new-visit-overlay').remove()" style="width:100%;margin-top:12px;padding:10px;background:none;border:1px solid #dde6ee;border-radius:8px;color:#8a9aaa;font-size:13px;cursor:pointer;font-family:inherit">Stäng</button>
+    <button onclick="document.getElementById('new-visit-overlay').remove()" style="width:100%;margin-top:12px;padding:10px;background:none;border:1px solid #dde6ee;border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit">Stäng</button>
   </div>`;
   document.body.appendChild(ov);
   addOverlayEsc('new-visit-overlay');
@@ -5409,14 +5452,14 @@ function _autoSendIntakeAfterRegistration(pat) {
   const mailtoUrl = `mailto:${encodeURIComponent(pat.email||'')}?subject=${subject}&body=${body}`;
 
   ov.innerHTML = `
-  <div style="background:white;border-radius:16px;padding:28px 24px 22px;max-width:420px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
+  <div style="background:var(--surface);border-radius:16px;padding:28px 24px 22px;max-width:420px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
     <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#0f2744,#0d9b8a);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </div>
     <div style="font-size:17px;font-weight:700;color:var(--navy);text-align:center;margin-bottom:6px">Kundkort skapat</div>
     <div style="font-size:13px;color:var(--text3);text-align:center;margin-bottom:20px;line-height:1.6">Skicka intake-formuläret till <strong>${e(pat.name)}</strong> -- när de svarat genereras träningsprogrammet automatiskt.</div>
 
-    <div style="background:#f4f7fb;border-radius:9px;padding:10px 13px;font-size:11px;color:#5a6a7a;font-family:'DM Mono',monospace;word-break:break-all;margin-bottom:16px">${e(baseUrl + '#intake=' + pat.id)}</div>
+    <div style="background:#f4f7fb;border-radius:9px;padding:10px 13px;font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;word-break:break-all;margin-bottom:16px">${e(baseUrl + '#intake=' + pat.id)}</div>
 
     <div style="display:flex;flex-direction:column;gap:8px">
       ${pat.email ? `<button onclick="window.location.href='${mailtoUrl}'" style="background:var(--navy);color:white;border:none;border-radius:9px;padding:13px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Öppna i e-post -></button>` : `<div style="font-size:11px;color:#c8a030;text-align:center;padding:4px 0">Ingen e-post registrerad -- kopiera länken manuellt</div>`}
@@ -5459,21 +5502,21 @@ function renderPatientSearchResults() {
   const c = document.getElementById('rpf-results');
   if (!c) return;
   if (!results.length) {
-    c.innerHTML='<div style="text-align:center;padding:28px 0;color:#8a9aaa;font-size:13px">Inga träffar</div>';
+    c.innerHTML='<div style="text-align:center;padding:28px 0;color:var(--muted);font-size:13px">Inga träffar</div>';
     return;
   }
   c.innerHTML = results.map(p => {
     const lastDate = p.visits&&p.visits[0]&&p.visits[0].date||'';
     const initials = (p.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const age = (p.birthdate||p.birthYear) ? new Date().getFullYear()-birthdateToYear(p.birthdate||p.birthYear||'') : '';
-    return `<button onclick="selectReturningPatient('${p.id}')" style="display:flex;align-items:center;gap:12px;background:white;border:1px solid #e8ecf0;border-radius:10px;padding:12px 14px;text-align:left;cursor:pointer;font-family:inherit;width:100%;transition:all .12s" onmouseover="this.style.borderColor='var(--teal)';this.style.background='var(--teal3)'" onmouseout="this.style.borderColor='#e8ecf0';this.style.background='white'">
+    return `<button onclick="selectReturningPatient('${p.id}')" style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid #e8ecf0;border-radius:10px;padding:12px 14px;text-align:left;cursor:pointer;font-family:inherit;width:100%;transition:all .12s" onmouseover="this.style.borderColor='var(--teal)';this.style.background='var(--teal3)'" onmouseout="this.style.borderColor='#e8ecf0';this.style.background='white'">
       <div style="width:38px;height:38px;border-radius:50%;background:var(--navy);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0">${initials}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e(p.name)}</div>
-        <div style="font-size:11px;color:#6a7a8a;margin-top:2px">${e(p.diagnosis||'')}${age?' · '+age+' år':''}${p.birthdate?' · '+p.birthdate:''}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${e(p.diagnosis||'')}${age?' · '+age+' år':''}${p.birthdate?' · '+p.birthdate:''}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:11px;color:#8a9aaa">${(p.visits||[]).length} besök</div>
+        <div style="font-size:11px;color:var(--muted)">${(p.visits||[]).length} besök</div>
         ${lastDate?`<div style="font-size:10px;color:#aab0ba;margin-top:1px">${lastDate}</div>`:''}
       </div>
     </button>`;
@@ -5536,11 +5579,11 @@ function showVisitActionChooser() {
       <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--navy);margin-bottom:10px">Åtgärd</div>
       <div style="display:flex;flex-direction:column;gap:6px">
         ${actions.map(a=>`
-        <button onclick="${a.fn}" style="display:flex;align-items:center;gap:14px;background:white;border:1px solid #e8ecf0;padding:12px 14px;text-align:left;cursor:pointer;font-family:inherit;width:100%;transition:all .12s" onmouseover="this.style.borderColor='var(--teal)';this.style.background='var(--teal3)'" onmouseout="this.style.borderColor='#e8ecf0';this.style.background='white'">
+        <button onclick="${a.fn}" style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid #e8ecf0;padding:12px 14px;text-align:left;cursor:pointer;font-family:inherit;width:100%;transition:all .12s" onmouseover="this.style.borderColor='var(--teal)';this.style.background='var(--teal3)'" onmouseout="this.style.borderColor='#e8ecf0';this.style.background='white'">
           <div style="width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:1px"></div>
           <div>
             <div style="font-size:13px;font-weight:600;color:var(--navy)">${a.label}</div>
-            <div style="font-size:11px;color:#8a9aaa;margin-top:1px">${a.sub}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:1px">${a.sub}</div>
           </div>
         </button>`).join('')}
       </div>
@@ -5605,13 +5648,13 @@ function showConsentPopup(patId) {
   const ov = document.createElement('div');
   ov.id = 'consent-popup';
   ov.style.cssText = 'position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:20px';
-  ov.innerHTML = `<div style="background:white;border-radius:16px;max-width:420px;width:100%;padding:24px">
+  ov.innerHTML = `<div style="background:var(--surface);border-radius:16px;max-width:420px;width:100%;padding:24px">
     <div style="font-size:18px;font-weight:600;color:var(--navy);margin-bottom:6px">Registrera samtycke</div>
     <div style="font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.6">Registrera patientens samtycke till behandling och journalföring (GDPR).</div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
-      ${CONSENT_TYPES.map(ct=>`<label style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:#f8f9fa;border-radius:8px;cursor:pointer">
+      ${CONSENT_TYPES.map(ct=>`<label style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:var(--surface2);border-radius:8px;cursor:pointer">
         <input type="checkbox" id="cp-${ct.key}" style="margin-top:2px;width:16px;height:16px;flex-shrink:0">
-        <div><div style="font-size:13px;font-weight:500;color:#2a3a4a">${ct.label}</div></div>
+        <div><div style="font-size:13px;font-weight:500;color:var(--ink)">${ct.label}</div></div>
       </label>`).join('')}
     </div>
     <div style="display:flex;gap:8px">
@@ -5641,17 +5684,17 @@ function renderPrevVisitPanel(pat, currentVisitId) {
   const soap = prevVisit.soap||{};
   const hasSoap = soap.S||soap.O||soap.A||soap.P;
   const exs = prevVisit.plan?.exercises||[];
-  let h = `<div style="background:#f0f8ff;border:1px solid #c8e0f0;border-radius:10px;padding:14px 16px;margin-bottom:16px">
+  let h = `<div style="background:var(--surface2);border:1px solid #c8e0f0;border-radius:10px;padding:14px 16px;margin-bottom:16px">
     <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4a9aaa;margin-bottom:10px">Föregående besök -- ${prevVisit.date||'--'}</div>`;
   if (hasSoap) {
     ['S','O','A','P'].forEach(l => {
       if (!soap[l]) return;
       const labels={S:'Subjektivt',O:'Objektivt',A:'Bedömning',P:'Plan'};
-      h+=`<div style="margin-bottom:7px"><span style="font-size:9px;font-weight:700;color:#4a9aaa;letter-spacing:.06em">${labels[l]}</span><div style="font-size:12px;color:#2a3a4a;line-height:1.5;margin-top:2px">${e(soap[l])}</div></div>`;
+      h+=`<div style="margin-bottom:7px"><span style="font-size:9px;font-weight:700;color:#4a9aaa;letter-spacing:.06em">${labels[l]}</span><div style="font-size:12px;color:var(--ink);line-height:1.5;margin-top:2px">${e(soap[l])}</div></div>`;
     });
   }
   if (exs.length) {
-    h+=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid #d0e8f0"><div style="font-size:9px;font-weight:700;color:#4a9aaa;margin-bottom:5px">ÖVNINGAR FÖRRA BESÖKET</div>${exs.map((ex,i)=>`<div style="font-size:11px;color:#2a3a4a;padding:3px 0">${i+1}. ${e(ex.name)} -- ${ex.sets}×${ex.reps}</div>`).join('')}</div>`;
+    h+=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid #d0e8f0"><div style="font-size:9px;font-weight:700;color:#4a9aaa;margin-bottom:5px">ÖVNINGAR FÖRRA BESÖKET</div>${exs.map((ex,i)=>`<div style="font-size:11px;color:var(--ink);padding:3px 0">${i+1}. ${e(ex.name)} -- ${ex.sets}×${ex.reps}</div>`).join('')}</div>`;
   }
   return h+'</div>';
 }
@@ -5722,7 +5765,7 @@ function rMeeting() {
   let transcriptHtml = meetTranscript.map(t =>
     `<div class="transcript-line"><span class="tl-time">${t.time}</span><span class="tl-text">${e(t.text)}</span></div>`
   ).join('');
-  if (!transcriptHtml) transcriptHtml = '<div style="color:#6a7a8a;font-style:italic;padding:8px 0;font-size:13px">Inget transkriberat ännu -- tryck Starta inspelning och tala tydligt.</div>';
+  if (!transcriptHtml) transcriptHtml = '<div style="color:var(--text3);font-style:italic;padding:8px 0;font-size:13px">Inget transkriberat ännu -- tryck Starta inspelning och tala tydligt.</div>';
 
   el.innerHTML = meetHeader + `<div class="meet-wrap">
     <div class="meet-status">
@@ -5939,7 +5982,7 @@ function clinicalPanelHTML(context) {
       </div>
     </div>
     <div id="clinical-panel-body" style="padding:12px;max-height:480px;overflow-y:auto">
-      <div style="font-size:12px;color:#8a9aaa;text-align:center;padding:16px">${placeholder}</div>
+      <div style="font-size:12px;color:var(--muted);text-align:center;padding:16px">${placeholder}</div>
     </div>
   </div>`;
 }
@@ -5993,7 +6036,7 @@ async function runClinicalAnalysis(text) {
     renderClinicalPanel(result);
   } catch(err) {
     console.error('Clinical AI error:', err);
-    if (panel) panel.innerHTML = `<div style="padding:12px;font-size:11px;color:#8a9aaa">Analys misslyckades: ${e(err.message||'okänt fel')}</div>`;
+    if (panel) panel.innerHTML = `<div style="padding:12px;font-size:11px;color:var(--muted)">Analys misslyckades: ${e(err.message||'okänt fel')}</div>`;
   }
 }
 
@@ -6005,17 +6048,17 @@ function renderClinicalPanel(r) {
   if (pulse) { pulse.style.background = '#4af0a0'; pulse.style.animation = 'none'; }
   if (status) status.textContent = '-- uppdaterad ' + new Date().toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
   const probColor = {'Hög':'#1a7a4a','Medel':'#8a6000','Låg':'#6a7a8a'};
-  const probBg = {'Hög':'#e8f5ee','Medel':'#fff3cd','Låg':'#f0f2f4'};
+  const probBg = {'Hög':'var(--green-lt)','Medel':'#fff3cd','Låg':'#f0f2f4'};
   let h = '';
   if (r.redFlags&&r.redFlags.length) h+=`<div style="background:#fee;border-left:3px solid #c07070;padding:10px 12px;margin-bottom:10px;border-radius:0 6px 6px 0"><div style="font-size:9px;font-weight:700;color:#c07070;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Röda flaggor</div>${r.redFlags.map(f=>`<div style="font-size:12px;color:#8a2020;margin-bottom:2px">${e(f)}</div>`).join('')}</div>`;
-  if (r.nextStep) h+=`<div style="background:#e8f4f6;border-left:3px solid var(--teal);padding:10px 12px;margin-bottom:10px;border-radius:0 6px 6px 0"><div style="font-size:9px;font-weight:700;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Nästa steg</div><div style="font-size:12px;color:#1a3a4a;line-height:1.5">${e(r.nextStep)}</div></div>`;
+  if (r.nextStep) h+=`<div style="background:var(--teal-lt);border-left:3px solid var(--teal);padding:10px 12px;margin-bottom:10px;border-radius:0 6px 6px 0"><div style="font-size:9px;font-weight:700;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Nästa steg</div><div style="font-size:12px;color:#1a3a4a;line-height:1.5">${e(r.nextStep)}</div></div>`;
   if (r.tentativeDiagnosis&&r.tentativeDiagnosis.length){
     h+=`<div style="margin-bottom:10px"><div style="font-size:9px;font-weight:700;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Differentialdiagnoser + ICD-10</div>`;
     r.tentativeDiagnosis.forEach(d=>{
       const col=probColor[d.probability]||'#6a7a8a', bg=probBg[d.probability]||'#f0f2f4';
       const icdCode = d.icd10 || '';
       const icdBtn = icdCode ? `<button onclick="setClinicalICD('${e(icdCode)}','${e(d.name)}')" style="margin-left:6px;background:#e8f0f8;border:1px solid #b0c8e0;border-radius:4px;font-size:9px;font-weight:700;color:#1a4a7a;padding:2px 6px;cursor:pointer;font-family:'DM Mono',monospace">-> Sätt ICD-10</button>` : '';
-      h+=`<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:7px;padding:9px 11px;background:white;border-radius:8px;border:1px solid #e8ecf0">
+      h+=`<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:7px;padding:9px 11px;background:var(--surface);border-radius:8px;border:1px solid #e8ecf0">
         <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;background:${bg};color:${col};flex-shrink:0;margin-top:2px">${e(d.probability)}</span>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:3px">
@@ -6023,16 +6066,16 @@ function renderClinicalPanel(r) {
             ${icdCode?`<span style="font-size:10px;font-weight:700;font-family:'DM Mono',monospace;color:#1a7a8a;background:#e4f4f7;padding:2px 7px;border-radius:4px">${e(icdCode)}</span>`:''}
             ${icdBtn}
           </div>
-          <div style="font-size:11px;color:#6a7a8a;line-height:1.45">${e(d.reasoning)}</div>
+          <div style="font-size:11px;color:var(--text3);line-height:1.45">${e(d.reasoning)}</div>
         </div>
       </div>`;
     });
     h+=`</div>`;
   }
-  if (r.missingInfo&&r.missingInfo.length) h+=`<div style="margin-bottom:10px"><div style="font-size:9px;font-weight:700;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Komplettera med</div>${r.missingInfo.map(q=>`<div style="font-size:12px;color:#2a3a4a;padding:6px 10px;background:white;border-radius:7px;border:1px solid #e8ecf0;margin-bottom:4px;line-height:1.4">-> ${e(q)}</div>`).join('')}</div>`;
-  if (r.priorityTests&&r.priorityTests.length){h+=`<div style="margin-bottom:10px"><div style="font-size:9px;font-weight:700;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Prioriterade tester</div>`;r.priorityTests.forEach((t,i)=>{h+=`<div style="padding:8px 10px;background:white;border-radius:7px;border:1px solid #e8ecf0;margin-bottom:4px"><div style="display:flex;gap:7px;align-items:center;margin-bottom:3px"><span style="font-size:9px;font-weight:700;background:var(--navy);color:white;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</span><span style="font-size:12px;font-weight:600;color:var(--navy)">${e(t.test)}</span></div><div style="font-size:11px;color:#6a7a8a;padding-left:23px;line-height:1.4">${e(t.rationale)}</div><div style="font-size:11px;color:#4a9aaa;padding-left:23px;margin-top:2px">Fynd: ${e(t.finding)}</div></div>`;});h+=`</div>`;}
-  if (r.treatmentGuidelines&&r.treatmentGuidelines.length) h+=`<div><div style="font-size:9px;font-weight:700;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Behandlingsriktlinjer</div>${r.treatmentGuidelines.map(g=>`<div style="font-size:12px;color:#2a3a4a;padding:6px 10px;background:white;border-radius:7px;border:1px solid #e8ecf0;margin-bottom:4px;line-height:1.4">${e(g)}</div>`).join('')}</div>`;
-  panel.innerHTML = h||'<div style="padding:12px;font-size:12px;color:#8a9aaa">Fortsätt berätta -- analysen uppdateras automatiskt.</div>';
+  if (r.missingInfo&&r.missingInfo.length) h+=`<div style="margin-bottom:10px"><div style="font-size:9px;font-weight:700;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Komplettera med</div>${r.missingInfo.map(q=>`<div style="font-size:12px;color:var(--ink);padding:6px 10px;background:var(--surface);border-radius:7px;border:1px solid #e8ecf0;margin-bottom:4px;line-height:1.4">-> ${e(q)}</div>`).join('')}</div>`;
+  if (r.priorityTests&&r.priorityTests.length){h+=`<div style="margin-bottom:10px"><div style="font-size:9px;font-weight:700;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Prioriterade tester</div>`;r.priorityTests.forEach((t,i)=>{h+=`<div style="padding:8px 10px;background:var(--surface);border-radius:7px;border:1px solid #e8ecf0;margin-bottom:4px"><div style="display:flex;gap:7px;align-items:center;margin-bottom:3px"><span style="font-size:9px;font-weight:700;background:var(--navy);color:white;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</span><span style="font-size:12px;font-weight:600;color:var(--navy)">${e(t.test)}</span></div><div style="font-size:11px;color:var(--text3);padding-left:23px;line-height:1.4">${e(t.rationale)}</div><div style="font-size:11px;color:#4a9aaa;padding-left:23px;margin-top:2px">Fynd: ${e(t.finding)}</div></div>`;});h+=`</div>`;}
+  if (r.treatmentGuidelines&&r.treatmentGuidelines.length) h+=`<div><div style="font-size:9px;font-weight:700;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Behandlingsriktlinjer</div>${r.treatmentGuidelines.map(g=>`<div style="font-size:12px;color:var(--ink);padding:6px 10px;background:var(--surface);border-radius:7px;border:1px solid #e8ecf0;margin-bottom:4px;line-height:1.4">${e(g)}</div>`).join('')}</div>`;
+  panel.innerHTML = h||'<div style="padding:12px;font-size:12px;color:var(--muted)">Fortsätt berätta -- analysen uppdateras automatiskt.</div>';
 }
 
 function setClinicalICD(code, diagName) {
@@ -6568,7 +6611,7 @@ function startMeeting() {
     const ov = document.createElement('div');
     ov.id = 'meet-draft-overlay';
     ov.style.cssText = 'position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,20,35,.72)';
-    ov.innerHTML = `<div style="background:white;border-radius:16px;width:100%;max-width:420px;padding:24px;box-shadow:0 8px 40px rgba(0,0,0,.25)">
+    ov.innerHTML = `<div style="background:var(--surface);border-radius:16px;width:100%;max-width:420px;padding:24px;box-shadow:0 8px 40px rgba(0,0,0,.25)">
       <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:6px">Avbruten inspelning hittad</div>
       <div style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:8px">${draft.transcript.length} rader sparade</div>
       <div style="font-size:12px;color:var(--text3);margin-bottom:20px">Från ett möte ${timeAgo}. Vill du fortsätta där du slutade?</div>
@@ -6711,7 +6754,7 @@ function rJournalDoc() {
   const soapLabels = {S:'Subjektivt -- Patientens berättelse',O:'Objektivt -- Undersökningsfynd',A:'Bedömning -- Diagnos & funktionsnivå',P:'Plan -- Åtgärder & uppföljning'};
   const meta = v.soapMeta||{};
   el.innerHTML = `
-    <div style="background:#eceae6;min-height:100vh;"><div style="max-width:680px;margin:0 auto;padding:8px 12px 0">${jdocFlagBanner}</div>
+    <div style="background:var(--surface2);min-height:100vh;"><div style="max-width:680px;margin:0 auto;padding:8px 12px 0">${jdocFlagBanner}</div>
       <div class="dcontrols">
         <button class="btn" onclick="go('detail')"><- Tillbaka</button>
         <button class="btn btn-p" onclick="sharePlan(S.visitId)">Dela länk</button><button class="btn" onclick="mailPlan(S.visitId)">Maila patient</button><button class="btn" onclick="printHomeCard(S.visitId)">Hemkort</button><button class="btn btn-p" onclick="window.print()">Skriv ut / PDF</button>
@@ -6966,7 +7009,7 @@ function rPatJournal() {
     : '<div style="font-size:12px;color:var(--text3);font-style:italic">Inga samtycken registrerade.</div>';
 
   el.innerHTML = `
-    <div style="background:#eceae6;min-height:100vh;">
+    <div style="background:var(--surface2);min-height:100vh;">
       <div class="dcontrols">
         <button class="btn" onclick="go('detail')"><- Tillbaka</button>
         <button class="btn btn-p" onclick="window.print()">Skriv ut / Spara PDF</button>
@@ -7234,7 +7277,7 @@ function rSBSsoap() {
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" onclick="go('detail')"><- Tillbaka</button>
-        <button class="btn" onclick="sbsAutoSaveAndNotify()" style="background:#e8f5ee;color:#1a5a30;border-color:#a0d8b0">Spara utkast</button>
+        <button class="btn" onclick="sbsAutoSaveAndNotify()" style="background:var(--green-lt);color:#1a5a30;border-color:#a0d8b0">Spara utkast</button>
         <button class="btn btn-p" onclick="saveSBSsoap(false)">Spara journal</button>
         <button class="btn btn-navy" onclick="saveSBSsoap(true)">Spara & skapa rehabplan -></button>
       </div>
@@ -7243,7 +7286,7 @@ function rSBSsoap() {
     ${smartIntakeHTML()}
 
     ${allVisits.length > 1 ? `
-    <div style="background:white;border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
       <div style="font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap">Jämför med:</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1">
         ${allVisits.map((v,i) => `
@@ -7331,7 +7374,7 @@ function rSBSsoap() {
   }
 
   // ICD + Diagnos
-  h += `<div style="background:white;border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:6px">
+  h += `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:6px">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div>
         <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:6px">Diagnos</div>
@@ -7353,7 +7396,7 @@ function rSBSsoap() {
 
   <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap">
     <button class="btn" onclick="go(S.pat?'detail':'list')">Avbryt</button>
-    <button class="btn" onclick="sbsAutoSaveAndNotify()" style="background:#e8f5ee;color:#1a5a30;border-color:#a0d8b0">Spara utkast</button>
+    <button class="btn" onclick="sbsAutoSaveAndNotify()" style="background:var(--green-lt);color:#1a5a30;border-color:#a0d8b0">Spara utkast</button>
     <button class="btn btn-p" style="padding:12px 24px" onclick="saveSBSsoap(false)">Spara journal</button>
     <button class="btn btn-navy" style="padding:12px 24px" onclick="saveSBSsoap(true)">Spara & skapa ny rehabplan -></button>
   </div>
@@ -7406,14 +7449,14 @@ function renderPainGraph(pat) {
     if (i === 0 || i === n-1) {
       const anchor = i === 0 ? 'start' : 'end';
       dots += `<text x="${xs[i]}" y="${H - 1}" text-anchor="${anchor}" font-size="8" fill="#5a6a7a">${v.form.pain}/10</text>`;
-      dots += `<text x="${xs[i]}" y="${H + 9}" text-anchor="${anchor}" font-size="7" fill="#8a9aaa">${v.date||''}</text>`;
+      dots += `<text x="${xs[i]}" y="${H + 9}" text-anchor="${anchor}" font-size="7" fill="var(--muted)">${v.date||''}</text>`;
     }
   });
 
   const arrow = last < first ? 'v Förbättring' : last > first ? '^ Försämring' : '-> Oförändrad';
   const diff = Math.abs(last - first);
 
-  return `<div style="margin:12px 0 4px;padding:12px 14px;background:white;border:1px solid var(--border);border-radius:8px">
+  return `<div style="margin:12px 0 4px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
     <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">
       Smärtutveckling (NRS) &nbsp;<span style="color:${trend};font-size:11px">${arrow} ${diff > 0 ? diff + ' enheter' : ''}</span>
     </div>
@@ -7506,46 +7549,46 @@ Skicka länken via mail, SMS eller iMessage. Patienten öppnar den i mobilen -- 
 <title>Hael-plan -- ${plan.patientName||'Patient'}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0ede8;color:#2a3a4a;font-size:15px;line-height:1.6}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.6}
   .top{background:#1a3a4a;color:white;padding:20px 18px 16px}
   .top-tag{font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.6;margin-bottom:4px}
   .top-name{font-size:22px;font-weight:300;letter-spacing:.02em;margin-bottom:2px}
   .top-diag{font-size:13px;opacity:.7}
   .top-meta{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
   .meta-pill{background:rgba(255,255,255,.12);border-radius:20px;padding:4px 12px;font-size:11px}
-  .card{background:white;border-radius:12px;margin:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  .card{background:var(--surface);border-radius:12px;margin:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
   .sec{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#4a9aaa;margin-bottom:12px}
-  .greet{font-size:14px;color:#4a5a6a;line-height:1.7;font-style:italic}
-  .goal{margin-bottom:10px;padding:10px 12px;background:#f8f9fa;border-radius:8px;border-left:3px solid #4a9aaa}
+  .greet{font-size:14px;color:var(--text2);line-height:1.7;font-style:italic}
+  .goal{margin-bottom:10px;padding:10px 12px;background:var(--surface2);border-radius:8px;border-left:3px solid #4a9aaa}
   .g-lbl{font-size:10px;font-weight:700;color:#4a9aaa;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
-  .g-txt{font-size:13px;color:#3a4a5a}
+  .g-txt{font-size:13px;color:var(--text)}
   .ex{border:1px solid #eef0f3;border-radius:10px;margin-bottom:12px;overflow:hidden}
-  .ex-hdr{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:#f8f9fa}
+  .ex-hdr{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;background:var(--surface2)}
   .ex-num{width:28px;height:28px;border-radius:50%;background:#1a3a4a;color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}
   .ex-name{font-weight:600;font-size:15px;color:#1a3a4a}
   .ex-dose{font-size:11px;color:#4a9aaa;margin-top:2px;font-weight:600}
-  .ex-purp{padding:10px 14px;font-size:12px;color:#5a6a7a;background:#fafafa;border-bottom:1px solid #eef0f3;font-style:italic}
-  .ex-lbl{font-size:10px;font-weight:700;color:#8a9aaa;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px 4px}
-  .ex-sp{padding:0 14px 10px;font-size:13px;color:#3a4a5a}
+  .ex-purp{padding:10px 14px;font-size:12px;color:var(--text2);background:#fafafa;border-bottom:1px solid #eef0f3;font-style:italic}
+  .ex-lbl{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;padding:10px 14px 4px}
+  .ex-sp{padding:0 14px 10px;font-size:13px;color:var(--text)}
   .ex-steps{padding:0 14px 12px;list-style:none;display:flex;flex-direction:column;gap:6px}
   .ex-steps li{display:flex;gap:10px;align-items:flex-start;font-size:13px}
-  .sn{width:20px;height:20px;border-radius:50%;background:#e8f4f6;color:#4a9aaa;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-  .ex-note{margin:0 14px 12px;padding:8px 12px;background:#fff8e8;border-radius:6px;font-size:12px;color:#8a6000}
-  .ex-feel{margin:0 14px 12px;padding:8px 12px;background:#e8f5ee;border-radius:6px;font-size:12px;color:#1a7a4a}
+  .sn{width:20px;height:20px;border-radius:50%;background:var(--teal-lt);color:#4a9aaa;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+  .ex-note{margin:0 14px 12px;padding:8px 12px;background:var(--gold-lt);border-radius:6px;font-size:12px;color:#8a6000}
+  .ex-feel{margin:0 14px 12px;padding:8px 12px;background:var(--green-lt);border-radius:6px;font-size:12px;color:#1a7a4a}
   .sched{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-  .day{text-align:center;padding:8px 2px;border-radius:6px;background:#f0ede8}
+  .day{text-align:center;padding:8px 2px;border-radius:6px;background:var(--bg)}
   .day.act{background:#1a3a4a;color:white}
   .dn{font-size:9px;font-weight:700;letter-spacing:.06em;margin-bottom:4px}
   .dt{font-size:8px;line-height:1.3;opacity:.8}
   .pain-grid{display:flex;flex-direction:column;gap:8px}
   .pg{padding:10px 12px;border-radius:8px;font-size:13px}
   .pg .ph{font-weight:700;margin-bottom:3px;font-size:12px}
-  .gr{background:#e8f5ee;color:#1a5a3a}
-  .ye{background:#fdf3d8;color:#7a5000}
-  .re{background:#fde8e8;color:#7a2020}
-  ul.tips{padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:#3a4a5a}
-  .ftr{text-align:center;padding:20px;font-size:11px;color:#8a9aaa;line-height:1.8}
-  .fu{margin:16px 0 4px;padding:14px 16px;background:#e8f4f6;border-radius:10px;font-size:13px;color:#2a5a6a;text-align:center;font-style:italic}
+  .gr{background:var(--green-lt);color:#1a5a3a}
+  .ye{background:var(--gold-lt);color:#7a5000}
+  .re{background:var(--red-lt);color:#7a2020}
+  ul.tips{padding-left:18px;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text)}
+  .ftr{text-align:center;padding:20px;font-size:11px;color:var(--muted);line-height:1.8}
+  .fu{margin:16px 0 4px;padding:14px 16px;background:var(--teal-lt);border-radius:10px;font-size:13px;color:#2a5a6a;text-align:center;font-style:italic}
   .yt-btn{display:block;margin:0 14px 14px;padding:9px 14px;background:#ff0000;color:white;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;text-align:center}
 
   /* -- Clinical patient list -- */
@@ -7564,7 +7607,7 @@ Skicka länken via mail, SMS eller iMessage. Patienten öppnar den i mobilen -- 
   .visit-timeline{display:flex;flex-direction:column;gap:0;margin-top:12px;}
   .vt-item{display:flex;gap:0;position:relative;}
   .vt-connector{display:flex;flex-direction:column;align-items:center;width:28px;flex-shrink:0;}
-  .vt-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--accent);background:white;z-index:1;margin-top:14px;flex-shrink:0;}
+  .vt-dot{width:10px;height:10px;border-radius:50%;border:2px solid var(--accent);background:var(--surface);z-index:1;margin-top:14px;flex-shrink:0;}
   .vt-dot.first{background:var(--accent);}
   .vt-line{width:2px;background:var(--border);flex:1;min-height:20px;}
   .vt-last .vt-line{background:transparent;}
@@ -7620,7 +7663,7 @@ ${plan.followupNote ? `<div class="card"><div class="fu">${plan.followupNote}</d
 
 <div class="card" style="text-align:center">
   <div class="sec">Spara denna sida</div>
-  <p style="font-size:12px;color:#5a6a7a;margin-bottom:12px">Bokmärk sidan i din webbläsare för att komma åt din Hael-plan igen.</p>
+  <p style="font-size:12px;color:var(--text2);margin-bottom:12px">Bokmärk sidan i din webbläsare för att komma åt din Hael-plan igen.</p>
 </div>
 <div class="ftr">${clinic.name||'Hael'}<br>Plan utfärdad ${today}</div>
 </body>
@@ -7681,18 +7724,18 @@ function showMailDialog(vid) {
       <div style="margin-bottom:18px">
         <div class="npf-label">Inkludera i mailet</div>
         <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
-          <label style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:white;border:1px solid #e8ecf0;border-radius:10px;cursor:pointer">
+          <label style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:var(--surface);border:1px solid #e8ecf0;border-radius:10px;cursor:pointer">
             <input type="checkbox" id="md-link" checked style="width:16px;height:16px;flex-shrink:0;accent-color:var(--teal)">
             <div>
               <div style="font-size:13px;font-weight:600;color:var(--navy)">Live-länk till plan</div>
-              <div style="font-size:11px;color:#8a9aaa;margin-top:1px">Patienten öppnar i mobilen -- uppdateras automatiskt</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:1px">Patienten öppnar i mobilen -- uppdateras automatiskt</div>
             </div>
           </label>
-          <label style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:white;border:1px solid #e8ecf0;border-radius:10px;cursor:pointer">
+          <label style="display:flex;gap:10px;align-items:center;padding:12px 14px;background:var(--surface);border:1px solid #e8ecf0;border-radius:10px;cursor:pointer">
             <input type="checkbox" id="md-pdf" style="width:16px;height:16px;flex-shrink:0;accent-color:var(--teal)">
             <div>
               <div style="font-size:13px;font-weight:600;color:var(--navy)">PDF av planen</div>
-              <div style="font-size:11px;color:#8a9aaa;margin-top:1px">Statisk kopia -- öppnas i webbläsaren för utskrift</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:1px">Statisk kopia -- öppnas i webbläsaren för utskrift</div>
             </div>
           </label>
         </div>
@@ -7700,7 +7743,7 @@ function showMailDialog(vid) {
 
       <div style="margin-bottom:18px">
         <div class="npf-label">Förhandsgranskning av mail</div>
-        <div id="md-preview" style="background:#f8f9fa;border:1px solid #e8ecf0;border-radius:8px;padding:14px;font-size:12px;color:#2a3a4a;line-height:1.7;white-space:pre-wrap;margin-top:6px;max-height:220px;overflow-y:auto;font-family:'DM Mono',monospace"></div>
+        <div id="md-preview" style="background:var(--surface2);border:1px solid #e8ecf0;border-radius:8px;padding:14px;font-size:12px;color:var(--ink);line-height:1.7;white-space:pre-wrap;margin-top:6px;max-height:220px;overflow-y:auto;font-family:'DM Mono',monospace"></div>
       </div>
 
     </div>
@@ -7933,9 +7976,9 @@ async function showProgressNote(patId) {
   const sections = [
     { key:'trend',        icon:'', label:'Smärta & förlopp',               color:'#dceef8', tc:'#1a4a7a',  dot:'#1a6a9a' },
     { key:'function',     icon:'', label:'Funktion & compliance',           color:'#dcf0e4', tc:'#1a4a2a',  dot:'#1a7a4a' },
-    { key:'findings',     icon:'', label:'Kliniska fynd',                   color: note.flag ? '#fde8e8' : '#f4f6f9', tc: note.flag ? '#8a2020' : '#3a4a5a', dot: note.flag ? '#c07070' : '#6a7a8a' },
+    { key:'findings',     icon:'', label:'Kliniska fynd',                   color: note.flag ? 'var(--red-lt)' : '#f4f6f9', tc: note.flag ? '#8a2020' : '#3a4a5a', dot: note.flag ? '#c07070' : '#6a7a8a' },
     { key:'recommendation',icon:'',label:'Rekommendation inför nästa besök',color:'#ede0f8', tc:'#5a208a',  dot:'#7a40aa' },
-    { key:'phase',        icon:'', label:'Fas & status',                    color:'#fdf3d8', tc:'#7a5000',  dot:'#c8a030' },
+    { key:'phase',        icon:'', label:'Fas & status',                    color:'var(--gold-lt)', tc:'#7a5000',  dot:'#c8a030' },
   ];
 
   const pat2 = S.patients.find(p=>p.id===patId)||S.pat;
@@ -7944,7 +7987,7 @@ async function showProgressNote(patId) {
   window._progressNotePlainText = plainText;
 
   ov.innerHTML = `
-  <div style="background:white;border-radius:16px;width:100%;max-width:560px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 48px rgba(0,0,0,.22)" onclick="event.stopPropagation()">
+  <div style="background:var(--surface);border-radius:16px;width:100%;max-width:560px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 48px rgba(0,0,0,.22)" onclick="event.stopPropagation()">
     <div style="padding:18px 20px 14px;border-bottom:1px solid #eef0f3;flex-shrink:0;display:flex;align-items:flex-start;gap:12px">
       <div style="flex:1">
         <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin-bottom:3px">Klinisk patientanalys</div>
@@ -7992,15 +8035,15 @@ function printHomeCard(vid) {
     <tr>
       <td style="padding:6px 8px;border-bottom:1px solid #eef0f3;font-size:12px;font-weight:600;color:#1a3a4a">${i+1}. ${ex.name||''}</td>
       <td style="padding:6px 8px;border-bottom:1px solid #eef0f3;font-size:12px;color:#4a9aaa;white-space:nowrap">${ex.sets} × ${ex.reps}</td>
-      <td style="padding:6px 8px;border-bottom:1px solid #eef0f3;font-size:11px;color:#8a9aaa">${ex.rest} vila</td>
+      <td style="padding:6px 8px;border-bottom:1px solid #eef0f3;font-size:11px;color:var(--muted)">${ex.rest} vila</td>
     </tr>`).join('');
 
   const schedRows = (plan.schedule||[]).map(d => {
     const act = d.activity && (d.activity.toLowerCase().includes('övning') || d.activity.toLowerCase().includes('program'));
     return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f0ede8">
-      <div style="width:38px;font-size:10px;font-weight:700;color:#8a9aaa;flex-shrink:0">${(d.day||'').slice(0,3).toUpperCase()}</div>
-      <div style="font-size:12px;${act?'font-weight:600;color:#1a3a4a':'color:#8a9aaa'}">${d.activity||''}</div>
-      ${act ? '<div style="margin-left:auto;font-size:10px;background:#e8f4f6;color:#4a9aaa;padding:2px 8px;border-radius:10px">Träning</div>' : ''}
+      <div style="width:38px;font-size:10px;font-weight:700;color:var(--muted);flex-shrink:0">${(d.day||'').slice(0,3).toUpperCase()}</div>
+      <div style="font-size:12px;${act?'font-weight:600;color:#1a3a4a':'color:var(--muted)'}">${d.activity||''}</div>
+      ${act ? '<div style="margin-left:auto;font-size:10px;background:var(--teal-lt);color:#4a9aaa;padding:2px 8px;border-radius:10px">Träning</div>' : ''}
     </div>`;
   }).join('');
 
@@ -8011,7 +8054,7 @@ function printHomeCard(vid) {
 <title>Hemövningar -- ${plan.patientName||'Patient'}</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:white;color:#2a3a4a;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--surface);color:var(--ink);-webkit-print-color-adjust:exact;print-color-adjust:exact}
   @page{size:A5;margin:10mm}
   .card{max-width:148mm;margin:0 auto;padding:0}
   .hdr{background:#1a3a4a;color:white;padding:14px 16px;border-radius:8px 8px 0 0;display:flex;justify-content:space-between;align-items:center}
@@ -8021,8 +8064,8 @@ function printHomeCard(vid) {
   .sec-lbl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#4a9aaa;margin-bottom:8px}
   table{width:100%;border-collapse:collapse}
   .sched{padding:12px 14px;border:1px solid #eef0f3;border-top:none;border-radius:0 0 8px 8px}
-  .tip{margin-top:10px;padding:8px 12px;background:#fff8e8;border-radius:6px;font-size:11px;color:#8a6000;border:1px solid #f5e0a0}
-  .ftr{margin-top:8px;text-align:center;font-size:9px;color:#8a9aaa}
+  .tip{margin-top:10px;padding:8px 12px;background:var(--gold-lt);border-radius:6px;font-size:11px;color:#8a6000;border:1px solid #f5e0a0}
+  .ftr{margin-top:8px;text-align:center;font-size:9px;color:var(--muted)}
   .login-wrap{max-width:360px;margin:80px auto;padding:0 20px}
   .login-logo{height:48px;margin-bottom:24px}
   .login-title{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--navy);font-weight:400;margin-bottom:4px}
@@ -8034,7 +8077,7 @@ function printHomeCard(vid) {
   .login-err{font-size:12px;color:#c07070;margin-top:8px;min-height:18px}
   .login-hint{font-size:11px;color:var(--text3);margin-top:16px;line-height:1.6}
   .pub-wrap{max-width:600px;margin:0 auto;padding:0 0 40px}
-  .pub-loading{text-align:center;padding:80px 20px;color:#8a9aaa;font-size:14px}
+  .pub-loading{text-align:center;padding:80px 20px;color:var(--muted);font-size:14px}
   @media print{body{background:white}}
 </style>
 </head>
@@ -8148,7 +8191,7 @@ async function fetchClinHint(diag) {
   const hint = CLIN_HINTS[diag];
   if (!hint) { el.innerHTML = ''; return; }
 
-  el.innerHTML = `<div style="background:#f0f8ff;border:1px solid #c8e0f0;border-radius:8px;padding:12px 14px;margin-bottom:4px">
+  el.innerHTML = `<div style="background:var(--surface2);border:1px solid #c8e0f0;border-radius:8px;padding:12px 14px;margin-bottom:4px">
     <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#4a9aaa;margin-bottom:8px">Kliniskt beslutsstöd -- ${e(diag)}</div>
     <div style="font-size:12px;color:#2a4a5a;margin-bottom:6px"><strong>Fas/approach:</strong> ${hint.phase}</div>
     <div style="font-size:12px;color:#2a4a5a;margin-bottom:6px"><strong>Dosering:</strong> ${hint.dose}</div>
@@ -8649,7 +8692,7 @@ function showSwapDialog(idx) {
     <div class="npf-body">
       <div class="npf-label">Anledning till byte</div>
       <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;margin-bottom:14px">
-        ${reasons.map(r => `<button onclick="selectSwapReason(${idx},'${r}')" style="text-align:left;padding:11px 14px;background:white;border:1px solid #e8ecf0;border-radius:9px;font-size:13px;color:var(--navy);cursor:pointer;font-family:inherit;transition:background .15s" onmouseover="this.style.background='#f0f4f8'" onmouseout="this.style.background='white'">${r}</button>`).join('')}
+        ${reasons.map(r => `<button onclick="selectSwapReason(${idx},'${r}')" style="text-align:left;padding:11px 14px;background:var(--surface);border:1px solid #e8ecf0;border-radius:9px;font-size:13px;color:var(--navy);cursor:pointer;font-family:inherit;transition:background .15s" onmouseover="this.style.background='#f0f4f8'" onmouseout="this.style.background='white'">${r}</button>`).join('')}
       </div>
       <div class="npf-label">Eller beskriv själv</div>
       <input id="swap-custom" class="npf-input" placeholder="T.ex. patienten har ont i knät..." style="margin-top:6px">
@@ -9410,7 +9453,7 @@ function renderPublicIntakeForm(patId, visitId) {
   const isNew = intakeType === 'new';
 
   el.innerHTML = `
-    <div style="min-height:100vh;background:#f4f6f9;font-family:'Plus Jakarta Sans',sans-serif">
+    <div style="min-height:100vh;background:var(--surface2);font-family:'Plus Jakarta Sans',sans-serif">
       <div style="background:linear-gradient(135deg,#07101e,#0d9b8a);padding:28px 20px 24px;text-align:center">
         <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:6px">${e(CLINIC.name||'Kliniken')}</div>
         <div style="font-family:'Fraunces',Georgia,serif;font-size:26px;color:white;font-weight:300;margin-bottom:6px">
@@ -9616,9 +9659,9 @@ function renderPublicIntakeForm(patId, visitId) {
       </div>
 
       <style>
-        .intake-q{background:white;border-radius:14px;padding:16px 16px 14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+        .intake-q{background:var(--surface);border-radius:14px;padding:16px 16px 14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
         .intake-qlbl{font-size:13px;font-weight:700;color:#07101e;margin-bottom:12px;line-height:1.4}
-        .iq-opt{width:100%;text-align:left;padding:11px 14px;border:1.5px solid #e0e4ee;border-radius:9px;background:white;font-size:13px;font-weight:500;color:#07101e;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .12s}
+        .iq-opt{width:100%;text-align:left;padding:11px 14px;border:1.5px solid #e0e4ee;border-radius:9px;background:var(--surface);font-size:13px;font-weight:500;color:#07101e;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .12s}
         .iq-opt.iq-sm{width:auto;text-align:center}
         .iq-opt.selected{background:#0d9b8a;color:white;border-color:#0d9b8a}
         .iq-opt.iq-multi.selected{background:#07101e;color:white;border-color:#07101e}
@@ -9704,7 +9747,7 @@ async function submitIntakeForm(patId, visitId, intakeType) {
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <div style="font-family:'Fraunces',Georgia,serif;font-size:26px;color:#07101e;margin-bottom:10px;font-weight:300">Tack!</div>
-        <div style="font-size:14px;color:#6a7a8a;line-height:1.8;max-width:280px;margin:0 auto">
+        <div style="font-size:14px;color:var(--text3);line-height:1.8;max-width:280px;margin:0 auto">
           Dina svar har skickats.<br>
           Din naprapat granskar dem och<br>skapar ditt program.
         </div>
@@ -9727,7 +9770,7 @@ async function analyzePlanAdjustment(patId, visitId) {
   const ov = document.createElement('div');
   ov.id = 'plan-adj-ov';
   ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,20,35,.78);backdrop-filter:blur(6px)';
-  ov.innerHTML = `<div style="background:white;border-radius:16px;width:100%;max-width:420px;padding:28px 24px;text-align:center">
+  ov.innerHTML = `<div style="background:var(--surface);border-radius:16px;width:100%;max-width:420px;padding:28px 24px;text-align:center">
     <div style="width:32px;height:32px;border:3px solid #dde6ee;border-top-color:var(--teal);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>
     <div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:6px">Analyserar ${logs.length} pass...</div>
     <div style="font-size:12px;color:var(--text3)">AI läser check-in data och jämför med befintlig plan</div>
@@ -9803,7 +9846,7 @@ function showPlanAdjustmentOverlay(result, patId, visitId) {
         <span style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${typeColor};background:${typeColor}18;padding:3px 8px;border-radius:10px">${typeLabel}</span>
         <span style="font-size:13px;font-weight:600;color:var(--navy)">${e(a.exerciseName||'')}</span>
       </div>
-      <div style="font-size:13px;color:#2a3a4a;font-weight:500;margin-bottom:4px">${e(a.change||'')}</div>
+      <div style="font-size:13px;color:var(--ink);font-weight:500;margin-bottom:4px">${e(a.change||'')}</div>
       <div style="font-size:11px;color:var(--text3);line-height:1.5">${e(a.reason||'')}</div>
     </div>`;
   }).join('');
@@ -9816,7 +9859,7 @@ function showPlanAdjustmentOverlay(result, patId, visitId) {
   ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,20,35,.78);backdrop-filter:blur(6px)';
   ov.onclick = ev => { if(ev.target===ov) ov.remove(); };
   ov.innerHTML = `
-  <div style="background:white;border-radius:16px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 12px 50px rgba(0,0,0,.25)" onclick="event.stopPropagation()">
+  <div style="background:var(--surface);border-radius:16px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 12px 50px rgba(0,0,0,.25)" onclick="event.stopPropagation()">
     <div style="background:var(--navy);padding:18px 20px;border-radius:16px 16px 0 0;position:sticky;top:0;z-index:1">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
@@ -9830,11 +9873,11 @@ function showPlanAdjustmentOverlay(result, patId, visitId) {
     <div style="padding:20px 22px">
       <div style="background:${urgencyBg};border-left:3px solid ${urgencyColor};padding:12px 15px;border-radius:0 10px 10px 0;margin-bottom:18px">
         <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${urgencyColor};margin-bottom:5px">${urgencyLabel}</div>
-        <div style="font-size:13px;color:#2a3a4a;line-height:1.6">${e(result.summary||'')}</div>
+        <div style="font-size:13px;color:var(--ink);line-height:1.6">${e(result.summary||'')}</div>
       </div>
       <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Föreslagna ändringar</div>
       ${adjHtml||'<div style="font-size:13px;color:var(--text3);padding:10px 0">Inga ändringar föreslagna -- planen fungerar bra.</div>'}
-      ${result.scheduleNote?`<div style="background:#f4f7fa;border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:12px;color:#4a5a6a;line-height:1.5"><span style="font-weight:700;color:var(--navy)">Schema: </span>${e(result.scheduleNote)}</div>`:''}
+      ${result.scheduleNote?`<div style="background:#f4f7fa;border-radius:8px;padding:10px 13px;margin-bottom:14px;font-size:12px;color:var(--text2);line-height:1.5"><span style="font-weight:700;color:var(--navy)">Schema: </span>${e(result.scheduleNote)}</div>`:''}
       ${result.messageToPatient?`<div style="margin-bottom:18px">
         <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:7px">Meddelande till patienten</div>
         <div style="background:linear-gradient(135deg,#f0f7ff,#e8f4f8);border-radius:10px;padding:12px 15px;font-size:13px;color:#1a3a5a;line-height:1.65;font-style:italic">"${e(result.messageToPatient)}"</div>
@@ -9845,7 +9888,7 @@ function showPlanAdjustmentOverlay(result, patId, visitId) {
           Godkänn och tillämpa
         </button>
         <button onclick="document.getElementById('plan-adj-result-ov').remove()"
-          style="flex:1;background:white;border:1px solid #dde6ee;color:var(--text2);padding:14px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border-radius:10px">
+          style="flex:1;background:var(--surface);border:1px solid #dde6ee;color:var(--text2);padding:14px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;border-radius:10px">
           Avvisa
         </button>
       </div>
@@ -9872,7 +9915,7 @@ async function applyPlanAdjustment(patId, visitId, resultEncoded) {
   if (needsGeneration.length > 0 && key) {
     const loadOv = document.createElement('div');
     loadOv.style.cssText = 'position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;background:rgba(10,20,35,.6)';
-    loadOv.innerHTML = `<div style="background:white;border-radius:12px;padding:24px 28px;text-align:center;max-width:300px">
+    loadOv.innerHTML = `<div style="background:var(--surface);border-radius:12px;padding:24px 28px;text-align:center;max-width:300px">
       <div style="width:28px;height:28px;border:3px solid #dde6ee;border-top-color:var(--teal);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px"></div>
       <div style="font-size:14px;font-weight:600;color:var(--navy)">Genererar nya övningar...</div>
     </div>`;
@@ -10027,7 +10070,7 @@ async function loadPublicPlan(patId, visitId) {
         const visitIds = (pat?.visits||[]).map(v=>v.id).join(', ') || 'inga besök';
         el.innerHTML = `<div style="text-align:center;padding:80px 24px;font-family:var(--font)">
           <div style="font-family:var(--font-serif);font-size:26px;color:#0f2744;margin-bottom:12px">Plan ej tillgänglig</div>
-          <div style="font-size:14px;color:#8a9aaa;line-height:1.7;margin-bottom:16px">Patienten hittades men ingen Hael-plan finns sparad i molnet.<br>Be behandlaren trycka "Ladda upp alla" i Inställningar och skicka länken igen.</div>
+          <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:16px">Patienten hittades men ingen Hael-plan finns sparad i molnet.<br>Be behandlaren trycka "Ladda upp alla" i Inställningar och skicka länken igen.</div>
           <div style="font-size:10px;color:#bbb;font-family:monospace">visit=${visitId}<br>found=${visitIds}</div>
         </div>`;
         return;
@@ -10054,7 +10097,7 @@ async function loadPublicPlan(patId, visitId) {
   // 3. Nothing worked
   el.innerHTML = `<div style="text-align:center;padding:80px 24px;font-family:var(--font)">
     <div style="font-family:var(--font-serif);font-size:26px;color:#0f2744;margin-bottom:12px">Kunde inte ladda planen</div>
-    <div style="font-size:14px;color:#8a9aaa;line-height:1.7;margin-bottom:24px">
+    <div style="font-size:14px;color:var(--muted);line-height:1.7;margin-bottom:24px">
       Kontrollera att du är online och försök igen.<br>
       Om problemet kvarstår, kontakta din behandlare.
     </div>
@@ -10363,17 +10406,17 @@ function renderPublicPlan(plan, pat) {
       .zp-footer { padding:24px 16px 20px; text-align:center; }
 
       /* ── Sections ────────────────────────────────────────────── */
-      .zp-section { background:white; margin:0 14px 12px; border-radius:16px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+      .zp-section { background:var(--surface); margin:0 14px 12px; border-radius:16px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.06); }
       .zp-sec-hdr { padding:14px 18px 0; }
-      .zp-sec-title { font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#8892a4; padding-bottom:10px; border-bottom:1px solid #f0f2f5; }
+      .zp-sec-title { font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); padding-bottom:10px; border-bottom:1px solid #f0f2f5; }
 
       /* ── Exercise cards ──────────────────────────────────────── */
-      .zp-excard { background:white; border-radius:16px; margin:0 14px 10px; border:1.5px solid #eef0f5; overflow:hidden; transition:all .2s ease; }
+      .zp-excard { background:var(--surface); border-radius:16px; margin:0 14px 10px; border:1.5px solid #eef0f5; overflow:hidden; transition:all .2s ease; }
       .zp-excard.done { opacity:.72; border-color:#d0f0eb; background:#f7fdfc; }
       .zp-excard.open .zp-chevron { transform:rotate(90deg); }
       .zp-exhdr { display:flex; align-items:center; }
       .zp-exhdr-tap { display:flex; align-items:center; gap:12px; flex:1; padding:14px 8px 14px 16px; cursor:pointer; min-width:0; -webkit-tap-highlight-color:transparent; }
-      .zp-exnum { width:26px; height:26px; border-radius:50%; background:#f0f2f7; font-size:11px; font-weight:700; color:#8892a4; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+      .zp-exnum { width:26px; height:26px; border-radius:50%; background:#f0f2f7; font-size:11px; font-weight:700; color:var(--muted); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
       .zp-excard.done .zp-exnum { background:#d0f0eb; color:#0d9b8a; }
       .zp-exbody { display:none; padding:0 16px 16px; border-top:1px solid #f0f2f5; }
       .zp-exbody.open { display:block; }
@@ -10390,11 +10433,11 @@ function renderPublicPlan(plan, pat) {
       .zp-check-ring.checked svg { opacity:1; }
 
       /* ── Session strip ───────────────────────────────────────── */
-      .zp-session-strip { background:white; border-radius:14px; margin:0 14px 12px; padding:14px 16px; border:1.5px solid #eef0f5; }
+      .zp-session-strip { background:var(--surface); border-radius:14px; margin:0 14px 12px; padding:14px 16px; border:1.5px solid #eef0f5; }
       .zp-session-strip.active { border-color:rgba(13,155,138,.3); }
       .zp-session-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
-      .zp-session-label { font-size:12px; font-weight:700; color:#4a5a6a; }
-      .zp-session-count { font-size:12px; font-weight:700; color:#8892a4; font-family:'JetBrains Mono',monospace; }
+      .zp-session-label { font-size:12px; font-weight:700; color:var(--text2); }
+      .zp-session-count { font-size:12px; font-weight:700; color:var(--muted); font-family:'JetBrains Mono',monospace; }
       .zp-session-count.done { color:#0d9b8a; }
       .zp-session-bar-bg { height:4px; background:#eef0f5; border-radius:2px; overflow:hidden; }
       .zp-session-bar-fill { height:100%; background:#0d9b8a; border-radius:2px; transition:width .4s ease; }
@@ -10405,14 +10448,14 @@ function renderPublicPlan(plan, pat) {
       .zp-pass-btn.all-done { background:#0d9b8a; color:white; box-shadow:0 6px 24px rgba(13,155,138,.4); transform:scale(1.02); }
 
       /* ── Messages ────────────────────────────────────────────── */
-      .zp-msg-section { background:white; margin:0 14px 12px; border-radius:16px; padding:16px 18px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
-      .zp-msg-label { font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:#8892a4; margin-bottom:12px; }
+      .zp-msg-section { background:var(--surface); margin:0 14px 12px; border-radius:16px; padding:16px 18px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+      .zp-msg-label { font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
       .zp-msg-bubble { padding:10px 14px; border-radius:12px; margin-bottom:8px; }
       .zp-msg-text { font-size:13px; line-height:1.6; }
       .zp-msg-date { font-size:10px; color:#aab; margin-top:4px; }
-      .zp-reply-label { font-size:11px; font-weight:700; color:#4a5a6a; margin-bottom:8px; }
+      .zp-reply-label { font-size:11px; font-weight:700; color:var(--text2); margin-bottom:8px; }
       .zp-reply-btns { display:flex; gap:7px; flex-wrap:wrap; margin-bottom:10px; }
-      .zp-reply-btn { padding:9px 14px; border:1.5px solid #e0e4ee; border-radius:9px; background:white; font-size:12px; font-weight:600; color:#07101e; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .12s; -webkit-tap-highlight-color:transparent; }
+      .zp-reply-btn { padding:9px 14px; border:1.5px solid #e0e4ee; border-radius:9px; background:var(--surface); font-size:12px; font-weight:600; color:#07101e; cursor:pointer; font-family:'Plus Jakarta Sans',sans-serif; transition:all .12s; -webkit-tap-highlight-color:transparent; }
       .zp-reply-btn:hover { border-color:#0d9b8a; color:#0d9b8a; }
       .zp-reply-btn.selected { background:#0d9b8a; color:white; border-color:#0d9b8a; }
 
@@ -10571,7 +10614,7 @@ function renderPublicPlan(plan, pat) {
       <div style="background:#eef1f5;height:6px;border-radius:3px;overflow:hidden;margin-bottom:10px">
         <div style="background:linear-gradient(90deg,var(--teal),#16b8c8);height:100%;width:${weekPct}%;border-radius:3px;transition:width .5s ease"></div>
       </div>
-      <div style="font-size:12px;color:#4a5a6a;line-height:1.6">
+      <div style="font-size:12px;color:var(--text2);line-height:1.6">
         ${currentWeek <= 1
           ? 'Du är precis i början — fokusera på att lära dig rörelserna ordentligt. Kvalitet före kvantitet.'
           : currentWeek < totalWeeks * 0.4
@@ -10625,20 +10668,20 @@ function renderPublicPlan(plan, pat) {
         <div style="background:linear-gradient(135deg,#f0f7ff,#e8f4f8);border-radius:10px;padding:12px 14px;margin-bottom:14px">
           <div style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--teal);margin-bottom:5px">Varför just denna övning för dig</div>
           <div style="font-size:13px;color:#1a3a5a;line-height:1.65">${e(ex.whyThisForYou)}</div>
-        </div>` : ex.purpose ? `<div style="font-size:12px;color:#4a5a6a;font-style:italic;line-height:1.65;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f0f2f5">${e(ex.purpose)}</div>` : ''}
+        </div>` : ex.purpose ? `<div style="font-size:12px;color:var(--text2);font-style:italic;line-height:1.65;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f0f2f5">${e(ex.purpose)}</div>` : ''}
 
         ${ex.startPosition ? `<div style="font-size:9px;font-weight:700;color:#8a9aaa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px">Startposition</div>
-          <div style="font-size:13px;color:#3a4a5a;line-height:1.6;margin-bottom:12px">${e(ex.startPosition)}</div>` : ''}
+          <div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:12px">${e(ex.startPosition)}</div>` : ''}
 
         ${(ex.steps||[]).length ? `<div style="font-size:9px;font-weight:700;color:#8a9aaa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Utförande</div>
           <div style="margin-bottom:12px">${(ex.steps||[]).map((s,j)=>`
             <div class="zp-step">
               <div class="zp-step-num">${j+1}</div>
-              <div style="font-size:13px;color:#2a3a4a;line-height:1.55">${e(s)}</div>
+              <div style="font-size:13px;color:var(--ink);line-height:1.55">${e(s)}</div>
             </div>`).join('')}
           </div>` : ''}
 
-        ${ex.tip ? `<div style="border-left:2px solid #c8a030;padding:9px 13px;font-size:12px;color:#6a5000;line-height:1.55;margin-bottom:8px;background:#fffcf0"><span style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;display:block;margin-bottom:3px;color:#a87000">Tänk på</span>${e(ex.tip)}</div>` : ''}
+        ${ex.tip ? `<div style="border-left:2px solid #c8a030;padding:9px 13px;font-size:12px;color:#6a5000;line-height:1.55;margin-bottom:8px;background:var(--gold-lt)"><span style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;display:block;margin-bottom:3px;color:#a87000">Tänk på</span>${e(ex.tip)}</div>` : ''}
         ${ex.correctFeel ? `<div style="border-left:2px solid #3a9860;padding:9px 13px;font-size:12px;color:#1a4428;line-height:1.55;background:#f5faf6"><span style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;display:block;margin-bottom:3px;color:#2a7a48">Rätt känsla</span>${e(ex.correctFeel)}</div>` : ''}
       </div>
     </div>`;
@@ -10664,7 +10707,7 @@ function renderPublicPlan(plan, pat) {
         ${plan.goals.map((g,i) => `
           <div style="padding:12px 0;${i<plan.goals.length-1?'border-bottom:1px solid #f0f2f5':''}">
             <div style="font-size:9px;font-weight:700;color:var(--teal);letter-spacing:.09em;text-transform:uppercase;margin-bottom:4px">${e(g.title||'')}</div>
-            <div style="font-size:14px;color:#2a3a4a;line-height:1.6">${e(g.text||'')}</div>
+            <div style="font-size:14px;color:var(--ink);line-height:1.6">${e(g.text||'')}</div>
           </div>`).join('')}
       </div>
     </div>` : '';
@@ -10678,11 +10721,11 @@ function renderPublicPlan(plan, pat) {
           <div style="font-size:9px;font-weight:700;color:#1a5a30;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">Grön -- fortsätt träna</div>
           <div style="font-size:13px;color:#1a4428;line-height:1.55">${e(plan.painAdvice.green||'')}</div>
         </div>
-        <div style="border-left:3px solid #c8a030;padding:10px 14px;background:#fffcf0">
+        <div style="border-left:3px solid #c8a030;padding:10px 14px;background:var(--gold-lt)">
           <div style="font-size:9px;font-weight:700;color:#7a5000;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">Gul -- modifiera</div>
           <div style="font-size:13px;color:#5a3800;line-height:1.55">${e(plan.painAdvice.yellow||'')}</div>
         </div>
-        <div style="border-left:3px solid #c05050;padding:10px 14px;background:#fdf5f5">
+        <div style="border-left:3px solid #c05050;padding:10px 14px;background:var(--red-lt)">
           <div style="font-size:9px;font-weight:700;color:#7a2020;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">Röd -- pausa och kontakta oss</div>
           <div style="font-size:13px;color:#5a1010;line-height:1.55">${e(plan.painAdvice.red||'')}</div>
         </div>
@@ -10697,7 +10740,7 @@ function renderPublicPlan(plan, pat) {
         ${plan.lifestyleTips.map((t,i) => `
           <div style="display:flex;gap:12px;align-items:flex-start;padding:11px 0;${i<plan.lifestyleTips.length-1?'border-bottom:1px solid #f0f2f5':''}">
             <div style="color:var(--teal);font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px;font-family:'DM Mono',monospace">-></div>
-            <div style="font-size:13px;color:#3a4a5a;line-height:1.6">${e(t)}</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.6">${e(t)}</div>
           </div>`).join('')}
       </div>
     </div>` : '';
@@ -10735,7 +10778,7 @@ function renderPublicPlan(plan, pat) {
     <div class="zp-section">
       <div class="zp-sec-hdr"><div class="zp-sec-title">Underlag -- varför denna plan</div></div>
       <div style="padding:4px 18px 16px">
-        <div style="font-size:12px;color:#4a5a6a;line-height:1.7;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f0f2f5">
+        <div style="font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f0f2f5">
           Planen är utformad individuellt utifrån din diagnos, smärtnivå och förutsättningar. 
           Alla övningar är valda av din behandlare för att passa just din situation.
         </div>
@@ -11027,7 +11070,7 @@ function openSOAPPreviewModal(soap) {
   }).join('');
 
   ov.innerHTML = `
-  <div style="background:white;border-radius:16px;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 48px rgba(0,0,0,.22)" onclick="event.stopPropagation()">
+  <div style="background:var(--surface);border-radius:16px;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 48px rgba(0,0,0,.22)" onclick="event.stopPropagation()">
     <div style="padding:16px 18px 12px;border-bottom:1px solid #eef0f3;display:flex;align-items:center;gap:10px;flex-shrink:0">
       <div style="flex:1">
         <div style="font-size:14px;font-weight:600;color:var(--navy)">SOAP-utkast -- granska och redigera</div>
@@ -11181,7 +11224,7 @@ function openDictationModal(fieldId, letter) {
   ov.onclick = e => { if(e.target===ov) closeDictModal(); };
 
   ov.innerHTML = `
-  <div style="background:white;border-radius:16px;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 48px rgba(0,0,0,.22)" onclick="event.stopPropagation()">
+  <div style="background:var(--surface);border-radius:16px;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 48px rgba(0,0,0,.22)" onclick="event.stopPropagation()">
 
     <!-- Header -->
     <div style="display:flex;align-items:center;gap:10px;padding:16px 18px 12px;border-bottom:1px solid #eef0f3;flex-shrink:0">
@@ -11190,7 +11233,7 @@ function openDictationModal(fieldId, letter) {
         <div style="font-size:14px;font-weight:600;color:var(--navy)">Diktera ${{S:'Subjektivt',O:'Objektivt',A:'Bedömning',P:'Plan'}[letter]}</div>
         <div style="font-size:11px;color:var(--text3)">Prata fritt -- AI omformulerar kliniskt</div>
       </div>
-      <button onclick="openPromptEditor('${letter}')" style="font-size:10px;background:#f4f6f9;border:1px solid #dde6ee;border-radius:6px;padding:4px 9px;cursor:pointer;color:var(--text3);font-family:'DM Sans',sans-serif"> Redigera struktur</button>
+      <button onclick="openPromptEditor('${letter}')" style="font-size:10px;background:var(--surface2);border:1px solid #dde6ee;border-radius:6px;padding:4px 9px;cursor:pointer;color:var(--text3);font-family:'DM Sans',sans-serif"> Redigera struktur</button>
       <button onclick="closeDictModal()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3);line-height:1;padding:0 2px">×</button>
     </div>
 
@@ -11221,11 +11264,11 @@ function openDictationModal(fieldId, letter) {
     <!-- Controls -->
     <div style="padding:12px 16px 20px;display:flex;gap:8px;align-items:center;flex-shrink:0;flex-wrap:wrap;border-top:1px solid #eef0f3">
       <button id="dict-rec-btn" onclick="dictToggleRec()" class="qi-btn" style="background:var(--navy);color:white;display:flex;align-items:center;gap:6px;flex-shrink:0">
-        <span id="dict-rec-dot" style="width:8px;height:8px;border-radius:50%;background:white;display:inline-block"></span>
+        <span id="dict-rec-dot" style="width:8px;height:8px;border-radius:50%;background:var(--surface);display:inline-block"></span>
         <span id="dict-rec-label">Spela in</span>
       </button>
       <button id="dict-ai-btn" onclick="dictReformulate('${letter}')" style="display:none;background:var(--teal);color:white;border:none;border-radius:7px;padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Omformulera kliniskt</button>
-      <button id="dict-raw-btn" onclick="dictInsertRaw()" style="display:none;background:white;color:var(--text2);border:1px solid var(--border);border-radius:7px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Infoga som den är</button>
+      <button id="dict-raw-btn" onclick="dictInsertRaw()" style="display:none;background:var(--surface);color:var(--text2);border:1px solid var(--border);border-radius:7px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Infoga som den är</button>
       <div id="dict-ai-status" style="font-size:11px;color:var(--text3)"></div>
       <div style="flex:1"></div>
       <button id="dict-insert-btn" onclick="dictInsert()" style="display:none;background:var(--teal);color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Infoga i journal -></button>
@@ -11397,7 +11440,7 @@ function openPromptEditor(letter) {
   ov.style.cssText = 'position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,20,35,.75);backdrop-filter:blur(4px)';
   ov.onclick = e => { if(e.target===ov) ov.remove(); };
   ov.innerHTML = `
-  <div style="background:white;border-radius:14px;width:100%;max-width:480px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.2)" onclick="event.stopPropagation()">
+  <div style="background:var(--surface);border-radius:14px;width:100%;max-width:480px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.2)" onclick="event.stopPropagation()">
     <div style="padding:18px 20px 14px;border-bottom:1px solid #eef0f3;flex-shrink:0">
       <div style="font-size:15px;font-weight:600;color:var(--navy);margin-bottom:2px">Redigera struktur -- ${letter}</div>
       <div style="font-size:12px;color:var(--text3)">En punkt per rad. Används som guidestruktur vid diktering.</div>
@@ -11527,7 +11570,7 @@ function renderPlanReviewSection(patients) {
                           : u==='medium'?'Låg genomförandegrad'
                           : 'Redo att progrediera';
 
-  return `<div class="anomaly-section" style="border-left-color:#4a7aaa;background:#f8faff">
+  return `<div class="anomaly-section" style="border-left-color:#4a7aaa;background:var(--surface2)">
     <div class="anomaly-hdr" style="border-bottom-color:#e0e8f5">
       <div class="anomaly-dot" style="background:#4a7aaa"></div>
       <div style="font-size:12px;font-weight:700;color:#1a3a6a">${reviews.length} plan${reviews.length>1?'er':''} väntar på granskning</div>
@@ -11684,7 +11727,7 @@ function savePassLog(patId, entry) {
 // Render multi-metric patient check-in widget (shown in public plan after exercises)
 function pubCheckInHTML(patId, visitId) {
   return `
-  <div id="pub-checkin" style="margin:12px 14px 0;background:white;border-radius:16px;padding:18px 18px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+  <div id="pub-checkin" style="margin:12px 14px 0;background:var(--surface);border-radius:16px;padding:18px 18px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
     <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--navy);margin-bottom:16px">Rapport efter passet</div>
 
     <!-- Pain -->
@@ -11705,7 +11748,7 @@ function pubCheckInHTML(patId, visitId) {
       <div style="display:flex;gap:7px" id="ci-energy-btns">
         ${[['1','Låg'],['2','OK'],['3','Bra']].map(([v,l])=>`
           <button onclick="ciSelect('energy','${v}',this)" data-val="${v}"
-            style="flex:1;padding:9px 4px;border:1px solid var(--border);background:white;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s">${l}</button>`).join('')}
+            style="flex:1;padding:9px 4px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s">${l}</button>`).join('')}
       </div>
     </div>
 
@@ -11715,7 +11758,7 @@ function pubCheckInHTML(patId, visitId) {
       <div style="display:flex;gap:7px" id="ci-move-btns">
         ${[['1','Stelt'],['2','Gick bra'],['3','Flöt på']].map(([v,l])=>`
           <button onclick="ciSelect('move','${v}',this)" data-val="${v}"
-            style="flex:1;padding:9px 4px;border:1px solid var(--border);background:white;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s">${l}</button>`).join('')}
+            style="flex:1;padding:9px 4px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s">${l}</button>`).join('')}
       </div>
     </div>
 
@@ -11725,7 +11768,7 @@ function pubCheckInHTML(patId, visitId) {
       <div style="display:flex;gap:7px" id="ci-done-btns">
         ${[['all','Alla'],['partial','Delvis'],['few','Bara några']].map(([v,l])=>`
           <button onclick="ciSelect('done','${v}',this)" data-val="${v}"
-            style="flex:1;padding:9px 4px;border:1px solid var(--border);background:white;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s">${l}</button>`).join('')}
+            style="flex:1;padding:9px 4px;border:1px solid var(--border);background:var(--surface);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s">${l}</button>`).join('')}
       </div>
     </div>
 
@@ -12398,7 +12441,7 @@ function renderPatientReportsPanel(patId) {
 
   return `<div style="margin:16px 0">
     <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:10px">Patientrapporter -- ${logs.length} pass loggade</div>
-    <div style="background:white;border:1px solid var(--border);border-radius:12px;overflow:hidden">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">
       <div style="padding:12px 16px;border-bottom:1px solid var(--bg);display:flex;align-items:center;gap:16px;flex-wrap:wrap">
         <svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="flex-shrink:0">
           <polyline points="${points}" fill="none" stroke="${trend}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -12954,7 +12997,7 @@ function startVisitFlow() {
   ov.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px);animation:fadeInOv .15s ease';
   ov.onclick = e => { if(e.target===ov) ov.remove(); };
   ov.innerHTML = `
-  <div style="background:white;border-radius:20px;width:100%;max-width:400px;overflow:hidden;box-shadow:var(--shadow-lg)" onclick="event.stopPropagation()">
+  <div style="background:var(--surface);border-radius:20px;width:100%;max-width:400px;overflow:hidden;box-shadow:var(--shadow-lg)" onclick="event.stopPropagation()">
     <div style="background:var(--navy);padding:22px 24px 18px">
       <div style="font-size:20px;font-weight:700;color:white">Starta besök</div>
       <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px">Välj typ av besök</div>

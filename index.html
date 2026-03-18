@@ -351,8 +351,8 @@ button, input, textarea, select { font-family: inherit; }
 .vela-ask-send:hover { background: var(--teal-dk); }
 
 /* ── CONSULTATION POPUP ─────────────────────────────────────── */
-.consult-ov { position: fixed; inset: 0; z-index: 600; display: flex; align-items: flex-end; justify-content: center; background: rgba(7,16,30,.6); backdrop-filter: blur(6px); animation: fadeInOv .18s ease; }
-.consult-sheet { background: var(--surface); border-radius: 24px 24px 0 0; width: 100%; max-width: 640px; max-height: 82vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); animation: fadeUp .22s ease; }
+.consult-ov { position: fixed; inset: 0; z-index: 600; display: flex; align-items: center; justify-content: center; background: rgba(7,16,30,.6); backdrop-filter: blur(6px); animation: fadeInOv .18s ease; padding: 24px; }
+.consult-sheet { background: var(--surface); border-radius: 20px; width: 100%; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); animation: fadeUp .22s ease; }
 .consult-header { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .consult-messages { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
 .consult-bubble { padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.65; max-width: 88%; }
@@ -3682,6 +3682,14 @@ function rDashboard() {
     +     '<div style="padding:12px">' + aiCardsHtml + '</div>'
     +   '</div>'
 
+    // Plan review queue
+    +   '<div class="cc-panel">'
+    +     '<div class="cc-panel-hdr">'
+    +       '<div class="cc-panel-title">Plangranskning</div>'
+    +     '</div>'
+    +     '<div style="padding:12px">' + buildReviewQueueHtml() + '</div>'
+    +   '</div>'
+
     // Col 2: Senaste aktivitet
     +   '<div class="cc-panel">'
     +     '<div class="cc-panel-hdr">'
@@ -4586,7 +4594,7 @@ async function doGen(){
   // Inject phase instruction into form
   const ph = S.pat ? getCurrentPhase(S.pat) : 1;
   S.form.phaseInstruction = getPhasePromptAddition(ph);
-const key=getKey();if(!key){document.getElementById("ferr").innerHTML=`<div class="errbox">API-nyckel saknas. Klicka på Inställningar uppe till höger.</div>`;return;}document.getElementById("ferr").innerHTML="";const btn=document.getElementById("gbtn");if(btn)btn.disabled=true;const f=S.form;const diag=f.diagnosis==="Annan / fritext"?f.customDiag:f.diagnosis;const ff={...f,diagnosis:diag};S.loadMode='plan';S.loadStep=1;go("loading");try{S.loadStep=2;rLoading();const gen=await callAPI(buildPr(ff),[],key);S.loadStep=3;rLoading();const vid=S.visitId||("v_"+Date.now());const np={...gen,patientName:f.name||"Patient",diagnosis:diag,form:ff,visitId:vid};S.plan=np;let pat=S.pat||{id:"pat_"+Date.now(),name:f.name,birthYear:f.birthYear,diagnosis:diag,visits:[]};pat={...pat,name:ff.name||pat.name,birthdate:ff.birthdate||pat.birthdate,birthYear:birthdateToYear(ff.birthdate||pat.birthdate||""),diagnosis:diag};const nv={id:vid,date:new Date().toISOString().slice(0,10),form:ff,plan:np,status:"Aktiv",note:"",service:(window._pendingService||{}).name||"",servicePrice:(window._pendingService||{}).price||0};window._pendingService=null;const ei=(pat.visits||[]).findIndex(v=>v.id===vid);pat.visits=ei>=0?pat.visits.map(v=>v.id===vid?nv:v):[nv,...(pat.visits||[])];const sv=savePat(pat);S.pat=sv;S.visitId=vid;go("doc");if(ei<0&&!(pat.consents&&pat.consents.length))setTimeout(()=>showConsentPopup(sv.id),500);if(ei<0)setTimeout(()=>aiExtractDiagnoses(sv.id),1200);}catch(err){go("form");document.getElementById("ferr").innerHTML=`<div class="errbox">Fel: ${e(err.message||"Okänt fel")}. Kontrollera API-nyckeln.</div>`;if(btn)btn.disabled=false;}}
+const key=getKey();if(!key){document.getElementById("ferr").innerHTML=`<div class="errbox">API-nyckel saknas. Klicka på Inställningar uppe till höger.</div>`;return;}document.getElementById("ferr").innerHTML="";const btn=document.getElementById("gbtn");if(btn)btn.disabled=true;const f=S.form;const diag=f.diagnosis==="Annan / fritext"?f.customDiag:f.diagnosis;const ff={...f,diagnosis:diag};S.loadMode='plan';S.loadStep=1;go("loading");try{S.loadStep=2;rLoading();const gen=await callAPI(buildPr(ff),[],key);S.loadStep=3;rLoading();const vid=S.visitId||("v_"+Date.now());const np={...gen,patientName:f.name||"Patient",diagnosis:diag,form:ff,visitId:vid};S.plan=np;let pat=S.pat||{id:"pat_"+Date.now(),name:f.name,birthYear:f.birthYear,diagnosis:diag,visits:[]};pat={...pat,name:ff.name||pat.name,birthdate:ff.birthdate||pat.birthdate,birthYear:birthdateToYear(ff.birthdate||pat.birthdate||""),diagnosis:diag};const nv={id:vid,date:new Date().toISOString().slice(0,10),form:ff,plan:np,status:"Aktiv",note:"",service:(window._pendingService||{}).name||"",servicePrice:(window._pendingService||{}).price||0};window._pendingService=null;const ei=(pat.visits||[]).findIndex(v=>v.id===vid);pat.visits=ei>=0?pat.visits.map(v=>v.id===vid?nv:v):[nv,...(pat.visits||[])];const sv=savePat(pat);S.pat=sv;S.visitId=vid;go("doc");if(ei<0&&!(pat.consents&&pat.consents.length))setTimeout(()=>showConsentPopup(sv.id),500);if(ei<0)setTimeout(()=>aiExtractDiagnoses(sv.id),1200);setTimeout(()=>reviewPlanRisk(sv.id,vid),2000);}catch(err){go("form");document.getElementById("ferr").innerHTML=`<div class="errbox">Fel: ${e(err.message||"Okänt fel")}. Kontrollera API-nyckeln.</div>`;if(btn)btn.disabled=false;}}
 function buildPr(f, locked=[]) {
   const age = new Date().getFullYear() - birthdateToYear(f.birthdate||f.birthYear);
   const lang = f.knowledge==="låg" ? "enkelt vardagsspråk -- undvik anatomiska termer"
@@ -9346,6 +9354,7 @@ async function generatePlanFromIntake(patId, intakeTs) {
     savePat(fresh);
     if (S.pat?.id === patId) S.pat = fresh;
     if (S.screen === 'detail') rDetail();
+    setTimeout(() => reviewPlanRisk(patId, vid), 1500);
     addInboxItem(patId, fresh.name, 'ai_action', 'plan_pending_approval',
       'Plan redo för godkännande',
       `AI genererade ${(plan.exercises||[]).length} övningar${hasClinical ? ' (journal + intake)' : ' (intake)'}.`,
@@ -13428,6 +13437,189 @@ function rIntelligence() {
     </div>
 
   </div>`;
+}
+
+// ── PLAN RISK REVIEW SYSTEM ────────────────────────────────────────────────
+// Runs after every plan generation. AI evaluates its own output and assigns
+// green / yellow / red risk level. Green = auto-release. Yellow/red = queue.
+
+async function reviewPlanRisk(patId, visitId) {
+  const key = getKey(); if (!key) return;
+  const pat = S.patients.find(p => p.id === patId) || S.pat;
+  if (!pat) return;
+  const visit = (pat.visits||[]).find(v => v.id === visitId);
+  if (!visit?.plan) return;
+
+  const plan = visit.plan;
+  const form = visit.form || plan.form || {};
+  const exList = (plan.exercises||[]).map((ex,i) => `${i+1}. ${ex.name} — ${ex.sets} set × ${ex.reps}, vila ${ex.rest}`).join('\n');
+
+  const prompt = `Du är en erfaren naprapat som granskar en AI-genererad rehabiliteringsplan.
+Din uppgift: bedöm om planen är säker att auto-releasas UTAN mänsklig granskning.
+
+PATIENTDATA:
+Namn: ${pat.name||'Okänd'}
+Diagnos: ${form.diagnosis||plan.diagnosis||'Ej angiven'}
+NRS smärta: ${form.pain||'okänt'}/10
+Ålder/födelseår: ${form.birthYear||form.birthdate||'okänt'}
+Anamnestiska noter: ${form.notes||'inga'}
+
+GENERERAD PLAN (${(plan.exercises||[]).length} övningar, fas ${plan.phase||1}):
+${exList}
+
+Svara ENDAST med ett JSON-objekt, inga backticks, ingen annan text:
+{
+  "risk": "green" | "yellow" | "red",
+  "reasons": ["kort orsak 1", "kort orsak 2"],
+  "summary": "En mening om planen och patienten på svenska",
+  "autoRelease": true | false
+}
+
+Röd = neurologiska tecken / röda flaggor / NRS >8 / komplex systemsjukdom / barn <16 år / gravid
+Gul = NRS 7–8 / ovanlig diagnos / inkomplett data / hög ålder >75 / postoperativ
+Grön = rutinfall, tydlig diagnos, NRS ≤6, inga röda flaggor, komplett underlag`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model: MODEL_SONNET, max_tokens: 400, messages: [{ role:'user', content: prompt }] })
+    });
+    const data = await res.json();
+    const raw = (data.content||[]).map(b=>b.text||'').join('').trim();
+    let review;
+    try { review = JSON.parse(raw); } catch { review = { risk:'yellow', reasons:['Kunde inte tolka AI-svar'], summary:'Manuell granskning rekommenderas.', autoRelease:false }; }
+
+    const autoReleaseHours = review.risk === 'green' ? 48 : 0;
+    const autoReleaseAt = review.risk === 'green'
+      ? new Date(Date.now() + autoReleaseHours * 3600 * 1000).toISOString()
+      : null;
+
+    const freshPat = S.patients.find(p => p.id === patId) || pat;
+    const vIdx = (freshPat.visits||[]).findIndex(v => v.id === visitId);
+    if (vIdx >= 0) {
+      freshPat.visits[vIdx].planRisk = {
+        level: review.risk,
+        reasons: review.reasons || [],
+        summary: review.summary || '',
+        autoRelease: review.autoRelease !== false && review.risk === 'green',
+        autoReleaseAt,
+        reviewedAt: new Date().toISOString(),
+        released: false,
+      };
+      savePat(freshPat);
+      if (S.pat?.id === patId) S.pat = freshPat;
+    }
+
+    // If red — add to inbox immediately
+    if (review.risk === 'red') {
+      addInboxItem(patId, freshPat.name, 'ai_action', 'plan_risk_red',
+        '⚠️ Plan kräver granskning',
+        review.reasons.join(' · '),
+        [{ label:'Granska nu', style:'primary', fn:`openDetail:${patId}` }]);
+    }
+  } catch(err) {
+    console.error('[reviewPlanRisk]', err);
+  }
+}
+
+// Runs on dashboard load — auto-releases green plans past their deadline
+function checkPlanAutoRelease() {
+  const now = new Date();
+  let changed = false;
+  S.patients.forEach(pat => {
+    (pat.visits||[]).forEach(visit => {
+      const r = visit.planRisk;
+      if (!r || r.released) return;
+      if (r.autoRelease && r.autoReleaseAt && new Date(r.autoReleaseAt) <= now) {
+        r.released = true;
+        r.releasedAt = now.toISOString();
+        r.releasedBy = 'auto';
+        visit.status = visit.status === 'Inväntar godkännande' ? 'Aktiv' : visit.status;
+        changed = true;
+      }
+    });
+    if (changed) savePat(pat);
+  });
+}
+
+// Manually approve a plan from the review queue
+function approvePlan(patId, visitId) {
+  const pat = S.patients.find(p => p.id === patId);
+  if (!pat) return;
+  const vIdx = (pat.visits||[]).findIndex(v => v.id === visitId);
+  if (vIdx < 0) return;
+  const visit = pat.visits[vIdx];
+  if (visit.planRisk) {
+    visit.planRisk.released = true;
+    visit.planRisk.releasedAt = new Date().toISOString();
+    visit.planRisk.releasedBy = 'manual';
+  }
+  visit.status = 'Aktiv';
+  savePat(pat);
+  showAutoSaveToast('Plan godkänd ✓');
+  if (S.screen === 'dashboard') rDashboard();
+  if (S.pat?.id === patId) { S.pat = pat; rDetail(); }
+}
+
+// Build review queue HTML for dashboard panel
+function buildReviewQueueHtml() {
+  checkPlanAutoRelease();
+  const queue = [];
+  S.patients.forEach(pat => {
+    (pat.visits||[]).forEach(visit => {
+      const r = visit.planRisk;
+      if (!r || r.released) return;
+      if (r.level === 'green' && r.autoRelease) return; // auto handles these
+      queue.push({ pat, visit, r });
+    });
+  });
+
+  // Also collect green plans pending auto-release (show as info)
+  const pending = [];
+  S.patients.forEach(pat => {
+    (pat.visits||[]).forEach(visit => {
+      const r = visit.planRisk;
+      if (!r || r.released) return;
+      if (r.level === 'green' && r.autoRelease && r.autoReleaseAt) {
+        pending.push({ pat, visit, r });
+      }
+    });
+  });
+
+  if (!queue.length && !pending.length) {
+    return '<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px 0;font-style:italic">Inga planer väntar granskning</div>';
+  }
+
+  const riskIcon = { red:'🔴', yellow:'🟡', green:'🟢' };
+  const riskLabel = { red:'Röd flagga', yellow:'Granskas', green:'Auto-release' };
+
+  let h = '';
+
+  queue.forEach(({ pat, visit, r }) => {
+    const releaseDate = r.autoReleaseAt ? new Date(r.autoReleaseAt).toLocaleDateString('sv-SE') : null;
+    h += `<div style="border:1px solid ${r.level==='red'?'rgba(192,48,48,.3)':'rgba(138,96,0,.25)'};border-radius:12px;padding:12px;margin-bottom:10px;background:${r.level==='red'?'rgba(192,48,48,.05)':'rgba(138,96,0,.05)'}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:14px">${riskIcon[r.level]}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${e(pat.name)}</div>
+          <div style="font-size:11px;color:var(--muted)">${e(visit.form?.diagnosis||visit.plan?.diagnosis||'Okänd diagnos')} · ${visit.date||''}</div>
+        </div>
+        <span style="font-size:10px;font-weight:600;color:${r.level==='red'?'#c03030':'#8a6000'};background:${r.level==='red'?'rgba(192,48,48,.1)':'rgba(138,96,0,.1)'};padding:3px 8px;border-radius:20px">${riskLabel[r.level]}</span>
+      </div>
+      ${r.reasons?.length ? `<div style="font-size:11px;color:var(--muted);margin-bottom:8px">${r.reasons.join(' · ')}</div>` : ''}
+      <div style="display:flex;gap:8px">
+        <button onclick="approvePlan('${pat.id}','${visit.id}')" style="flex:1;background:var(--teal);color:white;border:none;border-radius:8px;padding:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">✓ Godkänn</button>
+        <button onclick="openPat('${pat.id}')" style="background:none;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:11px;cursor:pointer;font-family:var(--font)">Granska</button>
+      </div>
+    </div>`;
+  });
+
+  if (pending.length) {
+    h += `<div style="font-size:11px;color:var(--muted);padding:6px 0">🟢 ${pending.length} plan${pending.length>1?'er':''} auto-releasas inom 48h</div>`;
+  }
+
+  return h;
 }
 
 async function generateIntelligenceBriefing() {

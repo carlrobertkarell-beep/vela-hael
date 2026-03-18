@@ -657,6 +657,29 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .vt-date { font-size:11px; font-weight:600; color:var(--muted); letter-spacing:.04em; margin-bottom:4px; }
 .vt-title { font-size:13px; font-weight:600; color:var(--ink); margin-bottom:3px; }
 
+/* ── MESSAGE PANEL (kundkortet) ─────────────────────────── */
+.msg-panel { padding:0; }
+.msg-panel-hdr { display:flex;align-items:center;justify-content:space-between;padding:12px 0 8px; }
+.msg-panel-title { font-size:13px;font-weight:700;color:var(--ink); }
+.msg-list { display:flex;flex-direction:column;gap:6px;margin-bottom:14px;max-height:280px;overflow-y:auto; }
+.msg-bubble { padding:10px 13px;border-radius:12px;font-size:13px;line-height:1.55;max-width:85%; }
+.msg-bubble.out { background:var(--navy);color:white;align-self:flex-end;border-radius:12px 12px 4px 12px; }
+.msg-bubble.in  { background:var(--surface2);color:var(--ink);align-self:flex-start;border-radius:4px 12px 12px 12px; }
+.msg-meta { font-size:10px;color:var(--muted);margin-top:3px; }
+.msg-meta.out { text-align:right; }
+.msg-empty { font-size:13px;color:var(--muted);padding:12px 0;line-height:1.6; }
+.msg-type-chip { font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block; }
+.msg-badge-reply { background:var(--red);color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px; }
+.msg-quick-btns { display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px; }
+.msg-quick-btn { padding:6px 12px;border:1.5px solid var(--border);border-radius:20px;background:var(--surface);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .12s; }
+.msg-quick-btn:hover { border-color:var(--teal);color:var(--teal); }
+.msg-compose { margin-top:8px; }
+.msg-input-row { display:flex;gap:8px;align-items:flex-end; }
+.msg-textarea { flex:1;border:1.5px solid var(--border);border-radius:10px;padding:9px 12px;font-size:13px;font-family:var(--font);color:var(--ink);background:var(--surface2);resize:none;outline:none;min-height:60px; }
+.msg-textarea:focus { border-color:var(--teal); }
+.msg-send-btn { background:var(--navy);color:white;border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap; }
+.msg-send-btn:hover { background:var(--teal); }
+
 /* ── CONSENT BLOCK ───────────────────────────────────────── */
 .consent-row { display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border2);font-size:13px; }
 .consent-row:last-child { border-bottom:none; }
@@ -3529,7 +3552,7 @@ function rDashboard() {
     +   '<div class="cc-kpi-lbl">Följsamhet</div>'
     +   '<div style="margin-top:8px;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div style="height:100%;background:'+(adherence>=70?'var(--teal)':adherence>=40?'var(--gold)':'var(--red)')+';border-radius:2px;width:'+adherence+'%"></div></div>'
     + '</div>'
-    + '<div class="cc-kpi" style="'+(dropoutRisk.length>0?'border-color:rgba(200,160,48,.3)':'')+'">'
+    + '<div class="cc-kpi" '+(dropoutRisk.length>0?'onclick="showDropoutList()" style="border-color:rgba(212,168,67,.35);cursor:pointer"':'style=""')+'>'
     +   '<div class="cc-kpi-val" style="color:'+(dropoutRisk.length>0?'var(--gold)':'var(--navy)')+'">'+dropoutRisk.length+'</div>'
     +   '<div class="cc-kpi-lbl">Avhoppsrisk</div>'
     +   (dropoutRisk.length>0 ? '<div class="cc-kpi-delta dn" onclick="showDropoutList()" style="cursor:pointer">~'+dropoutRevRisk.toLocaleString('sv-SE')+' kr → lista</div>' : '<div class="cc-kpi-delta" style="color:var(--text3)">Inga riskpatienter</div>')
@@ -4366,11 +4389,25 @@ function renderVisitTimeline(pat) {
             <div class="vt-date">${v.date || '--'}${service ? ' · ' + e(service) : ''}${price ? ' · ' + price : ''}</div>
             <div class="vt-title">${diag || e(icd || 'Besök ' + (visits.length - idx))}</div>
             <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">
-              <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${hasSoap?'var(--teal-lt)':'#f0f0f0'};color:${hasSoap?'var(--teal)':'#aaa'}">${hasSoap?'Journal':'Ingen journal'}</span>
-              <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${hasPlan?'var(--green-lt)':'#f0f0f0'};color:${hasPlan?'#1a7a4a':'#aaa'}">${hasPlan?`Plan · ${exCount} övn`:'Ingen plan'}</span>
+              <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${hasSoap?'var(--teal-lt)':'var(--surface3)'};color:${hasSoap?'var(--teal)':'var(--muted)'}">${hasSoap?'Journal':'Ingen journal'}</span>
+              <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${hasPlan?'var(--green-lt)':'var(--surface3)'};color:${hasPlan?'#1a7a4a':'var(--muted)'}">${hasPlan?`Plan · ${exCount} övn`:'Ingen plan'}</span>
               ${pain != null ? `<span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:var(--surface2);color:var(--text2)">NRS ${pain}/10</span>` : ''}
               <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${sc.bg};color:${sc.col}">${st}</span>
             </div>
+            ${(() => {
+              if (!hasPlan) return '';
+              const _pLogs = getPassLogs(pat.id).filter(l => l.visitId === v.id || !l.visitId);
+              if (!_pLogs.length) return '';
+              const _done = _pLogs.filter(l => l.done === 'all' || l.done === 'most' || l.completed).length;
+              const _pct = Math.round(_done / _pLogs.length * 100);
+              const _col = _pct >= 70 ? 'var(--teal)' : _pct >= 40 ? 'var(--gold)' : 'var(--red)';
+              return '<div style="margin-top:6px;display:flex;align-items:center;gap:8px">'
+                + '<div style="flex:1;height:3px;background:var(--border2);border-radius:2px;overflow:hidden">'
+                + '<div style="height:100%;background:'+_col+';border-radius:2px;width:'+_pct+'%;transition:width .6s ease"></div>'
+                + '</div>'
+                + '<div style="font-size:10px;color:var(--muted);font-family:var(--font-mono);flex-shrink:0">'+_done+'/'+_pLogs.length+' pass</div>'
+                + '</div>';
+            })()}
             ${signalHTML}
           </div>
           <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;margin-top:2px">
@@ -13041,11 +13078,7 @@ function _renderBriefing(entry) {
 
 // ── STARTA BESÖK — unified entry point ─────────────────────
 function startVisitFlow() {
-  // If we already have a patient in context, go straight to action chooser
-  if (S.pat) {
-    showVisitActionChooser();
-    return;
-  }
+  // Always show the new/returning chooser — never assume a patient context
   // Otherwise: pick new or returning
   const ov = document.createElement('div');
   ov.id = 'start-visit-ov';

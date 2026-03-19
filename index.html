@@ -14786,6 +14786,68 @@ function showDropoutList() {
   document.body.appendChild(ov);
 }
 
+
+
+// -- STARTUP ROUTING -----------------------------------------------------------
+(function() {
+  try {
+    const _hashParams  = new URLSearchParams(window.location.hash.replace('#',''));
+    const _hashPatId   = _hashParams.get('plan');
+    const _hashVisitId = _hashParams.get('visit');
+    const _hashIntakeId = _hashParams.get('intake');
+
+    if (_hashIntakeId) {
+      window._isPublicPlan = true;
+      document.querySelector('.topbar')?.style.setProperty('display','none');
+      document.getElementById('autosave-toast')?.style.setProperty('display','none');
+      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+      document.getElementById('s-public-plan').classList.add('active');
+      const _ld = document.getElementById('page-loader');
+      if (_ld) { _ld.style.opacity='0'; setTimeout(()=>_ld.remove(),200); }
+      renderPublicIntakeForm(_hashIntakeId, _hashParams.get('visit')||'');
+    } else if (_hashPatId && _hashVisitId) {
+      window._isPublicPlan = true;
+      document.querySelector('.topbar')?.style.setProperty('display','none');
+      document.getElementById('autosave-toast')?.style.setProperty('display','none');
+      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+      document.getElementById('s-public-plan').classList.add('active');
+      document.getElementById('s-public-plan').innerHTML = '<div class="pub-loading">Hamtar din Hael-plan...</div>';
+      const _ld = document.getElementById('page-loader');
+      if (_ld) { _ld.style.opacity='0'; setTimeout(()=>_ld.remove(),200); }
+      loadPublicPlan(_hashPatId, _hashVisitId);
+    } else {
+      const _storedAuth = getStoredAuth();
+      if (_storedAuth) {
+        _authUser = _storedAuth.user;
+        loadPats();
+        S.apiKey = getKey();
+        startAutoSave();
+        initTheme();
+        const _ld = document.getElementById('page-loader');
+        if (_ld) { _ld.style.opacity='0'; _ld.style.transition='opacity .2s'; setTimeout(()=>{ try{_ld.remove();}catch(e){} },250); }
+        go('dashboard');
+        initVelaAsk();
+        setTimeout(() => rNavLogo(), 100);
+        setTimeout(() => syncFromCloud(), 800);
+        setTimeout(() => sbKeepAlive(), 2000);
+        setTimeout(() => runInboxAgent(S.patients), 3500);
+      } else {
+        const _ld = document.getElementById('page-loader');
+        if (_ld) { _ld.style.opacity='0'; _ld.style.transition='opacity .2s'; setTimeout(()=>{ try{_ld.remove();}catch(e){} },250); }
+        rLogin();
+      }
+    }
+  } catch(startupErr) {
+    console.error('[Vela startup error]', startupErr);
+    const _ld = document.getElementById('page-loader');
+    if (_ld) _ld.remove();
+    const diagDiv = document.createElement('div');
+    diagDiv.style.cssText = 'position:fixed;top:20px;left:20px;right:20px;z-index:99999;background:#fff;border:2px solid red;border-radius:8px;padding:16px;font-family:monospace;font-size:11px;white-space:pre-wrap;word-break:break-all;max-height:60vh;overflow-y:auto';
+    diagDiv.textContent = 'STARTUP ERROR:\n' + (startupErr?.stack || String(startupErr));
+    document.body.appendChild(diagDiv);
+  }
+})();
+
 </script>
 </body>
 </html>

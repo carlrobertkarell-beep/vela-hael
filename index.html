@@ -148,7 +148,8 @@ button, input, textarea, select { font-family: inherit; }
 .topbar {
   display: none; position: fixed; top: 0; left: 0; right: 0;
   height: 52px; background: var(--sb-bg); z-index: 140;
-  align-items: center; padding: 0 6px; gap: 4px;
+  align-items: center; padding: 0 8px;
+  justify-content: space-between;
 }
 @media (max-width: 768px) {
   .topbar { display: flex; }
@@ -156,6 +157,19 @@ button, input, textarea, select { font-family: inherit; }
   .nav-sidebar.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
   .main-content { padding-top: 52px; }
   .app-shell { display: block; height: auto; min-height: 100vh; }
+  .inbox-btn {
+    position: relative; background: none; border: none; cursor: pointer;
+    width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,.65); flex-shrink: 0;
+  }
+  .inbox-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; }
+  .inbox-badge {
+    position: absolute; top: 6px; right: 6px;
+    min-width: 16px; height: 16px; border-radius: 8px;
+    background: #e04040; color: white;
+    font-size: 9px; font-weight: 700; line-height: 16px;
+    text-align: center; padding: 0 3px; font-family: var(--font);
+  }
 }
 
 /* ── CONTENT WRAPPER ────────────────────────────────────────── */
@@ -1197,10 +1211,16 @@ function _velaTextLogo(name) {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 20"><text x="0" y="16" font-family="'Plus Jakarta Sans',sans-serif" font-size="14" font-weight="700" fill="white">${initials}</text><text x="20" y="16" font-family="'Plus Jakarta Sans',sans-serif" font-size="13" font-weight="400" fill="rgba(255,255,255,0.7)">${name.length > 12 ? name.slice(0, 12) + '…' : name}</text></svg>`;
   return 'data:image/svg+xml,' + encodeURIComponent(svg);
 }
+// Default Vela wordmark SVG for mobile topbar when no clinic logo
+function _velaWordmark() {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 20"><text x="0" y="15" font-family="'Plus Jakarta Sans',sans-serif" font-size="16" font-weight="800" fill="white" letter-spacing="-0.5">Vela</text></svg>`;
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
+}
 function getLogo() {
   const cfg = getClinicConfig();
   if (cfg.logoData) return cfg.logoData; // base64 uploaded logo
-  return _velaTextLogo(cfg.name || 'Vela');
+  if (cfg.name && cfg.name !== 'Min klinik') return _velaTextLogo(cfg.name);
+  return _velaWordmark(); // default: plain "Vela" wordmark
 }
 // CLINIC is now dynamic — defined above via Proxy
 const CLINIC = new Proxy({}, { get(_, prop) { return getClinicConfig()[prop] ?? ''; } });

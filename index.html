@@ -575,6 +575,34 @@ button, input, textarea, select { font-family: inherit; }
 }
 .vela-dh-avatar:hover { background: rgba(13,155,138,.25); }
 
+/* ── SETTINGS LAYOUT ─────────────────────────────────────── */
+.vela-settings-wrap {
+  display: flex; min-height: calc(100vh - 52px); max-width: 1100px;
+  margin: 0 auto; padding: 0;
+}
+.vela-settings-nav {
+  width: 200px; flex-shrink: 0; padding: 28px 12px;
+  border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px;
+}
+.vela-stab {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 12px; border: none; background: none; border-radius: 9px;
+  font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer;
+  font-family: var(--font); text-align: left; width: 100%; transition: all .12s;
+}
+.vela-stab:hover { background: var(--surface2); color: var(--text); }
+.vela-stab.active { background: rgba(13,155,138,.1); color: var(--teal); font-weight: 700; }
+.vela-settings-content { flex: 1; padding: 32px 36px; min-width: 0; }
+.vela-st-section { max-width: 640px; }
+.vela-st-title { font-family: var(--font-serif, Georgia, serif); font-size: 22px; font-weight: 400; color: var(--navy); margin-bottom: 6px; letter-spacing: -.02em; }
+.vela-st-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+.vela-st-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--teal); }
+@media (max-width: 768px) {
+  .vela-settings-wrap { flex-direction: column; }
+  .vela-settings-nav { width: 100%; border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; flex-wrap: wrap; padding: 12px; }
+  .vela-settings-content { padding: 20px 16px; }
+}
+
 /* ── DETAIL LAYOUT ───────────────────────────────────────── */
 .det-layout {
   display:grid; grid-template-columns:1fr 280px; gap:20px;
@@ -1194,6 +1222,13 @@ function saveClinicConfig(cfg) {
   // Sync to Supabase clinic:settings
   _sbSaveClinicSettings({ clinicConfig: cfg });
 }
+
+// Helper: returns signatory name for emails/plans
+function getSignatory() {
+  const cfg = getClinicConfig();
+  return cfg.signatory || cfg.name || 'Kliniken';
+}
+
 function _applyClinicConfig(cfg) {
   // Apply accent color as CSS variable
   if (cfg.accent) {
@@ -5474,7 +5509,7 @@ function _autoSendIntakeAfterRegistration(pat) {
   ov.onclick = function(e){ if(e.target===ov){ ov.remove(); S.pat=pat; go('detail'); } };
 
   const subject = encodeURIComponent(`Ditt träningsprogram från ${CLINIC.name} -- ett kort formulär`);
-  const body = encodeURIComponent(`Hej ${firstName},\n\nVälkommen till ${CLINIC.name}!\n\nFör att kunna skapa ditt personliga träningsprogram behöver vi veta lite om dina förutsättningar. Det tar 2-3 minuter:\n\n${baseUrl}#intake=${pat.id}\n\nNär du skickat in svaren genererar vi ditt program direkt.\n\nMed vänliga hälsningar,\n${CLINIC.name}`);
+  const body = encodeURIComponent(`Hej ${firstName},\n\nVälkommen till ${CLINIC.name}!\n\nFör att kunna skapa ditt personliga träningsprogram behöver vi veta lite om dina förutsättningar. Det tar 2-3 minuter:\n\n${baseUrl}#intake=${pat.id}\n\nNär du skickat in svaren genererar vi ditt program direkt.\n\nMed vänliga hälsningar,\n${getSignatory()}`);
   const mailtoUrl = `mailto:${encodeURIComponent(pat.email||'')}?subject=${subject}&body=${body}`;
 
   ov.innerHTML = `
@@ -7843,6 +7878,7 @@ En PDF-version av planen bifogas separat -- öppna och skriv ut vid behov.
 Hör gärna av dig om du har frågor.
 
 Med vänliga hälsningar,
+${getSignatory()}
 ${clinic.name}
 ${clinic.phone}
 ${clinic.email}`;
@@ -8940,8 +8976,8 @@ function sendIntakeLink(patId, intakeType) {
       : `Inför din nästa fas — kort uppdatering till ${CLINIC.name}`
   );
   const bodyText = isNew
-    ? `Hej ${firstName},\n\nVälkommen till ${CLINIC.name}!\n\nInnan vi skapar ditt personliga träningsprogram vill vi lära känna dig lite bättre. Det tar 3-4 minuter:\n\n${intakeUrl}\n\nNär du svarat granskar din naprapat svaren och programmet tas fram.\n\nMed vänliga hälsningar,\n${CLINIC.name}`
-    : `Hej ${firstName},\n\nInför din nästa rehabfas vill vi veta hur det har gått och om något förändrats.\n\nFyller du i det korta formuläret? Det tar 2 minuter:\n\n${intakeUrl}\n\nMed vänliga hälsningar,\n${CLINIC.name}`;
+    ? `Hej ${firstName},\n\nVälkommen till ${CLINIC.name}!\n\nInnan vi skapar ditt personliga träningsprogram vill vi lära känna dig lite bättre. Det tar 3-4 minuter:\n\n${intakeUrl}\n\nNär du svarat granskar din naprapat svaren och programmet tas fram.\n\nMed vänliga hälsningar,\n${getSignatory()}`
+    : `Hej ${firstName},\n\nInför din nästa rehabfas vill vi veta hur det har gått och om något förändrats.\n\nFyller du i det korta formuläret? Det tar 2 minuter:\n\n${intakeUrl}\n\nMed vänliga hälsningar,\n${getSignatory()}`;
 
   const mailtoUrl = `mailto:${encodeURIComponent(p.email||'')}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
 
@@ -13139,27 +13175,36 @@ Förfallna återbesök: ${overdue.map(p=>p.name).join(', ')||'inga'}`;
 let _briefingIdx = 0;
 function _renderBriefing(entry) {
   const el  = document.getElementById('cc-briefing-text');
-  const btn = document.getElementById('cc-briefing-btn');
   if (!el) return;
-  el.style.cssText = 'font-size:14px;color:rgba(255,255,255,.8);line-height:1.8;font-style:normal';
+  // Sync index
+  const idx = _briefingCache.indexOf(entry);
+  if (idx >= 0) _briefingIdx = idx;
+
+  el.style.cssText = 'font-size:14px;color:rgba(255,255,255,.85);line-height:1.8;font-style:normal';
   el.textContent = entry.text;
-  // Show controls
+
   const wrap = document.getElementById('cc-briefing-card');
   if (!wrap) return;
   let ctrl = document.getElementById('cc-briefing-ctrl');
   if (!ctrl) {
     ctrl = document.createElement('div');
     ctrl.id = 'cc-briefing-ctrl';
-    ctrl.style.cssText = 'display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap';
+    ctrl.style.cssText = 'display:flex;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap';
     wrap.appendChild(ctrl);
   }
-  const idx = _briefingCache.indexOf(entry);
   const total = _briefingCache.length;
   ctrl.innerHTML =
-    (total > 1 ? '<button onclick="if(_briefingIdx<_briefingCache.length-1){_briefingIdx++;_renderBriefing(_briefingCache[_briefingIdx])}" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:7px;padding:5px 11px;font-size:11px;cursor:pointer;font-family:var(--font)">← Äldre</button>' : '')
-    +'<span style="font-size:10px;color:rgba(255,255,255,.3);flex:1">'+entry.date+' '+entry.time+(total>1?' · '+(idx+1)+'/'+total:'')+'</span>'
-    +(idx > 0 ? '<button onclick="_briefingIdx--;_renderBriefing(_briefingCache[_briefingIdx])" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:7px;padding:5px 11px;font-size:11px;cursor:pointer;font-family:var(--font)">Nyare →</button>' : '')
-    +'<button onclick="generateDailyBriefing(true)" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:7px;padding:5px 11px;font-size:11px;cursor:pointer;font-family:var(--font)">Regenerera</button>';
+    (_briefingIdx < total-1
+      ? '<button onclick="_briefingIdx++;_renderBriefing(_briefingCache[_briefingIdx])" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);border-radius:7px;padding:5px 11px;font-size:11px;cursor:pointer;font-family:var(--font)">← Äldre</button>'
+      : '')
+    + '<span style="font-size:10px;color:rgba(255,255,255,.3);flex:1;text-align:center">'
+    + entry.date + ' ' + entry.time
+    + (total > 1 ? ' · ' + (_briefingIdx+1) + '/' + total : '')
+    + '</span>'
+    + (_briefingIdx > 0
+      ? '<button onclick="_briefingIdx--;_renderBriefing(_briefingCache[_briefingIdx])" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);border-radius:7px;padding:5px 11px;font-size:11px;cursor:pointer;font-family:var(--font)">Nyare →</button>'
+      : '')
+    + '<button onclick="generateDailyBriefing(true)" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.55);border-radius:7px;padding:5px 11px;font-size:11px;cursor:pointer;font-family:var(--font)">↻ Regenerera</button>';
 }
 
 // ── STARTA BESÖK — unified entry point ─────────────────────
@@ -13814,165 +13859,391 @@ function rNavLogo() {
 function rSettings() {
   const el = document.getElementById('s-settings');
   if (!el) return;
-  const cfg = getClinicConfig();
-  const key = S.apiKey || getKey();
-  const keyOk = key && key.startsWith('sk-ant');
-
-  el.innerHTML = '<div class="cx" style="max-width:800px">'
-    + '<div style="margin-bottom:28px">'
-    +   '<div style="font-family:var(--font-serif,Georgia,serif);font-size:26px;font-weight:400;color:var(--navy);margin-bottom:4px">Inställningar</div>'
-    +   '<div style="font-size:13px;color:var(--muted)">Klinik, API, tjänster och behörigheter</div>'
-    + '</div>'
-
-    // Tabs
-    + '<div style="display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:0">'
-    + ['Klinik','API','Tjänster','Behörigheter','Synk'].map((t,i) =>
-        '<button onclick="rSettingsTab('+i+')" id="stab-'+i+'" style="padding:9px 18px;border:none;background:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);color:'+(i===0?'var(--navy)':'var(--muted)')+';border-bottom:2px solid '+(i===0?'var(--teal)':'transparent')+';margin-bottom:-1px;transition:all .15s">'+t+'</button>'
-      ).join('')
-    + '</div>'
-
-    + '<div id="settings-tab-content">'
-    + _settingsTabClinic(cfg)
-    + '</div>'
-    + '</div>';
+  window._settingsActiveTab = window._settingsActiveTab || 'clinic';
+  el.innerHTML = '<div class="vela-settings-wrap"><div class="vela-settings-nav" id="vela-settings-nav"></div><div class="vela-settings-content" id="vela-settings-content"></div></div>';
+  _renderSettingsNav();
+  _renderSettingsContent(window._settingsActiveTab);
 }
 
-function rSettingsTab(idx) {
-  const cfg = getClinicConfig();
-  const key = S.apiKey || getKey();
-  [0,1,2,3,4].forEach(i => {
-    const btn = document.getElementById('stab-'+i);
-    if (btn) {
-      btn.style.color = i===idx ? 'var(--navy)' : 'var(--muted)';
-      btn.style.borderBottomColor = i===idx ? 'var(--teal)' : 'transparent';
-    }
-  });
-  const el = document.getElementById('settings-tab-content');
+function _renderSettingsNav() {
+  const nav = document.getElementById('vela-settings-nav');
+  if (!nav) return;
+  const tabs = [
+    { id:'clinic',    label:'Klinik',         icon:'<circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>' },
+    { id:'users',     label:'Användare',       icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
+    { id:'services',  label:'Tjänster',        icon:'<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
+    { id:'comms',     label:'Kommunikation',   icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>' },
+    { id:'ai',        label:'AI & API',        icon:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>' },
+    { id:'sync',      label:'Synk & Data',     icon:'<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>' },
+  ];
+  const cur = window._settingsActiveTab;
+  nav.innerHTML = tabs.map(t =>
+    '<button onclick="window._settingsActiveTab=\''+t.id+'\';_renderSettingsNav();_renderSettingsContent(\''+t.id+'\')" class="vela-stab'+(cur===t.id?' active':'')+'">'
+    +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+t.icon+'</svg>'
+    +t.label+'</button>'
+  ).join('');
+}
+
+function _renderSettingsContent(tab) {
+  const el = document.getElementById('vela-settings-content');
   if (!el) return;
-  if (idx===0) el.innerHTML = _settingsTabClinic(cfg);
-  else if (idx===1) el.innerHTML = _settingsTabAPI(key);
-  else if (idx===2) el.innerHTML = _settingsTabServices();
-  else if (idx===3) el.innerHTML = _settingsTabPermissions();
-  else if (idx===4) el.innerHTML = _settingsTabSync();
+  const cfg = getClinicConfig();
+  const key = S.apiKey || getKey();
+  if (tab === 'clinic')   el.innerHTML = _stClinic(cfg);
+  else if (tab === 'users')    el.innerHTML = _stUsers();
+  else if (tab === 'services') el.innerHTML = _stServices();
+  else if (tab === 'comms')    el.innerHTML = _stComms(cfg);
+  else if (tab === 'ai')       el.innerHTML = _stAI(key);
+  else if (tab === 'sync')     el.innerHTML = _stSync();
 }
 
-function _settingsTabClinic(cfg) {
-  var h = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:600px">';
-  h += _sField('cc-name','Kliniknamn *', cfg.name !== 'Min klinik' ? cfg.name : '', 'T.ex. Stureplan Rehab...','text');
-  h += _sField('cc-phone','Telefon', cfg.phone||'', '08-000 00 00','tel');
-  h += _sField('cc-email','E-post', cfg.email||'', 'info@klinik.se','email');
-  h += _sField('cc-address','Adress', cfg.address||'', 'Gatuadress, stad','text');
+// ── KLINIK TAB ──────────────────────────────────────────────
+function _stClinic(cfg) {
+  const isLight = document.body.classList.contains('light');
+  var h = '<div class="vela-st-section">';
+  h += '<div class="vela-st-title">Klinikprofil</div>';
+  h += '<div class="vela-st-desc">Visas i Hael-planen, e-post och all patientkommunikation.</div>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;max-width:560px">';
+  h += _stField('cc-name','Kliniknamn *', cfg.name !== 'Min klinik' ? cfg.name : '', 'T.ex. Kansei Ortopedi','text');
+  h += _stField('cc-phone','Telefon', cfg.phone||'', '08-000 00 00','tel');
+  h += _stField('cc-email','E-post', cfg.email||'', 'info@klinik.se','email');
+  h += _stField('cc-address','Adress', cfg.address||'', 'Gatuadress, stad','text');
+  h += _stField('cc-website','Webbplats', cfg.website||'', 'www.klinik.se','url');
+  h += _stField('cc-signatory','Behandlarnamn (signatur)', cfg.signatory||'', 'T.ex. Carl-Robert Engström','text');
   h += '</div>';
-  h += '<div style="margin-top:16px;max-width:600px">';
-  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:8px">Accentfärg</div>';
-  h += '<div style="display:flex;align-items:center;gap:12px">';
-  h += '<input type="color" id="cc-accent" value="' + (cfg.accent||'#0d9b8a') + '" style="width:44px;height:44px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;padding:2px">';
-  h += '<div style="font-size:12px;color:var(--text3)">Används i Hael-planen och all patientkommunikation</div>';
+  // Accent
+  h += '<div style="margin-top:20px">';
+  h += '<div class="vela-st-label">Accentfärg</div>';
+  h += '<div style="display:flex;align-items:center;gap:12px;margin-top:8px">';
+  h += '<input type="color" id="cc-accent" value="'+(cfg.accent||'#0d9b8a')+'" style="width:44px;height:44px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;padding:2px">';
+  h += '<span style="font-size:12px;color:var(--muted)">Används i Hael-planen och all patientkommunikation</span>';
   h += '</div></div>';
-  h += '<div style="margin-top:16px;max-width:600px">';
-  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:8px">Kliniklogotyp</div>';
-  h += '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">';
-  if (cfg.logoData) h += '<img src="' + cfg.logoData + '" style="height:40px;object-fit:contain;border:1px solid var(--border);border-radius:8px;padding:4px 8px">';
+  // Logo
+  h += '<div style="margin-top:20px">';
+  h += '<div class="vela-st-label">Kliniklogotyp</div>';
+  h += '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px" id="logo-upload-row">';
+  if (cfg.logoData) h += '<img src="'+cfg.logoData+'" style="height:40px;object-fit:contain;border:1px solid var(--border);border-radius:8px;padding:4px 8px">';
   h += '<label style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--navy)">';
   h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
   h += 'Ladda upp logotyp<input type="file" accept="image/*" style="display:none" onchange="handleLogoUpload(this)"></label>';
   if (cfg.logoData) h += '<button onclick="removeClinicLogo()" style="padding:9px 14px;background:none;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--red);cursor:pointer;font-family:var(--font)">Ta bort</button>';
   h += '</div></div>';
-  h += '<div style="margin-top:24px">';
+  // Theme
+  h += '<div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">';
+  h += '<div class="vela-st-label">Utseende</div>';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-top:8px;max-width:400px">';
+  h += '<div><div style="font-size:13px;font-weight:600;color:var(--ink)">'+(isLight?'☀️ Ljust läge':'🌙 Mörkt läge')+'</div>';
+  h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">Växla tema</div></div>';
+  h += '<button onclick="toggleTheme()" class="btn btn-p" style="font-size:12px;padding:7px 14px">Byt till '+(isLight?'mörkt':'ljust')+'</button>';
+  h += '</div></div>';
+  // Save
+  h += '<div style="margin-top:24px;display:flex;align-items:center;gap:12px">';
   h += '<button onclick="ccSave()" class="btn btn-p" style="padding:12px 28px">Spara klinikprofil</button>';
-  h += '<span id="cc-saved" style="font-size:12px;color:var(--teal);margin-left:12px;opacity:0;transition:opacity .3s">Sparad \u2713</span>';
+  h += '<span id="cc-saved" style="font-size:12px;color:var(--teal);opacity:0;transition:opacity .3s">Sparad ✓</span>';
   h += '</div>';
-  // Theme toggle
-  const isLight = document.body.classList.contains('light');
-  h += '<div style="margin-top:24px;max-width:600px;padding-top:20px;border-top:1px solid var(--border)">';
-  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:12px">Utseende</div>';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 16px">';
-  h += '<div>';
-  h += '<div style="font-size:13px;font-weight:600;color:var(--ink)">' + (isLight ? '☀️ Ljust läge' : '🌙 Mörkt läge') + '</div>';
-  h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">Växla mellan mörkt och ljust tema</div>';
   h += '</div>';
-  h += '<button onclick="toggleTheme()" style="background:var(--teal);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">Byt till ' + (isLight ? 'mörkt' : 'ljust') + '</button>';
+  return h;
+}
+
+// ── ANVÄNDARE & ROLLER ───────────────────────────────────────
+function _stUsers() {
+  const users = _getVelaUsers();
+  const roles = {
+    owner:    { label:'Ägare',       color:'#1a7a4a', bg:'rgba(26,122,74,.1)',   desc:'Ser allt, ändrar allt, ser alla intäkter' },
+    therapist:{ label:'Behandlare',  color:'var(--teal)', bg:'rgba(13,155,138,.08)', desc:'Egna patienter, journal, egna intäkter' },
+    reception:{ label:'Reception',   color:'#4a7aaa', bg:'rgba(74,122,170,.08)', desc:'Registrerar & bokar, ser ej journal/ekonomi' },
+  };
+
+  var h = '<div class="vela-st-section">';
+  h += '<div class="vela-st-title">Användare & Roller</div>';
+  h += '<div class="vela-st-desc">Bjud in teammedlemmar och sätt vad de får se och göra.</div>';
+
+  // Role definitions
+  h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px;margin-bottom:24px">';
+  Object.entries(roles).forEach(([id, r]) => {
+    h += '<div style="border:1px solid var(--border);border-radius:12px;padding:14px;background:'+r.bg+'">';
+    h += '<div style="font-size:12px;font-weight:700;color:'+r.color+';margin-bottom:4px">'+r.label+'</div>';
+    h += '<div style="font-size:11px;color:var(--muted);line-height:1.5">'+r.desc+'</div>';
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // Current users
+  h += '<div style="margin-bottom:20px">';
+  h += '<div class="vela-st-label" style="margin-bottom:12px">Aktiva användare</div>';
+  h += '<div style="border:1px solid var(--border);border-radius:14px;overflow:hidden">';
+  users.forEach((u, i) => {
+    const r = roles[u.role] || roles.therapist;
+    h += '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;'+(i>0?'border-top:1px solid var(--border)':'')+'">';
+    h += '<div style="width:34px;height:34px;border-radius:50%;background:'+r.bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:'+r.color+'">'+u.name.slice(0,2).toUpperCase()+'</div>';
+    h += '<div style="flex:1;min-width:0">';
+    h += '<div style="font-size:13px;font-weight:600;color:var(--ink)">'+e(u.name)+'</div>';
+    h += '<div style="font-size:11px;color:var(--muted)">'+e(u.email)+'</div>';
+    h += '</div>';
+    h += '<select onchange="_updateUserRole(\''+u.id+'\',this.value)" style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);font-family:var(--font);cursor:pointer">';
+    Object.entries(roles).forEach(([rid, r2]) => {
+      h += '<option value="'+rid+'"'+(u.role===rid?' selected':'')+'>'+r2.label+'</option>';
+    });
+    h += '</select>';
+    if (u.id !== 'owner-self') h += '<button onclick="_removeVelaUser(\''+u.id+'\')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:16px;line-height:1" title="Ta bort">×</button>';
+    h += '</div>';
+  });
+  if (!users.length) h += '<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted)">Inga användare tillagda ännu</div>';
+  h += '</div></div>';
+
+  // Invite form
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px">';
+  h += '<div class="vela-st-label" style="margin-bottom:12px">Bjud in ny användare</div>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px;align-items:end">';
+  h += _stField('inv-name','Namn','','T.ex. Anna Lindqvist','text');
+  h += _stField('inv-email','E-post','','anna@klinik.se','email');
+  h += '<div><div class="vela-st-label" style="margin-bottom:7px">Roll</div>';
+  h += '<select id="inv-role" style="height:42px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:var(--font);width:100%;font-size:13px">';
+  h += '<option value="therapist">Behandlare</option><option value="reception">Reception</option><option value="owner">Ägare</option>';
+  h += '</select></div>';
+  h += '<button onclick="_inviteVelaUser()" class="btn btn-p" style="height:42px;white-space:nowrap">Bjud in</button>';
+  h += '</div></div>';
+
+  // Permissions matrix
+  h += '<div style="margin-top:24px">';
+  h += '<div class="vela-st-label" style="margin-bottom:12px">Behörighetsmatris</div>';
+  h += _stPermMatrix();
+  h += '</div>';
+
+  h += '</div>';
+  return h;
+}
+
+function _stPermMatrix() {
+  const perms = [
+    { label:'Patientlista & kundkort',  owner:true,  therapist:true,  reception:true  },
+    { label:'Journalföring (SOAP)',     owner:true,  therapist:true,  reception:false },
+    { label:'Hael-plan (skapa)',        owner:true,  therapist:true,  reception:false },
+    { label:'AI-konsultation',          owner:true,  therapist:true,  reception:false },
+    { label:'Egna intäkter',            owner:true,  therapist:true,  reception:false },
+    { label:'Alla behandlares intäkter',owner:true,  therapist:false, reception:false },
+    { label:'Klinikanalys (Intelligence)',owner:true, therapist:false, reception:false },
+    { label:'Inställningar',            owner:true,  therapist:false, reception:false },
+    { label:'Bjuda in användare',       owner:true,  therapist:false, reception:false },
+  ];
+  const chk = (v) => v
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>'
+    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+  var h = '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden">';
+  h += '<div style="display:grid;grid-template-columns:1fr 80px 80px 80px;gap:0">';
+  h += '<div style="padding:10px 14px;font-size:11px;font-weight:700;color:var(--muted);background:var(--bg)">Funktion</div>';
+  ['Ägare','Behandlare','Reception'].forEach(r => {
+    h += '<div style="padding:10px 8px;font-size:11px;font-weight:700;color:var(--muted);background:var(--bg);text-align:center">'+r+'</div>';
+  });
+  perms.forEach((p, i) => {
+    const bg = i%2===0 ? 'var(--surface)' : 'var(--bg)';
+    h += '<div style="padding:9px 14px;font-size:12px;color:var(--text);background:'+bg+';border-top:1px solid var(--border2)">'+p.label+'</div>';
+    [p.owner, p.therapist, p.reception].forEach(v => {
+      h += '<div style="display:flex;align-items:center;justify-content:center;background:'+bg+';border-top:1px solid var(--border2)">'+chk(v)+'</div>';
+    });
+  });
   h += '</div></div>';
   return h;
 }
 
-function _settingsTabAPI(key) {
-  var ok = key && key.startsWith('sk-ant');
-  var h = '<div style="max-width:560px">';
-  h += '<div style="background:var(--navy);border-radius:14px;padding:20px 22px;margin-bottom:20px;color:rgba(255,255,255,.7);font-size:13px;line-height:1.7">';
-  h += '<div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(13,155,138,.8);margin-bottom:8px">Anthropic API</div>';
-  h += 'Krävs för AI-journalstöd, rehabplansgenerering, briefings och Vela Ask. Hämta din nyckel på <a href="https://console.anthropic.com" target="_blank" style="color:#3dcfbd">console.anthropic.com</a>.';
+function _getVelaUsers() {
+  try {
+    const raw = localStorage.getItem('vela:users');
+    const users = raw ? JSON.parse(raw) : [];
+    // Always include self as owner
+    const selfEmail = _authUser?.email || '';
+    const selfName = selfEmail.split('@')[0] || 'Ägare';
+    if (!users.find(u => u.id === 'owner-self')) {
+      users.unshift({ id:'owner-self', name: selfName, email: selfEmail, role:'owner' });
+    }
+    return users;
+  } catch { return []; }
+}
+function _saveVelaUsers(users) {
+  try { localStorage.setItem('vela:users', JSON.stringify(users.filter(u => u.id !== 'owner-self'))); } catch {}
+}
+function _inviteVelaUser() {
+  const name  = document.getElementById('inv-name')?.value?.trim();
+  const email = document.getElementById('inv-email')?.value?.trim();
+  const role  = document.getElementById('inv-role')?.value || 'therapist';
+  if (!name || !email) { showAutoSaveToast('Fyll i namn och e-post'); return; }
+  const users = _getVelaUsers();
+  if (users.find(u => u.email === email)) { showAutoSaveToast('Användaren finns redan'); return; }
+  users.push({ id: 'u_'+Date.now(), name, email, role, invitedAt: new Date().toISOString() });
+  _saveVelaUsers(users);
+  showAutoSaveToast(name + ' inbjuden som ' + role);
+  _renderSettingsContent('users');
+}
+function _removeVelaUser(id) {
+  const users = _getVelaUsers().filter(u => u.id !== id);
+  _saveVelaUsers(users);
+  _renderSettingsContent('users');
+}
+function _updateUserRole(id, role) {
+  const users = _getVelaUsers();
+  const u = users.find(u => u.id === id);
+  if (u) { u.role = role; _saveVelaUsers(users); }
+}
+
+// ── TJÄNSTER TAB ─────────────────────────────────────────────
+function _stServices() {
+  var h = '<div class="vela-st-section">';
+  h += '<div class="vela-st-title">Tjänster & Priser</div>';
+  h += '<div class="vela-st-desc">Används vid registrering av besök och i ekonomiöversikten.</div>';
+  h += '<div style="margin-top:20px;border:1px solid var(--border);border-radius:14px;overflow:hidden">';
+  SERVICES.forEach((s, i) => {
+    h += '<div style="display:flex;align-items:center;gap:12px;padding:11px 16px;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
+    h += '<div style="flex:1;font-size:13px;color:var(--ink);font-weight:500">'+e(s.name)+'</div>';
+    h += '<div style="font-size:12px;color:var(--muted);font-family:var(--font-mono)">'+(s.price?s.price+' kr':'–')+'</div>';
+    h += '</div>';
+  });
   h += '</div>';
-  h += '<div style="margin-bottom:16px">';
-  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:8px">API-nyckel</div>';
-  h += '<div class="akwrap"><input class="akinp" id="ov-akinp" type="' + (S.apiVis ? 'text' : 'password') + '" placeholder="sk-ant-api03-..." value="' + e(key||'') + '" oninput="S.apiKey=this.value">';
-  h += '<button class="aktgl" onclick="S.apiVis=!S.apiVis;rSettingsTab(1)">' + (S.apiVis ? 'Dölj' : 'Visa') + '</button></div>';
-  h += '<div class="akst"><div class="akdot" style="background:' + (ok ? '#1a7a4a' : '#8a9aaa') + '"></div>';
-  h += '<span style="font-size:12px;color:' + (ok ? 'var(--teal)' : 'var(--muted)') + '">' + (ok ? 'Nyckel ser korrekt ut' : 'Ingen giltig nyckel angiven') + '</span></div>';
-  h += '</div>';
-  h += '<button class="btn btn-p" onclick="doSaveKey();var el=document.getElementById(\'api-saved\');if(el){el.style.opacity=1;setTimeout(function(){el.style.opacity=0},2000)}">Spara nyckel</button>';
-  h += '<span id="api-saved" style="font-size:12px;color:var(--teal);margin-left:12px;opacity:0;transition:opacity .3s">Sparad \u2713</span>';
+  h += '<div style="margin-top:12px;font-size:12px;color:var(--muted)">Anpassade tjänstlistor kommer i en kommande uppdatering.</div>';
   h += '</div>';
   return h;
 }
 
-function _settingsTabServices() {
-  var svcs = lsg('vela:services') || SERVICES.map(function(s){return Object.assign({},s,{active:true});});
-  var h = '<div style="max-width:680px">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">';
-  h += '<div style="font-size:14px;color:var(--text3);line-height:1.6">Hantera dina tjänster och priser.</div>';
-  h += '<button onclick="addServiceRow()" class="btn btn-p" style="font-size:12px;padding:8px 16px;flex-shrink:0">+ Lägg till</button></div>';
-  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
-  h += '<div style="display:grid;grid-template-columns:1fr 100px 80px 40px;padding:9px 16px;background:var(--bg);border-bottom:1px solid var(--border)">';
-  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Tjänst</div>';
-  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:right">Pris (kr)</div>';
-  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:center">Aktiv</div>';
-  h += '<div></div></div>';
-  h += '<div id="services-list">' + svcs.map(function(s,i){return _serviceRow(s,i);}).join('') + '</div></div>';
-  h += '<div style="margin-top:16px;display:flex;gap:10px">';
-  h += '<button onclick="saveServices()" class="btn btn-p">Spara tjänster</button>';
-  h += '<span id="svc-saved" style="font-size:12px;color:var(--teal);align-self:center;opacity:0;transition:opacity .3s">Sparade \u2713</span></div>';
-  h += '<div style="margin-top:20px;padding:16px;background:rgba(13,155,138,.05);border:1px solid rgba(13,155,138,.15);border-radius:12px">';
-  h += '<div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:6px">Vela Intelligence \u00b7 Marknadsinsikt</div>';
-  h += '<div style="font-size:12px;color:var(--text3);line-height:1.6;margin-bottom:10px">Jämför dina priser mot marknadsgenomsnittet i din region.</div>';
-  h += '<button onclick="generatePricingInsight()" class="btn" style="font-size:12px;padding:8px 16px">Analysera mina priser \u2192</button>';
+// ── KOMMUNIKATION TAB ────────────────────────────────────────
+function _stComms(cfg) {
+  const signatory = cfg.signatory || cfg.name || 'Kliniken';
+  var h = '<div class="vela-st-section">';
+  h += '<div class="vela-st-title">Kommunikation</div>';
+  h += '<div class="vela-st-desc">Styr hur e-post och meddelanden till patienter ser ut.</div>';
+
+  h += '<div style="margin-top:20px;display:grid;gap:16px;max-width:560px">';
+
+  // Signature preview
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px">';
+  h += '<div class="vela-st-label" style="margin-bottom:10px">E-postsignatur (genereras automatiskt)</div>';
+  h += '<div style="background:var(--bg);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--text);line-height:1.8;font-style:italic">';
+  h += 'Med vänliga hälsningar,<br>';
+  h += '<strong>'+e(signatory)+'</strong><br>';
+  h += e(cfg.name||'Kliniken')+(cfg.phone?' · '+e(cfg.phone):'')+(cfg.email?' · '+e(cfg.email):'');
+  h += '</div>';
+  h += '<div style="font-size:11px;color:var(--muted);margin-top:8px">Uppdatera behandlarnamn under Klinik → Behandlarnamn (signatur)</div>';
+  h += '</div>';
+
+  // Intake mail preview
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px">';
+  h += '<div class="vela-st-label" style="margin-bottom:10px">Intake-mail (förhandsgranskning)</div>';
+  h += '<div style="background:var(--bg);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--text);line-height:1.8">';
+  h += 'Hej [patientnamn],<br><br>';
+  h += 'Välkommen till '+e(cfg.name||'Kliniken')+'!<br><br>';
+  h += 'För att kunna skapa ditt personliga träningsprogram behöver vi veta lite om dina förutsättningar. Det tar 2–3 minuter:<br><br>';
+  h += '[länk till intake-formulär]<br><br>';
+  h += 'Med vänliga hälsningar,<br>'+e(signatory);
+  h += '</div></div>';
+
+  // Rehab plan mail preview
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px">';
+  h += '<div class="vela-st-label" style="margin-bottom:10px">Hael-plansmail (förhandsgranskning)</div>';
+  h += '<div style="background:var(--bg);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--text);line-height:1.8">';
+  h += 'Hej [patientnamn],<br><br>';
+  h += 'Här är din Hael-plan från '+e(cfg.name||'Kliniken')+':<br><br>';
+  h += '[länk till Hael-plan]<br><br>';
+  h += 'Med vänliga hälsningar,<br>'+e(signatory);
+  h += '</div></div>';
+
+  h += '</div>';
+  h += '<div style="margin-top:16px;font-size:12px;color:var(--muted)">Anpassade mailmallar och animationer i mail kommer i en kommande uppdatering.</div>';
+  h += '</div>';
+  return h;
+}
+
+// ── AI & API TAB ─────────────────────────────────────────────
+function _stAI(key) {
+  const ok = key && key.startsWith('sk-ant');
+  var h = '<div class="vela-st-section">';
+  h += '<div class="vela-st-title">AI & API</div>';
+  h += '<div class="vela-st-desc">Anthropic API-nyckel krävs för AI-journalstöd, rehabplansgenerering och Vela Ask.</div>';
+
+  h += '<div style="margin-top:20px;max-width:520px">';
+  h += '<div style="background:var(--navy);border-radius:14px;padding:16px 20px;margin-bottom:20px">';
+  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(13,155,138,.8);margin-bottom:6px">Anthropic API</div>';
+  h += '<div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.65">Hämta din nyckel på <a href="https://console.anthropic.com" target="_blank" style="color:#3dcfbd">console.anthropic.com</a>.</div>';
+  h += '</div>';
+  h += '<div class="vela-st-label" style="margin-bottom:8px">API-nyckel</div>';
+  h += '<div style="display:flex;gap:8px">';
+  h += '<div style="position:relative;flex:1"><input class="field" id="ov-akinp" type="'+(S.apiVis?'text':'password')+'" placeholder="sk-ant-api03-..." value="'+e(key||'')+'" oninput="S.apiKey=this.value" style="margin-bottom:0;padding-right:40px">';
+  h += '<button onclick="S.apiVis=!S.apiVis;_renderSettingsContent(\'ai\')" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--muted);font-size:11px">'+(S.apiVis?'Dölj':'Visa')+'</button></div>';
+  h += '<button onclick="saveKey(document.getElementById(\'ov-akinp\').value)" class="btn btn-p" style="white-space:nowrap">Spara</button>';
+  h += '</div>';
+  if (ok) h += '<div style="margin-top:8px;font-size:11px;color:#1a7a4a">✓ Nyckel giltig</div>';
+  h += '</div>';
+
+  h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">';
+  h += '<div class="vela-st-label" style="margin-bottom:8px">Vela Ask — kunskapsbas</div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Ladda upp kliniska riktlinjer, protokoll eller produktblad som Vela Ask kan referera till.</div>';
+  h += '<div style="background:var(--surface);border:1.5px dashed var(--border);border-radius:12px;padding:20px;text-align:center">';
+  h += '<div style="font-size:12px;color:var(--muted)">Dokumentuppladdning till Vela Ask kommer i en kommande uppdatering.</div>';
+  h += '</div>';
   h += '</div></div>';
   return h;
 }
 
-function _settingsTabPermissions() {
-  var h = '<div style="max-width:600px">';
-  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px">';
-  h += '<div style="padding:16px 18px;border-bottom:1px solid var(--border);background:var(--bg)">';
-  h += '<div style="font-size:12px;font-weight:700;color:var(--navy)">Rollbaserad åtkomst</div>';
-  h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">Bestämmer vad varje användare kan se och göra</div></div>';
-  h += _permRow('Ägare','Ser allt, ändrar allt, ser alla intäkter','#1a7a4a','rgba(26,122,74,.1)');
-  h += _permRow('Behandlare','Ser sina egna patienter, journal och egna intäkter','var(--teal)','rgba(13,155,138,.08)');
-  h += _permRow('Reception','Registrerar patienter, bokar — ser ej journal eller ekonomi','#4a7aaa','rgba(74,122,170,.08)');
-  h += '</div>';
-  h += '<div style="background:rgba(13,155,138,.05);border:1px solid rgba(13,155,138,.15);border-radius:12px;padding:16px 18px">';
-  h += '<div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:6px">Kommer snart</div>';
-  h += '<div style="font-size:12px;color:var(--text3);line-height:1.65">Bjud in teammedlemmar via e-post, tilldela roller och sätt detaljerade behörigheter. Ingår i Vela Pro.</div>';
-  h += '</div></div>';
-  return h;
-}
+// ── SYNK & DATA TAB ──────────────────────────────────────────
+function _stSync() {
+  var h = '<div class="vela-st-section">';
+  h += '<div class="vela-st-title">Synk & Data</div>';
+  h += '<div class="vela-st-desc">Hantera molnsynk, backup och export.</div>';
 
-function _settingsTabSync() {
-  var h = '<div style="max-width:500px">';
-  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px">';
-  h += '<div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:4px">Molnsynk \u2014 Supabase EU/Frankfurt</div>';
-  h += '<div style="font-size:12px;color:var(--muted);margin-bottom:16px">Data sparas krypterat i Europa.</div>';
+  h += '<div style="display:grid;gap:16px;margin-top:20px;max-width:520px">';
+
+  // Supabase sync
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:3px">Molnsynk — Supabase EU/Frankfurt</div>';
+  h += '<div style="font-size:11px;color:var(--muted);margin-bottom:14px">Data sparas krypterat i Europa (GDPR-kompatibelt).</div>';
   h += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
-  h += '<button class="btn" onclick="syncFromCloud().then(function(){rSettingsTab(4)})" style="font-size:12px">Hämta från molnet</button>';
+  h += '<button class="btn" onclick="syncFromCloud().then(()=>_renderSettingsContent(\'sync\'))" style="font-size:12px">Hämta från molnet</button>';
   h += '<button class="btn" onclick="syncToCloud()" style="font-size:12px">Ladda upp alla</button>';
-  h += '<button class="btn" onclick="exportBackup()" style="font-size:12px">Backup</button>';
+  h += '<button class="btn" onclick="exportBackup()" style="font-size:12px">Exportera backup</button>';
   h += '</div></div>';
-  h += '<div style="border-top:1px solid var(--border);padding-top:16px;display:flex;justify-content:space-between;align-items:center">';
-  h += '<div style="font-size:12px;color:var(--muted)">Inloggad som: ' + e(_authUser ? _authUser.email : '') + '</div>';
+
+  // Account
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--navy);margin-bottom:10px">Konto</div>';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between">';
+  h += '<div style="font-size:12px;color:var(--muted)">Inloggad som: <strong>'+e(_authUser?.email||'')+'</strong></div>';
   h += '<button class="btn btn-d" style="font-size:12px" onclick="sbSignOut()">Logga ut</button>';
   h += '</div></div>';
+
+  h += '</div></div>';
   return h;
 }
+
+// Updated ccSave to include signatory
+function ccSave() {
+  const name = document.getElementById('cc-name')?.value?.trim();
+  if (!name) {
+    const inp = document.getElementById('cc-name');
+    if (inp) { inp.style.borderColor = '#c07070'; inp.focus(); }
+    return;
+  }
+  const cfg = {
+    name,
+    address:    document.getElementById('cc-address')?.value?.trim() || '',
+    phone:      document.getElementById('cc-phone')?.value?.trim() || '',
+    email:      document.getElementById('cc-email')?.value?.trim() || '',
+    website:    document.getElementById('cc-website')?.value?.trim() || '',
+    signatory:  document.getElementById('cc-signatory')?.value?.trim() || '',
+    accent:     document.getElementById('cc-accent')?.value || '#0d9b8a',
+  };
+  const existing = getClinicConfig();
+  if (existing.logoData) cfg.logoData = existing.logoData;
+  saveClinicConfig(cfg);
+  showAutoSaveToast('Klinikprofil sparad ✓');
+  rTopbar();
+}
+
+function _stField(id, label, val, placeholder, type) {
+  return '<div>'
+    + '<div class="vela-st-label" style="margin-bottom:7px">' + label + '</div>'
+    + '<input id="' + id + '" type="' + type + '" value="' + e(val) + '" placeholder="' + placeholder + '" class="field" style="margin-bottom:0">'
+    + '</div>';
+}
+
+
 
 // ── THEME TOGGLE ─────────────────────────────────────────────
 function initTheme() {
@@ -13984,7 +14255,7 @@ function toggleTheme() {
   localStorage.setItem('vela:theme', isLight ? 'light' : 'dark');
   document.documentElement.style.colorScheme = isLight ? 'light' : 'dark';
   const settingsActive = document.getElementById('s-settings')?.classList.contains('active');
-  if (settingsActive) rSettingsTab(0);
+  if (settingsActive) { window._settingsActiveTab='clinic'; _renderSettingsContent('clinic'); _renderSettingsNav(); }
 }
 
 function _sField(id, label, val, placeholder, type) {
@@ -14033,7 +14304,7 @@ function removeClinicLogo() {
   delete cfg.logoData;
   saveClinicConfig(cfg);
   rNavLogo();
-  rSettingsTab(0);
+  _renderSettingsContent('clinic');
 }
 
 
@@ -14459,32 +14730,7 @@ function wizardSave() {
 }
 
 
-function ccSave() {
-  const name = document.getElementById('cc-name')?.value?.trim();
-  if (!name) {
-    const inp = document.getElementById('cc-name');
-    if (inp) { inp.style.borderColor = '#c07070'; inp.focus(); }
-    return;
-  }
-  const cfg = {
-    name,
-    address: document.getElementById('cc-address')?.value?.trim() || '',
-    phone:   document.getElementById('cc-phone')?.value?.trim() || '',
-    email:   document.getElementById('cc-email')?.value?.trim() || '',
-    accent:  document.getElementById('cc-accent')?.value || '#0d9b8a',
-  };
-  // Preserve existing logoData
-  const existing = getClinicConfig();
-  if (existing.logoData) cfg.logoData = existing.logoData;
-  const fileInput = document.querySelector('#clinic-config-ov input[type="file"]');
-  if (fileInput?._logoData) cfg.logoData = fileInput._logoData;
-
-  saveClinicConfig(cfg);
-  document.getElementById('clinic-config-ov')?.remove();
-  const toast = document.getElementById('autosave-toast');
-  if (toast) { toast.textContent = 'Klinikprofil sparad'; toast.style.display='block'; toast.style.opacity='1'; setTimeout(()=>{toast.style.opacity='0';setTimeout(()=>toast.style.display='none',400);},2000); }
-  if (typeof rSettings === 'function' && document.getElementById('s-settings')?.classList.contains('active')) rSettings();
-}
+// ccSave moved to settings module above
 
 
 async function syncFromCloud() {

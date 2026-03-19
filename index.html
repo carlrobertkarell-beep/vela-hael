@@ -15120,7 +15120,14 @@ function showDropoutList() {
         initTheme();
         const _ld = document.getElementById('page-loader');
         if (_ld) { _ld.style.opacity='0'; _ld.style.transition='opacity .2s'; setTimeout(()=>{ try{_ld.remove();}catch(e){} },250); }
-        go('dashboard');
+        try {
+          go('dashboard');
+        } catch(dashErr) {
+          var diagEl = document.createElement('div');
+          diagEl.style.cssText = 'position:fixed;inset:0;z-index:99999;background:white;padding:30px;font-family:monospace;font-size:13px;color:#c00;overflow:auto';
+          diagEl.innerHTML = '<h2 style="color:#c00;margin:0 0 16px">Dashboard crash:</h2><pre>' + (dashErr && dashErr.stack ? dashErr.stack : String(dashErr)) + '</pre>';
+          document.body.appendChild(diagEl);
+        }
         initVelaAsk();
         setTimeout(() => rNavLogo(), 100);
         setTimeout(() => syncFromCloud(), 800);

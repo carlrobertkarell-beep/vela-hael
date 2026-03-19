@@ -15113,22 +15113,21 @@ function showDropoutList() {
     } else {
       const _storedAuth = getStoredAuth();
       if (_storedAuth) {
-        _authUser = _storedAuth.user;
-        loadPats();
-        S.apiKey = getKey();
-        startAutoSave();
-        initTheme();
+        function _diag(step, err) {
+          var d = document.createElement('div');
+          d.style.cssText = 'position:fixed;inset:0;z-index:99999;background:white;padding:30px;font-family:monospace;font-size:14px;color:#333;overflow:auto';
+          d.innerHTML = '<b style="color:red">Crash at: ' + step + '</b><br><br>' + (err ? (err.stack || String(err)) : 'No error');
+          document.body.appendChild(d);
+        }
+        try { _authUser = _storedAuth.user; } catch(e) { _diag('_authUser', e); throw e; }
+        try { loadPats(); } catch(e) { _diag('loadPats', e); throw e; }
+        try { S.apiKey = getKey(); } catch(e) { _diag('getKey', e); throw e; }
+        try { startAutoSave(); } catch(e) { _diag('startAutoSave', e); throw e; }
+        try { initTheme(); } catch(e) { _diag('initTheme', e); throw e; }
         const _ld = document.getElementById('page-loader');
         if (_ld) { _ld.style.opacity='0'; _ld.style.transition='opacity .2s'; setTimeout(()=>{ try{_ld.remove();}catch(e){} },250); }
-        try {
-          go('dashboard');
-        } catch(dashErr) {
-          var diagEl = document.createElement('div');
-          diagEl.style.cssText = 'position:fixed;inset:0;z-index:99999;background:white;padding:30px;font-family:monospace;font-size:13px;color:#c00;overflow:auto';
-          diagEl.innerHTML = '<h2 style="color:#c00;margin:0 0 16px">Dashboard crash:</h2><pre>' + (dashErr && dashErr.stack ? dashErr.stack : String(dashErr)) + '</pre>';
-          document.body.appendChild(diagEl);
-        }
-        initVelaAsk();
+        try { go('dashboard'); } catch(e) { _diag('go(dashboard)', e); throw e; }
+        try { initVelaAsk(); } catch(e) { _diag('initVelaAsk', e); throw e; }
         setTimeout(() => rNavLogo(), 100);
         setTimeout(() => syncFromCloud(), 800);
         setTimeout(() => sbKeepAlive(), 2000);

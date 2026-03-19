@@ -1,6 +1,10 @@
 <!DOCTYPE html>
+<!-- vela-build:1773934622 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#07101e">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14209,7 +14213,7 @@ function _stAI(key) {
   h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:8px">API-nyckel</div>';
   h += '<div style="display:flex;gap:8px">';
   h += '<input class="field" id="ov-akinp" type="password" placeholder="sk-ant-api03-..." value="' + e(key||'') + '" oninput="S.apiKey=this.value" style="margin-bottom:0;flex:1">';
-  h += '<button onclick="saveKey(document.getElementById(\'ov-akinp\').value)" class="btn btn-p" style="white-space:nowrap">Spara</button>';
+  h += '<button onclick="setKey(document.getElementById(\'ov-akinp\').value)" class="btn btn-p" style="white-space:nowrap">Spara</button>';
   h += '</div>';
   if (ok) h += '<div style="margin-top:8px;font-size:11px;color:#1a7a4a">✓ Nyckel giltig</div>';
   h += '</div>';

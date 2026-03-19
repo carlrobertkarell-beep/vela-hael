@@ -3610,12 +3610,12 @@ function rTopbar() {
     // Clinic context switcher (visible to org owners with >1 clinic)
     var _clinics = getClinics();
     var _activeClinic = getActiveClinic();
-    if (_clinics.length > 1 || isOrgOwner()) {
+    if (_clinics.length > 1) {
       nh += '<div style="margin-bottom:8px">';
       nh += '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sb-text);padding:0 8px;margin-bottom:4px">Klinik</div>';
-      nh += '<select onchange="setActiveClinicId(this.value);loadPats();rTopbar();rDashboard&&S.screen===\'dashboard\'&&rDashboard()" '
+      nh += '<select onchange="var v=this.value;setActiveClinicId(v);loadPats();rTopbar();if(v===\'__all__\'){go(\'dashboard\');rOrgOverview();}else{go(\'dashboard\');}" '
         + 'style="width:100%;padding:7px 10px;background:var(--surface2);border:1px solid var(--sb-border);border-radius:8px;font-size:12px;font-weight:600;color:var(--sb-text2);cursor:pointer;font-family:var(--font);outline:none">';
-      nh += '<option value="__all__" '+(getActiveClinicId()==='__all__'?'selected':'')+'>Alla kliniker</option>';
+      if (_clinics.length > 1) nh += '<option value="__all__" '+(getActiveClinicId()==='__all__'?'selected':'')+'>-- Alla kliniker --</option>';
       _clinics.forEach(function(cl) {
         nh += '<option value="'+cl.id+'" '+(getActiveClinicId()===cl.id?'selected':'')+'>'+e(cl.name||'Klinik')+'</option>';
       });
@@ -3770,11 +3770,6 @@ function togSettings(){
 
 // rDashboard v1 removed
 function rDashboard() {
-  // If "all clinics" selected and user is org owner, show org overview
-  if (getActiveClinicId() === '__all__' && isOrgOwner()) {
-    rOrgOverview();
-    return;
-  }
   const now = new Date();
   const hour = now.getHours();
   const dayName = now.toLocaleDateString('sv-SE',{weekday:'long'});
@@ -15911,9 +15906,6 @@ function showDropoutList() {
   }
 })();
 
-</script>
-</body>
-</html>
 // ── ORG OVERVIEW (systemägare) ─────────────────────────────────────────────
 function rOrgOverview() {
   var clinics = getClinics();
@@ -15921,6 +15913,9 @@ function rOrgOverview() {
   var key = getKey();
   var el = document.getElementById('s-dashboard');
   if (!el) return;
+  // Make sure s-dashboard is active
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  el.classList.add('active');
 
   // Aggregate data across all clinics (using localStorage data for now)
   var totalPats = S.patients.length; // In future: sum across clinic DBs
@@ -15972,7 +15967,8 @@ function rOrgOverview() {
   clinics.forEach(function(clinic) {
     var isActive = getActiveClinicId() === clinic.id;
     var clinicPats = S.patients.filter(function(p){ return !p.clinicId || p.clinicId === clinic.id; }).length;
-    h += '<div style="background:var(--surface);border:1.5px solid '+(isActive?'var(--teal)':'var(--border)')+';border-radius:16px;padding:16px;cursor:pointer;transition:all .15s" onclick="setActiveClinicId(''+clinic.id+'');rTopbar();S.screen==='org'&&rOrgOverview()" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor=''+(isActive?'var(--teal)':'var(--border)')+''"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+        h += '<div data-clinic-id="'+clinic.id+'" class="clinic-card" style="background:var(--surface);border:1.5px solid '+(isActive?'var(--teal)':'var(--border)')+';border-radius:16px;padding:16px;cursor:pointer;transition:all .15s" onclick="_switchClinic(this)" onmouseover="this.style.borderColor=\'var(--teal)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
     h += '<div style="display:flex;align-items:center;gap:9px">';
     if (clinic.logo) {
       h += '<img src="'+clinic.logo+'" style="height:24px;object-fit:contain">';
@@ -15991,7 +15987,7 @@ function rOrgOverview() {
   });
 
   // Add clinic card
-  h += '<div style="background:var(--bg);border:1.5px dashed var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:100px;transition:border-color .15s" onclick="rAddClinicDialog()" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">';
+  h += '<div style="background:var(--bg);border:1.5px dashed var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:100px;transition:border-color .15s" onclick="rAddClinicDialog()">';
   h += '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
   h += '<div style="font-size:12px;font-weight:600;color:var(--teal)">Lägg till klinik</div>';
   h += '</div>';
@@ -16002,7 +15998,7 @@ function rOrgOverview() {
   h += '<div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
   h += '<div><div style="font-size:13px;font-weight:700;color:var(--ink)">Global tjänstkatalog med klinikpriser</div>';
   h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">Systemägaren sätter tjänsterna — varje klinik kan ha egna priser</div></div>';
-  h += '<button onclick="go('settings');window._settingsActiveTab='services'" class="btn" style="font-size:12px">Redigera →</button>';
+  h += '<button onclick="go(\'settings\');window._settingsActiveTab=\'services\'" class="btn" style="font-size:12px">Redigera →</button>';
   h += '</div>';
 
   var globalSvcs = getGlobalServices().filter(function(s){return s.price > 0;}).slice(0,5);
@@ -16045,6 +16041,11 @@ function rOrgOverview() {
   document.getElementById('s-dashboard').innerHTML = h;
 }
 
+function _switchClinic(el) {
+  var id = el.getAttribute('data-clinic-id');
+  if (id) { setActiveClinicId(id); rTopbar(); rOrgOverview(); }
+}
+
 function rAddClinicDialog() {
   document.getElementById('add-clinic-ov')?.remove();
   var ov = document.createElement('div');
@@ -16061,7 +16062,7 @@ function rAddClinicDialog() {
     + _stField('nc-email','E-post','','info@klinik.se','email')
     + '</div>'
     + '<div style="padding:0 22px 18px;display:flex;gap:10px">'
-    + '<button onclick="document.getElementById('add-clinic-ov').remove()" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>'
+    + '<button onclick="document.getElementById(\'add-clinic-ov\').remove()" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>'
     + '<button onclick="_saveNewClinic()" class="btn btn-p" style="flex:1;padding:10px">Lägg till klinik →</button>'
     + '</div></div>';
   document.body.appendChild(ov);
@@ -16104,31 +16105,21 @@ async function generateOrgReport() {
     });
   });
 
-  var prompt = 'Du är strategisk rådgivare för en klinikkoncern.
-
-'
-    + 'Organisation: ' + org.name + '
-'
-    + 'Kliniker: ' + clinics.map(function(c){return c.name+(c.address?' ('+c.address+')':'');}).join(', ') + '
-'
-    + 'Totalt patienter: ' + totalPats + '
-'
-    + 'Månadsintäkt: ' + monthRev.toLocaleString('sv-SE') + ' kr
-'
-    + 'Datum: ' + now.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + '
-
-'
-    + 'Skriv en strategisk organisationsrapport (4-5 stycken) på svenska. Inkludera:
-'
-    + '1. Nulägesbedömning och starka sidor
-'
-    + '2. Tillväxtpotential per klinik och region
-'
-    + '3. Prioriterade åtgärder för nästa kvartal
-'
-    + '4. En konkret rekommendation för skalning
-'
-    + 'Ton: professionell, direkt, baserat på data. Inga listor — löpande text.';
+  var prompt = [
+    'Du ar strategisk radgivare for en klinikkoncern.',
+    'Organisation: ' + org.name,
+    'Kliniker: ' + clinics.map(function(cl){return cl.name+(cl.address?' ('+cl.address+')':'');}).join(', '),
+    'Totalt patienter: ' + totalPats,
+    'Manadsintakt: ' + monthRev.toLocaleString('sv-SE') + ' kr',
+    'Datum: ' + now.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),
+    '',
+    'Skriv en strategisk organisationsrapport (4-5 stycken) pa svenska. Inkludera:',
+    '1. Nulagesbedoming och starka sidor',
+    '2. Tillvaxtpotential per klinik och region',
+    '3. Prioriterade atgarder for nasta kvartal',
+    '4. En konkret rekommendation for skalning',
+    'Ton: professionell, direkt, baserat pa data. Inga listor - lopande text.'
+  ].join('\n');
 
   try {
     var res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -16143,5 +16134,6 @@ async function generateOrgReport() {
     if (content) content.textContent = 'Fel vid rapportgenerering: ' + (err.message||'okänt');
   }
 }
-
-
+</script>
+</body>
+</html>

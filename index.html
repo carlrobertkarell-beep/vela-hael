@@ -14049,6 +14049,7 @@ function _renderSettingsNav() {
     { id:'services',  label:'Tjänster',        icon:'<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
     { id:'comms',     label:'Kommunikation',   icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>' },
     { id:'ai',        label:'AI & API',        icon:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>' },
+    { id:'billing',   label:'Plan & Faktura',  icon:'<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
     { id:'sync',      label:'Synk & Data',     icon:'<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>' },
   ];
   const cur = window._settingsActiveTab;
@@ -14069,6 +14070,7 @@ function _renderSettingsContent(tab) {
   else if (tab === 'services') el.innerHTML = _stServices();
   else if (tab === 'comms')    el.innerHTML = _stComms(cfg);
   else if (tab === 'ai')       el.innerHTML = _stAI(key);
+  else if (tab === 'billing')  el.innerHTML = _stBilling();
   else if (tab === 'sync')     el.innerHTML = _stSync();
 }
 
@@ -14553,6 +14555,86 @@ Var specifik med siffror och tjänstnamn.`;
     </div>`;
     ov.onclick = ev => { if(ev.target===ov) ov.remove(); };
   } catch { ov.remove(); showAutoSaveToast('Fel vid analys'); }
+}
+
+function _stBilling() {
+  const tier = getClinicTier();
+  const tierInfo = TIERS[tier] || TIERS.free;
+  const used = getMonthlyPlanCount();
+  const limit = tierInfo.planLimit === Infinity ? '∞' : tierInfo.planLimit;
+  const now = new Date();
+  const monthName = now.toLocaleDateString('sv-SE', {month:'long', year:'numeric'});
+
+  const plans = [
+    { id:'free', name:'Free', price:'0 kr', period:'alltid gratis',
+      features:['Patientlista & SOAP','5 Hael-planer/månad','Grundläggande ekonomi','1 användare'],
+      cta: null },
+    { id:'pro', name:'Pro', price:'990 kr', period:'/månad',
+      features:['Obegränsade Hael-planer','AI-transkribering & SOAP','Vela Ask','Fullständig ekonomi','Team & behörigheter','Intelligence — klinik vs dig själv'],
+      cta: 'Uppgradera till Pro', highlight: true },
+    { id:'intelligence', name:'Intelligence', price:'2 490 kr', period:'/månad',
+      features:['Allt i Pro','Konkurrentanalys','Intäktsprognos 30/60/90 dagar','Branschjämförelse','Automatisk årsrapport','AI-strategirekommendationer'],
+      cta: 'Kontakta oss' },
+  ];
+
+  var h = '<div class="vela-st-section" style="max-width:700px">';
+  h += '<div class="vela-st-title">Plan & Faktura</div>';
+  h += '<div class="vela-st-desc">Din nuvarande plan och tillgängliga uppgraderingar.</div>';
+
+  // Current status
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 20px;margin-top:20px;margin-bottom:24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">';
+  h += '<div style="flex:1;min-width:0">';
+  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:4px">Aktiv plan</div>';
+  h += '<div style="font-size:18px;font-weight:700;color:var(--navy)">'+tierInfo.name+'</div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+monthName+' · '+used+' av '+ limit +' Hael-planer använda</div>';
+  h += '</div>';
+  if (tierInfo.planLimit !== Infinity) {
+    const pct = Math.min(100, Math.round(used / tierInfo.planLimit * 100));
+    h += '<div style="width:120px;flex-shrink:0">';
+    h += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px"><span>Planer</span><span>'+used+'/'+tierInfo.planLimit+'</span></div>';
+    h += '<div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+(pct>=80?'var(--red,#c05050)':'var(--teal)')+';border-radius:3px;transition:width .4s"></div></div>';
+    h += '</div>';
+  }
+  h += '</div>';
+
+  // Plan cards
+  h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">';
+  plans.forEach(plan => {
+    const isCurrent = plan.id === tier;
+    const highlight = plan.highlight && !isCurrent;
+    h += '<div style="border:1.5px solid '+(isCurrent?'var(--teal)':highlight?'rgba(13,155,138,.3)':'var(--border)')+';border-radius:16px;padding:18px 16px;background:'+(isCurrent?'rgba(13,155,138,.05)':highlight?'var(--surface)':'var(--bg)')+';position:relative">';
+    if (isCurrent) h += '<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--teal);color:white;font-size:9px;font-weight:700;padding:2px 10px;border-radius:20px;white-space:nowrap">Din plan</div>';
+    if (highlight) h += '<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--navy);color:white;font-size:9px;font-weight:700;padding:2px 10px;border-radius:20px;white-space:nowrap">Populärast</div>';
+    h += '<div style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px">'+plan.name+'</div>';
+    h += '<div style="font-size:20px;font-weight:800;color:'+(isCurrent?'var(--teal)':'var(--ink)')+';margin-bottom:2px">'+plan.price+'</div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-bottom:14px">'+plan.period+'</div>';
+    h += '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px">';
+    plan.features.forEach(f => {
+      h += '<div style="display:flex;align-items:flex-start;gap:7px;font-size:11px;color:var(--text)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg>'+f+'</div>';
+    });
+    h += '</div>';
+    if (plan.cta && !isCurrent) {
+      h += '<button onclick="showUpgradeModal(\'settings\')" class="btn btn-p" style="width:100%;padding:9px;font-size:12px">'+plan.cta+' →</button>';
+    } else if (isCurrent) {
+      h += '<div style="text-align:center;font-size:11px;color:var(--teal);font-weight:600">✓ Aktiv</div>';
+    }
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // Dev override
+  h += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px">';
+  h += '<div class="vela-st-label" style="margin-bottom:8px">Utvecklarläge — byt tier manuellt</div>';
+  h += '<div style="display:flex;gap:8px">';
+  ['free','pro','intelligence'].forEach(t => {
+    h += '<button onclick="localStorage.setItem(\'vela:tier\',\''+t+'\');_renderSettingsContent(\'billing\')" class="btn" style="font-size:12px;'+(tier===t?'background:var(--teal);color:white;':'')+'">'+(TIERS[t].name)+'</button>';
+  });
+  h += '</div>';
+  h += '<div style="font-size:11px;color:var(--muted);margin-top:8px">Tas bort när Stripe-integration är på plats.</div>';
+  h += '</div>';
+
+  h += '</div>';
+  return h;
 }
 
 function _stSync() {

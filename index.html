@@ -3560,6 +3560,9 @@ function rTopbar() {
     nh += '<button class="nav-item '+(scr==='settings'?'active':'')+'" onclick="go(\'settings\');_closeSidebar()">'
       +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
       +'Inställningar</button>';
+    nh += '<button class="nav-item" onclick="openHelpCenter();_closeSidebar()">'
+      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      +'Hjälpcenter</button>';
 
     nav.innerHTML = nh;
   }
@@ -3618,7 +3621,28 @@ function rTopbar() {
 
   // -- DESKTOP HEADER --------------------------------------------------------
   const dhClinic = document.getElementById('vela-dh-clinic');
-  if (dhClinic) dhClinic.textContent = CLINIC.name || '';
+  if (dhClinic) {
+    const screenTitles = {
+      dashboard: CLINIC.name || 'Vela',
+      list: 'Patienter',
+      detail: S.pat ? e(S.pat.name) : 'Patient',
+      form: 'Hael-plan',
+      doc: 'Hael-plan',
+      meeting: 'Möte & Journal',
+      soap: 'Journal',
+      manualsoap: 'Journal',
+      'sbs-soap': 'Journal',
+      intelligence: 'Vela Intelligence',
+      settings: 'Inställningar',
+      editex: 'Redigera övningar',
+      editpat: 'Redigera patient',
+      patjournal: 'Journalhistorik',
+    };
+    const title = screenTitles[scr] || CLINIC.name || 'Vela';
+    dhClinic.innerHTML = scr === 'dashboard'
+      ? `<span style="font-weight:700;color:var(--ink)">${title}</span>`
+      : `<span style="color:var(--muted);font-size:11px">${CLINIC.name || 'Vela'}</span><span style="color:var(--border);margin:0 6px">/</span><span style="font-weight:600;color:var(--text)">${title}</span>`;
+  }
   const dhAvatar = document.getElementById('vela-dh-avatar');
   if (dhAvatar) {
     const em = _authUser?.email || '';
@@ -3866,8 +3890,7 @@ function rDashboard() {
     +     '<div class="cc-date">'+dayName.charAt(0).toUpperCase()+dayName.slice(1)+' · '+dateStr+'</div>'
     +   '</div>'
 
-    + '</div>'
-
+    +   '<button onclick="startVisitFlow()" style="background:var(--teal);color:white;border:none;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:7px;flex-shrink:0">'    +     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'    +     'Starta besök'    +   '</button>'    + '</div>'
     // AI BRIEFING
     + '<div class="cc-briefing" id="cc-briefing-card">'
     +   '<div class="cc-briefing-lbl">Vela Intelligence · Daglig briefing</div>'
@@ -4357,6 +4380,12 @@ function rDetail(){
       <button onclick="aiExtractDiagnoses('${p.id}')" style="margin-left:4px;background:none;border:none;font-size:10px;color:var(--text3);cursor:pointer;font-family:'DM Sans',sans-serif;padding:0">→ AI</button>
     </div>
     ${diagList.length ? diagList.map((d,i)=>`<span style="display:inline-block;margin:0 5px 5px 0;padding:3px 10px;background:${i===0?'var(--navy)':'var(--bg2)'};color:${i===0?'white':'var(--text2)'};font-size:11px;font-weight:${i===0?'600':'400'}">${e(d)}</span>`).join('') : '<span style="font-size:12px;color:var(--text3)">Ingen diagnos angiven</span>'}
+    ${(p.diagSystemic||p.diagFunctional||p.diagStructural) ? `
+    <div style="margin-top:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+      ${p.diagSystemic ? `<div style="background:rgba(138,90,170,.08);border:1px solid rgba(138,90,170,.2);border-radius:8px;padding:6px 8px"><div style="font-size:9px;font-weight:700;color:#8a5aaa;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Systemisk</div><div style="font-size:11px;color:var(--text)">${e(p.diagSystemic)}</div></div>` : ''}
+      ${p.diagFunctional ? `<div style="background:rgba(13,155,138,.06);border:1px solid rgba(13,155,138,.18);border-radius:8px;padding:6px 8px"><div style="font-size:9px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Funktionell</div><div style="font-size:11px;color:var(--text)">${e(p.diagFunctional)}</div></div>` : ''}
+      ${p.diagStructural ? `<div style="background:rgba(200,160,48,.06);border:1px solid rgba(200,160,48,.18);border-radius:8px;padding:6px 8px"><div style="font-size:9px;font-weight:700;color:#c8a030;text-transform:uppercase;letter-spacing:.08em;margin-bottom:2px">Strukturell</div><div style="font-size:11px;color:var(--text)">${e(p.diagStructural)}</div></div>` : ''}
+    </div>` : ''}
   </div>`;
 
   // Sidebar actions
@@ -4689,17 +4718,38 @@ function openDiagEditor(patId) {
   ov.id = 'diag-edit-ov';
   ov.style.cssText = 'position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,20,35,.72);backdrop-filter:blur(5px)';
   ov.onclick = e => { if(e.target===ov) ov.remove(); };
+  const pat = S.patients.find(x=>x.id===patId)||S.pat;
   ov.innerHTML = `
-  <div style="background:var(--surface);width:100%;max-width:400px;position:relative;z-index:1;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
+  <div style="background:var(--surface);width:100%;max-width:440px;border-radius:20px;overflow:hidden;position:relative;z-index:1;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
     <div style="background:var(--navy);padding:18px 20px">
       <div style="font-size:16px;font-weight:600;color:white">Diagnoser</div>
       <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">En diagnos per rad · Första raden = primärdiagnos</div>
     </div>
-    <div style="padding:18px 20px">
-      <textarea id="diag-edit-ta" style="width:100%;border:1px solid var(--border);padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;line-height:1.7;resize:vertical;min-height:100px;outline:none;color:var(--text)">${e(current)}</textarea>
-      <div style="display:flex;gap:8px;margin-top:14px">
-        <button onclick="saveDiagEdit('${patId}')" style="flex:1;background:var(--navy);color:white;border:none;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Spara</button>
-        <button onclick="document.getElementById('diag-edit-ov').remove()" style="flex:1;background:var(--surface);color:var(--text2);border:1px solid var(--border);padding:11px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">Avbryt</button>
+    <div style="padding:18px 20px;display:flex;flex-direction:column;gap:14px">
+      <div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:7px">Diagnoser (primär överst)</div>
+        <textarea id="diag-edit-ta" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;font-family:var(--font);line-height:1.7;resize:vertical;min-height:80px;outline:none;color:var(--text);background:var(--bg)">${e(current)}</textarea>
+      </div>
+      <div style="border-top:1px solid var(--border2);padding-top:14px">
+        <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Klinisk klassificering (valfritt)</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#8a5aaa;margin-bottom:5px">Systemisk diagnos</div>
+            <input id="diag-systemic" class="field" style="margin:0;font-size:12px" placeholder="T.ex. Diabetes typ 2, Hjärt-kärlsjukdom" value="${e(pat?.diagSystemic||'')}">
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:var(--teal);margin-bottom:5px">Funktionell diagnos</div>
+            <input id="diag-functional" class="field" style="margin:0;font-size:12px" placeholder="T.ex. Rörelseinskränkning, Nedsatt muskelkraft" value="${e(pat?.diagFunctional||'')}">
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#c8a030;margin-bottom:5px">Strukturell diagnos</div>
+            <input id="diag-structural" class="field" style="margin:0;font-size:12px" placeholder="T.ex. L4-L5 diskbråck, Knäartros grad II" value="${e(pat?.diagStructural||'')}">
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="saveDiagEdit('${patId}')" class="btn btn-p" style="flex:1;padding:11px">Spara</button>
+        <button onclick="document.getElementById('diag-edit-ov').remove()" style="flex:1;padding:11px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>
       </div>
     </div>
   </div>`;
@@ -4711,7 +4761,14 @@ function saveDiagEdit(patId) {
   const raw = document.getElementById('diag-edit-ta')?.value||'';
   const arr = raw.split('\n').map(s=>s.trim()).filter(Boolean);
   const p = S.patients.find(x=>x.id===patId)||S.pat; if(!p) return;
-  const updated = {...p, diagnoses: arr, diagnosis: arr[0]||p.diagnosis||''};
+  const updated = {
+    ...p,
+    diagnoses: arr,
+    diagnosis: arr[0]||p.diagnosis||'',
+    diagSystemic:  document.getElementById('diag-systemic')?.value?.trim() || p.diagSystemic || '',
+    diagFunctional: document.getElementById('diag-functional')?.value?.trim() || p.diagFunctional || '',
+    diagStructural: document.getElementById('diag-structural')?.value?.trim() || p.diagStructural || '',
+  };
   const saved = savePat(updated);
   if(S.pat&&S.pat.id===patId) S.pat=saved;
   document.getElementById('diag-edit-ov')?.remove();
@@ -7128,7 +7185,7 @@ function renderPaymentBlock(p) {
   return `<div class="consent-wrap" style="margin-top:12px">
     <div class="consent-hdr">
       <div class="consent-hdr-title">Tillgång & betalning</div>
-      <button onclick="togSettings()" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:600;font-family:var(--font);padding:0">Konfigurera Stripe -></button>
+      <button onclick="window._settingsActiveTab='billing';go('settings')" style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:600;font-family:var(--font);padding:0">Konfigurera Stripe -></button>
     </div>
     ${rows}
   </div>`;
@@ -10251,15 +10308,6 @@ För varje övning, returnera:
 
 
 
-async function fetchWithTimeout(url, opts, ms) {
-  var ctrl = new AbortController();
-  var t = setTimeout(function(){ ctrl.abort(); }, ms);
-  try {
-    var r = await fetch(url, Object.assign({}, opts, { signal: ctrl.signal }));
-    clearTimeout(t);
-    return r;
-  } catch(e) { clearTimeout(t); throw e; }
-}
 async function loadPublicPlan(patId, visitId) {
   const el = document.getElementById('s-public-plan');
   if (!el) return;
@@ -13277,6 +13325,7 @@ function printRemiss(patId) {
 
 // ── DAILY BRIEFING ─────────────────────────────────────────
 let _briefingCache = []; // array of {date, time, text}
+let _intelInsightsCache = null; // cached HTML from last generateIntelligenceBriefing
 
 async function generateDailyBriefing(forceNew) {
   const today = new Date().toISOString().slice(0,10);
@@ -13384,48 +13433,113 @@ function _renderBriefing(entry) {
 
 // ── STARTA BESÖK — unified entry point ─────────────────────
 function startVisitFlow() {
-  // Always show the new/returning chooser — never assume a patient context
-  // Otherwise: pick new or returning
+  const svcs = getServices().filter(s => s.price > 0 && s.name !== 'Övrigt').slice(0, 6);
   const ov = document.createElement('div');
   ov.id = 'start-visit-ov';
   ov.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px);animation:fadeInOv .15s ease';
   ov.onclick = e => { if(e.target===ov) ov.remove(); };
+
+  const svcHTML = svcs.length ? `
+    <div style="border-top:1px solid var(--border2);padding:14px 20px 0">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Välj tjänst (valfritt)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${svcs.map(s => `<button onclick="window._pendingService={name:'${s.name.replace(/'/g,"\\'")}',price:${s.price}};this.closest('.svc-chips').querySelectorAll('button').forEach(b=>b.style.background='');this.style.background='rgba(13,155,138,.15)';this.style.borderColor='var(--teal)'" class="svc-chips" style="padding:5px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;color:var(--text);background:var(--bg);cursor:pointer;font-family:var(--font);transition:all .12s">${e(s.name)} · ${s.price} kr</button>`).join('')}
+      </div>
+    </div>` : '';
+
   ov.innerHTML = `
-  <div style="background:var(--surface);border-radius:20px;width:100%;max-width:400px;overflow:hidden;box-shadow:var(--shadow-lg)" onclick="event.stopPropagation()">
-    <div style="background:var(--navy);padding:22px 24px 18px">
+  <div style="background:var(--surface);border-radius:20px;width:100%;max-width:420px;overflow:hidden;box-shadow:var(--shadow-lg)" onclick="event.stopPropagation()">
+    <div style="background:var(--navy);padding:20px 24px 16px">
       <div style="font-size:20px;font-weight:700;color:white">Starta besök</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px">Välj typ av besök</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px">Välj patient och tjänst</div>
     </div>
     <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
       <button onclick="document.getElementById('start-visit-ov').remove();newPatientFlow()"
-        class="visit-choice-btn"
-        style="display:flex;align-items:center;gap:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:14px 18px;text-align:left;cursor:pointer;font-family:var(--font);width:100%;transition:all .15s">
-        <div style="width:40px;height:40px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        style="display:flex;align-items:center;gap:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;text-align:left;cursor:pointer;font-family:var(--font);width:100%;transition:background .12s"
+        onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--bg)'">
+        <div style="width:38px;height:38px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
         </div>
-        <div>
-          <div style="font-size:15px;font-weight:700;color:var(--ink)">Ny patient</div>
-          <div style="font-size:12px;color:var(--text3);margin-top:2px">Registrera och starta första besök</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700;color:var(--ink)">Ny patient</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:1px">Registrera och starta första besök</div>
         </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
       <button onclick="document.getElementById('start-visit-ov').remove();returningPatientFlow()"
-        class="visit-choice-btn"
-        style="display:flex;align-items:center;gap:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-lg);padding:14px 18px;text-align:left;cursor:pointer;font-family:var(--font);width:100%;transition:all .15s">
-        <div style="width:40px;height:40px;border-radius:50%;background:rgba(13,155,138,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        style="display:flex;align-items:center;gap:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;text-align:left;cursor:pointer;font-family:var(--font);width:100%;transition:background .12s"
+        onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--bg)'">
+        <div style="width:38px;height:38px;border-radius:50%;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
-        <div>
-          <div style="font-size:15px;font-weight:700;color:var(--ink)">Återkommande patient</div>
-          <div style="font-size:12px;color:var(--text3);margin-top:2px">Sök bland befintliga patienter</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700;color:var(--ink)">Återkommande patient</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:1px">Sök bland befintliga patienter</div>
         </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
     </div>
-    <div style="padding:0 20px 20px">
-      <button onclick="document.getElementById('start-visit-ov').remove()" style="width:100%;padding:11px;background:none;border:1px solid var(--border);border-radius:var(--r-md);font-size:13px;color:var(--text3);cursor:pointer;font-family:var(--font)">Avbryt</button>
+    <div class="svc-chips">${svcHTML}</div>
+    <div style="padding:14px 20px 18px">
+      <button onclick="document.getElementById('start-visit-ov').remove()" style="width:100%;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>
     </div>
   </div>`;
+  window._pendingService = null;
   document.body.appendChild(ov);
   addOverlayEsc('start-visit-ov');
+}
+
+// ── HELP CENTER ──────────────────────────────────────────────
+function openHelpCenter() {
+  document.getElementById('help-center-ov')?.remove();
+  const ov = document.createElement('div');
+  ov.id = 'help-center-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:flex-end;justify-content:flex-end;padding:0;background:rgba(7,16,30,.5);backdrop-filter:blur(4px)';
+  ov.onclick = ev => { if(ev.target===ov) ov.remove(); };
+
+  const topics = [
+    { q:'Hur skapar jag en Hael-plan?', a:'Öppna ett kundkort → Starta besök → fyll i formuläret → Generera rehabplan. Planen skickas som en länk till patienten.' },
+    { q:'Hur skickar jag intake-formulär?', a:'På kundkortet under Verktyg → Skicka intake-formulär. Patienten fyller i och planen genereras automatiskt.' },
+    { q:'Vad är Planköen på dashboarden?', a:'AI granskar varje genererad plan och flaggar dem grön/gul/röd. Gröna auto-releasas efter 48h. Röda och gula kräver din godkänning.' },
+    { q:'Hur bjuder jag in ett teammedlem?', a:'Inställningar → Användare → fyll i namn, e-post och roll → Bjud in.' },
+    { q:'Vad är skillnaden på Ny journal och Starta besök?', a:'"Starta besök" skapar ett nytt besök med möjlighet att välja tjänst och starta mötestranskribering. "Ny journal" öppnar direkt ett manuellt SOAP-formulär.' },
+    { q:'Varför syns inget i briefingen?', a:'Briefingen kräver en giltig API-nyckel. Gå till Inställningar → AI & API och kontrollera nyckeln.' },
+    { q:'Hur ändrar jag kliniknamnet?', a:'Inställningar → Klinik → uppdatera Kliniknamn → Spara. Namnet uppdateras i alla mail och Hael-planer direkt.' },
+  ];
+
+  const topicsHTML = topics.map((t, i) => `
+    <div style="border-bottom:1px solid var(--border2)">
+      <button onclick="const b=this.nextSibling;const open=b.style.display==='block';this.querySelectorAll('svg')[0].style.transform=open?'':'rotate(90deg)';b.style.display=open?'none':'block'"
+        style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;background:none;border:none;cursor:pointer;font-family:var(--font);text-align:left">
+        <span style="font-size:13px;font-weight:600;color:var(--ink)">${t.q}</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;transition:transform .2s"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+      <div style="display:none;padding-bottom:12px;font-size:12px;color:var(--muted);line-height:1.7">${t.a}</div>
+    </div>`).join('');
+
+  ov.innerHTML = `
+  <div style="background:var(--surface);width:100%;max-width:420px;height:100%;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.2);animation:slideInRight .2s ease" onclick="event.stopPropagation()">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);flex-shrink:0">
+      <div>
+        <div style="font-size:17px;font-weight:700;color:var(--navy)">Hjälpcenter</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Vanliga frågor om Vela</div>
+      </div>
+      <button onclick="document.getElementById('help-center-ov').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;padding:4px">×</button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:0 24px">
+      ${topicsHTML}
+    </div>
+    <div style="padding:16px 24px;border-top:1px solid var(--border);flex-shrink:0">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Hittar du inte svaret?</div>
+      <a href="mailto:support@vela.se" style="display:block;text-align:center;padding:10px;background:var(--teal);color:white;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;font-family:var(--font)">Kontakta support →</a>
+    </div>
+  </div>`;
+
+  // Add slide-in animation
+  const style = document.createElement('style');
+  style.textContent = '@keyframes slideInRight { from{transform:translateX(100%)} to{transform:translateX(0)} }';
+  ov.appendChild(style);
+  document.body.appendChild(ov);
 }
 
 // ── VELA ASK ───────────────────────────────────────────────

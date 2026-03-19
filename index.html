@@ -13433,113 +13433,88 @@ function _renderBriefing(entry) {
 
 // ── STARTA BESÖK — unified entry point ─────────────────────
 function startVisitFlow() {
-  const svcs = getServices().filter(s => s.price > 0 && s.name !== 'Övrigt').slice(0, 6);
-  const ov = document.createElement('div');
+  const svcs = getServices().filter(function(s){ return s.price > 0 && s.name !== 'Övrigt'; }).slice(0, 6);
+  window._svcsForVisit = svcs;
+
+  var svcHTML = '';
+  if (svcs.length) {
+    svcHTML = '<div style="border-top:1px solid var(--border2);padding:14px 20px 8px">';
+    svcHTML += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Välj tjänst (valfritt)</div>';
+    svcHTML += '<div id="svc-chips-row" style="display:flex;flex-wrap:wrap;gap:6px">';
+    svcs.forEach(function(sv, i) {
+      svcHTML += '<button onclick="_pickVisitService(' + i + ',this)" style="padding:5px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;color:var(--text);background:var(--bg);cursor:pointer;font-family:var(--font)">' + e(sv.name) + ' · ' + sv.price + ' kr</button>';
+    });
+    svcHTML += '</div></div>';
+  }
+
+  var ov = document.createElement('div');
   ov.id = 'start-visit-ov';
   ov.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px);animation:fadeInOv .15s ease';
-  ov.onclick = e => { if(e.target===ov) ov.remove(); };
-
-  const svcHTML = svcs.length ? `
-    <div style="border-top:1px solid var(--border2);padding:14px 20px 0">
-      <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Välj tjänst (valfritt)</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">
-        ${svcs.map(s => `<button onclick="window._pendingService={name:'${s.name.replace(/'/g,"\\'")}',price:${s.price}};this.closest('.svc-chips').querySelectorAll('button').forEach(b=>b.style.background='');this.style.background='rgba(13,155,138,.15)';this.style.borderColor='var(--teal)'" class="svc-chips" style="padding:5px 12px;border:1px solid var(--border);border-radius:20px;font-size:11px;font-weight:600;color:var(--text);background:var(--bg);cursor:pointer;font-family:var(--font);transition:all .12s">${e(s.name)} · ${s.price} kr</button>`).join('')}
-      </div>
-    </div>` : '';
-
-  ov.innerHTML = `
-  <div style="background:var(--surface);border-radius:20px;width:100%;max-width:420px;overflow:hidden;box-shadow:var(--shadow-lg)" onclick="event.stopPropagation()">
-    <div style="background:var(--navy);padding:20px 24px 16px">
-      <div style="font-size:20px;font-weight:700;color:white">Starta besök</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px">Välj patient och tjänst</div>
-    </div>
-    <div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">
-      <button onclick="document.getElementById('start-visit-ov').remove();newPatientFlow()"
-        style="display:flex;align-items:center;gap:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;text-align:left;cursor:pointer;font-family:var(--font);width:100%;transition:background .12s"
-        onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--bg)'">
-        <div style="width:38px;height:38px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
-        </div>
-        <div style="flex:1">
-          <div style="font-size:14px;font-weight:700;color:var(--ink)">Ny patient</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:1px">Registrera och starta första besök</div>
-        </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-      <button onclick="document.getElementById('start-visit-ov').remove();returningPatientFlow()"
-        style="display:flex;align-items:center;gap:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;text-align:left;cursor:pointer;font-family:var(--font);width:100%;transition:background .12s"
-        onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--bg)'">
-        <div style="width:38px;height:38px;border-radius:50%;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        </div>
-        <div style="flex:1">
-          <div style="font-size:14px;font-weight:700;color:var(--ink)">Återkommande patient</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:1px">Sök bland befintliga patienter</div>
-        </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>
-    </div>
-    <div class="svc-chips">${svcHTML}</div>
-    <div style="padding:14px 20px 18px">
-      <button onclick="document.getElementById('start-visit-ov').remove()" style="width:100%;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>
-    </div>
-  </div>`;
+  ov.onclick = function(ev) { if(ev.target===ov) ov.remove(); };
+  ov.innerHTML = '<div style="background:var(--surface);border-radius:20px;width:100%;max-width:420px;overflow:hidden;box-shadow:var(--shadow-lg)" onclick="event.stopPropagation()">'
+    + '<div style="background:var(--navy);padding:20px 24px 16px"><div style="font-size:20px;font-weight:700;color:white">Starta besök</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px">Välj patient och tjänst</div></div>'
+    + '<div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">'
+    + '<button onclick="document.getElementById(\'start-visit-ov\').remove();newPatientFlow()" style="display:flex;align-items:center;gap:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;text-align:left;cursor:pointer;font-family:var(--font);width:100%">'
+    + '<div style="width:38px;height:38px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>'
+    + '<div style="flex:1"><div style="font-size:14px;font-weight:700;color:var(--ink)">Ny patient</div><div style="font-size:11px;color:var(--muted);margin-top:1px">Registrera och starta första besök</div></div>'
+    + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>'
+    + '<button onclick="document.getElementById(\'start-visit-ov\').remove();returningPatientFlow()" style="display:flex;align-items:center;gap:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;text-align:left;cursor:pointer;font-family:var(--font);width:100%">'
+    + '<div style="width:38px;height:38px;border-radius:50%;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>'
+    + '<div style="flex:1"><div style="font-size:14px;font-weight:700;color:var(--ink)">Återkommande patient</div><div style="font-size:11px;color:var(--muted);margin-top:1px">Sök bland befintliga patienter</div></div>'
+    + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></button>'
+    + '</div>'
+    + svcHTML
+    + '<div style="padding:14px 20px 18px"><button onclick="document.getElementById(\'start-visit-ov\').remove()" style="width:100%;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button></div>'
+    + '</div>';
   window._pendingService = null;
   document.body.appendChild(ov);
   addOverlayEsc('start-visit-ov');
 }
 
+function _pickVisitService(idx, btn) {
+  var sv = (window._svcsForVisit || [])[idx];
+  if (!sv) return;
+  window._pendingService = { name: sv.name, price: sv.price };
+  var chips = document.getElementById('svc-chips-row');
+  if (chips) chips.querySelectorAll('button').forEach(function(b) {
+    b.style.background = ''; b.style.borderColor = 'var(--border)';
+  });
+  btn.style.background = 'rgba(13,155,138,.15)';
+  btn.style.borderColor = 'var(--teal)';
+}
+
 // ── HELP CENTER ──────────────────────────────────────────────
 function openHelpCenter() {
   document.getElementById('help-center-ov')?.remove();
-  const ov = document.createElement('div');
-  ov.id = 'help-center-ov';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:flex-end;justify-content:flex-end;padding:0;background:rgba(7,16,30,.5);backdrop-filter:blur(4px)';
-  ov.onclick = ev => { if(ev.target===ov) ov.remove(); };
-
-  const topics = [
-    { q:'Hur skapar jag en Hael-plan?', a:'Öppna ett kundkort → Starta besök → fyll i formuläret → Generera rehabplan. Planen skickas som en länk till patienten.' },
+  var ov2 = document.createElement('div');
+  ov2.id = 'help-center-ov';
+  ov2.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:flex-end;justify-content:flex-end;background:rgba(7,16,30,.5);backdrop-filter:blur(4px)';
+  ov2.onclick = function(ev) { if(ev.target===ov2) ov2.remove(); };
+  var topics = [
+    { q:'Hur skapar jag en Hael-plan?', a:'Kundkort → Starta besök → fyll i formuläret → Generera rehabplan. Planen skickas som en länk till patienten.' },
     { q:'Hur skickar jag intake-formulär?', a:'På kundkortet under Verktyg → Skicka intake-formulär. Patienten fyller i och planen genereras automatiskt.' },
-    { q:'Vad är Planköen på dashboarden?', a:'AI granskar varje genererad plan och flaggar dem grön/gul/röd. Gröna auto-releasas efter 48h. Röda och gula kräver din godkänning.' },
+    { q:'Vad är Planköen på dashboarden?', a:'AI granskar varje genererad plan och flaggar grön/gul/röd. Gröna auto-releasas efter 48h. Röda och gula kräver din godkänning.' },
     { q:'Hur bjuder jag in ett teammedlem?', a:'Inställningar → Användare → fyll i namn, e-post och roll → Bjud in.' },
-    { q:'Vad är skillnaden på Ny journal och Starta besök?', a:'"Starta besök" skapar ett nytt besök med möjlighet att välja tjänst och starta mötestranskribering. "Ny journal" öppnar direkt ett manuellt SOAP-formulär.' },
     { q:'Varför syns inget i briefingen?', a:'Briefingen kräver en giltig API-nyckel. Gå till Inställningar → AI & API och kontrollera nyckeln.' },
-    { q:'Hur ändrar jag kliniknamnet?', a:'Inställningar → Klinik → uppdatera Kliniknamn → Spara. Namnet uppdateras i alla mail och Hael-planer direkt.' },
+    { q:'Hur ändrar jag kliniknamnet?', a:'Inställningar → Klinik → uppdatera Kliniknamn → Spara.' },
   ];
-
-  const topicsHTML = topics.map((t, i) => `
-    <div style="border-bottom:1px solid var(--border2)">
-      <button onclick="const b=this.nextSibling;const open=b.style.display==='block';this.querySelectorAll('svg')[0].style.transform=open?'':'rotate(90deg)';b.style.display=open?'none':'block'"
-        style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;background:none;border:none;cursor:pointer;font-family:var(--font);text-align:left">
-        <span style="font-size:13px;font-weight:600;color:var(--ink)">${t.q}</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;transition:transform .2s"><path d="M9 18l6-6-6-6"/></svg>
-      </button>
-      <div style="display:none;padding-bottom:12px;font-size:12px;color:var(--muted);line-height:1.7">${t.a}</div>
-    </div>`).join('');
-
-  ov.innerHTML = `
-  <div style="background:var(--surface);width:100%;max-width:420px;height:100%;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.2);animation:slideInRight .2s ease" onclick="event.stopPropagation()">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);flex-shrink:0">
-      <div>
-        <div style="font-size:17px;font-weight:700;color:var(--navy)">Hjälpcenter</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">Vanliga frågor om Vela</div>
-      </div>
-      <button onclick="document.getElementById('help-center-ov').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;padding:4px">×</button>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:0 24px">
-      ${topicsHTML}
-    </div>
-    <div style="padding:16px 24px;border-top:1px solid var(--border);flex-shrink:0">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Hittar du inte svaret?</div>
-      <a href="mailto:support@vela.se" style="display:block;text-align:center;padding:10px;background:var(--teal);color:white;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;font-family:var(--font)">Kontakta support →</a>
-    </div>
-  </div>`;
-
-  // Add slide-in animation
-  const style = document.createElement('style');
-  style.textContent = '@keyframes slideInRight { from{transform:translateX(100%)} to{transform:translateX(0)} }';
-  ov.appendChild(style);
-  document.body.appendChild(ov);
+  var topicsHTML = topics.map(function(t) {
+    return '<div style="border-bottom:1px solid var(--border2);padding:12px 0">'
+      + '<div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:4px">' + e(t.q) + '</div>'
+      + '<div style="font-size:12px;color:var(--muted);line-height:1.65">' + e(t.a) + '</div>'
+      + '</div>';
+  }).join('');
+  ov2.innerHTML = '<div style="background:var(--surface);width:100%;max-width:400px;height:100%;display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.2)" onclick="event.stopPropagation()">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);flex-shrink:0">'
+    + '<div><div style="font-size:17px;font-weight:700;color:var(--navy)">Hjälpcenter</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Vanliga frågor om Vela</div></div>'
+    + '<button onclick="document.getElementById(\'help-center-ov\').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted)">&#215;</button>'
+    + '</div>'
+    + '<div style="flex:1;overflow-y:auto;padding:0 24px">' + topicsHTML + '</div>'
+    + '<div style="padding:16px 24px;border-top:1px solid var(--border);flex-shrink:0">'
+    + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Hittar du inte svaret?</div>'
+    + '<a href="mailto:support@vela.se" style="display:block;text-align:center;padding:10px;background:var(--teal);color:white;border-radius:10px;font-size:13px;font-weight:700;text-decoration:none;font-family:var(--font)">Kontakta support →</a>'
+    + '</div></div>';
+  document.body.appendChild(ov2);
 }
 
 // ── VELA ASK ───────────────────────────────────────────────

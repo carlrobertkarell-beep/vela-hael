@@ -1208,6 +1208,100 @@ const CLINIC_DEFAULTS = {
   accent:  '#0d9b8a',
 };
 const CLINIC_CONFIG_KEY  = 'hael:clinic-config';
+
+// ── TIER SYSTEM ────────────────────────────────────────────────────────────
+const TIERS = {
+  free: {
+    id: 'free', name: 'Free',
+    planLimit: 5,      // Hael-plans per month
+    features: ['patients','soap','basic_economy'],
+  },
+  pro: {
+    id: 'pro', name: 'Pro',
+    planLimit: Infinity,
+    features: ['patients','soap','basic_economy','full_economy','ai_transcription','ai_consult','vela_ask','team','intelligence_basic','dropout_risk'],
+  },
+  intelligence: {
+    id: 'intelligence', name: 'Intelligence',
+    planLimit: Infinity,
+    features: ['patients','soap','basic_economy','full_economy','ai_transcription','ai_consult','vela_ask','team','intelligence_basic','dropout_risk','intelligence_full','competitor_analysis','revenue_forecast','benchmarking'],
+  },
+};
+
+function getClinicTier() {
+  try {
+    const raw = localStorage.getItem('vela:tier');
+    if (raw && TIERS[raw]) return raw;
+  } catch {}
+  return 'pro'; // Default to pro for existing users during development
+}
+
+function hasFeature(feature) {
+  const tier = TIERS[getClinicTier()] || TIERS.free;
+  return tier.features.includes(feature);
+}
+
+function getMonthlyPlanCount() {
+  const now = new Date();
+  const monthKey = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  try {
+    const raw = localStorage.getItem('vela:plan-count:' + monthKey);
+    return parseInt(raw || '0');
+  } catch { return 0; }
+}
+
+function incrementMonthlyPlanCount() {
+  const now = new Date();
+  const monthKey = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  const key = 'vela:plan-count:' + monthKey;
+  try {
+    const count = parseInt(localStorage.getItem(key) || '0') + 1;
+    localStorage.setItem(key, String(count));
+    return count;
+  } catch { return 1; }
+}
+
+function checkPlanAllowed() {
+  const tier = TIERS[getClinicTier()] || TIERS.free;
+  if (tier.planLimit === Infinity) return { ok: true };
+  const used = getMonthlyPlanCount();
+  if (used < tier.planLimit) return { ok: true, used, limit: tier.planLimit };
+  return { ok: false, used, limit: tier.planLimit, tier: getClinicTier() };
+}
+
+function showUpgradeModal(reason) {
+  document.getElementById('upgrade-modal-ov')?.remove();
+  const ov = document.createElement('div');
+  ov.id = 'upgrade-modal-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.75);backdrop-filter:blur(6px)';
+  ov.onclick = ev => { if(ev.target===ov) ov.remove(); };
+  const used = getMonthlyPlanCount();
+  const limit = TIERS.free.planLimit;
+  ov.innerHTML = `
+  <div style="background:var(--surface);border-radius:24px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">
+    <div style="background:linear-gradient(135deg,#0a1f3a,#0d2d4a);padding:28px 28px 20px;text-align:center">
+      <div style="width:52px;height:52px;border-radius:16px;background:rgba(13,155,138,.15);border:1px solid rgba(13,155,138,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3dcfbd" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(13,155,138,.8);margin-bottom:6px">Vela Pro</div>
+      <div style="font-size:20px;font-weight:700;color:white;margin-bottom:8px">Uppgradera för obegränsade planer</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.45);line-height:1.6">Du har använt ${used} av ${limit} Hael-planer denna månad på Free-nivå.</div>
+    </div>
+    <div style="padding:20px 28px">
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+        ${['Obegränsade Hael-planer','AI-journalstöd & transkribering','Fullständig ekonomirapportering','Vela Intelligence — klinikanalys','Teamfunktioner & behörigheter'].map(f =>
+          `<div style="display:flex;align-items:center;gap:9px;font-size:13px;color:var(--text)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+            ${f}
+          </div>`).join('')}
+      </div>
+      <button onclick="document.getElementById('upgrade-modal-ov').remove();go('settings')" class="btn btn-p" style="width:100%;padding:13px;font-size:14px;margin-bottom:10px">Uppgradera till Pro →</button>
+      <button onclick="document.getElementById('upgrade-modal-ov').remove()" style="width:100%;padding:11px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Fortsätt med Free</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+// ── END TIER SYSTEM ────────────────────────────────────────────────────────
 const VOICE_PROFILE_KEY  = 'hael:voice-profile';
 function getClinicConfig() {
   try {
@@ -3477,19 +3571,6 @@ function rTopbar() {
     const initials = email.slice(0,2).toUpperCase() || 'HA';
     const unread   = getUnreadCount();
     nf.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:1px;margin-bottom:8px">
-        <button class="nav-item" onclick="openInbox()" style="justify-content:space-between">
-          <span style="display:flex;align-items:center;gap:9px">
-            <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
-            Inkorg
-          </span>
-          <span id="inbox-badge-sb" class="nav-badge" style="display:${unread>0?'inline':'none'}">${unread>9?'9+':unread}</span>
-        </button>
-        <button class="nav-item" onclick="togSettings()">
-          <svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-          Inställningar
-        </button>
-      </div>
       <div style="border-top:1px solid var(--sb-border);padding-top:10px">
         <div style="display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:var(--r-md)">
           <div style="width:28px;height:28px;border-radius:50%;background:var(--teal-lt);border:1px solid rgba(13,155,138,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:var(--accent);font-family:var(--font-mono);letter-spacing:0">${initials}</div>
@@ -4680,6 +4761,9 @@ function rForm(){
   const f=S.form;const pc=f.pain>=7?"#c07070":f.pain>=4?"#c8a030":"#5a9860";const mc=f.motivation>=7?"#5a9860":f.motivation>=4?"#c8a030":"#c07070";
   const title=S.visitId?"Redigera Hael-plan":"Hael-plan -- "+S.pat.name;
   const ph = S.pat ? getCurrentPhase(S.pat) : 1;
+  const tierCheck = checkPlanAllowed();
+  const tierBanner = (!S.visitId && getClinicTier() === 'free')
+    ? `<div style="background:rgba(13,155,138,.07);border:1px solid rgba(13,155,138,.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px"><div style="font-size:12px;color:var(--teal)">${tierCheck.used||0} / ${tierCheck.limit||5} planer använda denna månad</div><button onclick="showUpgradeModal('form')" style="background:var(--teal);color:white;border:none;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);white-space:nowrap">Uppgradera</button></div>` : '';
   let h=`<div class="fwrap">
     <div class="ftitle">${e(title)}</div>
     <div class="fsub">AI genererar en vetenskapligt baserad, individuell plan</div>
@@ -4708,10 +4792,18 @@ function rForm(){
 function sl(label,field,min,max,color,unit){const v=S.form[field];return `<div class="slwrap"><div class="slhd"><span class="sllbl">${label}</span><span class="slval" id="sv-${field}" style="color:${color}">${v}${unit}</span></div><input type="range" min="${min}" max="${max}" value="${v}" style="accent-color:${color}" oninput="S.form.${field}=parseInt(this.value);document.getElementById('sv-${field}').textContent=this.value+'${unit}'"></div>`;}
 function ch(field,vals,labels){return vals.map((v,i)=>`<button class="chip ${S.form[field]===v?"on":""}" onclick="S.form.${field}='${v}';rForm()">${labels[i]}</button>`).join("");}
 async function doGen(){
+  // Tier check — only for new plans, not regeneration
+  if (!S.visitId) {
+    const allowed = checkPlanAllowed();
+    if (!allowed.ok) {
+      showUpgradeModal('plan_limit');
+      return;
+    }
+  }
   // Inject phase instruction into form
   const ph = S.pat ? getCurrentPhase(S.pat) : 1;
   S.form.phaseInstruction = getPhasePromptAddition(ph);
-const key=getKey();if(!key){document.getElementById("ferr").innerHTML=`<div class="errbox">API-nyckel saknas. Klicka på Inställningar uppe till höger.</div>`;return;}document.getElementById("ferr").innerHTML="";const btn=document.getElementById("gbtn");if(btn)btn.disabled=true;const f=S.form;const diag=f.diagnosis==="Annan / fritext"?f.customDiag:f.diagnosis;const ff={...f,diagnosis:diag};S.loadMode='plan';S.loadStep=1;go("loading");try{S.loadStep=2;rLoading();const gen=await callAPI(buildPr(ff),[],key);S.loadStep=3;rLoading();const vid=S.visitId||("v_"+Date.now());const np={...gen,patientName:f.name||"Patient",diagnosis:diag,form:ff,visitId:vid};S.plan=np;let pat=S.pat||{id:"pat_"+Date.now(),name:f.name,birthYear:f.birthYear,diagnosis:diag,visits:[]};pat={...pat,name:ff.name||pat.name,birthdate:ff.birthdate||pat.birthdate,birthYear:birthdateToYear(ff.birthdate||pat.birthdate||""),diagnosis:diag};const nv={id:vid,date:new Date().toISOString().slice(0,10),form:ff,plan:np,status:"Aktiv",note:"",service:(window._pendingService||{}).name||"",servicePrice:(window._pendingService||{}).price||0};window._pendingService=null;const ei=(pat.visits||[]).findIndex(v=>v.id===vid);pat.visits=ei>=0?pat.visits.map(v=>v.id===vid?nv:v):[nv,...(pat.visits||[])];const sv=savePat(pat);S.pat=sv;S.visitId=vid;go("doc");if(ei<0&&!(pat.consents&&pat.consents.length))setTimeout(()=>showConsentPopup(sv.id),500);if(ei<0)setTimeout(()=>aiExtractDiagnoses(sv.id),1200);setTimeout(()=>reviewPlanRisk(sv.id,vid),2000);}catch(err){go("form");document.getElementById("ferr").innerHTML=`<div class="errbox">Fel: ${e(err.message||"Okänt fel")}. Kontrollera API-nyckeln.</div>`;if(btn)btn.disabled=false;}}
+const key=getKey();if(!key){document.getElementById("ferr").innerHTML=`<div class="errbox">API-nyckel saknas. Klicka på Inställningar uppe till höger.</div>`;return;}document.getElementById("ferr").innerHTML="";const btn=document.getElementById("gbtn");if(btn)btn.disabled=true;const f=S.form;const diag=f.diagnosis==="Annan / fritext"?f.customDiag:f.diagnosis;const ff={...f,diagnosis:diag};S.loadMode='plan';S.loadStep=1;go("loading");try{S.loadStep=2;rLoading();const gen=await callAPI(buildPr(ff),[],key);S.loadStep=3;rLoading();const vid=S.visitId||("v_"+Date.now());const np={...gen,patientName:f.name||"Patient",diagnosis:diag,form:ff,visitId:vid};S.plan=np;let pat=S.pat||{id:"pat_"+Date.now(),name:f.name,birthYear:f.birthYear,diagnosis:diag,visits:[]};pat={...pat,name:ff.name||pat.name,birthdate:ff.birthdate||pat.birthdate,birthYear:birthdateToYear(ff.birthdate||pat.birthdate||""),diagnosis:diag};const nv={id:vid,date:new Date().toISOString().slice(0,10),form:ff,plan:np,status:"Aktiv",note:"",service:(window._pendingService||{}).name||"",servicePrice:(window._pendingService||{}).price||0};window._pendingService=null;const ei=(pat.visits||[]).findIndex(v=>v.id===vid);pat.visits=ei>=0?pat.visits.map(v=>v.id===vid?nv:v):[nv,...(pat.visits||[])];const sv=savePat(pat);S.pat=sv;S.visitId=vid;go("doc");if(ei<0&&!(pat.consents&&pat.consents.length))setTimeout(()=>showConsentPopup(sv.id),500);if(ei<0){setTimeout(()=>aiExtractDiagnoses(sv.id),1200);incrementMonthlyPlanCount();}setTimeout(()=>reviewPlanRisk(sv.id,vid),2000);}catch(err){go("form");document.getElementById("ferr").innerHTML=`<div class="errbox">Fel: ${e(err.message||"Okänt fel")}. Kontrollera API-nyckeln.</div>`;if(btn)btn.disabled=false;}}
 function buildPr(f, locked=[]) {
   const age = new Date().getFullYear() - birthdateToYear(f.birthdate||f.birthYear);
   const lang = f.knowledge==="låg" ? "enkelt vardagsspråk -- undvik anatomiska termer"
@@ -8398,6 +8490,33 @@ async function sbLoadAll() {
   } catch(e) { return null; }
 }
 
+async function syncFromCloud() {
+  setSyncStatus('syncing', 'Hämtar...');
+  const cloudPats = await sbLoadAll();
+  if (!cloudPats) { setSyncStatus('error', 'Synkfel'); setTimeout(()=>setSyncStatus('idle',''),3000); return; }
+  const local = S.patients || [];
+  const merged = [...cloudPats];
+  local.forEach(lp => {
+    if (!merged.find(cp => cp.id === lp.id)) merged.push(lp);
+  });
+  S.patients = merged;
+  try { localStorage.setItem('kansei:patients', JSON.stringify(merged)); } catch(e) {}
+  if (S.screen === 'list' || S.screen === 'dashboard') { if (typeof rList === 'function' && S.screen === 'list') rList(); if (typeof rDashboard === 'function' && S.screen === 'dashboard') rDashboard(); }
+  setSyncStatus('ok', 'Synkad');
+  setTimeout(() => setSyncStatus('idle',''), 2500);
+}
+
+async function syncToCloud() {
+  setSyncStatus('syncing', 'Laddar upp...');
+  let ok = true;
+  for (const p of S.patients) {
+    const res = await sbUpsertPat(p);
+    if (!res) ok = false;
+  }
+  setSyncStatus(ok ? 'ok' : 'error', ok ? 'Uppladdad' : 'Delvis fel');
+  setTimeout(() => setSyncStatus('idle',''), 2500);
+}
+
 async function sbKeepAlive() {
   try {
     await fetchWithTimeout(
@@ -8563,8 +8682,8 @@ function rLogin() {
   animation: ln-fade .9s ease both;
 }
 .ln-right {
-  width:400px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
-  padding:36px 40px; position:relative; z-index:1;
+  width:420px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  padding:36px 40px 36px 20px; position:relative; z-index:1;
   animation: ln-fade 1s .1s ease both;
 }
 
@@ -8701,7 +8820,12 @@ function rLogin() {
   <!-- LEFT: HERO COPY -->
   <div class="ln-left">
     <div>
-      <img src="${LOGO}" style="height:22px;opacity:.75;margin-bottom:52px;display:block">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:52px">
+        <div style="width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,rgba(13,155,138,.4),rgba(13,155,138,.15));border:1px solid rgba(13,155,138,.3);display:flex;align-items:center;justify-content:center">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3dcfbd" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <span style="font-size:17px;font-weight:800;color:white;letter-spacing:-.02em">Vela</span>
+      </div>
       <div class="ln-tagline">
         Klinikverktyget<br>som tänker ett steg<br><em>före dig.</em>
       </div>

@@ -10804,489 +10804,240 @@ function renderPublicPlan(plan, pat) {
     const s = document.createElement('style');
     s.id = 'hael-plan-css';
     s.textContent = `
-      /* ── Hael Plan — Complete redesign ──────────────────────── */
+      /* ═══════════════════════════════════════════════════════
+         HAEL PLAN — REDESIGN 2026
+         Clean hierarchy · No double greetings · Mobile-first
+         ═══════════════════════════════════════════════════════ */
       * { box-sizing: border-box; margin: 0; padding: 0; }
 
-      /* Page layout: sidebar + content */
+      :root {
+        --hp-bg: #080f1a;
+        --hp-surf: #0d1a2e;
+        --hp-card: #111f36;
+        --hp-b: rgba(255,255,255,.07);
+        --hp-b2: rgba(255,255,255,.12);
+        --hp-teal: #0d9b8a;
+        --hp-teal-dim: rgba(13,155,138,.14);
+        --hp-text: #e4ecf4;
+        --hp-t2: rgba(228,236,244,.6);
+        --hp-t3: rgba(228,236,244,.35);
+        --hp-font: 'Plus Jakarta Sans', system-ui, sans-serif;
+      }
+
       .zp-page {
-        background: #0e1825;
+        background: var(--hp-bg);
         min-height: 100vh;
-        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-        color: #e8edf4;
-        display: flex;
-        flex-direction: column;
+        font-family: var(--hp-font);
+        color: var(--hp-text);
+        display: flex; flex-direction: column;
       }
 
-      /* ── TOP BAR ─────────────────────────────────────────────── */
+      /* TOP BAR */
       .zp-topbar {
-        background: #0a1628;
-        border-bottom: 1px solid rgba(255,255,255,.07);
-        padding: 14px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: sticky;
-        top: 0;
-        z-index: 50;
+        background: var(--hp-surf);
+        border-bottom: 1px solid var(--hp-b);
+        padding: 12px 20px;
+        display: flex; align-items: center; justify-content: space-between;
+        position: sticky; top: 0; z-index: 50;
       }
-      .zp-topbar-brand {
-        display: flex;
-        align-items: center;
-        gap: 10px;
+      .zp-topbar-brand { display: flex; align-items: center; gap: 10px; }
+      .zp-topbar-name  { font-size: 15px; font-weight: 700; color: var(--hp-text); letter-spacing: -.01em; }
+      .zp-topbar-diag  { font-size: 11px; color: var(--hp-t3); margin-top: 1px; }
+      .zp-topbar-meta  { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+
+      /* PROGRESS STRIP */
+      .zp-progress-strip {
+        background: var(--hp-surf);
+        border-bottom: 1px solid var(--hp-b);
+        padding: 8px 20px 10px;
       }
-      .zp-topbar-name {
-        font-family: 'Fraunces', Georgia, serif;
-        font-size: 18px;
-        font-weight: 400;
-        color: white;
-        letter-spacing: -.01em;
+      .zp-progress-label {
+        display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px;
       }
-      .zp-topbar-diag {
-        font-size: 11px;
-        color: rgba(255,255,255,.4);
-        margin-top: 1px;
+      .zp-progress-lbl-l { font-size: 10px; font-weight: 600; color: var(--hp-t3); }
+      .zp-progress-lbl-r { font-size: 10px; font-weight: 700; color: var(--hp-teal); }
+      .zp-progress-track {
+        height: 3px; background: rgba(255,255,255,.07); border-radius: 2px; overflow: hidden;
       }
-      .zp-topbar-meta {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .zp-chip {
-        background: rgba(13,155,138,.15);
-        border: 1px solid rgba(13,155,138,.25);
-        color: #3dcfbd;
-        font-size: 11px;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 20px;
-        white-space: nowrap;
-      }
-      .zp-chip.accent {
-        background: rgba(212,168,67,.15);
-        border-color: rgba(212,168,67,.25);
-        color: #d4a843;
+      .zp-progress-fill {
+        height: 100%; border-radius: 2px;
+        background: linear-gradient(90deg, var(--hp-teal), #16c8d0);
+        transition: width .6s cubic-bezier(.4,0,.2,1);
       }
 
-      /* ── MAIN LAYOUT ─────────────────────────────────────────── */
-      .zp-layout {
-        display: flex;
-        flex: 1;
-        max-width: 1000px;
-        margin: 0 auto;
-        width: 100%;
-        padding: 0 16px;
-        gap: 20px;
-        padding-bottom: 40px;
+      /* GREETING HERO */
+      .zp-hero {
+        background: linear-gradient(155deg, #0b1e35 0%, #0e2645 55%, #091520 100%);
+        padding: 26px 20px 22px;
+        border-bottom: 1px solid var(--hp-b);
+        position: relative; overflow: hidden;
       }
-
-      /* ── CONTENT AREA ────────────────────────────────────────── */
-      .zp-content {
-        flex: 1;
-        min-width: 0;
-        padding-top: 20px;
-      }
-
-      /* ── SIDEBAR ─────────────────────────────────────────────── */
-      .zp-sidebar {
-        width: 240px;
-        flex-shrink: 0;
-        padding-top: 20px;
-      }
-      .zp-sidebar-card {
-        background: #162030;
-        border: 1px solid rgba(255,255,255,.08);
-        border-radius: 14px;
-        padding: 16px;
-        margin-bottom: 12px;
-      }
-      .zp-sidebar-label {
-        font-size: 9px;
-        font-weight: 700;
-        letter-spacing: .12em;
-        text-transform: uppercase;
-        color: rgba(255,255,255,.3);
-        margin-bottom: 10px;
-      }
-      .zp-sidebar-stat {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 7px 0;
-        border-bottom: 1px solid rgba(255,255,255,.06);
-        font-size: 12px;
-      }
-      .zp-sidebar-stat:last-child { border-bottom: none; }
-      .zp-sidebar-stat-lbl { color: rgba(255,255,255,.45); }
-      .zp-sidebar-stat-val { color: white; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
-      .zp-sidebar-btn {
-        display: block;
-        width: 100%;
-        padding: 11px 14px;
-        border-radius: 10px;
-        border: none;
-        cursor: pointer;
-        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-        font-size: 13px;
-        font-weight: 700;
-        text-align: center;
-        margin-bottom: 8px;
-        transition: all .15s;
-        text-decoration: none;
-      }
-      .zp-sidebar-btn.primary {
-        background: #0d9b8a;
-        color: white;
-      }
-      .zp-sidebar-btn.primary:hover { background: #0a7a6e; }
-      .zp-sidebar-btn.secondary {
-        background: rgba(255,255,255,.06);
-        color: rgba(255,255,255,.65);
-        border: 1px solid rgba(255,255,255,.1);
-      }
-      .zp-sidebar-btn.secondary:hover { background: rgba(255,255,255,.1); }
-
-      /* ── SECTIONS ────────────────────────────────────────────── */
-      .zp-section {
-        background: #162030;
-        border: 1px solid rgba(255,255,255,.07);
-        border-radius: 14px;
-        margin-bottom: 12px;
-        overflow: hidden;
-      }
-      .zp-sec-hdr {
-        padding: 14px 18px 12px;
-        border-bottom: 1px solid rgba(255,255,255,.06);
-      }
-      .zp-sec-title {
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: .1em;
-        text-transform: uppercase;
-        color: rgba(255,255,255,.35);
-      }
-
-      /* ── EXERCISE CARDS ──────────────────────────────────────── */
-      .zp-excard {
-        background: #162030;
-        border: 1px solid rgba(255,255,255,.07);
-        border-radius: 14px;
-        margin-bottom: 10px;
-        overflow: hidden;
-        transition: border-color .2s;
-      }
-      .zp-excard.done {
-        border-color: rgba(13,155,138,.3);
-        opacity: .75;
-      }
-      .zp-excard.open .zp-chevron { transform: rotate(90deg); }
-      .zp-exhdr { display: flex; align-items: center; }
-      .zp-exhdr-tap {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex: 1;
-        padding: 14px 8px 14px 16px;
-        cursor: pointer;
-        min-width: 0;
-        -webkit-tap-highlight-color: transparent;
-      }
-      .zp-exnum {
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        background: rgba(255,255,255,.08);
-        font-size: 11px;
-        font-weight: 700;
-        color: rgba(255,255,255,.4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .zp-excard.done .zp-exnum {
-        background: rgba(13,155,138,.2);
-        color: #3dcfbd;
-      }
-      .zp-extitle {
-        font-size: 14px;
-        font-weight: 600;
-        color: white;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .zp-exmeta {
-        font-size: 11px;
-        color: rgba(255,255,255,.4);
-        margin-top: 2px;
-      }
-      .zp-ring-wrap { padding: 14px 16px 14px 0; flex-shrink: 0; }
-      .zp-ring {
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        border: 2.5px solid rgba(255,255,255,.12);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        transition: all .2s;
-      }
-      .zp-ring.checked {
-        background: #0d9b8a;
-        border-color: #0d9b8a;
-      }
-      .zp-ring svg { width: 16px; height: 16px; }
-      .zp-chevron { color: rgba(255,255,255,.3); transition: transform .2s; margin-left: 4px; }
-      .zp-exbody {
-        padding: 0 16px 16px;
-        border-top: 1px solid rgba(255,255,255,.06);
-        display: none;
-      }
-      .zp-excard.open .zp-exbody { display: block; }
-      .zp-desc {
-        font-size: 13px;
-        color: rgba(255,255,255,.65);
-        line-height: 1.7;
-        margin: 12px 0;
-      }
-      .zp-sets-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        margin: 12px 0;
-      }
-      .zp-set-box {
-        background: rgba(255,255,255,.05);
-        border-radius: 10px;
-        padding: 10px 8px;
-        text-align: center;
-      }
-      .zp-set-val {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 20px;
-        font-weight: 700;
-        color: white;
-      }
-      .zp-set-lbl {
-        font-size: 10px;
-        color: rgba(255,255,255,.35);
-        margin-top: 3px;
-        text-transform: uppercase;
-        letter-spacing: .07em;
-      }
-
-      /* ── CHECKIN STRIP ───────────────────────────────────────── */
-      .zp-session-strip {
-        background: rgba(255,255,255,.03);
-        border: 1px solid rgba(255,255,255,.07);
-        border-radius: 12px;
-        padding: 12px 16px;
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .zp-session-strip.active {
-        border-color: rgba(13,155,138,.3);
-        background: rgba(13,155,138,.05);
-      }
-      .zp-session-bar-wrap {
-        flex: 1;
-        height: 4px;
-        background: rgba(255,255,255,.08);
-        border-radius: 2px;
-        overflow: hidden;
-      }
-      .zp-session-bar {
-        height: 100%;
-        background: #0d9b8a;
-        border-radius: 2px;
-        transition: width .4s ease;
-        width: 0%;
-      }
-      .zp-session-count {
-        font-size: 12px;
-        font-weight: 700;
-        color: rgba(255,255,255,.4);
-        font-family: 'JetBrains Mono', monospace;
-        flex-shrink: 0;
-      }
-      .zp-session-count.done { color: #3dcfbd; }
-
-      /* ── SYMPTOM JOURNAL ─────────────────────────────────────── */
-      .zp-journal-entry {
-        border-bottom: 1px solid rgba(255,255,255,.06);
-        padding: 12px 0;
-      }
-      .zp-journal-entry:last-child { border-bottom: none; }
-      .zp-nrs-row {
-        display: flex;
-        gap: 6px;
-        margin: 10px 0;
-        flex-wrap: wrap;
-      }
-      .zp-nrs-btn {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        border: 1.5px solid rgba(255,255,255,.1);
-        background: rgba(255,255,255,.04);
-        color: rgba(255,255,255,.6);
-        font-size: 13px;
-        font-weight: 700;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-family: 'JetBrains Mono', monospace;
-        transition: all .15s;
-      }
-      .zp-nrs-btn.sel {
-        background: #0d9b8a;
-        border-color: #0d9b8a;
-        color: white;
-      }
-      .zp-textarea {
-        width: 100%;
-        background: rgba(255,255,255,.05);
-        border: 1px solid rgba(255,255,255,.1);
-        border-radius: 10px;
-        padding: 10px 13px;
-        font-size: 13px;
-        color: white;
-        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-        resize: none;
-        outline: none;
-        line-height: 1.6;
-      }
-      .zp-textarea::placeholder { color: rgba(255,255,255,.25); }
-      .zp-textarea:focus { border-color: rgba(13,155,138,.5); }
-      .zp-submit-btn {
-        width: 100%;
-        padding: 13px;
-        background: #0d9b8a;
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-        margin-top: 10px;
-        transition: background .2s;
-      }
-      .zp-submit-btn:hover { background: #0a7a6e; }
-      .zp-pass-btn {
-        width: 100%;
-        padding: 11px;
-        background: rgba(255,255,255,.06);
-        color: rgba(255,255,255,.5);
-        border: 1px solid rgba(255,255,255,.1);
-        border-radius: 12px;
-        font-size: 13px;
-        cursor: pointer;
-        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-        margin-top: 8px;
-        transition: all .15s;
-      }
-      .zp-pass-btn:hover { background: rgba(255,255,255,.1); color: white; }
-
-      /* ── PAYWALL ─────────────────────────────────────────────── */
-      .zp-paywall {
-        background: linear-gradient(135deg, #0c1929 0%, #0a1e30 100%);
-        border: 1px solid rgba(255,255,255,.1);
-        border-radius: 16px;
-        padding: 20px;
-        margin: 0 0 12px;
-        position: relative;
-        overflow: hidden;
-      }
-      .zp-paywall::after {
+      .zp-hero::after {
         content: '';
-        position: absolute;
-        top: -30px;
-        right: -30px;
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(13,155,138,.15) 0%, transparent 70%);
+        position: absolute; top: -60px; right: -60px;
+        width: 220px; height: 220px; border-radius: 50%;
+        background: radial-gradient(circle, rgba(13,155,138,.1) 0%, transparent 70%);
         pointer-events: none;
       }
-      .zp-paywall-title {
-        font-size: 16px;
-        font-weight: 700;
-        color: white;
-        margin-bottom: 4px;
+      .zp-hero-eyebrow {
+        font-size: 10px; font-weight: 700; letter-spacing: .12em;
+        text-transform: uppercase; color: var(--hp-teal); margin-bottom: 7px;
       }
-      .zp-paywall-sub {
-        font-size: 12px;
-        color: rgba(255,255,255,.45);
-        margin-bottom: 14px;
-        line-height: 1.6;
+      .zp-hero-title {
+        font-size: 21px; font-weight: 800; color: #fff;
+        line-height: 1.2; letter-spacing: -.02em; margin-bottom: 9px;
       }
-      .zp-paywall-features {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        margin-bottom: 16px;
-      }
-      .zp-paywall-feat {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 12px;
-        color: rgba(255,255,255,.6);
-      }
-      .zp-paywall-feat::before {
-        content: '';
-        width: 5px;
-        height: 5px;
-        border-radius: 50%;
-        background: #3dcfbd;
-        flex-shrink: 0;
-      }
-      .zp-buy-btn {
-        display: block;
-        width: 100%;
-        padding: 13px;
-        background: #0d9b8a;
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-size: 14px;
-        font-weight: 700;
-        cursor: pointer;
-        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-        text-align: center;
-        text-decoration: none;
-        transition: background .2s;
-      }
-      .zp-buy-btn:hover { background: #0a7a6e; }
-
-      /* ── FOOTER ──────────────────────────────────────────────── */
-      .zp-footer {
-        text-align: center;
-        padding: 20px 16px 32px;
-        border-top: 1px solid rgba(255,255,255,.06);
-        margin-top: 8px;
+      .zp-hero-sub {
+        font-size: 13px; color: var(--hp-t2); line-height: 1.65; max-width: 460px;
       }
 
-      /* ── MOBILE ──────────────────────────────────────────────── */
-      @media (max-width: 700px) {
-        .zp-sidebar { display: none; }
-        .zp-layout { padding: 0 10px; }
-        .zp-topbar { padding: 12px 14px; }
+      /* LAYOUT */
+      .zp-layout {
+        display: flex; flex: 1; max-width: 880px; margin: 0 auto; width: 100%;
+        padding: 18px 16px 60px; gap: 16px; align-items: flex-start;
       }
-      @media (max-width: 480px) {
-        .zp-topbar-name { font-size: 16px; }
-        .zp-sets-grid { grid-template-columns: repeat(2, 1fr); }
+      .zp-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+      .zp-sidebar { width: 210px; flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; }
+
+      /* COUNTDOWN PILL */
+      .zp-pill {
+        display: flex; align-items: center; justify-content: space-between; gap: 10px;
+        padding: 9px 13px; border-radius: 10px;
+        background: rgba(201,168,76,.06); border: 1px solid rgba(201,168,76,.2);
+      }
+      .zp-pill.urgent { background: rgba(224,85,85,.07); border-color: rgba(224,85,85,.22); }
+      .zp-pill-text { font-size: 12px; color: rgba(201,168,76,.85); line-height: 1.4; }
+      .zp-pill.urgent .zp-pill-text { color: #f08080; }
+      .zp-pill-btn {
+        font-size: 11px; font-weight: 700; padding: 5px 11px; border: none; border-radius: 7px;
+        background: rgba(201,168,76,.18); color: rgba(201,168,76,.9);
+        cursor: pointer; font-family: var(--hp-font); white-space: nowrap; flex-shrink: 0;
+      }
+      .zp-pill.urgent .zp-pill-btn { background: rgba(224,85,85,.18); color: #f08080; }
+
+      /* SECTION CARD */
+      .zp-section {
+        background: var(--hp-card); border: 1px solid var(--hp-b); border-radius: 14px; overflow: hidden;
+      }
+      .zp-sec-hdr {
+        padding: 12px 16px 10px; border-bottom: 1px solid var(--hp-b);
+        display: flex; align-items: center; justify-content: space-between;
+      }
+      .zp-sec-title {
+        font-size: 10px; font-weight: 700; letter-spacing: .1em;
+        text-transform: uppercase; color: var(--hp-t3);
+      }
+      .zp-sec-badge {
+        font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+        background: var(--hp-teal-dim); color: var(--hp-teal);
+      }
+
+      /* CHIP ROW */
+      .zp-chip-row { display: flex; flex-wrap: wrap; gap: 5px; padding: 10px 16px 12px; }
+      .zp-chip {
+        font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px;
+        background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); color: var(--hp-t3);
+      }
+      .zp-chip.accent { background: rgba(224,85,85,.1); border-color: rgba(224,85,85,.22); color: #f08080; }
+
+      /* PASS BUTTON */
+      .zp-pass-btn-wrap { padding: 2px 0 6px; }
+      .zp-pass-btn {
+        width: 100%; padding: 15px; border: none; border-radius: 13px;
+        background: var(--hp-teal); color: #fff; font-size: 15px; font-weight: 700;
+        font-family: var(--hp-font); cursor: pointer; letter-spacing: -.01em;
+        transition: opacity .15s, transform .1s;
+      }
+      .zp-pass-btn:active { transform: scale(.98); opacity: .9; }
+
+      /* EXERCISE */
+      .zp-ex { padding: 13px 16px; border-bottom: 1px solid var(--hp-b); }
+      .zp-ex:last-child { border-bottom: none; }
+      .zp-ex-header { display: flex; align-items: flex-start; gap: 11px; cursor: pointer; }
+      .zp-ex-check {
+        width: 25px; height: 25px; border-radius: 50%; flex-shrink: 0;
+        border: 2px solid rgba(255,255,255,.14);
+        display: flex; align-items: center; justify-content: center; transition: all .2s; margin-top: 1px;
+      }
+      .zp-ex-check.done { background: var(--hp-teal); border-color: var(--hp-teal); }
+      .zp-ex-info { flex: 1; min-width: 0; }
+      .zp-ex-name { font-size: 14px; font-weight: 700; color: var(--hp-text); margin-bottom: 2px; }
+      .zp-ex-meta { font-size: 12px; color: var(--hp-t3); }
+      .zp-ex-chevron { width: 18px; height: 18px; flex-shrink: 0; color: var(--hp-t3); transition: transform .2s; margin-top: 4px; }
+      .zp-ex-chevron.open { transform: rotate(180deg); }
+      .zp-ex-body { padding-top: 11px; display: none; }
+      .zp-ex-body.open { display: block; }
+      .zp-ex-desc { font-size: 13px; color: var(--hp-t2); line-height: 1.65; margin-bottom: 9px; }
+      .zp-sets-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-bottom: 9px; }
+      .zp-set-box {
+        background: rgba(255,255,255,.04); border: 1px solid var(--hp-b); border-radius: 9px; padding: 9px 6px; text-align: center;
+      }
+      .zp-set-val { font-size: 18px; font-weight: 800; color: var(--hp-text); }
+      .zp-set-lbl { font-size: 10px; color: var(--hp-t3); margin-top: 1px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+      .zp-why-box {
+        background: rgba(13,155,138,.05); border: 1px solid rgba(13,155,138,.13); border-radius: 9px;
+        padding: 9px 11px; margin-top: 7px; font-size: 12px; color: var(--hp-t2); line-height: 1.6;
+      }
+      .zp-why-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--hp-teal); margin-bottom: 3px; }
+
+      /* FROM BEHANDLARE */
+      .zp-from-card {
+        background: rgba(13,155,138,.05); border: 1px solid rgba(13,155,138,.14);
+        border-radius: 13px; padding: 13px 15px;
+      }
+      .zp-from-label { font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--hp-teal); margin-bottom: 6px; }
+      .zp-from-text { font-size: 13px; color: var(--hp-t2); line-height: 1.65; }
+      .zp-from-meta { font-size: 11px; color: var(--hp-t3); margin-top: 6px; }
+
+      /* SIDEBAR */
+      .zp-sidebar-card { background: var(--hp-card); border: 1px solid var(--hp-b); border-radius: 13px; padding: 13px 15px; }
+      .zp-sidebar-label {
+        font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--hp-t3); margin-bottom: 9px;
+      }
+      .zp-sidebar-stat { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; border-bottom: 1px solid var(--hp-b); }
+      .zp-sidebar-stat:last-child { border-bottom: none; }
+      .zp-sidebar-stat-lbl { font-size: 12px; color: var(--hp-t3); }
+      .zp-sidebar-stat-val { font-size: 13px; font-weight: 700; color: var(--hp-text); }
+      .zp-sidebar-btn {
+        display: block; width: 100%; padding: 9px; text-align: center; border-radius: 9px;
+        font-size: 13px; font-weight: 700; font-family: var(--hp-font); text-decoration: none;
+        margin-top: 9px; cursor: pointer; border: 1px solid var(--hp-b2);
+        color: var(--hp-text); background: rgba(255,255,255,.05); transition: background .15s;
+      }
+      .zp-sidebar-btn.primary { background: var(--hp-teal); border-color: var(--hp-teal); color: #fff; }
+
+      /* GOALS */
+      .zp-goal-item {
+        display: flex; align-items: flex-start; gap: 9px; padding: 9px 16px;
+        border-bottom: 1px solid var(--hp-b); font-size: 13px; color: var(--hp-t2); line-height: 1.55;
+      }
+      .zp-goal-item:last-child { border-bottom: none; }
+      .zp-goal-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--hp-teal); flex-shrink: 0; margin-top: 5px; }
+
+      /* BOOKING */
+      .zp-book-btn {
+        width: 100%; padding: 12px; border: 1px solid var(--hp-b); border-radius: 11px;
+        background: rgba(255,255,255,.03); color: var(--hp-t2); font-size: 13px; font-weight: 600;
+        font-family: var(--hp-font); cursor: pointer; transition: background .15s;
+      }
+
+      /* MOBILE */
+      @media (max-width: 680px) {
+        .zp-layout { flex-direction: column; padding: 12px 12px 60px; gap: 12px; }
+        .zp-sidebar { width: 100%; }
+        .zp-hero { padding: 20px 14px 18px; }
+        .zp-hero-title { font-size: 18px; }
+        .zp-topbar { padding: 10px 14px; }
+        .zp-topbar-name { font-size: 14px; }
+        .zp-sets-grid { grid-template-columns: repeat(3,1fr); }
+        .zp-ex { padding: 11px 13px; }
+      }
+      @media (max-width: 400px) {
+        .zp-topbar-name { font-size: 13px; }
       }
     `;
     document.head.appendChild(s);
   }
-  // --------------------------------------------------------------------------
-
   // -- ACCESS & FEATURE CHECK ------------------------------------------------
   const _visit = (pat?.visits||[]).find(v => v.id === (plan.visitId||plan.id)) || pat?.visits?.[0];
   const _access = zpCheckAccess(_visit);
@@ -11315,33 +11066,19 @@ function renderPublicPlan(plan, pat) {
   let countdownHtml = '';
   if (_access.tier === 'free' && _access.freeUntil) {
     const daysLeft = Math.max(0, Math.ceil((new Date(_access.freeUntil) - new Date()) / (24*60*60*1000)));
-    if (daysLeft <= 7) {
-      const urgent = daysLeft <= 2;
-      const _cPatId   = (pat?.id||'').replace(/'/g,"\\'");
-      const _cVisitId = (_visit?.id||'').replace(/'/g,"\\'");
-      const patFirstName = (pat?.name||'').split(' ')[0];
+    if (daysLeft <= 14) {
+      const urgent = daysLeft <= 3;
+      const _cPatId   = (pat?.id||'').replace(/'/g, "\\'");
+      const _cVisitId = (_visit?.id||'').replace(/'/g, "\\'");
       const abandonKey = 'zp-renewal-viewed:' + (pat?.id||'');
-      const msgLabel = daysLeft === 0 ? 'Sista dagen'
-                     : daysLeft === 1 ? 'Imorgon löper det ut'
-                     : daysLeft + ' dagar kvar';
-      const msgSub = urgent
-        ? `${patFirstName ? patFirstName + '\u00a0\u2014 f' : 'F'}örsumma inte det du byggt upp. Välj en plan och fortsätt direkt.`
-        : `Ditt program avslutas snart. Välj en fortsättning nu -- det tar under en minut.`;
-      countdownHtml = `
-      <div class="zp-countdown" style="${urgent ? 'border-color:rgba(220,80,60,.35);background:linear-gradient(135deg,rgba(220,80,60,.08),rgba(220,80,60,.02))' : ''}">
-        <div class="zp-countdown-left">
-          <div class="zp-countdown-days" style="${urgent ? 'color:#e07060' : ''}">${daysLeft}</div>
-          <div class="zp-countdown-unit" style="${urgent ? 'color:rgba(220,100,80,.6)' : ''}">${daysLeft === 1 ? 'dag' : 'dagar'}</div>
-        </div>
-        <div class="zp-countdown-body">
-          <div class="zp-countdown-label">${msgLabel}</div>
-          <div class="zp-countdown-sub">${msgSub}</div>
-        </div>
-        <button class="zp-countdown-btn" style="${urgent ? 'background:#c85040' : ''}"
-          onclick="window._zpRenewalPat=window._publicPlanCache?.pat;try{localStorage.setItem('${abandonKey}',Date.now())}catch(ex){};zpRenderPaywall('${_cPatId}','${_cVisitId}',window._publicPlanCache?.pat)">
-          Fortsätt ->
-        </button>
-      </div>`;
+      const _firstName = (pat?.name||'').split(' ')[0];
+      const pillMsg = urgent
+        ? (daysLeft === 0 ? 'Sista dagen — fortsätt din plan' : daysLeft + (daysLeft===1?' dag':' dagar') + ' kvar av gratisperioden')
+        : daysLeft + ' dagar kvar på gratisperioden';
+      countdownHtml = '<div class="zp-pill' + (urgent ? ' urgent' : '') + '">'
+        + '<span class="zp-pill-text">' + pillMsg + '</span>'
+        + '<button class="zp-pill-btn" onclick="try{localStorage.setItem(\'' + abandonKey + '\',Date.now())}catch(e){};zpRenderPaywall(\'' + _cPatId + '\',\'' + _cVisitId + '\',window._publicPlanCache?.pat)">Välj plan →</button>'
+        + '</div>';
     }
   }
 
@@ -11362,31 +11099,15 @@ function renderPublicPlan(plan, pat) {
     : 0;
   const currentWeek = Math.min(weeksSinceStart + 1, totalWeeks);
   const weekPct = Math.round((currentWeek / totalWeeks) * 100);
-  const weekProgressHtml = `
-  <div class="zp-section">
-    <div style="padding:18px 18px 16px">
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px">
-        <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--navy)">Din rehabiliteringsresa</div>
-        <div style="font-size:11px;color:var(--text3)">Vecka ${currentWeek} av ${totalWeeks}</div>
-      </div>
-      <div style="background:#eef1f5;height:6px;border-radius:3px;overflow:hidden;margin-bottom:10px">
-        <div style="background:linear-gradient(90deg,var(--teal),#16b8c8);height:100%;width:${weekPct}%;border-radius:3px;transition:width .5s ease"></div>
-      </div>
-      <div style="font-size:12px;color:var(--text2);line-height:1.6">
-        ${currentWeek <= 1
-          ? 'Du är precis i början — fokusera på att lära dig rörelserna ordentligt. Kvalitet före kvantitet.'
-          : currentWeek < totalWeeks * 0.4
-          ? 'Du bygger grunden nu. Rörelsekvalitet är viktigare än antal reps i detta skede.'
-          : currentWeek < totalWeeks * 0.75
-          ? 'Du är i uppbyggnadsfasen. Kroppen anpassar sig -- det är normalt att det börjar kännas lättare.'
-          : currentWeek < totalWeeks
-          ? 'Du närmar dig målet. Bibehåll intensiteten och förbered dig för uppföljningsbesöket.'
-          : 'Du har nått ditt planerade mål. Dags för uppföljning — boka tid med din behandlare.'}
-      </div>
-    </div>
-  </div>`;
-
-  // -- EXERCISES -------------------------------------------------------------
+  const weekProgressHtml = totalWeeks > 0 ? (
+    '<div class="zp-progress-strip">'
+    + '<div class="zp-progress-label">'
+    + '<span class="zp-progress-lbl-l">Rehabiliteringsplan</span>'
+    + '<span class="zp-progress-lbl-r">Vecka ' + currentWeek + ' / ' + totalWeeks + '</span>'
+    + '</div>'
+    + '<div class="zp-progress-track"><div class="zp-progress-fill" style="width:' + weekPct + '%"></div></div>'
+    + '</div>'
+  ) : ''
   const _patIdSafeEx = (pat?.id||'').replace(/'/g,"\\'");
   const _visitIdSafeEx = (plan.visitId||'').replace(/'/g,"\\'");
   const totalEx = (plan.exercises||[]).length;
@@ -11576,6 +11297,49 @@ function renderPublicPlan(plan, pat) {
   // -- MAIN HTML -------------------------------------------------------------
   // -- SAFE HTML BUILD (no nested multi-line template literals) ----------------
   var _html = '';
+
+    // ── NARRATIVE GREETING ──────────────────────────────────────────────────
+  var _phaseData  = PHASES && PHASES[(pat?.phase||1)-1];
+  var _phaseLabel = _phaseData ? _phaseData.label : 'Fas 1';
+  var _firstName  = (patName||'').split(' ')[0] || patName;
+  var _logs       = _visit ? (_visit.logs||[]) : [];
+  var _allNRS     = _logs.filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;});
+  var _nrsFirst   = _allNRS[0] != null ? _allNRS[0] : (_visit?.form?.pain || null);
+  var _nrsLast    = _allNRS.length > 0 ? _allNRS[_allNRS.length-1] : null;
+  var _nrsDrop    = (_nrsFirst!=null && _nrsLast!=null) ? Math.round((_nrsFirst-_nrsLast)*10)/10 : null;
+  var _donePasses = _logs.filter(function(l){return l.completed||(l.exercises&&Object.values(l.exercises).filter(Boolean).length>0);}).length;
+
+  var _heroTitle, _heroSub;
+  if (_donePasses === 0) {
+    _heroTitle = 'Din rehabplan är klar';
+    _heroSub   = 'Allt är förberett för dig. Börja med dagens pass när du är redo — det tar bara några minuter.';
+  } else if (_nrsDrop !== null && _nrsDrop >= 2) {
+    _heroTitle = 'Du mår bättre';
+    _heroSub   = 'Smärtan har minskat med ' + _nrsDrop + ' enheter sedan du startade. Tydliga framsteg.';
+  } else if (currentWeek >= Math.floor(totalWeeks * 0.7)) {
+    _heroTitle = 'Slutspurten';
+    _heroSub   = 'Du är på slutspurten av ditt program. De sista veckorna är avgörande — håll i.';
+  } else if (_donePasses < 4) {
+    _heroTitle = 'Bra start, ' + _firstName;
+    _heroSub   = 'Du är igång — det viktigaste nu är att bygga rutinen. Fortsätt i samma tempo.';
+  } else {
+    _heroTitle = 'Fortsätt jobbet';
+    _heroSub   = 'Vecka ' + currentWeek + ' av ' + totalWeeks + '. Du har lagt grunden — håll momentum.';
+  }
+
+  // Behandlarens meddelande (from-card, only if set)
+  var _fromCard = '';
+  if (plan.followupNote || followupStr) {
+    _fromCard = '<div class="zp-from-card">'
+      + '<div class="zp-from-label">Från din behandlare</div>'
+      + (plan.followupNote ? '<div class="zp-from-text">' + e(plan.followupNote) + '</div>' : '')
+      + (followupStr ? '<div class="zp-from-meta">Återbesök: ' + e(followupStr) + '</div>' : '')
+      + (CLINIC.phone ? '<a href="tel:' + CLINIC.phone + '" style="display:inline-block;margin-top:8px;font-size:12px;font-weight:600;color:var(--hp-teal);text-decoration:none">Ring ' + e(CLINIC.name||'kliniken') + ' →</a>' : '')
+      + '</div>';
+  }
+
+  // ── ASSEMBLE ───────────────────────────────────────────────────────────
+  _html = '';
   _html += '<div class="zp-page">';
 
   // TOP BAR
@@ -11584,23 +11348,37 @@ function renderPublicPlan(plan, pat) {
     + '<div class="zp-topbar-name">' + patName + '</div>'
     + '<div class="zp-topbar-diag">' + diag + '</div>'
     + '</div></div>'
-    + '<div class="zp-topbar-meta">' + chips
-    + '<div style="font-size:10px;color:rgba(255,255,255,.25);margin-left:4px">' + today + '</div>'
+    + '<div class="zp-topbar-meta">'
+    + '<div style="font-size:10px;color:rgba(255,255,255,.22)">' + today + '</div>'
     + '</div></div>';
+
+  // SLIM PROGRESS STRIP (only if plan has weeks)
+  if (weekProgressHtml) _html += weekProgressHtml;
+
+  // GREETING HERO
+  _html += '<div class="zp-hero">'
+    + '<div class="zp-hero-eyebrow">' + e(CLINIC.name||'Hael') + ' · ' + e(_phaseLabel) + '</div>'
+    + '<div class="zp-hero-title">' + e(_heroTitle) + '</div>'
+    + '<div class="zp-hero-sub">' + e(_heroSub) + '</div>'
+    + '</div>';
 
   // LAYOUT OPEN
   _html += '<div class="zp-layout"><div class="zp-content">';
 
-  // Progress + countdown
-  if (progressGraph) _html += progressGraph;
-  if (weekProgressHtml) _html += weekProgressHtml;
+  // Countdown pill (only ≤14 days left on free tier)
   if (countdownHtml) _html += countdownHtml;
 
-  // Greeting
+  // NRS sparkline / progress graph
+  if (progressGraph) _html += progressGraph;
+
+  // Message from behandlare
+  if (_fromCard) _html += _fromCard;
+
   // Goals
   if (goalsHtml) {
-    _html += '<div class="zp-section"><div class="zp-sec-hdr"><div class="zp-sec-title">Mål med rehabiliteringen</div></div>'
-      + '<div style="padding:8px 18px 16px">' + goalsHtml + '</div></div>';
+    _html += '<div class="zp-section">'
+      + '<div class="zp-sec-hdr"><div class="zp-sec-title">Mål med rehabiliteringen</div></div>'
+      + '<div>' + goalsHtml + '</div></div>';
   }
 
   // Exercises
@@ -11612,7 +11390,7 @@ function renderPublicPlan(plan, pat) {
   // Schedule
   if (schedHtml) _html += schedHtml;
 
-  // AI messages / upsell
+  // AI nudge / messages / upsell
   _html += _hasStats ? zpContextualMsg(pat, plan.visitId||visitIdSafe, plan) : _zpFeatureUpsell('ai_messages', patIdSafe, visitIdSafe);
   if (!_hasStats) _html += zpLockedFeatureSection(patIdSafe, visitIdSafe);
   if (_hasMsgs) _html += pubMsgSectionHTML(pat, plan.visitId||'');

@@ -14491,7 +14491,7 @@ function _stComms(cfg) {
     });
     h += '</div>';
     h += '<div style="display:flex;gap:10px">';
-    h += '<button onclick="document.getElementById(\'imap-setup\').style.display=\'none\'" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>';
+    h += '<button onclick="document.getElementById(\"imap-setup\").style.display=\'none\'" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>';
     h += '<button onclick="showAutoSaveToast(\'IMAP-konfiguration sparad — testar anslutning...\')" class="btn btn-p" style="flex:1;padding:10px">Testa & spara</button>';
     h += '</div></div>';
 
@@ -14558,7 +14558,7 @@ function _openMailTemplateEditor(id, label, body) {
     + '<div style="background:var(--navy);padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'
     + '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(13,155,138,.8);margin-bottom:4px">Mailmall</div>'
     + '<div style="font-size:17px;font-weight:700;color:white">'+e(label)+'</div></div>'
-    + '<button onclick="document.getElementById(\'mail-tmpl-ov\').remove()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">×</button>'
+    + '<button onclick="document.getElementById(\"mail-tmpl-ov\").remove()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">×</button>'
     + '</div>'
     + '<div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden">'
     // Left: editor
@@ -14574,7 +14574,7 @@ function _openMailTemplateEditor(id, label, body) {
     + '<div id="tmpl-preview-'+id+'" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:12px;color:var(--text);line-height:1.85;white-space:pre-wrap">'+e(preview)+'</div>'
     + '</div></div>'
     + '<div style="padding:14px 22px 18px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0">'
-    + '<button onclick="document.getElementById(\'mail-tmpl-ov\').remove()" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>'
+    + '<button onclick="document.getElementById(\"mail-tmpl-ov\").remove()" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>'
     + '<button onclick="_saveMailTemplate(\''+id+'\',document.getElementById(\'tmpl-body-'+id+'\').value)" class="btn btn-p" style="flex:1;padding:10px">Spara mall</button>'
     + '</div></div>';
 
@@ -15872,7 +15872,7 @@ function rAddClinicDialog() {
     + _stField('nc-email','E-post','','info@klinik.se','email')
     + '</div>'
     + '<div style="padding:0 22px 18px;display:flex;gap:10px">'
-    + '<button onclick="document.getElementById(\'add-clinic-ov\').remove()" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>'
+    + '<button onclick="document.getElementById(\"add-clinic-ov\").remove()" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>'
     + '<button onclick="_saveNewClinic()" class="btn btn-p" style="flex:1;padding:10px">Lägg till klinik →</button>'
     + '</div></div>';
   document.body.appendChild(ov);
@@ -15944,9 +15944,7 @@ async function generateOrgReport() {
     if (content) content.textContent = 'Fel vid rapportgenerering: ' + (err.message||'okänt');
   }
 }
-</script>
-</body>
-      h += '<button onclick="_openMailEditor(\'\'+tmpl.id+\'\')" style="padding:5px 10px;background:none;border:1px solid var(--border);border-radius:7px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Redigera</button>\';  
+
 // ── MAIL EDITOR SAFE WRAPPER ─────────────────────────────────────────────────
 function _openMailEditor(id) {
   var cache = window._mailTmplCache || {};
@@ -16030,6 +16028,8 @@ const AI_PROFILE_QUESTIONS = [
   },
 ];
 
+function _closeOv(id) { document.getElementById(id)?.remove(); }
+
 function openAiProfileWizard() {
   document.getElementById('ai-profile-ov')?.remove();
   var profile = getAiProfile();
@@ -16051,10 +16051,13 @@ function _buildAiProfileWizardHTML(profile, step) {
     optionsHTML = '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">';
     q.options.forEach(function(opt) {
       var sel = Array.isArray(profile[q.id]) ? profile[q.id].includes(opt) : profile[q.id] === opt;
-      optionsHTML += '<button onclick="_aiProfileToggleOption(''+q.id+'',''+q.type+'',this,''+opt.replace(/'/g,"\'")+'')"'
-        + ' style="text-align:left;padding:10px 14px;border:1.5px solid '+(sel?'var(--teal)':'var(--border)')+';border-radius:10px;background:'+(sel?'rgba(13,155,138,.08)':'var(--bg)')+';cursor:pointer;font-family:var(--font);font-size:13px;color:'+(sel?'var(--teal)':'var(--text)')+';font-weight:'+(sel?'600':'400')+';transition:all .12s">'
-        + (sel ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>' : '')
-        + opt + '</button>';
+      var safeOpt = opt.replace(/'/g, "\\'");
+      var safeId  = q.id.replace(/'/g, "\\'");
+      var safeTyp = q.type.replace(/'/g, "\\'");
+      var onclk   = '_aiProfileToggleOption(\'' + safeId + '\',\'' + safeTyp + '\',this,\'' + safeOpt + '\')';
+      var btnStyle = 'text-align:left;padding:10px 14px;border:1.5px solid ' + (sel?'var(--teal)':'var(--border)') + ';border-radius:10px;background:' + (sel?'rgba(13,155,138,.08)':'var(--bg)') + ';cursor:pointer;font-family:var(--font);font-size:13px;color:' + (sel?'var(--teal)':'var(--text)') + ';font-weight:' + (sel?'600':'400') + ';transition:all .12s';
+      var checkSvg = sel ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>' : '';
+      optionsHTML += '<button onclick="' + onclk + '" style="' + btnStyle + '">' + checkSvg + opt + '</button>';
     });
     optionsHTML += '</div>';
   }
@@ -16072,7 +16075,7 @@ function _buildAiProfileWizardHTML(profile, step) {
     + '<div style="background:linear-gradient(135deg,#08192f,#0a2540);padding:22px 26px 18px">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
     + '<div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(13,155,138,.8)">Din AI-profil · ' + (step+1) + ' / ' + total + '</div>'
-    + '<button onclick="document.getElementById('ai-profile-ov').remove()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:20px;cursor:pointer;line-height:1">×</button>'
+    + '<button onclick="closeAiProfileOv()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:20px;cursor:pointer;line-height:1">×</button>'
     + '</div>'
     // Progress bar
     + '<div style="height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-bottom:14px">'
@@ -16171,6 +16174,8 @@ function _aiProfileNav(nextStep) {
 }
 
 // Returns a context string for injecting into AI prompts
+function closeAiProfileOv() { document.getElementById('ai-profile-ov')?.remove(); }
+
 function getAiProfileContext(userId) {
   var profile = getAiProfile(userId);
   if (!Object.keys(profile).length) return '';
@@ -16190,5 +16195,6 @@ function getAiProfileContext(userId) {
   if (profile.tone_text) parts.push('Ytterligare om ton: ' + profile.tone_text);
   return parts.length ? '\n\n--- BEHANDLARPROFIL ---\n' + parts.join('\n') + '\n---' : '';
 }
-
->
+</script>
+</body>
+</html>

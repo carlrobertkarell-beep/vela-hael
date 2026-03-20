@@ -4138,6 +4138,9 @@ function rDashboard() {
     +   '</div>'
 
     +   '<button onclick="startVisitFlow()" style="background:var(--teal);color:white;border:none;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:7px;flex-shrink:0">'    +     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'    +     'Starta besök'    +   '</button>'    + '</div>'
+    // MORNING REPORT (nightly scan result)
+    + '<div id="morning-report-card"></div>'
+
     // AI BRIEFING
     + '<div class="cc-briefing" id="cc-briefing-card">'
     +   '<div class="cc-briefing-lbl">Vela Intelligence · Daglig briefing</div>'
@@ -4200,6 +4203,7 @@ function rDashboard() {
 
   setTimeout(() => generateDailyBriefing(), 400);
   setTimeout(() => checkAdaptivePlanAlerts(S.patients), 1000);
+  setTimeout(function(){ _renderMorningReportCard(); }, 100);
 }
 
 // Quick actions from dashboard -- no patient required upfront
@@ -4762,6 +4766,18 @@ function rDetail(){
     : renderVisitTimeline(p) + renderPendingPlanApproval(p) + renderIntakeReviewPanel(p.id) + renderPainGraph(p) + renderPatientReportsPanel(p.id);
   h += collapsible('det-visits-'+p.id, 'Besökshistorik', visitContent, true,
     hasVisits ? String((p.visits||[]).length) : '');
+
+  // 5b. Dropout risk card (only if patient has active plan)
+  var hasActivePlan = (p.visits||[]).some(function(v){
+    if (!v.plan) return false;
+    var tw = v.plan.totalWeeks||v.plan.form?.followup||4;
+    var sd = v.date?new Date(v.date):null;
+    return sd && new Date(sd.getTime()+tw*7*86400000) > new Date();
+  });
+  if (hasActivePlan) {
+    h += collapsible('det-dropout-'+p.id, 'Avhoppsrisk & följsamhet',
+      renderDropoutRiskCard(p), false);
+  }
 
   // 6. Meddelanden — collapsed, badge if unread
   h += collapsible(
@@ -9348,6 +9364,7 @@ async function doLogin() {
     setTimeout(() => syncFromCloud(), 800);
     setTimeout(() => sbKeepAlive(), 2000);
     setTimeout(() => runInboxAgent(S.patients), 3500);
+    setTimeout(function(){ runNightlyScanIfNeeded().then(function(){ _renderMorningReportCard(); }); }, 4500);
   } else {
     if (errEl) errEl.textContent = result.msg;
   }
@@ -12376,6 +12393,9 @@ async function submitCheckIn(patId, visitId) {
   const entry = { visitId, ts, pain, energy, move, done, note };
   savePassLog(patId, entry);
 
+  // Auto-adjustment check (non-blocking)
+  setTimeout(function(){ _checkAutoAdjustOnNRS(patId, visitId, pain); }, 1500);
+
   // Try to sync to Supabase
   try {
     await fetch(`${SB_URL}/rest/v1/pass_log`, {
@@ -14705,6 +14725,365 @@ function rSettings() {
   _renderSettingsContent(window._settingsActiveTab);
 }
 
+
+// ── DROPOUT RISK CARD — per-patient detail view ────────────────────────────
+function renderDropoutRiskCard(pat) {
+  // Compute risk for this specific patient
+  var risks = _scanDropoutRisks();
+  var risk   = risks.find(function(r){return r.patId === pat.id;});
+
+  // ── PARAMETER DEFINITIONS (the 8 factors, grouped) ───────────────────────
+  var paramGroups = [
+    {
+      group: 'Beteende',
+      color: '#4a7aee',
+      params: [
+        {
+          key: 'log_frequency',
+          label: 'Loggfrekvens',
+          desc: 'Hur tätt patienten loggar pass. Sjunkande frekvens = tidig varningssignal.',
+          benchmark: '≥3 pass/v optimal · <1 pass/v = hög risk',
+        },
+        {
+          key: 'days_since_log',
+          label: 'Dagar sedan logg',
+          desc: 'Dagar sedan senaste inloggade pass.',
+          benchmark: '>7 dagar = varning · >14 dagar = hög risk',
+        },
+        {
+          key: 'pass_pct',
+          label: 'Pass-% vs förväntat',
+          desc: 'Hur stor andel av förväntade pass patienten faktiskt genomfört.',
+          benchmark: '<35% av förväntat = riskzon',
+        },
+        {
+          key: 'nrs_stagnation',
+          label: 'NRS-förbättring',
+          desc: 'Om smärtan minskat sedan planstart. Ingen effekt = lägre motivation att fortsätta.',
+          benchmark: 'Förbättring >1.5 NRS-enheter = skyddande',
+        },
+      ]
+    },
+    {
+      group: 'Kliniskt',
+      color: '#e0955a',
+      params: [
+        {
+          key: 'nrs_start',
+          label: 'NRS vid start',
+          desc: 'Hög smärta vid start innebär lång resa — patienter med NRS ≥8 har statistiskt sett svårare att hålla uthålligheten.',
+          benchmark: 'NRS ≥8 vid start = +10p risk',
+        },
+        {
+          key: 'exercise_count',
+          label: 'Antal övningar',
+          desc: 'Forskning (Jack et al. 2010) visar att program med >6 övningar ökar dropout markant p.g.a. overwhelm-effekt.',
+          benchmark: '>6 övningar = +12p risk',
+        },
+      ]
+    },
+    {
+      group: 'Diagnos',
+      color: '#9b6ee0',
+      params: [
+        {
+          key: 'diagnosis_type',
+          label: 'Diagnostyp',
+          desc: 'Kroniska tillstånd (artros, fibromyalgi) har historiskt högre avhoppsfrekvens än akuta tillstånd med tydlig orsak.',
+          benchmark: 'Kronisk diagnos = +15p risk',
+        },
+      ]
+    },
+    {
+      group: 'Demografiskt & historia',
+      color: '#e05555',
+      params: [
+        {
+          key: 'age_comms',
+          label: 'Ålder & kommunikation',
+          desc: 'Ålder >70 innebär praktiska hinder. Opt-out från kommunikation indikerar lågt engagemang och gör det svårare att nå patienten.',
+          benchmark: '>70 år = +8p · Opt-out = +10p',
+        },
+        {
+          key: 'history',
+          label: 'Tidigare avhopp',
+          desc: 'Starkaste enskilda prediktorn. Patienter som hoppat av tidigare planer utan att slutföra har starkt förhöjd risk att göra det igen.',
+          benchmark: 'Tidigare avhopp = +20p per avhopp',
+        },
+      ]
+    },
+  ];
+
+  // ── COMPUTE ACTUAL VALUES FOR THIS PATIENT ────────────────────────────────
+  var now = new Date();
+  var activePlan = null;
+  (pat.visits||[]).forEach(function(v) {
+    if (!v.plan) return;
+    var tw = v.plan.totalWeeks || v.plan.form?.followup || 4;
+    var sd = v.date ? new Date(v.date) : null;
+    if (sd && new Date(sd.getTime()+tw*7*86400000) > now) activePlan = v;
+  });
+
+  var logs = activePlan ? (activePlan.logs||[]) : [];
+  var sorted = logs.slice().sort(function(a,b){return (a.date||'')>(b.date||'')?1:-1;});
+  var lastLog = sorted.length ? sorted[sorted.length-1] : null;
+  var daysSince = lastLog?.date ? Math.floor((now-new Date(lastLog.date))/86400000) : null;
+  var nrsVals = logs.filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;});
+  var nrsFirst = nrsVals[0] ?? (activePlan?.plan?.form?.pain ?? null);
+  var nrsLast  = nrsVals.length ? nrsVals[nrsVals.length-1] : null;
+  var nrsDrop  = (nrsFirst!=null&&nrsLast!=null) ? nrsFirst-nrsLast : null;
+  var planAgeWeeks = activePlan?.date ? Math.floor((now-new Date(activePlan.date))/604800000) : 0;
+  var expectedPasses = planAgeWeeks * 3;
+  var passPct = expectedPasses > 0 ? Math.round(logs.length/expectedPasses*100) : null;
+  var exerciseCount = (activePlan?.plan?.exercises||[]).length;
+  var nrsStart = activePlan?.plan?.form?.pain ?? activePlan?.form?.pain ?? null;
+  var diag = (activePlan?.plan?.form?.diagnosis || activePlan?.plan?.form?.diagnos || pat.diagnosis || '').toLowerCase();
+  var age = (function(){var by=pat.birthYear||(pat.birthdate?parseInt(pat.birthdate.slice(0,4)):0);return by?new Date().getFullYear()-by:null;})();
+  var hasCommsOptOut = pat.commsPrefs?.mail===false && pat.commsPrefs?.sms===false;
+  var previousDropouts = (pat.visits||[]).filter(function(pv){
+    if (!pv.plan||(activePlan&&pv.id===activePlan.id)) return false;
+    var tw2=pv.plan.totalWeeks||pv.plan.form?.followup||4;
+    var sd2=pv.date?new Date(pv.date):null;
+    if (!sd2) return false;
+    return new Date(sd2.getTime()+tw2*7*86400000)<now && (pv.logs||[]).length<2;
+  }).length;
+  var allVisitCount = (pat.visits||[]).length;
+  var highDropoutDiags=['artros','fibromyalgi','kronisk','reumatoid','frozen shoulder'];
+  var goodAdherenceDiags=['diskbråck','achilles','acl','fraktur','operation','postop'];
+
+  // Frequency gap
+  var logGapTrend = null, prevGap = null, recentGap = null;
+  if (sorted.length >= 4) {
+    var rd = sorted.slice(-2).map(function(l){return new Date(l.date||now);});
+    var pd = sorted.slice(-4,-2).map(function(l){return new Date(l.date||now);});
+    recentGap = (rd[1]-rd[0])/86400000;
+    prevGap   = (pd[1]-pd[0])/86400000;
+    logGapTrend = recentGap > prevGap * 1.8 ? 'sinking' : recentGap > prevGap * 1.2 ? 'slowing' : 'stable';
+  }
+
+  // ── BUILD PARAM EVALUATIONS ───────────────────────────────────────────────
+  function evalParam(key) {
+    // returns {score: 0-100, status: 'risk'|'warn'|'ok'|'protect'|'neutral', value: string, contribution: number}
+    switch(key) {
+      case 'log_frequency':
+        if (!activePlan) return {score:0,status:'neutral',value:'Ingen aktiv plan',contribution:0};
+        if (logGapTrend === 'sinking') return {score:80,status:'risk',value:'Frekvensen sjunker ('+Math.round(prevGap||0)+'→'+Math.round(recentGap||0)+' dagars gap)',contribution:28};
+        if (logGapTrend === 'slowing') return {score:45,status:'warn',value:'Frekvensen minskar något',contribution:10};
+        if (logGapTrend === 'stable' && logs.length > 3) return {score:15,status:'protect',value:'Stabil loggningsfrekvens',contribution:-8};
+        return {score:20,status:'neutral',value:'Ej tillräcklig data ('+logs.length+' pass)',contribution:0};
+
+      case 'days_since_log':
+        if (!activePlan) return {score:0,status:'neutral',value:'Ingen aktiv plan',contribution:0};
+        if (daysSince === null) return {score:30,status:'warn',value:'Aldrig loggat',contribution:12};
+        if (daysSince > 14) return {score:90,status:'risk',value:daysSince+' dagar sedan senaste pass',contribution:35};
+        if (daysSince > 7)  return {score:55,status:'warn',value:daysSince+' dagar sedan senaste pass',contribution:18};
+        if (daysSince <= 2) return {score:5,status:'protect',value:'Loggade för '+daysSince+' dag'+(daysSince===1?'':'ar')+' sedan',contribution:-8};
+        return {score:20,status:'ok',value:daysSince+' dagar sedan senaste pass',contribution:0};
+
+      case 'pass_pct':
+        if (!activePlan || planAgeWeeks < 1) return {score:0,status:'neutral',value:'Plan för ny för att bedöma',contribution:0};
+        if (passPct === null) return {score:20,status:'neutral',value:'Ej tillräcklig data',contribution:0};
+        if (passPct < 35) return {score:80,status:'risk',value:passPct+'% av förväntat ('+logs.length+'/'+expectedPasses+' pass)',contribution:15};
+        if (passPct < 60) return {score:45,status:'warn',value:passPct+'% av förväntat',contribution:6};
+        if (passPct >= 80) return {score:10,status:'protect',value:passPct+'% av förväntat — bra följsamhet',contribution:-6};
+        return {score:25,status:'ok',value:passPct+'% av förväntat',contribution:0};
+
+      case 'nrs_stagnation':
+        if (nrsDrop === null) return {score:20,status:'neutral',value:'Inga NRS-mätningar',contribution:0};
+        if (nrsDrop <= 0) return {score:75,status:'risk',value:'NRS oförändrad eller försämrad ('+(nrsFirst||'?')+'→'+(nrsLast||'?')+')',contribution:18};
+        if (nrsDrop < 1.5) return {score:35,status:'warn',value:'Liten förbättring ('+nrsFirst+'→'+nrsLast+')',contribution:5};
+        return {score:5,status:'protect',value:'Tydlig förbättring −'+Math.round(nrsDrop*10)/10+' NRS-enheter',contribution:-15};
+
+      case 'nrs_start':
+        if (nrsStart === null) return {score:0,status:'neutral',value:'NRS vid start okänd',contribution:0};
+        if (nrsStart >= 8) return {score:65,status:'warn',value:'NRS '+nrsStart+'/10 vid planstart — lång resa kvar',contribution:10};
+        if (nrsStart <= 4) return {score:5,status:'ok',value:'NRS '+nrsStart+'/10 vid start — hanterbar smärtnivå',contribution:0};
+        return {score:20,status:'ok',value:'NRS '+nrsStart+'/10 vid start',contribution:0};
+
+      case 'exercise_count':
+        if (!activePlan) return {score:0,status:'neutral',value:'Ingen aktiv plan',contribution:0};
+        if (exerciseCount > 7) return {score:70,status:'risk',value:exerciseCount+' övningar — risk för overwhelm (>6 = förhöjd dropout)',contribution:12};
+        if (exerciseCount > 5) return {score:35,status:'warn',value:exerciseCount+' övningar — i övre gräns',contribution:4};
+        return {score:5,status:'ok',value:exerciseCount+' övningar — lagom antal',contribution:0};
+
+      case 'diagnosis_type':
+        if (!diag) return {score:0,status:'neutral',value:'Diagnos ej angiven',contribution:0};
+        if (highDropoutDiags.some(function(d){return diag.includes(d);}))
+          return {score:60,status:'warn',value:(activePlan?.plan?.form?.diagnosis||diag).split('(')[0].trim()+' — diagnos med historiskt hög avhoppsfrekvens',contribution:15};
+        if (goodAdherenceDiags.some(function(d){return diag.includes(d);}))
+          return {score:5,status:'protect',value:(activePlan?.plan?.form?.diagnosis||diag).split('(')[0].trim()+' — diagnos med typiskt god följsamhet',contribution:-10};
+        return {score:15,status:'ok',value:(activePlan?.plan?.form?.diagnosis||pat.diagnosis||'').split('(')[0].trim()||'Okänd',contribution:0};
+
+      case 'age_comms':
+        var s=0, parts=[];
+        if (age!==null&&age>70) { s+=8; parts.push(age+' år (praktiska hinder vanligare)'); }
+        if (hasCommsOptOut) { s+=10; parts.push('Opt-out från all kommunikation'); }
+        else if (!pat.email) { s+=4; parts.push('Ingen e-post registrerad'); }
+        if (!s) return {score:0,status:'ok',value:age?age+' år — inga demografiska riskfaktorer':'Inga demografiska riskfaktorer',contribution:0};
+        return {score:Math.min(s*5,70),status:s>=10?'risk':'warn',value:parts.join(' · '),contribution:s};
+
+      case 'history':
+        if (previousDropouts === 0) {
+          var protScore = allVisitCount >= 5 ? -15 : 0;
+          return {score:0,status:allVisitCount>=5?'protect':'ok',
+            value:allVisitCount>=5?allVisitCount+' besök — etablerad patient med hög kontinuitet':'Inga tidigare avhopp',
+            contribution:protScore};
+        }
+        return {score:Math.min(previousDropouts*35,100),status:'risk',
+          value:'Hoppade av '+previousDropouts+' tidigare plan'+(previousDropouts>1?'er':'')+' utan att slutföra',
+          contribution:previousDropouts*20};
+
+      default: return {score:0,status:'neutral',value:'',contribution:0};
+    }
+  }
+
+  // ── COMPUTE TOTAL SCORE ───────────────────────────────────────────────────
+  var allKeys = ['log_frequency','days_since_log','pass_pct','nrs_stagnation',
+                 'nrs_start','exercise_count','diagnosis_type','age_comms','history'];
+  var evals = {};
+  var totalContribution = 0;
+  allKeys.forEach(function(k){
+    evals[k] = evalParam(k);
+    totalContribution += evals[k].contribution;
+  });
+  var totalScore = risk ? risk.score : Math.max(0, Math.min(100, totalContribution));
+  var scoreColor = totalScore >= 70 ? '#e05555' : totalScore >= 40 ? '#c8a030' : totalScore >= 20 ? 'var(--teal)' : '#1a7a4a';
+  var scoreLabel = totalScore >= 70 ? 'Hög risk' : totalScore >= 40 ? 'Måttlig risk' : totalScore >= 20 ? 'Låg risk' : 'Minimal risk';
+  var scoreBg    = totalScore >= 70 ? 'rgba(224,85,85,.07)' : totalScore >= 40 ? 'rgba(200,160,48,.07)' : 'rgba(13,155,138,.07)';
+  var scoreBorder= totalScore >= 70 ? 'rgba(224,85,85,.2)' : totalScore >= 40 ? 'rgba(200,160,48,.2)' : 'rgba(13,155,138,.18)';
+
+  var statusIcon = {
+    risk:    '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#e05555" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>',
+    warn:    '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#c8a030" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    ok:      '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>',
+    protect: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+    neutral: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  };
+  var statusTextColor = { risk:'#e05555', warn:'#c8a030', ok:'var(--muted)', protect:'#1a7a4a', neutral:'var(--muted)' };
+
+  // ── RENDER ────────────────────────────────────────────────────────────────
+  var h = '<div id="dropout-risk-section" style="background:'+scoreBg+';border:1px solid '+scoreBorder+';border-radius:14px;overflow:hidden;margin-bottom:0">';
+
+  // Header with score gauge
+  h += '<div style="padding:14px 16px;display:flex;align-items:center;gap:14px">';
+
+  // Ring gauge
+  var dash = 2*Math.PI*20;
+  h += '<div style="width:52px;height:52px;flex-shrink:0;position:relative">';
+  h += '<svg width="52" height="52" viewBox="0 0 52 52">';
+  h += '<circle cx="26" cy="26" r="20" fill="none" stroke="var(--border)" stroke-width="5"/>';
+  h += '<circle cx="26" cy="26" r="20" fill="none" stroke="'+scoreColor+'" stroke-width="5"';
+  h += ' stroke-dasharray="'+(dash*(totalScore/100))+' '+(dash*(1-totalScore/100))+'"';
+  h += ' stroke-dashoffset="'+(dash*0.25)+'" stroke-linecap="round"/>';
+  h += '</svg>';
+  h += '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">';
+  h += '<div style="font-size:13px;font-weight:800;color:'+scoreColor+';line-height:1">'+totalScore+'</div>';
+  h += '</div></div>';
+
+  // Summary
+  h += '<div style="flex:1">';
+  h += '<div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">';
+  h += '<div style="font-size:14px;font-weight:700;color:var(--ink)">Avhoppsrisk</div>';
+  h += '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+scoreColor+'18;color:'+scoreColor+'">'+scoreLabel+'</span>';
+  h += '</div>';
+  if (risk && risk.topFactor) {
+    h += '<div style="font-size:12px;color:var(--muted);line-height:1.4">'+e(risk.topFactor)+'</div>';
+  } else if (totalScore < 20) {
+    h += '<div style="font-size:12px;color:#1a7a4a">Inga signifikanta riskfaktorer identifierade</div>';
+  }
+  h += '</div>';
+
+  // Expand toggle
+  h += '<button onclick="_toggleDropoutDetail(\''+pat.id+'\')" id="dropout-expand-btn-'+pat.id+'" style="padding:6px 12px;background:none;border:1px solid var(--border);border-radius:8px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font);flex-shrink:0;white-space:nowrap">Visa detaljer</button>';
+  h += '</div>';
+
+  // Progress bar
+  h += '<div style="height:3px;background:var(--border);margin:0 16px 14px">';
+  h += '<div style="height:100%;width:'+totalScore+'%;background:'+scoreColor+';border-radius:2px;transition:width .6s ease"></div>';
+  h += '</div>';
+
+  // CTA if high risk
+  if (totalScore >= 40) {
+    h += '<div style="padding:0 16px 14px;display:flex;gap:8px">';
+    h += '<button onclick="document.getElementById(\'dropout-risk-section\').style.display=\'none\';_generateRetentionForPat(\''+pat.id+'\')" ';
+    h += 'style="flex:1;padding:8px;background:none;border:1px solid rgba(13,155,138,.3);border-radius:8px;font-size:12px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px">';
+    h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+    h += 'Generera retention-meddelande</button>';
+    h += '</div>';
+  }
+
+  // Detail section (hidden by default)
+  h += '<div id="dropout-detail-'+pat.id+'" style="display:none;border-top:1px solid var(--border)">';
+  h += '<div style="padding:14px 16px 6px">';
+  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Alla 8 parametrar — bidrag till totalscore</div>';
+
+  paramGroups.forEach(function(grp) {
+    h += '<div style="margin-bottom:14px">';
+    h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:'+grp.color+';margin-bottom:7px;display:flex;align-items:center;gap:6px">';
+    h += '<div style="width:8px;height:2px;background:'+grp.color+';border-radius:1px"></div>'+grp.group+'</div>';
+
+    grp.params.forEach(function(p) {
+      var ev = evals[p.key];
+      var tcol = statusTextColor[ev.status];
+      var contrib = ev.contribution;
+      var contribStr = contrib > 0 ? '+'+contrib+'p' : contrib < 0 ? contrib+'p' : '0p';
+      var contribCol  = contrib > 0 ? '#e05555' : contrib < 0 ? '#1a7a4a' : 'var(--muted)';
+
+      h += '<div style="padding:9px 12px;background:var(--surface);border-radius:9px;margin-bottom:6px">';
+      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
+      h += statusIcon[ev.status];
+      h += '<div style="font-size:12px;font-weight:600;color:var(--ink);flex:1">'+p.label+'</div>';
+      h += '<div style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+contribCol+'18;color:'+contribCol+'">'+contribStr+'</div>';
+      h += '</div>';
+      h += '<div style="font-size:11px;color:'+tcol+';margin-bottom:3px;padding-left:18px">'+e(ev.value)+'</div>';
+      h += '<div style="font-size:10px;color:var(--muted);padding-left:18px;line-height:1.4">'+p.desc+'</div>';
+      h += '<div style="font-size:10px;color:var(--muted);padding-left:18px;margin-top:2px;font-style:italic">Riktmärke: '+p.benchmark+'</div>';
+      h += '</div>';
+    });
+    h += '</div>';
+  });
+
+  h += '</div></div>';
+  h += '</div>';
+  return h;
+}
+
+function _toggleDropoutDetail(patId) {
+  var detail = document.getElementById('dropout-detail-'+patId);
+  var btn    = document.getElementById('dropout-expand-btn-'+patId);
+  if (!detail) return;
+  var isOpen = detail.style.display !== 'none';
+  detail.style.display = isOpen ? 'none' : 'block';
+  if (btn) btn.textContent = isOpen ? 'Visa detaljer' : 'Dölj detaljer';
+}
+
+// Trigger retention message generation for a specific patient from the detail card
+async function _generateRetentionForPat(patId) {
+  var pat = S.patients.find(function(p){return p.id===patId;});
+  if (!pat) return;
+  var signals = computeRetentionSignals().filter(function(s){return s.patId===patId;});
+  var sig = signals[0];
+  if (!sig) {
+    // Create a generic dropout signal
+    sig = {
+      patId:patId, patName:pat.name,
+      triggerId:'hael_dropout', priority:3,
+      label:'Avhoppsrisk detekterad', sub:'Manuellt triggrad från patientkortet',
+      icon:'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+      channel:'mail', urgency:'medium',
+      context:{type:'hael_dropout',daysSince:null}
+    };
+  }
+  showAutoSaveToast('Genererar retention-meddelande...');
+  var msg = await generateRetentionMessage(sig, pat);
+  if (msg) {
+    queueRetentionAction(sig, msg);
+    showAutoSaveToast('Meddelande genererat och köat i AI Retention ✓');
+  } else {
+    showAutoSaveToast('Lägg till API-nyckel för att generera meddelanden');
+  }
+}
+
 function _renderSettingsNav() {
   const nav = document.getElementById('vela-settings-nav');
   if (!nav) return;
@@ -14713,8 +15092,9 @@ function _renderSettingsNav() {
     { id:'users',     label:'Användare',       icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
     { id:'services',  label:'Tjänster',        icon:'<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
     { id:'comms',     label:'Kommunikation',   icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>' },
-    { id:'ai',        label:'AI & API',        icon:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>' },
-    { id:'billing',   label:'Plan & Faktura',  icon:'<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
+    { id:'ai',        label:'AI',              icon:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>' },
+    { id:'apikey',    label:'API-nyckel',      icon:'<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>' },
+    { id:'billing',   label:'Abonnemang',      icon:'<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>' },
     { id:'sync',      label:'Synk & Data',     icon:'<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>' },
   ];
   const cur = window._settingsActiveTab;
@@ -14734,7 +15114,8 @@ function _renderSettingsContent(tab) {
   else if (tab === 'users')    el.innerHTML = _stUsers();
   else if (tab === 'services') el.innerHTML = _stServices();
   else if (tab === 'comms')    el.innerHTML = _stComms(cfg);
-  else if (tab === 'ai')       el.innerHTML = _stAI(key);
+  else if (tab === 'ai')       el.innerHTML = _stAISettings();
+  else if (tab === 'apikey')   el.innerHTML = _stApiKey(key);
   else if (tab === 'billing')  el.innerHTML = _stBilling();
   else if (tab === 'sync')     el.innerHTML = _stSync();
 }
@@ -15270,61 +15651,207 @@ function _stComms(cfg) {
 
 
 // ── AI & API TAB ─────────────────────────────────────────────
-function _stAI(key) {
+
+function _setRetentionMode(mode) {
+  localStorage.setItem('vela:retention-mode', mode);
+  _renderSettingsContent('ai');
+}
+
+function _stApiKey(key) {
   var ok = key && key.startsWith('sk-ant');
-  var h = '<div class="vela-st-section">';
-  h += '<div class="vela-st-title">AI & API</div>';
-  h += '<div class="vela-st-desc">Anthropic API-nyckel krävs för AI-journalstöd, rehabplaner och Vela Ask.</div>';
-  h += '<div style="margin-top:20px;max-width:520px">';
-  h += '<div style="background:var(--navy);border-radius:14px;padding:16px 20px;margin-bottom:20px">';
+  var savedAt = localStorage.getItem('vela:apikey-verified-at');
+  var savedOk = localStorage.getItem('vela:apikey-status') === 'ok';
+  var h = '<div class="vela-st-section" style="max-width:520px">';
+  h += '<div class="vela-st-title">API-nyckel</div>';
+  h += '<div class="vela-st-desc">Din Anthropic API-nyckel. Används för alla AI-funktioner i Vela — journalstöd, rehabplaner, retention och Vela Ask.</div>';
+
+  // Status card
+  h += '<div style="background:var(--navy);border-radius:14px;padding:16px 20px;margin:20px 0">';
   h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(13,155,138,.8);margin-bottom:6px">Anthropic API</div>';
-  h += '<div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.65">Hämta din nyckel på <a href="https://console.anthropic.com" target="_blank" style="color:#3dcfbd">console.anthropic.com</a>.</div>';
-  h += '</div>';
-  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:8px">API-nyckel</div>';
-  h += '<div style="display:flex;gap:8px">';
-  h += '<input class="field" id="ov-akinp" type="password" placeholder="sk-ant-api03-..." value="' + e(key||'') + '" oninput="S.apiKey=this.value" style="margin-bottom:0;flex:1">';
-  h += '<button onclick="setKey(document.getElementById(\'ov-akinp\').value)" class="btn btn-p" style="white-space:nowrap">Spara</button>';
-  h += '</div>';
-  if (ok) h += '<div style="margin-top:8px;font-size:11px;color:#1a7a4a">✓ Nyckel giltig</div>';
-  h += '</div>';
-  h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">';
-  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:8px">Vela Ask — kunskapsbas</div>';
-  h += '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Ladda upp kliniska riktlinjer, protokoll eller produktblad.</div>';
-  h += '<div style="background:var(--surface);border:1.5px dashed var(--border);border-radius:12px;padding:20px;text-align:center;font-size:12px;color:var(--muted)">Dokumentuppladdning kommer i en kommande uppdatering.</div>';
+  h += '<div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.65">Hämta din nyckel på <a href="https://console.anthropic.com" target="_blank" style="color:#3dcfbd">console.anthropic.com</a>. Nyckeln lagras lokalt i din webbläsare.</div>';
   h += '</div>';
 
-  // AI Profil section
+  // Validation status
+  if (ok && savedOk && savedAt) {
+    h += '<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(26,122,74,.1);border:1px solid rgba(26,122,74,.25);border-radius:10px;margin-bottom:14px">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
+    h += '<div><div style="font-size:12px;font-weight:700;color:#1a7a4a">Aktiv och verifierad</div>';
+    h += '<div style="font-size:11px;color:var(--muted)">Verifierad ' + new Date(savedAt).toLocaleString('sv-SE', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) + '</div></div>';
+    h += '</div>';
+  } else if (ok && !savedOk) {
+    h += '<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(138,96,0,.08);border:1px solid rgba(138,96,0,.2);border-radius:10px;margin-bottom:14px">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c8a030" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    h += '<div style="font-size:12px;color:#c8a030">Nyckel finns sparad — tryck Spara & Verifiera för att bekräfta</div>';
+    h += '</div>';
+  }
+
+  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:8px">API-nyckel</div>';
+  h += '<div style="display:flex;gap:8px;margin-bottom:16px">';
+  h += '<input class="field" id="ov-akinp" type="password" placeholder="sk-ant-api03-..." value="' + (key||'') + '" oninput="S.apiKey=this.value" style="margin-bottom:0;flex:1;font-family:var(--font-mono)">';
+  h += '<button onclick="_saveAndVerifyKey()" class="btn btn-p" style="white-space:nowrap;padding:0 18px">Spara & verifiera</button>';
+  h += '</div>';
+
+  h += '<div id="apikey-verify-status" style="margin-bottom:16px;min-height:18px"></div>';
+
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px">Varför behövs en API-nyckel?</div>';
+  var features = [
+    ['Journal & SOAP-ifyllnad', 'AI strukturerar och förbättrar dina journalanteckningar'],
+    ['Hael-plan generering', 'Skapar personliga rehabprogram utifrån patientens profil'],
+    ['Vela Ask', 'Svarar på frågor om dina patienter och klinikens data'],
+    ['Retention-meddelanden', 'Skriver personliga mail och SMS till patienter'],
+    ['Kliniska insikter', 'Analyserar mönster i din klinikdata dagligen'],
+  ];
+  features.forEach(function(f) {
+    h += '<div style="display:flex;gap:10px;padding:5px 0;border-bottom:1px solid var(--border2)">';
+    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+    h += '<div><div style="font-size:12px;font-weight:600;color:var(--ink)">' + f[0] + '</div>';
+    h += '<div style="font-size:11px;color:var(--muted)">' + f[1] + '</div></div>';
+    h += '</div>';
+  });
+  h += '</div>';
+  h += '</div>';
+  return h;
+}
+
+async function _saveAndVerifyKey() {
+  var inp = document.getElementById('ov-akinp');
+  var statusEl = document.getElementById('apikey-verify-status');
+  var key = inp ? inp.value.trim() : '';
+  if (!key) return;
+
+  if (statusEl) statusEl.innerHTML = '<div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted)"><div style="width:14px;height:14px;border:2px solid var(--teal);border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite"></div>Verifierar...</div>';
+
+  // Save optimistically
+  setKey(key);
+  S.apiKey = key;
+  localStorage.removeItem('vela:apikey-status');
+
+  // Make minimal test call
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:10,messages:[{role:'user',content:'ping'}]})
+    });
+    var data = await res.json();
+    var ok = res.ok && data.content;
+    if (ok) {
+      localStorage.setItem('vela:apikey-status', 'ok');
+      localStorage.setItem('vela:apikey-verified-at', new Date().toISOString());
+      if (statusEl) statusEl.innerHTML = '<div style="display:flex;align-items:center;gap:7px;padding:8px 12px;background:rgba(26,122,74,.1);border:1px solid rgba(26,122,74,.25);border-radius:8px">'
+        + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1a7a4a" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>'
+        + '<span style="font-size:12px;font-weight:700;color:#1a7a4a">Verifierad ✓ — API-nyckeln fungerar</span></div>';
+    } else {
+      var errMsg = data.error?.message || ('HTTP ' + res.status);
+      localStorage.setItem('vela:apikey-status', 'error');
+      if (statusEl) statusEl.innerHTML = '<div style="display:flex;align-items:center;gap:7px;padding:8px 12px;background:rgba(192,48,48,.08);border:1px solid rgba(192,48,48,.2);border-radius:8px">'
+        + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c03030" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
+        + '<span style="font-size:12px;font-weight:700;color:#c03030">Fel: ' + errMsg + '</span></div>';
+    }
+  } catch(err) {
+    if (statusEl) statusEl.innerHTML = '<div style="font-size:12px;color:#c03030;padding:8px 0">Kunde inte ansluta: ' + (err.message||'nätverksfel') + '</div>';
+  }
+}
+
+function _stAISettings() {
   var profile = getAiProfile();
   var profileDone = !!profile.completedAt;
+  var mode = getRetentionMode();
+
   var profileFields = [
     profile.tone ? ['Kommunikationston', profile.tone] : null,
     profile.style && profile.style.length ? ['Personlighet', (Array.isArray(profile.style)?profile.style:[profile.style]).slice(0,2).join(', ')] : null,
     profile.strengths && profile.strengths.length ? ['Expertis', (Array.isArray(profile.strengths)?profile.strengths:[profile.strengths]).slice(0,2).join(', ')] : null,
   ].filter(Boolean);
 
-  h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">';
-  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)">Din AI-profil</div>';
-  h += '<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:'+(profileDone?'rgba(26,122,74,.1)':'rgba(13,155,138,.1)')+';color:'+(profileDone?'#1a7a4a':'var(--teal)')+'">'+( profileDone?'✓ Klar':'Ej ifylld')+'</span>';
-  h += '</div>';
-  h += '<div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Lär AI hur du kommunicerar, vad du är duktig på och hur din röst låter. Används i all AI-genererad text — mail, journaler, briefings.</div>';
+  var h = '<div class="vela-st-section" style="max-width:680px">';
+  h += '<div class="vela-st-title">AI-inställningar</div>';
+  h += '<div class="vela-st-desc">Styr hur Velas AI beter sig — din profil, autonominivå och vilka AI-funktioner som är aktiva.</div>';
 
+  // ── AI Profil ──────────────────────────────────────────────────────────────
+  h += '<div style="margin-top:24px;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
+  h += '<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
+  h += '<div>';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Din AI-profil</div>';
+  h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">Lär AI hur du kommunicerar, vad du är duktig på och hur din röst låter. Används i all AI-genererad text.</div>';
+  h += '</div>';
+  h += '<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:' + (profileDone?'rgba(26,122,74,.1)':'rgba(13,155,138,.1)') + ';color:' + (profileDone?'#1a7a4a':'var(--teal)') + '">' + (profileDone?'✓ Klar':'Ej ifylld') + '</span>';
+  h += '</div>';
+
+  h += '<div style="padding:16px 18px">';
   if (profileDone && profileFields.length) {
-    h += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:grid;gap:6px">';
+    h += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:14px;display:grid;gap:6px">';
     profileFields.forEach(function(f) {
-      h += '<div style="display:flex;gap:10px;font-size:12px"><span style="color:var(--muted);min-width:110px">'+f[0]+'</span><span style="color:var(--ink);font-weight:600">'+e(f[1])+'</span></div>';
+      h += '<div style="display:flex;gap:10px;font-size:12px"><span style="color:var(--muted);min-width:120px">' + f[0] + '</span><span style="color:var(--ink);font-weight:600">' + (f[1]||'') + '</span></div>';
     });
     h += '</div>';
   }
-
   h += '<button onclick="openAiProfileWizard()" class="btn btn-p" style="width:100%;padding:11px;display:flex;align-items:center;justify-content:center;gap:8px">';
   h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>';
   h += (profileDone ? 'Uppdatera min AI-profil' : 'Starta AI-profilguiden') + '</button>';
+  h += '</div></div>';
+
+  // ── Autonominivå ───────────────────────────────────────────────────────────
+  var modeDesc = {
+    manual: 'Du granskar och godkänner varje AI-åtgärd. Ingenting händer utan att du klickar.',
+    semi:   'AI förbereder och schemalägger — du kan avvisa inom 24h. Annars skickas/tillämpas automatiskt.',
+    auto:   'AI agerar fullt autonomt: skickar retention-meddelanden, justerar planer vid stigande NRS, köar uppföljningar.',
+  };
+  var modeExamples = {
+    manual: ['Retention-meddelanden hamnar i kö för godkänning', 'Planjusteringar föreslås men tillämpas ej', 'Uppföljningar skapas som utkast'],
+    semi:   ['Retention-meddelanden skickas efter 24h om ej avvisade', 'Planjusteringar vid NRS +2 → föreslås i inkorg', 'Uppföljningar köas automatiskt'],
+    auto:   ['Retention-meddelanden skickas direkt när triggad', 'NRS stiger 2+ enheter → plan justeras omedelbart', 'Avslutade planer → uppföljning köas utan klick'],
+  };
+  var modeColors = { manual: 'var(--muted)', semi: 'var(--teal)', auto: '#c8a030' };
+
+  h += '<div style="margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
+  h += '<div style="padding:14px 18px;border-bottom:1px solid var(--border)">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">AI-autonominivå</div>';
+  h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">Hur självständigt får AI agera på din klinik?</div>';
+  h += '</div>';
+  h += '<div style="padding:14px 18px">';
+
+  // Mode cards
+  h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">';
+  [{id:'manual',label:'Manuellt',icon:'<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'},
+   {id:'semi',  label:'Semi-auto',icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'},
+   {id:'auto',  label:'Autopilot',icon:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>'}
+  ].forEach(function(m) {
+    var active = mode === m.id;
+    var mc = modeColors[m.id];
+    h += '<div onclick="_setRetentionMode(\'' + m.id + '\')" style="padding:13px 12px;border:1.5px solid ' + (active?mc:'var(--border)') + ';border-radius:12px;cursor:pointer;background:' + (active?mc+'18':'none') + ';transition:all .15s">';
+    h += '<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="' + (active?mc:'var(--muted)') + '" stroke-width="2" stroke-linecap="round">' + m.icon + '</svg>';
+    h += '<div style="font-size:12px;font-weight:' + (active?700:500) + ';color:' + (active?mc:'var(--muted)') + '">' + m.label + '</div></div>';
+    if (active) h += '<div style="font-size:11px;color:var(--text);line-height:1.5">' + modeDesc[m.id] + '</div>';
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // Active mode examples
+  h += '<div style="background:var(--bg);border-radius:10px;padding:11px 14px">';
+  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Vad AI gör i detta läge</div>';
+  modeExamples[mode].forEach(function(ex) {
+    h += '<div style="display:flex;gap:8px;padding:3px 0;font-size:12px;color:var(--text)">';
+    h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="' + modeColors[mode] + '" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><path d="M20 6L9 17l-5-5"/></svg>';
+    h += ex + '</div>';
+  });
+  h += '</div>';
+  h += '</div></div>';
+
+  // ── Vela Ask kunskapsbas ───────────────────────────────────────────────────
+  h += '<div style="margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px">Vela Ask — kunskapsbas</div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Ladda upp kliniska riktlinjer, protokoll eller produktblad. AI refererar till dem i svar.</div>';
+  h += '<div style="background:var(--bg);border:1.5px dashed var(--border);border-radius:10px;padding:18px;text-align:center;font-size:12px;color:var(--muted)">Dokumentuppladdning kommer i en kommande uppdatering.</div>';
   h += '</div>';
 
   h += '</div>';
   return h;
 }
+
+
 
 // ── AKTIVITETSLOGG ─────────────────────────────────────────
 function renderActivityLog(pat) {
@@ -16360,6 +16887,644 @@ function showDropoutList() {
 
 
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VELA AUTONOMOUS ENGINE — Nightly scan, dropout prediction,
+// auto plan adjustment, auto follow-up
+// ══════════════════════════════════════════════════════════════════════════════
+
+const MORNING_REPORT_KEY  = 'vela:morning-report';
+const DROPOUT_RISK_KEY    = 'vela:dropout-risks';
+const AUTO_ADJUST_LOG_KEY = 'vela:auto-adjust-log';
+
+// ── 1. MORNING REPORT (nightly scan result) ───────────────────────────────────
+function getMorningReport() {
+  try { return JSON.parse(localStorage.getItem(MORNING_REPORT_KEY)||'null'); } catch { return null; }
+}
+function saveMorningReport(report) {
+  try { localStorage.setItem(MORNING_REPORT_KEY, JSON.stringify(report)); } catch {}
+}
+
+// Runs on app boot — skips if already run today
+async function runNightlyScanIfNeeded() {
+  var report = getMorningReport();
+  var today  = new Date().toISOString().slice(0,10);
+  if (report && report.date === today) return; // already done
+  await runNightlyScan();
+}
+
+async function runNightlyScan() {
+  var today = new Date().toISOString().slice(0,10);
+  var report = {
+    date: today,
+    generatedAt: new Date().toISOString(),
+    retentionSignals: 0,
+    dropoutRisks: [],
+    planAdjustmentsNeeded: [],
+    followupsNeeded: [],
+    summary: null,
+  };
+
+  // 1a. Compute retention signals (reuses existing engine)
+  var signals = computeRetentionSignals();
+  report.retentionSignals = signals.length;
+
+  // 1b. Dropout risk scan
+  report.dropoutRisks = _scanDropoutRisks();
+
+  // 1c. Plans needing follow-up (ended without rebook)
+  report.followupsNeeded = _scanExpiredPlansNeedingFollowup();
+
+  // 1d. Plans needing auto-adjustment (rising NRS)
+  report.planAdjustmentsNeeded = _scanPlansNeedingAdjustment();
+
+  // 1e. Auto-queue retention actions for high-priority signals (if mode allows)
+  var mode = getRetentionMode();
+  if (mode === 'auto' || mode === 'semi') {
+    // Queue the top 3 signals automatically
+    var topSignals = signals.slice(0, 3);
+    for (var i = 0; i < topSignals.length; i++) {
+      var sig = topSignals[i];
+      var pat = S.patients.find(function(p){return p.id===sig.patId;});
+      if (!pat) continue;
+      var existing = getRetentionQueue().find(function(q){return q.patId===sig.patId&&q.triggerId===sig.triggerId;});
+      if (existing) continue;
+      var msg = await generateRetentionMessage(sig, pat);
+      if (msg) queueRetentionAction(sig, msg);
+    }
+  }
+
+  // 1f. Auto dropout intervention (auto mode only)
+  if (mode === 'auto') {
+    report.dropoutRisks.filter(function(r){return r.score>=70;}).slice(0,3).forEach(function(risk) {
+      var pat = S.patients.find(function(p){return p.id===risk.patId;});
+      if (!pat) return;
+      var sig = {
+        patId: risk.patId, patName: pat.name,
+        triggerId: 'hael_dropout', priority: 3,
+        label: 'Avhoppsrisk ' + risk.score + '%',
+        sub: risk.topFactor,
+        icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+        channel: 'sms', urgency: 'high',
+        context: {type:'hael_dropout', daysSince: risk.daysSinceLog}
+      };
+      var existing = getRetentionQueue().find(function(q){return q.patId===risk.patId&&q.triggerId==='hael_dropout';});
+      if (!existing) {
+        generateRetentionMessage(sig, pat).then(function(msg){
+          if (msg) queueRetentionAction(sig, msg);
+        });
+      }
+    });
+  }
+
+  // 1g. Generate AI morning summary
+  var key = getKey();
+  if (key) {
+    report.summary = await _generateMorningSummary(report);
+  }
+
+  saveMorningReport(report);
+  // Store dropout risks for list view
+  try { localStorage.setItem(DROPOUT_RISK_KEY, JSON.stringify(report.dropoutRisks)); } catch {}
+
+  // Re-render dashboard morning card if visible
+  _renderMorningReportCard();
+}
+
+// ── 2. DROPOUT RISK PREDICTOR ─────────────────────────────────────────────────
+// Evidence-based scoring: beteende + klinisk bakgrund + demografi
+// Research refs: Babatunde et al. 2017 (adherence predictors), Jack et al. 2010 (dropout MSK)
+function _scanDropoutRisks() {
+  var now = new Date();
+  var risks = [];
+
+  // Known high-dropout diagnoses in MSK rehab (chronic, complex, less clear endpoint)
+  var highDropoutDiags = ['artros', 'fibromyalgi', 'kronisk', 'reumatoid', 'axelsmärta', 'frozen shoulder'];
+  // Diagnoses with historically better adherence (acute, clear mechanism)
+  var goodAdherenceDiags = ['diskbråck', 'achilles', 'hälsena', 'acl', 'fraktur', 'operation', 'postop'];
+
+  S.patients.forEach(function(pat) {
+    var activePlans = (pat.visits||[]).filter(function(v) {
+      if (!v.plan) return false;
+      var tw = v.plan.totalWeeks || v.plan.form?.followup || 4;
+      var sd = v.date ? new Date(v.date) : null;
+      if (!sd) return false;
+      return new Date(sd.getTime() + tw*7*86400000) > now;
+    });
+    if (!activePlans.length) return;
+
+    var v = activePlans[0];
+    var logs = v.logs || [];
+    var score = 0;
+    var factors = [];
+    var protectives = [];
+
+    var diag = (v.plan.form?.diagnosis || v.plan.form?.diagnos || pat.diagnosis || '').toLowerCase();
+    var nrsStart = v.plan.form?.pain ?? v.form?.pain ?? null;
+    var exerciseCount = (v.plan.exercises||[]).length;
+    var totalWeeks = v.plan.totalWeeks || v.plan.form?.followup || 4;
+    var planAgeWeeks = v.date ? Math.floor((now-new Date(v.date))/604800000) : 0;
+    var allVisitCount = (pat.visits||[]).length;
+    var previousDropouts = (pat.visits||[]).filter(function(pv){
+      if (!pv.plan || pv.id === v.id) return false;
+      var tw2 = pv.plan.totalWeeks || pv.plan.form?.followup || 4;
+      var sd2 = pv.date ? new Date(pv.date) : null;
+      if (!sd2) return false;
+      var planEnd = new Date(sd2.getTime() + tw2*7*86400000);
+      var logsAfter = (pv.logs||[]).filter(function(l){return l.date && new Date(l.date) > sd2;});
+      return planEnd < now && logsAfter.length < 2; // ended without logging
+    }).length;
+    var age = (function() {
+      var by = pat.birthYear || (pat.birthdate ? parseInt(pat.birthdate.slice(0,4)) : 0);
+      return by ? new Date().getFullYear() - by : null;
+    })();
+    var hasMailConsent = (pat.consents||[]).some(function(x){return x.type==='mail_info'&&x.value;});
+    var hasCommsOptOut = pat.commsPrefs?.mail === false && pat.commsPrefs?.sms === false;
+
+    // ── BETEENDEFAKTORER ─────────────────────────────────────────────────────
+    var sorted = logs.slice().sort(function(a,b){return (a.date||'')>(b.date||'')?1:-1;});
+
+    // Log frequency dropping
+    if (sorted.length >= 4) {
+      var recentDates = sorted.slice(-2).map(function(l){return new Date(l.date||now);});
+      var prevDates   = sorted.slice(-4,-2).map(function(l){return new Date(l.date||now);});
+      var recentGap = (recentDates[1]-recentDates[0]) / 86400000;
+      var prevGap   = (prevDates[1]-prevDates[0]) / 86400000;
+      if (recentGap > prevGap * 1.8) {
+        score += 28;
+        factors.push('Loggfrekvens sjunker (' + Math.round(prevGap) + '→' + Math.round(recentGap) + ' dagars gap)');
+      }
+    }
+
+    // Days since last log
+    var lastLog = sorted.length ? sorted[sorted.length-1] : null;
+    var daysSince = lastLog?.date ? Math.floor((now-new Date(lastLog.date))/86400000) : null;
+    if (daysSince !== null) {
+      if (daysSince > 14)     { score += 35; factors.push(daysSince + ' dagar utan ett enda loggat pass'); }
+      else if (daysSince > 7) { score += 18; factors.push(daysSince + ' dagar sedan senaste logg'); }
+    }
+
+    // Low pass count vs plan age
+    var expectedPasses = planAgeWeeks * 3;
+    if (expectedPasses > 3 && logs.length < expectedPasses * 0.35) {
+      score += 15;
+      factors.push('Bara ' + logs.length + ' pass av ~' + expectedPasses + ' förväntade (' + Math.round(logs.length/expectedPasses*100) + '%)');
+    }
+
+    // ── KLINISKA FAKTORER ────────────────────────────────────────────────────
+    // NRS stagnating or rising
+    var nrsVals = logs.filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;});
+    if (nrsVals.length >= 3) {
+      var nrsFirst = nrsVals[0], nrsLast = nrsVals[nrsVals.length-1];
+      if (nrsLast >= nrsFirst) {
+        score += 18;
+        factors.push('NRS har inte förbättrats (' + nrsFirst + '→' + nrsLast + ') — patienten märker ingen effekt');
+      }
+    } else if (nrsVals.length === 0 && logs.length > 0) {
+      score += 8;
+      factors.push('Patienten loggar inga NRS-värden — svår att bedöma effekt');
+    }
+
+    // High NRS at start → harder journey → higher dropout
+    if (nrsStart !== null && nrsStart >= 8) {
+      score += 10;
+      factors.push('Hög smärta vid start (NRS ' + nrsStart + '/10) — lång väg kvar ger lägre uthållighet');
+    }
+
+    // Too many exercises (overwhelm effect, Jack et al. 2010)
+    if (exerciseCount > 6) {
+      score += 12;
+      factors.push(exerciseCount + ' övningar i programmet — forskning visar ökad dropout vid >6 övningar');
+    }
+
+    // ── DIAGNOSFAKTORER ──────────────────────────────────────────────────────
+    if (diag && highDropoutDiags.some(function(d){return diag.includes(d);})) {
+      score += 15;
+      factors.push('Diagnos med historiskt hög avhoppsfrekvens (' + (v.plan.form?.diagnosis||diag).split('(')[0].trim() + ')');
+    }
+
+    // ── DEMOGRAFISKA FAKTORER ─────────────────────────────────────────────────
+    if (age !== null && age > 70) {
+      score += 8;
+      factors.push('Ålder ' + age + ' år — praktiska hinder (transport, teknik) ökar dropout-risken');
+    }
+
+    // ── ENGAGEMANGSFAKTORER ──────────────────────────────────────────────────
+    if (hasCommsOptOut) {
+      score += 10;
+      factors.push('Patienten har tackat nej till all kommunikation — lågt engagemang');
+    } else if (!hasMailConsent) {
+      score += 5;
+      factors.push('Inget mailsamtycke — begränsade möjligheter att nå patienten');
+    }
+
+    if (previousDropouts > 0) {
+      score += 20;
+      factors.push('Hoppade av ' + previousDropouts + ' tidigare plan' + (previousDropouts>1?'er':'') + ' utan att slutföra');
+    }
+
+    // ── SKYDDANDE FAKTORER (reducerar score) ─────────────────────────────────
+    if (allVisitCount >= 5) {
+      score -= 15;
+      protectives.push('Etablerad patient (' + allVisitCount + ' besök) — hög kontinuitet');
+    }
+    if (nrsVals.length >= 2 && nrsVals[nrsVals.length-1] < nrsVals[0] - 1.5) {
+      score -= 15;
+      protectives.push('Tydlig smärtförbättring — patienten märker effekt av träningen');
+    }
+    if (diag && goodAdherenceDiags.some(function(d){return diag.includes(d);})) {
+      score -= 10;
+      protectives.push('Diagnos med typiskt hög följsamhet');
+    }
+    if (logs.length >= 8 && daysSince <= 3) {
+      score -= 10;
+      protectives.push('Aktiv loggning — ' + logs.length + ' pass, senast för ' + daysSince + ' dag' + (daysSince===1?'':'ar') + ' sedan');
+    }
+
+    score = Math.max(0, Math.min(score, 100));
+    if (score < 20 || !factors.length) return;
+
+    risks.push({
+      patId: pat.id,
+      patName: pat.name,
+      score: score,
+      topFactor: factors[0],
+      factors: factors,
+      protectives: protectives,
+      daysSinceLog: daysSince,
+      diag: v.plan.form?.diagnosis || pat.diagnosis || '',
+      exerciseCount: exerciseCount,
+      nrsStart: nrsStart,
+    });
+  });
+
+  return risks.sort(function(a,b){return b.score-a.score;});
+}
+
+function getDropoutRisks() {
+  try { return JSON.parse(localStorage.getItem(DROPOUT_RISK_KEY)||'[]'); } catch { return []; }
+}
+
+// ── 3. AUTO PLAN ADJUSTMENT ON WORSENING NRS ─────────────────────────────────
+// Called from submitCheckIn after saving
+async function _checkAutoAdjustOnNRS(patId, visitId, newNRS) {
+  var mode = getRetentionMode();
+  if (mode === 'manual') return; // manual mode = never auto-adjust
+
+  var pat = S.patients.find(function(p){return p.id===patId;});
+  if (!pat) return;
+  var visit = (pat.visits||[]).find(function(v){return v.id===visitId;});
+  if (!visit || !visit.plan) return;
+
+  var logs = getPassLogs(patId).filter(function(l){return l.visitId===visitId;});
+  if (logs.length < 3) return; // need at least 3 check-ins
+
+  // Check if NRS is rising over last 3 logs
+  var recent3 = logs.slice(0,3).map(function(l){return l.pain||0;});
+  var isRising = recent3[0] > recent3[1] && recent3[1] >= recent3[2] && (recent3[0] - recent3[2]) >= 2;
+  if (!isRising) return;
+
+  // Don't re-trigger if we adjusted in last 7 days
+  var adjustLog = [];
+  try { adjustLog = JSON.parse(localStorage.getItem(AUTO_ADJUST_LOG_KEY)||'[]'); } catch {}
+  var recentAdjust = adjustLog.find(function(a){
+    return a.patId===patId && a.visitId===visitId &&
+      (new Date()-new Date(a.date)) < 7*86400000;
+  });
+  if (recentAdjust) return;
+
+  // Queue for approval (semi) or auto-apply (auto)
+  if (mode === 'semi') {
+    addInboxItem(patId, pat.name, 'ai_action', 'nrs_rising_adjustment',
+      'NRS stiger — planen bör justeras',
+      'NRS: ' + recent3[2] + '→' + recent3[1] + '→' + recent3[0] + '. Planen kan vara för krävande.',
+      [{label:'Analysera & justera', style:'primary', fn:'analyzePlanAdjustment:'+patId+':'+visitId}]
+    );
+    return;
+  }
+
+  // AUTO mode — run adjustment silently
+  try {
+    var result = await _runAutoAdjustment(patId, visitId, recent3[0]);
+    if (result) {
+      // Log it
+      adjustLog.push({patId:patId, visitId:visitId, date:new Date().toISOString(), nrs:recent3[0], changes:result.length});
+      try { localStorage.setItem(AUTO_ADJUST_LOG_KEY, JSON.stringify(adjustLog.slice(-50))); } catch {}
+      showAutoSaveToast('Planen justerades automatiskt p.g.a. stigande NRS (' + recent3[2] + '→' + recent3[0] + ')');
+    }
+  } catch(err) {
+    console.error('[autoAdjust]', err);
+  }
+}
+
+async function _runAutoAdjustment(patId, visitId, currentNRS) {
+  var key = getKey();
+  if (!key) return null;
+
+  var pat = S.patients.find(function(p){return p.id===patId;});
+  var visit = (pat&&pat.visits||[]).find(function(v){return v.id===visitId;});
+  if (!pat || !visit || !visit.plan) return null;
+
+  var exList = (visit.plan.exercises||[]).map(function(ex,i){
+    return (i+1) + '. ' + ex.name + ' — ' + ex.sets + '×' + ex.reps;
+  }).join('\n');
+
+  var prompt = 'Patient ' + pat.name + ' har stigande smärta NRS ' + currentNRS + '/10. '
+    + 'Diagnos: ' + (visit.form?.diagnosis||visit.plan.form?.diagnosis||'') + '. '
+    + 'Aktuell plan:\n' + exList + '\n\n'
+    + 'Minska belastningen: reducera sets/reps med 20-30% på de tyngsta övningarna. '
+    + 'Returnera ENBART JSON utan backticks:\n'
+    + '{"adjustments":[{"exerciseIndex":0,"newSets":2,"newReps":"8","reason":"Kortfattad anledning"}]}';
+
+  var res = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:MODEL_HAIKU, max_tokens:400, messages:[{role:'user',content:prompt}]})
+  });
+  var data = await res.json();
+  var raw = (data.content||[]).map(function(b){return b.text||'';}).join('').trim();
+
+  var result;
+  try { result = JSON.parse(raw.replace(/```json|```/g,'').trim()); } catch { return null; }
+  if (!result || !result.adjustments) return null;
+
+  // Apply adjustments
+  var plan = Object.assign({}, visit.plan);
+  var exercises = (plan.exercises||[]).slice();
+  var applied = [];
+  result.adjustments.forEach(function(adj) {
+    var ex = exercises[adj.exerciseIndex];
+    if (!ex) return;
+    exercises[adj.exerciseIndex] = Object.assign({}, ex, {
+      sets: adj.newSets || ex.sets,
+      reps: adj.newReps || ex.reps,
+      _autoAdjusted: true,
+      _autoAdjustReason: adj.reason,
+      _autoAdjustDate: new Date().toISOString(),
+    });
+    applied.push(adj);
+  });
+
+  plan.exercises = exercises;
+  plan.lastAdjusted = new Date().toISOString();
+  plan._autoAdjustedForNRS = currentNRS;
+
+  var freshPat = S.patients.find(function(p){return p.id===patId;});
+  if (!freshPat) return null;
+  freshPat.visits = freshPat.visits.map(function(v){
+    return v.id===visitId ? Object.assign({},v,{plan:plan}) : v;
+  });
+  savePat(freshPat);
+  if (S.pat && S.pat.id===patId) { S.pat = freshPat; }
+  return applied;
+}
+
+// ── 4. AUTO FOLLOW-UP AFTER PLAN ENDS ─────────────────────────────────────────
+function _scanExpiredPlansNeedingFollowup() {
+  var now = new Date();
+  var needed = [];
+
+  S.patients.forEach(function(pat) {
+    (pat.visits||[]).forEach(function(v) {
+      if (!v.plan) return;
+      if (v._followupQueued) return; // already handled
+
+      var tw = v.plan.totalWeeks || v.plan.form?.followup || 4;
+      var sd = v.date ? new Date(v.date) : null;
+      if (!sd) return;
+      var endDate = new Date(sd.getTime() + tw*7*86400000);
+      var daysAfterEnd = Math.floor((now-endDate)/86400000);
+
+      // Window: 3-21 days after plan ended
+      if (daysAfterEnd < 3 || daysAfterEnd > 21) return;
+
+      // Check if they have a newer visit (already rebooked)
+      var hasNewerVisit = (pat.visits||[]).some(function(v2){
+        return v2.id !== v.id && v2.date && new Date(v2.date) > endDate;
+      });
+      if (hasNewerVisit) return;
+
+      needed.push({
+        patId: pat.id,
+        patName: pat.name,
+        visitId: v.id,
+        daysAfterEnd: daysAfterEnd,
+        diag: v.plan.form?.diagnosis || pat.diagnosis || '',
+        nrsDrop: (() => {
+          var logs = v.logs || [];
+          var nrs = logs.filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;});
+          return nrs.length >= 2 ? Math.round((nrs[0]-nrs[nrs.length-1])*10)/10 : null;
+        })(),
+      });
+    });
+  });
+
+  return needed;
+}
+
+// Queue follow-up messages for expired plans (called from nightly scan)
+async function _autoQueueFollowups(followups) {
+  var mode = getRetentionMode();
+  if (mode === 'manual') return;
+  var key = getKey();
+  if (!key) return;
+
+  for (var i = 0; i < Math.min(followups.length, 5); i++) {
+    var fu = followups[i];
+    var pat = S.patients.find(function(p){return p.id===fu.patId;});
+    if (!pat) continue;
+
+    // Mark as queued on visit to prevent re-triggering
+    var vIdx = (pat.visits||[]).findIndex(function(v){return v.id===fu.visitId;});
+    if (vIdx < 0) continue;
+    pat.visits[vIdx]._followupQueued = new Date().toISOString();
+    savePat(pat);
+
+    var sig = {
+      patId: fu.patId, patName: fu.patName,
+      triggerId: 'plan_expired', priority: 4,
+      label: 'Uppföljning efter plan',
+      sub: 'Planen avslutades för ' + fu.daysAfterEnd + ' dagar sedan',
+      icon: 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 0 0 1.946-.806',
+      channel: 'mail', urgency: 'medium',
+      context: {type:'plan_expired', daysAgo: fu.daysAfterEnd, nrsDrop: fu.nrsDrop}
+    };
+
+    var msg = await generateRetentionMessage(sig, pat);
+    if (msg) queueRetentionAction(sig, msg);
+  }
+}
+
+// ── 5. SCAN PLANS NEEDING ADJUSTMENT ─────────────────────────────────────────
+function _scanPlansNeedingAdjustment() {
+  var needed = [];
+  S.patients.forEach(function(pat) {
+    (pat.visits||[]).filter(function(v){return v.plan;}).forEach(function(v) {
+      var logs = getPassLogs(pat.id).filter(function(l){return l.visitId===v.id;});
+      if (logs.length < 3) return;
+      var recent3 = logs.slice(0,3).map(function(l){return l.pain||0;});
+      var isRising = recent3[0] > recent3[1] && recent3[1] >= recent3[2] && (recent3[0]-recent3[2]) >= 2;
+      if (!isRising) return;
+      // Don't re-flag if recently auto-adjusted
+      if (v.plan.lastAdjusted && (new Date()-new Date(v.plan.lastAdjusted)) < 5*86400000) return;
+      needed.push({patId:pat.id, patName:pat.name, visitId:v.id, nrsTrend:recent3});
+    });
+  });
+  return needed;
+}
+
+// ── 6. MORNING SUMMARY (AI-generated) ────────────────────────────────────────
+async function _generateMorningSummary(report) {
+  var key = getKey();
+  if (!key) return null;
+  var total = S.patients.length;
+  var prompt = 'Du är AI-assistent för en naprapatisk klinik. Skriv en kortfattad morgonrapport på 2 meningar. '
+    + 'Ton: konkret och handlingsinriktad — som en erfaren kollega. '
+    + 'Data: ' + total + ' patienter, '
+    + report.retentionSignals + ' retentionssignaler, '
+    + report.dropoutRisks.filter(function(r){return r.score>=70;}).length + ' med hög avhoppsrisk, '
+    + report.followupsNeeded.length + ' planer avslutade utan återbesök, '
+    + report.planAdjustmentsNeeded.length + ' planer med stigande NRS. '
+    + 'Nämn det viktigaste att agera på idag. Avsluta inte med "Ha en bra dag".';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:MODEL_HAIKU, max_tokens:120, messages:[{role:'user',content:prompt}]})
+    });
+    var data = await res.json();
+    return (data.content||[]).map(function(b){return b.text||'';}).join('').trim() || null;
+  } catch { return null; }
+}
+
+// ── 7. RENDER MORNING REPORT CARD (injects into dashboard) ────────────────────
+function _renderMorningReportCard() {
+  var el = document.getElementById('morning-report-card');
+  if (!el) return;
+
+  var report = getMorningReport();
+  if (!report) {
+    el.innerHTML = '';
+    return;
+  }
+
+  var risks   = report.dropoutRisks || [];
+  var highRisk = risks.filter(function(r){return r.score>=70;});
+  var followups = report.followupsNeeded || [];
+  var adjustments = report.planAdjustmentsNeeded || [];
+  var total = highRisk.length + followups.length + adjustments.length + report.retentionSignals;
+
+  if (total === 0 && !report.summary) {
+    el.innerHTML = '';
+    return;
+  }
+
+  var h = '<div style="background:linear-gradient(135deg,rgba(13,155,138,.08),rgba(13,155,138,.03));border:1px solid rgba(13,155,138,.2);border-radius:16px;padding:16px 18px;margin-bottom:16px">';
+  h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">';
+  h += '<div style="width:28px;height:28px;border-radius:8px;background:rgba(13,155,138,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>';
+  h += '<div style="font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--teal)">Morgonrapport · ' + report.date + '</div>';
+  h += '<button onclick="_dismissMorningReport()" style="margin-left:auto;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:0 4px">×</button>';
+  h += '</div>';
+
+  if (report.summary) {
+    h += '<div style="font-size:13px;color:var(--text);line-height:1.7;margin-bottom:12px">' + report.summary + '</div>';
+  }
+
+  // Action items
+  var items = [];
+  if (highRisk.length) items.push({
+    icon:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>',
+    col:'#e05555', label: highRisk.length + ' patient' + (highRisk.length>1?'er':' ') + ' med hög avhoppsrisk',
+    names: highRisk.slice(0,3).map(function(r){return r.patName + ' (' + r.score + '%)';}).join(', '),
+    action: 'Visa', fn: "_showDropoutRisks()"
+  });
+  if (followups.length) items.push({
+    icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    col:'var(--teal)', label: followups.length + ' plan' + (followups.length>1?'er':' ') + ' avslutad utan återbesök',
+    names: followups.slice(0,3).map(function(f){return f.patName;}).join(', '),
+    action: 'Kontakta', fn: "go('intelligence')"
+  });
+  if (adjustments.length) items.push({
+    icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+    col:'#c8a030', label: adjustments.length + ' plan' + (adjustments.length>1?'er':' ') + ' med stigande NRS',
+    names: adjustments.slice(0,3).map(function(a){return a.patName+' ('+a.nrsTrend.join('→')+')';}).join(', '),
+    action: 'Justera', fn: "go('hael')"
+  });
+  if (report.retentionSignals && !items.length) items.push({
+    icon:'<path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+    col:'var(--teal)', label: report.retentionSignals + ' retentionsåtgärder identifierade',
+    names: '', action: 'Se alla', fn: "go('intelligence')"
+  });
+
+  if (items.length) {
+    h += '<div style="display:flex;flex-direction:column;gap:7px">';
+    items.forEach(function(item) {
+      h += '<div style="display:flex;align-items:center;gap:10px;padding:8px 11px;background:var(--surface);border-radius:9px;border:1px solid var(--border)">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="'+item.col+'" stroke-width="2" stroke-linecap="round" style="flex-shrink:0">'+item.icon+'</svg>';
+      h += '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--ink)">'+item.label+'</div>';
+      if (item.names) h += '<div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+item.names+'</div>';
+      h += '</div>';
+      h += '<button onclick="'+item.fn+'" style="padding:4px 10px;background:none;border:1px solid var(--border);border-radius:7px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font);flex-shrink:0">'+item.action+'</button>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+  h += '</div>';
+  el.innerHTML = h;
+}
+
+function _dismissMorningReport() {
+  var el = document.getElementById('morning-report-card');
+  if (el) el.innerHTML = '';
+}
+
+function _showDropoutRisks() {
+  var risks = getDropoutRisks().filter(function(r){return r.score>=50;});
+  if (!risks.length) { showAutoSaveToast('Inga avhoppsrisker identifierade'); return; }
+  document.getElementById('dropout-risk-ov')?.remove();
+  var ov = document.createElement('div');
+  ov.id = 'dropout-risk-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:700;background:rgba(7,16,30,.65);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+  ov.onclick = function(ev){if(ev.target===ov)ov.remove();};
+  var h = '<div style="background:var(--surface);border-radius:20px;width:100%;max-width:460px;overflow:hidden;box-shadow:var(--shadow-lg)" onclick="event.stopPropagation()">';
+  h += '<div style="background:var(--navy);padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between">';
+  h += '<div><div style="font-size:16px;font-weight:700;color:white">Avhoppsrisk</div>';
+  h += '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Prediktiv analys · uppdateras dagligen</div></div>';
+  h += '<button onclick="document.getElementById(\'dropout-risk-ov\').remove()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:22px;cursor:pointer;line-height:1">×</button>';
+  h += '</div>';
+  h += '<div style="max-height:60vh;overflow-y:auto">';
+  risks.forEach(function(r, i) {
+    var col = r.score >= 70 ? '#e05555' : r.score >= 50 ? '#c8a030' : 'var(--teal)';
+    h += '<div style="padding:13px 20px;'+(i>0?'border-top:1px solid var(--border2)':'')+';cursor:pointer;display:flex;align-items:center;gap:13px" onclick="document.getElementById(\'dropout-risk-ov\').remove();openPat(\''+r.patId+'\')" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'\'">';
+    // Risk gauge
+    h += '<div style="width:40px;height:40px;flex-shrink:0;position:relative">';
+    h += '<svg width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="none" stroke="var(--border)" stroke-width="4"/>';
+    var pct = r.score/100;
+    var dash = 2*Math.PI*16;
+    h += '<circle cx="20" cy="20" r="16" fill="none" stroke="'+col+'" stroke-width="4" stroke-dasharray="'+(dash*pct)+' '+(dash*(1-pct))+'" stroke-dashoffset="'+(dash*0.25)+'" stroke-linecap="round"/></svg>';
+    h += '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:'+col+'">'+r.score+'</div>';
+    h += '</div>';
+    h += '<div style="flex:1;min-width:0">';
+    h += '<div style="font-size:13px;font-weight:600;color:var(--ink)">'+e(r.patName)+'</div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">'+e(r.topFactor)+'</div>';
+    if (r.factors.length > 1) {
+      h += '<div style="font-size:10px;color:var(--muted);margin-top:2px">+' + (r.factors.length-1) + ' andra faktorer</div>';
+    }
+    h += '</div>';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+    h += '</div>';
+  });
+  h += '</div>';
+  h += '<div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px">';
+  h += '<button onclick="document.getElementById(\'dropout-risk-ov\').remove()" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Stäng</button>';
+  h += '<button onclick="document.getElementById(\'dropout-risk-ov\').remove();go(\'intelligence\')" class="btn btn-p" style="flex:1;padding:10px">Retention →</button>';
+  h += '</div></div>';
+  ov.innerHTML = h;
+  document.body.appendChild(ov);
+}
+
 // -- STARTUP ROUTING -----------------------------------------------------------
 (function() {
   try {
@@ -16409,6 +17574,7 @@ function showDropoutList() {
         setTimeout(() => rNavLogo(), 100);
         setTimeout(() => syncFromCloud(), 800);
         setTimeout(() => sbKeepAlive(), 2000);
+        setTimeout(function(){ runNightlyScanIfNeeded().then(function(){ _renderMorningReportCard(); }); }, 3000);
         setTimeout(() => runInboxAgent(S.patients), 3500);
       } else {
         const _ld = document.getElementById('page-loader');

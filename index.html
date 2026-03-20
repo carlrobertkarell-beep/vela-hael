@@ -14033,6 +14033,134 @@ function _renderSettingsContent(tab) {
   else if (tab === 'sync')     el.innerHTML = _stSync();
 }
 
+
+// ── PLAN & FAKTURA TAB ────────────────────────────────────────
+function _stBilling() {
+  var tier = getClinicTier();
+  var tierInfo = TIERS[tier] || TIERS.free;
+  var monthKey = new Date().getFullYear() + '-' + String(new Date().getMonth()+1).padStart(2,'0');
+  var used = parseInt(localStorage.getItem('vela:plan-count:' + monthKey) || '0');
+  var limit = tier === 'free' ? 5 : Infinity;
+
+  var h = '<div class="vela-st-section" style="max-width:680px">';
+  h += '<div class="vela-st-title">Plan & Faktura</div>';
+  h += '<div class="vela-st-desc">Ditt aktiva abonnemang och användning.</div>';
+
+  // Current plan card
+  h += '<div style="background:var(--surface);border:1.5px solid var(--teal);border-radius:14px;padding:18px 20px;margin-bottom:20px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h += '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:4px">Aktivt abonnemang</div>';
+  h += '<div style="font-size:20px;font-weight:800;color:var(--ink)">' + tierInfo.name + '</div></div>';
+  h += '<span style="background:rgba(13,155,138,.12);color:var(--teal);font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px">Aktiv</span>';
+  h += '</div>';
+
+  if (tier === 'free') {
+    h += '<div style="margin-bottom:12px">';
+    h += '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px">';
+    h += '<span style="color:var(--muted)">Hael-planer denna månad</span>';
+    h += '<span style="font-weight:700;color:var(--ink)">' + used + ' / 5</span></div>';
+    var pct = Math.min(100, (used/5)*100);
+    h += '<div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden">';
+    h += '<div style="height:100%;width:' + pct + '%;background:' + (pct>=80?'#e05555':'var(--teal)') + ';border-radius:3px;transition:width .4s"></div></div>';
+    h += '</div>';
+  }
+  h += '</div>';
+
+  // Plan cards
+  var plans = [
+    { id:'free',         name:'Free',         price:'0 kr',      period:'alltid',   features:['5 Hael-planer/mån','Grundläggande journalföring','Vela Ask Basic'] },
+    { id:'pro',          name:'Pro',           price:'990 kr',    period:'/mån',     features:['Obegränsade Hael-planer','AI-konsultation','Kommunikationsautomatik','Prisanalys','Multi-klinik'] },
+    { id:'intelligence', name:'Intelligence',  price:'2 490 kr',  period:'/mån',     features:['Allt i Pro','Djupanalys & Intelligence','Konkurrentanalys','Årsrapport','Branschjämförelse'] },
+  ];
+
+  h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px">';
+  plans.forEach(function(p) {
+    var active = tier === p.id;
+    h += '<div style="background:var(--surface);border:1.5px solid ' + (active?'var(--teal)':'var(--border)') + ';border-radius:14px;padding:16px;position:relative">';
+    if (active) h += '<div style="position:absolute;top:-8px;right:12px;background:var(--teal);color:#fff;font-size:9px;font-weight:700;padding:2px 10px;border-radius:20px">Aktiv</div>';
+    h += '<div style="font-size:14px;font-weight:800;color:var(--ink);margin-bottom:4px">' + p.name + '</div>';
+    h += '<div style="font-size:18px;font-weight:700;color:var(--teal);margin-bottom:10px">' + p.price + '<span style="font-size:11px;color:var(--muted)">' + p.period + '</span></div>';
+    p.features.forEach(function(f) {
+      h += '<div style="font-size:11px;color:var(--muted);padding:3px 0;display:flex;gap:7px;align-items:flex-start">';
+      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><path d="M20 6L9 17l-5-5"/></svg>' + _e(f) + '</div>';
+    });
+    if (!active) {
+      h += '<button onclick="showAutoSaveToast(\'Stripe-integration kommer snart\')" class="btn btn-p" style="width:100%;margin-top:12px;font-size:12px">Uppgradera →</button>';
+    }
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // Dev tier override
+  h += '<div style="background:var(--bg);border:1px dashed var(--border);border-radius:10px;padding:12px 14px">';
+  h += '<div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em">Dev — byt tier manuellt</div>';
+  h += '<div style="display:flex;gap:8px">';
+  ['free','pro','intelligence'].forEach(function(t) {
+    h += '<button onclick="localStorage.setItem(\'vela:tier\',\'' + t + '\');showAutoSaveToast(\'Tier: ' + t + '\');_renderSettingsContent(\'billing\')" ';
+    h += 'style="padding:5px 12px;border:1px solid var(--border);border-radius:7px;font-size:11px;background:' + (tier===t?'var(--teal)':'none') + ';color:' + (tier===t?'#fff':'var(--muted)') + ';cursor:pointer;font-family:var(--font)">' + t + '</button>';
+  });
+  h += '</div></div>';
+
+  h += '</div>';
+  return h;
+}
+
+function _e(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── SYNK & DATA TAB ───────────────────────────────────────────
+function _stSync() {
+  var cfg = getClinicConfig();
+  var h = '<div class="vela-st-section" style="max-width:680px">';
+  h += '<div class="vela-st-title">Synk & Data</div>';
+  h += '<div class="vela-st-desc">Synkronisering med molnet och hantering av klinikdata.</div>';
+
+  // Sync status
+  var lastSync = localStorage.getItem('vela:last-sync') || '';
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px">';
+  h += '<div style="padding:14px 20px;border-bottom:1px solid var(--border)">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Molnsynk — Supabase</div>';
+  h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + (lastSync ? 'Senast synkat: ' + new Date(lastSync).toLocaleString('sv-SE') : 'Aldrig synkat') + '</div>';
+  h += '</div>';
+  h += '<div style="padding:14px 20px;display:flex;gap:10px">';
+  h += '<button onclick="syncFromCloud().then(function(){showAutoSaveToast(\'Hämtat från molnet ✓\');_renderSettingsContent(\'sync\')})" class="btn" style="font-size:12px;display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.28-4.24"/></svg>Hämta från moln</button>';
+  h += '<button onclick="syncToCloud().then(function(){showAutoSaveToast(\'Uppladdat till molnet ✓\');_renderSettingsContent(\'sync\')})" class="btn" style="font-size:12px;display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>Ladda upp till moln</button>';
+  h += '</div></div>';
+
+  // Export / import
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px">';
+  h += '<div style="padding:14px 20px;border-bottom:1px solid var(--border)">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Exportera data</div>';
+  h += '</div>';
+  h += '<div style="padding:14px 20px;display:flex;gap:10px">';
+  h += '<button onclick="_exportPatientData()" class="btn" style="font-size:12px">Exportera patienter (JSON)</button>';
+  h += '</div></div>';
+
+  // Cache clear
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 20px">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px">Rensa cache</div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Rensar lokal cache. Dina patienter och inställningar påverkas inte.</div>';
+  h += '<button onclick="caches.keys().then(function(k){k.forEach(function(n){caches.delete(n)})});showAutoSaveToast(\'Cache rensad ✓\')" class="btn" style="font-size:12px">Rensa webbläsarcache</button>';
+  h += '</div>';
+
+  h += '</div>';
+  return h;
+}
+
+function _exportPatientData() {
+  try {
+    var data = JSON.stringify(S.patients, null, 2);
+    var blob = new Blob([data], {type:'application/json'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'vela-patienter-' + new Date().toISOString().slice(0,10) + '.json';
+    a.click();
+    showAutoSaveToast('Exporterat ✓');
+  } catch(err) {
+    showAutoSaveToast('Export misslyckades');
+  }
+}
+
+
 // ── KLINIK TAB ──────────────────────────────────────────────
 
 // ── KLINIK SAVE ──────────────────────────────────────────────

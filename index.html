@@ -198,6 +198,8 @@ button, input, textarea, select { font-family: inherit; }
 }
 
 /* ── CONTENT WRAPPER ────────────────────────────────────────── */
+.org-add-clinic-card { background:var(--bg);border:1.5px dashed var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:120px;transition:border-color .15s; }
+.org-add-clinic-card:hover { border-color:var(--teal); }
 .cx { max-width: 1200px; margin: 0 auto; padding: 28px 32px 60px; }
 @media (max-width: 768px) { .cx { padding: 16px 14px 60px; } }
 
@@ -14461,7 +14463,7 @@ function rIntelligence() {
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
         ${[
           { icon:'<path d="M21 21l-6-6m2-5a7 7 0 1 1-14 0 7 7 0 0 1 14 0z"/>', label:'Konkurrentanalys', desc:'Årsredovisningar, prissättning, marknadsposition' },
-          { icon:'<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>', label:'Intäktsprognos 30/60/90 d', desc:'AI-baserad prognos utifrån historik och aktiva planer' },
+          { icon:'<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>', label:'Intäktsprognos', desc:'AI-baserad prognos utifrån historik och aktiva planer' },
           { icon:'<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>', label:'Branschjämförelse', desc:'Dina resultat vs anonymiserade Vela-kliniker' },
           { icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>', label:'Automatisk årsrapport', desc:'Klar att skicka till revisor eller styrelse' },
           { icon:'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>', label:'Protokolleffektivitet', desc:'Vilka behandlingsupplägg ger bäst resultat' },
@@ -14477,7 +14479,6 @@ function rIntelligence() {
 
     <!-- Retention -->
     <div style="margin-top:28px;padding:0 0 8px">
-      <div style="font-size:16px;font-weight:800;color:var(--ink,#0f2744);margin-bottom:14px">AI Retention</div>
       <div id="retention-panel"></div>
     </div>
 
@@ -17997,139 +17998,510 @@ function _openPublicPlanFromAdmin(patId, visitId) {
 
 
 // ── ORG OVERVIEW (systemägare) ─────────────────────────────────────────────
-function rOrgOverview() {
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MULTI-CLINIC DATA ABSTRACTION LAYER
+// To swap localStorage → Supabase: replace getPatients() and savePatient()
+// Everything else in the app calls these — never localStorage directly.
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── CLINIC CONTEXT ────────────────────────────────────────────────────────────
+function getCurrentClinicId() {
+  return getActiveClinicId() || 'clinic_main';
+}
+
+function isOrgOwner() {
+  return getMyRole() === 'org_owner';
+}
+
+// ── DATA ABSTRACTION — swap these two for Supabase ────────────────────────────
+
+// Get patients for a clinic (or all clinics if org_owner + clinicId='all')
+function getPatients(clinicId) {
+  var id = clinicId || getCurrentClinicId();
+  var all = S.patients || [];
+  if (id === 'all') return all; // org_owner aggregate view
+  return all.filter(function(p) {
+    // Patients without clinicId belong to the primary clinic
+    return !p.clinicId || p.clinicId === id || p.clinicId === 'clinic_main';
+  });
+}
+
+// Save patient — always stamps clinicId
+function savePatient(p) {
+  var clinicId = p.clinicId || getCurrentClinicId();
+  return savePat(Object.assign({}, p, { clinicId: clinicId }));
+}
+
+// Load patients for a specific clinic into S.patients
+function loadPatsForClinic(clinicId) {
+  loadPats(); // loads all from localStorage
+  var id = clinicId || getCurrentClinicId();
+  if (id !== 'all' && !isOrgOwner()) {
+    // Filter S.patients to only this clinic
+    S.patients = S.patients.filter(function(p) {
+      return !p.clinicId || p.clinicId === id || p.clinicId === 'clinic_main';
+    });
+  }
+  S.activeClinicId = id;
+}
+
+// Get aggregate stats for a clinic (used in org overview)
+function getClinicStats(clinicId) {
+  var pats = clinicId === 'all' ? (S.patients||[]) :
+    (S.patients||[]).filter(function(p){
+      return !p.clinicId || p.clinicId === clinicId || p.clinicId === 'clinic_main';
+    });
+  var now = new Date();
+  var monthRev = 0, yearRev = 0, activePlans = 0;
+  var thisMonth = now.getMonth(), thisYear = now.getFullYear();
+
+  pats.forEach(function(p) {
+    (p.visits||[]).forEach(function(v) {
+      var d = new Date(v.date||'');
+      if (isNaN(d)) return;
+      var amt = v.servicePrice || 0;
+      if (d.getFullYear() === thisYear) yearRev += amt;
+      if (d.getMonth() === thisMonth && d.getFullYear() === thisYear) monthRev += amt;
+      if (v.plan) {
+        var tw = v.plan.totalWeeks || v.plan.form?.followup || 4;
+        var end = new Date(d.getTime() + tw*7*86400000);
+        if (end > now) activePlans++;
+      }
+    });
+  });
+
+  return {
+    patientCount: pats.length,
+    activePlans: activePlans,
+    monthRevenue: monthRev,
+    yearRevenue: yearRev,
+    activePatients: pats.filter(function(p){
+      return (p.visits||[])[0]?.status === 'Aktiv';
+    }).length,
+  };
+}
+
+// ── SAVE NEW CLINIC ────────────────────────────────────────────────────────────
+function _saveNewClinic() {
+  var name    = document.getElementById('nc-name')?.value?.trim();
+  var address = document.getElementById('nc-address')?.value?.trim() || '';
+  var phone   = document.getElementById('nc-phone')?.value?.trim() || '';
+  var email   = document.getElementById('nc-email')?.value?.trim() || '';
+  var region  = document.getElementById('nc-region')?.value?.trim() || '';
+
+  if (!name) {
+    showAutoSaveToast('Ange kliniknamn');
+    return;
+  }
+
   var clinics = getClinics();
-  var org = getOrg();
-  var key = getKey();
-  var el = document.getElementById('s-dashboard');
+  var id = 'clinic_' + Date.now();
+  clinics.push({
+    id: id,
+    name: name,
+    address: address,
+    phone: phone,
+    email: email,
+    region: region,
+    createdAt: new Date().toISOString(),
+    signatory: '',
+    logo: null,
+  });
+  saveClinics(clinics);
+
+  document.getElementById('add-clinic-ov')?.remove();
+  showAutoSaveToast(name + ' tillagd ✓');
+  rOrgOverview();
+}
+
+// ── UPDATE _switchClinic — reload patients on switch ─────────────────────────
+function switchClinic(clinicId) {
+  if (clinicId && typeof clinicId === "object") clinicId = clinicId.dataset.cid || clinicId.dataset.id;
+  setActiveClinicId(clinicId);
+  loadPatsForClinic(clinicId);
+  rTopbar();
+  // Re-render whatever screen is active
+  var scr = S.screen || 'dashboard';
+  if (typeof go === 'function') go(scr === 'dashboard' ? 'dashboard' : scr);
+  showAutoSaveToast('Bytte till ' + (getClinics().find(function(c){return c.id===clinicId;})?.name || clinicId));
+}
+
+// ── REMOVE CLINIC ─────────────────────────────────────────────────────────────
+function removeClinic(clinicId) {
+  if (clinicId && typeof clinicId === "object") clinicId = clinicId.dataset.cid || clinicId.dataset.id;
+  var clinics = getClinics();
+  var clinic = clinics.find(function(c){return c.id===clinicId;});
+  if (!clinic) return;
+  if (!confirm('Ta bort ' + clinic.name + '? Klinikens patienter påverkas inte men kliniken tas bort från organisationen.')) return;
+  saveClinics(clinics.filter(function(c){return c.id !== clinicId;}));
+  if (getCurrentClinicId() === clinicId) {
+    setActiveClinicId(clinics[0]?.id || 'clinic_main');
+  }
+  rOrgOverview();
+}
+
+// ── EDIT CLINIC ────────────────────────────────────────────────────────────────
+function editClinic(clinicId) {
+  if (clinicId && typeof clinicId === "object") clinicId = clinicId.dataset.cid || clinicId.dataset.id;
+  var clinics = getClinics();
+  var clinic = clinics.find(function(c){return c.id===clinicId;});
+  if (!clinic) return;
+
+  document.getElementById('edit-clinic-ov')?.remove();
+  var ov = document.createElement('div');
+  ov.id = 'edit-clinic-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
+  ov.onclick = function(ev) { if(ev.target===ov) ov.remove(); };
+
+  function field(id, label, val, placeholder, type) {
+    return '<div>'
+      + '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:7px">' + label + '</div>'
+      + '<input id="' + id + '" type="' + (type||'text') + '" value="' + (val||'') + '" placeholder="' + placeholder + '" class="field" style="margin-bottom:0">'
+      + '</div>';
+  }
+
+  ov.innerHTML = '<div style="background:var(--surface);border-radius:20px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">'
+    + '<div style="background:var(--navy);padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between">'
+    + '<div style="font-size:17px;font-weight:700;color:white">Redigera klinik</div>'
+    + '<button onclick="document.getElementById(\"edit-clinic-ov\").remove()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1">×</button>'
+    + '</div>'
+    + '<div style="padding:20px 22px;display:grid;gap:14px">'
+    + field('ec-name','Kliniknamn *', clinic.name,'T.ex. Kansei Göteborg','text')
+    + field('ec-address','Adress', clinic.address,'Gatuadress, stad','text')
+    + field('ec-phone','Telefon', clinic.phone,'031-000 00 00','tel')
+    + field('ec-email','E-post', clinic.email,'info@klinik.se','email')
+    + field('ec-signatory','Behandlarnamn', clinic.signatory,'T.ex. Anna Lindqvist','text')
+    + '</div>'
+    + '<div style="padding:0 22px 18px;display:flex;gap:10px">'
+    + '<button onclick="removeClinic(this.dataset.id)" data-id="' + clinicId + '" style="padding:10px 16px;background:none;border:1px solid var(--red,#c05050);border-radius:10px;font-size:13px;color:var(--red,#c05050);cursor:pointer;font-family:var(--font)">Ta bort</button>'
+    + '<button onclick="document.getElementById(\"edit-clinic-ov\").remove()" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>'
+    + '<button onclick="_saveEditClinic(this.dataset.id)" data-id="' + clinicId + '" class="btn btn-p" style="flex:1;padding:10px">Spara →</button>'
+    + '</div></div>';
+  document.body.appendChild(ov);
+}
+
+function _saveEditClinic(clinicId) {
+  var clinics = getClinics();
+  var idx = clinics.findIndex(function(c){return c.id===clinicId;});
+  if (idx < 0) return;
+  clinics[idx] = Object.assign({}, clinics[idx], {
+    name:      document.getElementById('ec-name')?.value?.trim() || clinics[idx].name,
+    address:   document.getElementById('ec-address')?.value?.trim() || '',
+    phone:     document.getElementById('ec-phone')?.value?.trim() || '',
+    email:     document.getElementById('ec-email')?.value?.trim() || '',
+    signatory: document.getElementById('ec-signatory')?.value?.trim() || '',
+    updatedAt: new Date().toISOString(),
+  });
+  saveClinics(clinics);
+  document.getElementById('edit-clinic-ov')?.remove();
+  showAutoSaveToast('Klinik sparad ✓');
+  rOrgOverview();
+}
+
+// ── ORG OVERVIEW — with comparison mode ───────────────────────────────────────
+function rOrgOverview() {
+  var clinics  = getClinics();
+  var org      = getOrg();
+  var el       = document.getElementById('s-dashboard');
   if (!el) return;
-  // Make sure s-dashboard is active
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   el.classList.add('active');
 
-  // Aggregate data across all clinics (using localStorage data for now)
-  var totalPats = S.patients.length; // In future: sum across clinic DBs
+  // Which clinics are selected for comparison (stored in window)
+  if (!window._orgCompare) window._orgCompare = new Set([getCurrentClinicId()]);
+
+  var selected = window._orgCompare;
+
+  // Aggregate across selected clinics
+  var selectedPats = (S.patients||[]).filter(function(p){
+    if (selected.has('all')) return true;
+    var cid = p.clinicId || 'clinic_main';
+    return selected.has(cid);
+  });
+
   var now = new Date();
-  var monthKey = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-  var monthRev = 0;
-  S.patients.forEach(function(p) {
+  var monthRev = 0, yearRev = 0;
+  var thisMonth = now.getMonth(), thisYear = now.getFullYear();
+  selectedPats.forEach(function(p) {
     (p.visits||[]).forEach(function(v) {
       var d = new Date(v.date||'');
-      if (!isNaN(d) && d.getFullYear()===now.getFullYear() && d.getMonth()===now.getMonth()) {
-        monthRev += (v.servicePrice||0);
-      }
+      if (isNaN(d)) return;
+      var amt = v.servicePrice||0;
+      if (d.getFullYear()===thisYear) yearRev += amt;
+      if (d.getMonth()===thisMonth && d.getFullYear()===thisYear) monthRev += amt;
     });
   });
 
   var h = '<div class="cc-wrap" style="padding-top:20px">';
 
-  // Org header
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">';
+  // ── HEADER ────────────────────────────────────────────────────────────────
+  h += '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">';
   h += '<div>';
   h += '<div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:4px">Systemöversikt</div>';
-  h += '<div style="font-size:22px;font-weight:800;color:var(--ink)">'+e(org.name)+'</div>';
-  h += '<div style="font-size:12px;color:var(--muted);margin-top:2px">'+clinics.length+' klinik'+(clinics.length!==1?'er':'')+'</div>';
+  h += '<div style="font-size:24px;font-weight:800;color:var(--ink);letter-spacing:-.02em">' + e(org.name) + '</div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin-top:3px">' + clinics.length + ' klinik' + (clinics.length!==1?'er':'') + ' · ' + (S.patients||[]).length + ' patienter totalt</div>';
   h += '</div>';
   h += '<div style="display:flex;gap:8px">';
   h += '<button onclick="rAddClinicDialog()" class="btn btn-p" style="font-size:12px;display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Lägg till klinik</button>';
-  h += '<button onclick="generateOrgReport()" class="btn" style="font-size:12px;display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>AI-rapport</button>';
+  h += '<button onclick="generateOrgReport()" class="btn" style="font-size:12px;display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>AI-rapport</button>';
   h += '</div></div>';
 
-  // KPI row - aggregated
-  h += '<div class="cc-kpi-row" style="margin-bottom:20px">';
-  var kpis = [
-    { label:'Totalt patienter', val:totalPats, sub:'alla kliniker' },
-    { label:'Månadsintäkt', val:monthRev.toLocaleString('sv-SE')+' kr', sub:now.toLocaleDateString('sv-SE',{month:'long'}) },
-    { label:'Aktiva kliniker', val:clinics.length, sub:'i drift' },
-    { label:'Behandlare totalt', val: (function(){try{return JSON.parse(localStorage.getItem('vela:users')||'[]').filter(function(u){return u.role==='therapist';}).length||1;}catch(e){return 1;}})(), sub:'i teamet' },
-  ];
-  kpis.forEach(function(k) {
-    h += '<div class="cc-kpi">';
-    h += '<div class="cc-kpi-val">'+k.val+'</div>';
-    h += '<div class="cc-kpi-lbl">'+k.label+'</div>';
-    h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+k.sub+'</div>';
+  // ── CLINIC SELECTOR + COMPARISON TOGGLE ──────────────────────────────────
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:20px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">';
+  h += '<div style="font-size:12px;font-weight:700;color:var(--ink)">Välj kliniker att visa</div>';
+  h += '<div style="display:flex;gap:6px">';
+  h += '<button onclick="_orgSelectAll()" style="padding:4px 10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Välj alla</button>';
+  h += '<button onclick="_orgSelectNone()" style="padding:4px 10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;font-family:var(--font)">Rensa</button>';
+  h += '</div></div>';
+  h += '<div style="display:flex;flex-wrap:wrap;gap:8px">';
+  clinics.forEach(function(clinic) {
+    var isSelected = selected.has(clinic.id);
+    var stats = getClinicStats(clinic.id);
+    h += '<label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1.5px solid ' + (isSelected?'var(--teal)':'var(--border)') + ';border-radius:10px;cursor:pointer;background:' + (isSelected?'rgba(13,155,138,.07)':'none') + ';transition:all .12s">';
+    h += '<input type="checkbox" ' + (isSelected?'checked':'') + ' onchange="_orgToggleClinic(this.dataset.cid)" data-cid="' + clinic.id + '"" style="accent-color:var(--teal);width:14px;height:14px">';
+    h += '<div>';
+    h += '<div style="font-size:12px;font-weight:700;color:var(--ink)">' + e(clinic.name) + '</div>';
+    h += '<div style="font-size:10px;color:var(--muted)">' + stats.patientCount + ' pat · ' + (stats.monthRevenue?stats.monthRevenue.toLocaleString('sv-SE')+' kr/mån':'ingen intäkt') + '</div>';
+    h += '</div></label>';
+  });
+  h += '</div></div>';
+
+  // ── AGGREGATE KPI ROW ──────────────────────────────────────────────────────
+  var activePlans = selectedPats.filter(function(p){
+    return (p.visits||[]).some(function(v){
+      if (!v.plan) return false;
+      var tw = v.plan.totalWeeks||v.plan.form?.followup||4;
+      var sd = v.date?new Date(v.date):null;
+      return sd && new Date(sd.getTime()+tw*7*86400000) > now;
+    });
+  }).length;
+
+  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">';
+  [
+    {v:selectedPats.length,      l:'Patienter',        s:'valda kliniker'},
+    {v:activePlans,              l:'Aktiva Hael-planer',s:'pågående'},
+    {v:monthRev>0?monthRev.toLocaleString('sv-SE')+' kr':'—', l:'Månadsintäkt', s:now.toLocaleDateString('sv-SE',{month:'long'})},
+    {v:yearRev>0?(yearRev/1000).toFixed(0)+'k kr':'—',  l:'Årsintäkt '+thisYear, s:'ackumulerat'},
+  ].forEach(function(k) {
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px">';
+    h += '<div style="font-size:24px;font-weight:800;color:var(--teal);letter-spacing:-.02em;margin-bottom:4px">' + k.v + '</div>';
+    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">' + k.l + '</div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">' + k.s + '</div>';
     h += '</div>';
   });
   h += '</div>';
 
-  // Clinic cards
+  // ── SIDE-BY-SIDE COMPARISON (if >1 selected) ─────────────────────────────
+  var selectedArr = clinics.filter(function(cl){return selected.has(cl.id);});
+  if (selectedArr.length > 1) {
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px">';
+    h += '<div style="padding:12px 18px;border-bottom:1px solid var(--border)">';
+    h += '<div style="font-size:12px;font-weight:700;color:var(--ink)">Jämförelse — ' + selectedArr.length + ' kliniker</div>';
+    h += '</div>';
+    h += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:500px">';
+    // Header
+    h += '<thead><tr style="background:var(--bg)">';
+    h += '<th style="padding:10px 18px;text-align:left;font-size:11px;font-weight:700;color:var(--muted)">Mätvärde</th>';
+    selectedArr.forEach(function(cl) {
+      var isActive = getCurrentClinicId() === cl.id;
+      h += '<th style="padding:10px 14px;text-align:right;font-size:11px;font-weight:700;color:' + (isActive?'var(--teal)':'var(--muted)') + '">' + e(cl.name) + (isActive?' ●':'') + '</th>';
+    });
+    h += '</tr></thead><tbody>';
+
+    var rows = [
+      {label:'Patienter', key:'patientCount', fmt:function(v){return v;}},
+      {label:'Aktiva patienter', key:'activePatients', fmt:function(v){return v;}},
+      {label:'Aktiva Hael-planer', key:'activePlans', fmt:function(v){return v;}},
+      {label:'Månadsintäkt', key:'monthRevenue', fmt:function(v){return v>0?v.toLocaleString('sv-SE')+' kr':'—';}},
+      {label:'Årsintäkt', key:'yearRevenue', fmt:function(v){return v>0?(v/1000).toFixed(0)+'k kr':'—';}},
+    ];
+
+    rows.forEach(function(row, i) {
+      var vals = selectedArr.map(function(cl){return getClinicStats(cl.id)[row.key]||0;});
+      var maxVal = Math.max.apply(null, vals);
+      h += '<tr style="' + (i%2===0?'background:var(--bg)':'') + ';border-top:1px solid var(--border2)">';
+      h += '<td style="padding:9px 18px;font-size:12px;color:var(--text)">' + row.label + '</td>';
+      vals.forEach(function(val) {
+        var isBest = val === maxVal && maxVal > 0;
+        h += '<td style="padding:9px 14px;text-align:right;font-size:12px;font-weight:' + (isBest?'700':'500') + ';color:' + (isBest?'var(--teal)':'var(--ink)') + '">' + row.fmt(val) + '</td>';
+      });
+      h += '</tr>';
+    });
+
+    h += '</tbody></table></div></div>';
+  }
+
+  // ── CLINIC CARDS ──────────────────────────────────────────────────────────
+  h += '<div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Alla kliniker</div>';
   h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:24px">';
+
   clinics.forEach(function(clinic) {
-    var isActive = getActiveClinicId() === clinic.id;
-    var clinicPats = S.patients.filter(function(p){ return !p.clinicId || p.clinicId === clinic.id; }).length;
-        h += '<div data-clinic-id="'+clinic.id+'" class="clinic-card" style="background:var(--surface);border:1.5px solid '+(isActive?'var(--teal)':'var(--border)')+';border-radius:16px;padding:16px;cursor:pointer;transition:all .15s" onclick="_switchClinic(this)" onmouseover="this.style.borderColor=\'var(--teal)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
-    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+    var isActive = getCurrentClinicId() === clinic.id;
+    var stats = getClinicStats(clinic.id);
+    var isSelected = selected.has(clinic.id);
+
+    h += '<div style="background:var(--surface);border:1.5px solid ' + (isActive?'var(--teal)':'var(--border)') + ';border-radius:16px;padding:16px;transition:all .15s">';
+    // Header row
+    h += '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">';
     h += '<div style="display:flex;align-items:center;gap:9px">';
-    if (clinic.logo) {
-      h += '<img src="'+clinic.logo+'" style="height:24px;object-fit:contain">';
+    h += '<div style="width:32px;height:32px;border-radius:9px;background:rgba(13,155,138,.1);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--teal)">' + (clinic.name||'K')[0].toUpperCase() + '</div>';
+    h += '<div>';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">' + e(clinic.name||'Klinik') + '</div>';
+    if (clinic.address) h += '<div style="font-size:11px;color:var(--muted)">' + e(clinic.address) + '</div>';
+    h += '</div></div>';
+    h += '<div style="display:flex;gap:5px">';
+    if (isActive) h += '<span style="font-size:9px;font-weight:700;background:rgba(13,155,138,.12);color:var(--teal);padding:2px 8px;border-radius:20px;align-self:flex-start">Aktiv</span>';
+    h += '<button onclick="editClinic(this.dataset.cid)" data-cid="' + clinic.id + '"" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:2px 4px">⋯</button>';
+    h += '</div></div>';
+
+    // Stats
+    h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px">';
+    [
+      {v:stats.patientCount, l:'Patienter'},
+      {v:stats.activePlans,  l:'Aktiva planer'},
+      {v:stats.monthRevenue>0?stats.monthRevenue.toLocaleString('sv-SE')+' kr':'—', l:'Denna månad'},
+    ].forEach(function(k) {
+      h += '<div style="background:var(--bg);border-radius:8px;padding:8px">';
+      h += '<div style="font-size:15px;font-weight:800;color:var(--ink)">' + k.v + '</div>';
+      h += '<div style="font-size:10px;color:var(--muted);margin-top:1px">' + k.l + '</div>';
+      h += '</div>';
+    });
+    h += '</div>';
+
+    // Actions
+    h += '<div style="display:flex;gap:7px">';
+    if (!isActive) {
+      h += '<button onclick="switchClinic(this.dataset.cid)" data-cid="' + clinic.id + '"" class="btn btn-p" style="flex:1;padding:7px;font-size:12px">Byt till →</button>';
     } else {
-      h += '<div style="width:28px;height:28px;border-radius:8px;background:rgba(13,155,138,.12);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--teal)">'+(clinic.name||'K')[0].toUpperCase()+'</div>';
+      h += '<button onclick="go(\'dashboard\')" class="btn" style="flex:1;padding:7px;font-size:12px">Öppna →</button>';
     }
-    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">'+e(clinic.name||'Klinik')+'</div>';
-    h += '</div>';
-    if (isActive) h += '<span style="font-size:9px;font-weight:700;background:rgba(13,155,138,.12);color:var(--teal);padding:2px 8px;border-radius:20px">Aktiv</span>';
-    h += '</div>';
-    if (clinic.address) h += '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">'+e(clinic.address)+'</div>';
-    h += '<div style="display:flex;gap:12px">';
-    h += '<div style="font-size:12px;color:var(--text)"><span style="font-weight:700">'+clinicPats+'</span><span style="color:var(--muted)"> pat.</span></div>';
-    if (clinic.phone) h += '<div style="font-size:12px;color:var(--muted)">'+e(clinic.phone)+'</div>';
     h += '</div></div>';
   });
 
   // Add clinic card
-  h += '<div style="background:var(--bg);border:1.5px dashed var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:100px;transition:border-color .15s" onclick="rAddClinicDialog()">';
+  h += '<div class="org-add-clinic-card" onclick="rAddClinicDialog()">';
   h += '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
   h += '<div style="font-size:12px;font-weight:600;color:var(--teal)">Lägg till klinik</div>';
-  h += '</div>';
-  h += '</div>';
+  h += '</div></div>';
 
-  // Global services vs per-clinic prices
-  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px">';
-  h += '<div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
-  h += '<div><div style="font-size:13px;font-weight:700;color:var(--ink)">Global tjänstkatalog med klinikpriser</div>';
-  h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">Systemägaren sätter tjänsterna — varje klinik kan ha egna priser</div></div>';
-  h += '<button onclick="go(\'settings\');window._settingsActiveTab=\'services\'" class="btn" style="font-size:12px">Redigera →</button>';
-  h += '</div>';
-
-  var globalSvcs = getGlobalServices().filter(function(s){return s.price > 0;}).slice(0,5);
-  h += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:500px">';
-  h += '<thead><tr style="border-bottom:1px solid var(--border)">';
-  h += '<th style="padding:9px 20px;text-align:left;font-size:11px;font-weight:700;color:var(--muted)">Tjänst</th>';
-  h += '<th style="padding:9px 14px;text-align:right;font-size:11px;font-weight:700;color:var(--muted)">Globalpris</th>';
-  clinics.slice(0,3).forEach(function(cl) {
-    h += '<th style="padding:9px 14px;text-align:right;font-size:11px;font-weight:700;color:var(--muted)">'+e((cl.name||'Klinik').split(' ')[0])+'</th>';
-  });
-  h += '</tr></thead><tbody>';
-  globalSvcs.forEach(function(s, i) {
-    h += '<tr style="'+(i%2===0?'background:var(--bg)':'')+'border-top:1px solid var(--border2)">';
-    h += '<td style="padding:9px 20px;font-size:12px;color:var(--text)">'+e(s.name)+'</td>';
-    h += '<td style="padding:9px 14px;text-align:right;font-size:12px;font-weight:600;color:var(--ink)">'+s.price+' kr</td>';
-    clinics.slice(0,3).forEach(function(cl) {
-      var override = getClinicServicePrice(cl.id, s.id);
-      var price = override !== null ? override : s.price;
-      var diff = override !== null ? Math.round((override - s.price) / s.price * 100) : 0;
-      h += '<td style="padding:9px 14px;text-align:right">';
-      h += '<span style="font-size:12px;color:'+(override!==null?'var(--ink)':'var(--muted)')+'">'+price+' kr</span>';
-      if (override !== null && diff !== 0) {
-        h += '<span style="font-size:10px;font-weight:700;color:'+(diff>0?'#1a7a4a':'#c03030')+';margin-left:4px">'+(diff>0?'+':'')+diff+'%</span>';
-      }
-      h += '</td>';
+  // ── GLOBAL SERVICE CATALOG ─────────────────────────────────────────────────
+  var globalSvcs = getGlobalServices().filter(function(s){return s.price > 0;}).slice(0,6);
+  if (globalSvcs.length > 0) {
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:20px">';
+    h += '<div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
+    h += '<div><div style="font-size:13px;font-weight:700;color:var(--ink)">Global tjänstkatalog</div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">Systemägaren sätter tjänsterna — varje klinik kan ha egna priser</div></div>';
+    h += '<button onclick="go(\'settings\');window._settingsActiveTab=\'services\'" class="btn" style="font-size:12px">Redigera →</button>';
+    h += '</div>';
+    h += '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:400px">';
+    h += '<thead><tr style="background:var(--bg);border-bottom:1px solid var(--border)">';
+    h += '<th style="padding:9px 18px;text-align:left;font-size:11px;font-weight:700;color:var(--muted)">Tjänst</th>';
+    h += '<th style="padding:9px 14px;text-align:right;font-size:11px;font-weight:700;color:var(--muted)">Globalt</th>';
+    selectedArr.slice(0,3).forEach(function(cl) {
+      h += '<th style="padding:9px 14px;text-align:right;font-size:11px;font-weight:700;color:var(--muted)">' + e((cl.name||'').split(' ')[0]) + '</th>';
     });
-    h += '</tr>';
-  });
-  h += '</tbody></table></div>';
-  if (globalSvcs.length === 0) h += '<div style="padding:20px;text-align:center;font-size:12px;color:var(--muted)">Inga tjänster konfigurerade ännu</div>';
-  h += '</div>';
+    h += '</tr></thead><tbody>';
+    globalSvcs.forEach(function(s, i) {
+      h += '<tr style="' + (i%2===0?'background:var(--bg)':'') + ';border-top:1px solid var(--border2)">';
+      h += '<td style="padding:9px 18px;font-size:12px;color:var(--text)">' + e(s.name) + '</td>';
+      h += '<td style="padding:9px 14px;text-align:right;font-size:12px;font-weight:600;color:var(--ink)">' + s.price + ' kr</td>';
+      selectedArr.slice(0,3).forEach(function(cl) {
+        var override = getClinicServicePrice(cl.id, s.id);
+        var price = override !== null ? override : s.price;
+        var diff = override !== null ? Math.round((override - s.price) / s.price * 100) : 0;
+        h += '<td style="padding:9px 14px;text-align:right">';
+        h += '<span style="font-size:12px;color:' + (override!==null?'var(--ink)':'var(--muted)') + '">' + price + ' kr</span>';
+        if (override !== null && diff !== 0) h += '<span style="font-size:10px;font-weight:700;color:' + (diff>0?'#1a7a4a':'#c03030') + ';margin-left:4px">' + (diff>0?'+':'') + diff + '%</span>';
+        h += '</td>';
+      });
+      h += '</tr>';
+    });
+    h += '</tbody></table></div></div>';
+  }
 
-  // AI org report panel
+  // AI org report
   h += '<div id="org-report-panel" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:20px;margin-bottom:20px">';
   h += '<div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:12px">AI-organisationsrapport</div>';
   h += '<div id="org-report-content" style="font-size:13px;color:var(--text);line-height:1.8">Genererar...</div>';
   h += '</div>';
 
+  // ── SUPABASE MIGRATION NOTE ────────────────────────────────────────────────
+  h += '<div style="background:rgba(13,155,138,.04);border:1px solid rgba(13,155,138,.15);border-radius:12px;padding:14px 18px;margin-bottom:20px">';
+  h += '<div style="display:flex;align-items:flex-start;gap:12px">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
+  h += '<div style="font-size:12px;color:var(--text);line-height:1.6"><strong style="color:var(--teal)">Multi-klinik — lokal lagring aktiv.</strong> Patienter och data är separerade per klinik i webbläsaren. Vid produktionsdriftsättning ersätts datalagret med Supabase multi-tenant — alla UI-funktioner förblir oförändrade.</div>';
+  h += '</div></div>';
+
   h += '</div>';
   document.getElementById('s-dashboard').innerHTML = h;
 }
+
+// ── COMPARISON HELPERS ────────────────────────────────────────────────────────
+function _orgToggleClinic(clinicId) {
+  if (clinicId && typeof clinicId === "object") clinicId = clinicId.dataset.cid || clinicId.dataset.id;
+  if (!window._orgCompare) window._orgCompare = new Set();
+  if (window._orgCompare.has(clinicId)) {
+    if (window._orgCompare.size > 1) window._orgCompare.delete(clinicId); // always keep at least 1
+  } else {
+    if (window._orgCompare.size >= 4) { showAutoSaveToast('Max 4 kliniker i jämförelse'); return; }
+    window._orgCompare.add(clinicId);
+  }
+  rOrgOverview();
+}
+
+function _orgSelectAll() {
+  var clinics = getClinics();
+  window._orgCompare = new Set(clinics.map(function(c){return c.id;}));
+  rOrgOverview();
+}
+
+function _orgSelectNone() {
+  window._orgCompare = new Set([getCurrentClinicId()]);
+  rOrgOverview();
+}
+
+// ── RADDCLINIC DIALOG (override with region field) ────────────────────────────
+
+
+// ── GENERATE ORG REPORT ───────────────────────────────────────────────────────
+async function generateOrgReport() {
+  var key = getKey();
+  if (!key) { showAutoSaveToast('API-nyckel saknas'); return; }
+  var panel = document.getElementById('org-report-panel');
+  var content = document.getElementById('org-report-content');
+  if (!panel || !content) return;
+  panel.style.display = 'block';
+  content.textContent = 'Genererar AI-rapport...';
+
+  var clinics = getClinics();
+  var statsPerClinic = clinics.map(function(cl) {
+    var s = getClinicStats(cl.id);
+    return cl.name + ': ' + s.patientCount + ' pat, ' + s.activePlans + ' aktiva planer, ' + s.monthRevenue.toLocaleString('sv-SE') + ' kr/mån';
+  }).join('\n');
+
+  var prompt = 'Du är AI-analytiker för en naprapatorganisation med ' + clinics.length + ' kliniker. '
+    + 'Skriv en kort organisationsrapport på svenska med 3 konkreta observationer och rekommendationer. '
+    + 'Data:\n' + statsPerClinic + '\n\n'
+    + 'Totalt: ' + (S.patients||[]).length + ' patienter. '
+    + 'Strukturera som: rubrik + en mening analys + en konkret åtgärd per punkt. Inga generiska fraser.';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:MODEL_HAIKU, max_tokens:400, messages:[{role:'user',content:prompt}]})
+    });
+    var data = await res.json();
+    var txt = (data.content||[]).map(function(b){return b.text||'';}).join('').trim();
+    if (content) content.innerHTML = txt.replace(/\n/g,'<br>');
+  } catch(err) {
+    if (content) content.textContent = 'Rapport otillgänglig — kontrollera API-nyckel.';
+  }
+}
+
+
 
 function _switchClinic(el) {
   var id = el.getAttribute('data-clinic-id');

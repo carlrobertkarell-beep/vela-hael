@@ -509,6 +509,83 @@ button, input, textarea, select { font-family: inherit; }
 @keyframes fadeUp   { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
 @keyframes spin     { to{transform:rotate(360deg)} }
 @keyframes pulse    { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+/* ── VELA LOADING SCREEN ─────────────────────────────────────── */
+.ldwrap {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:100vh; background:var(--bg); padding:40px 20px; text-align:center;
+}
+.vela-orb-wrap {
+  position:relative; width:96px; height:96px; margin-bottom:28px;
+}
+.vela-orb-ring {
+  position:absolute; inset:0; border-radius:50%;
+  border:1.5px solid rgba(13,155,138,.15);
+  animation:vela-orb-glow 3s ease-in-out infinite;
+}
+.vela-orb-ring-2 {
+  position:absolute; inset:8px; border-radius:50%;
+  border:1.5px solid rgba(13,155,138,.0);
+  border-top-color:rgba(13,155,138,.6);
+  animation:spin 1.4s linear infinite;
+}
+.vela-orb-ring-3 {
+  position:absolute; inset:16px; border-radius:50%;
+  border:1.5px solid rgba(13,155,138,.0);
+  border-bottom-color:rgba(13,155,138,.35);
+  animation:spin 2.1s linear infinite reverse;
+}
+.vela-orb-center {
+  position:absolute; inset:22px; border-radius:50%;
+  background:conic-gradient(from 0deg, rgba(13,155,138,.55), rgba(13,155,138,.08), rgba(13,155,138,.55));
+  animation:spin 4s linear infinite;
+}
+.vela-orb-inner {
+  position:absolute; inset:28px; border-radius:50%;
+  background:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+}
+.vela-orb-spark {
+  position:absolute; width:5px; height:5px; border-radius:50%;
+  background:var(--teal,#0d9b8a);
+  animation:vela-spark-orbit 1.8s linear infinite;
+  top:50%; left:50%; margin:-2.5px;
+}
+.vela-orb-spark:nth-child(2) { animation-delay:-.6s; }
+.vela-orb-spark:nth-child(3) { animation-delay:-1.2s; }
+.vela-loader-title {
+  font-size:17px; font-weight:700; color:var(--ink); margin-bottom:6px; letter-spacing:-.01em;
+}
+.vela-loader-status {
+  font-size:13px; color:var(--teal,#0d9b8a); margin-bottom:22px; letter-spacing:.01em;
+  background:linear-gradient(90deg,var(--teal,#0d9b8a) 0%,rgba(13,155,138,.4) 40%,var(--teal,#0d9b8a) 80%);
+  background-size:300% 100%; -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  animation:vela-shimmer-text 1.8s ease-in-out infinite;
+}
+.vela-ldstep {
+  display:flex; align-items:center; gap:9px; font-size:13px; color:var(--muted);
+  padding:6px 0; transition:color .3s;
+}
+.vela-ldstep.done  { color:var(--teal,#0d9b8a); }
+.vela-ldstep.active{ color:var(--ink); font-weight:600; }
+.vela-ldstep-dot {
+  width:7px; height:7px; border-radius:50%; flex-shrink:0;
+  background:var(--border); transition:background .3s;
+}
+.vela-ldstep.done  .vela-ldstep-dot { background:var(--teal,#0d9b8a); }
+.vela-ldstep.active .vela-ldstep-dot { background:var(--teal,#0d9b8a); animation:pulse .8s ease-in-out infinite; }
+
+@keyframes vela-orb-glow  { 0%,100%{opacity:.6; transform:scale(1)} 50%{opacity:1; transform:scale(1.04)} }
+@keyframes vela-shimmer-text { 0%{background-position:200% 0} 100%{background-position:-100% 0} }
+@keyframes vela-spark-orbit {
+  from { transform:rotate(0deg) translateX(38px) rotate(0deg); }
+  to   { transform:rotate(360deg) translateX(38px) rotate(-360deg); }
+}
+/* legacy ldstep still used in some places */
+.ldstep       { display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.4);padding:4px 0; }
+.ldstep.done  { color:var(--teal,#0d9b8a); }
+.ldstep.active{ color:rgba(255,255,255,.9);font-weight:600; }
+.ldtitle      { font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px; }
 </style>
 <style id="vela-ux-css">
 /* ── MODAL ───────────────────────────────────────────────── */
@@ -5437,30 +5514,44 @@ async function callAPI(prompt,locked,key){
   if(!t)throw new Error("Tomt svar från API -- försök igen.");
   return JSON.parse(t);
 }
-function rLoading(){
-  const isMeeting = S.loadMode === 'meeting';
-  const title = isMeeting ? 'Analyserar samtal' : 'Genererar Hael-plan';
-  const steps = isMeeting
-    ? ["Transkriberar och filtrerar samtal","Strukturerar SOAP-journalanteckning","Skapar journalutkast"]
-    : ["Analyserar diagnos och patientprofil","Väljer och doserar evidensbaserade övningar","Sammanställer Hael-plan"];
-  const pct = Math.round((S.loadStep/3)*100);
-  let h=`<div class="ldwrap">
-    <img src="${LOGO}" style="height:50px;margin-bottom:12px">
-    <div class="ldtitle">${title}</div>
-    <div style="width:200px;height:4px;background:#1a3a4a;border-radius:2px;margin:12px auto 16px;overflow:hidden">
-      <div style="height:100%;width:${pct}%;background:#4a9aaa;border-radius:2px;transition:width .6s ease"></div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">`;
-  steps.forEach((s,i)=>{
-    const c=S.loadStep>i?"done":S.loadStep===i+1?"active":"";
-    h+=`<div class="ldstep ${c}">
-      <span style="font-size:13px">·</span>
-      <span>${s}</span>
-    </div>`;
-  });
-  h+=`</div><div style="margin-top:16px;font-size:11px;color:rgba(255,255,255,0.4)">Tar vanligtvis 10-20 sekunder...</div></div>`;
-  document.getElementById("s-loading").innerHTML=h;
+
+function rLoading() {
+  var isMeeting = S.loadMode === 'meeting';
+  var title  = isMeeting ? 'Analyserar samtal' : 'Genererar Hael-plan';
+  var steps  = isMeeting
+    ? ['Transkriberar och filtrerar samtal', 'Strukturerar SOAP-journalanteckning', 'Skapar journalutkast']
+    : ['Analyserar diagnos och patientprofil', 'Väljer evidensbaserade övningar', 'Sammanställer Hael-plan'];
+
+  var stepsHtml = steps.map(function(s, i) {
+    var cls = S.loadStep > i ? 'done' : S.loadStep === i+1 ? 'active' : '';
+    return '<div class="vela-ldstep ' + cls + '">'
+      + '<div class="vela-ldstep-dot"></div>'
+      + '<span>' + s + '</span></div>';
+  }).join('');
+
+  var currentStep = steps[Math.max(0, (S.loadStep||1)-1)] || steps[0];
+
+  var h = '<div class="ldwrap">'
+    + '<div class="vela-orb-wrap">'
+    +   '<div class="vela-orb-ring"></div>'
+    +   '<div class="vela-orb-ring-2"></div>'
+    +   '<div class="vela-orb-ring-3"></div>'
+    +   '<div class="vela-orb-center"></div>'
+    +   '<div class="vela-orb-inner">'
+    +     '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal,#0d9b8a)" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+    +   '</div>'
+    +   '<div class="vela-orb-spark"></div>'
+    +   '<div class="vela-orb-spark"></div>'
+    +   '<div class="vela-orb-spark"></div>'
+    + '</div>'
+    + '<div class="vela-loader-title">' + title + '</div>'
+    + '<div class="vela-loader-status">' + e(currentStep) + '</div>'
+    + '<div style="display:flex;flex-direction:column;gap:2px;width:220px">' + stepsHtml + '</div>'
+    + '</div>';
+
+  document.getElementById('s-loading').innerHTML = h;
 }
+
 function rEditEx(){if(!S.plan){go("doc");return;}const exs=S.plan.exercises||[];let h=`<div class="fwrap"><div class="ftitle">Välj övningar att byta</div><div class="fsub" style="margin-bottom:20px">Låsta behålls exakt. Olåsta ersätts med nya.</div><div class="ee-list">`;exs.forEach((ex,i)=>{const lk=!!S.locked[i];h+=`<div class="ee-item ${lk?"lk":"ul"}"><div class="ee-num">${i+1}</div><div class="ee-info"><div class="ee-name">${e(ex.name)}</div><div class="ee-dose">${ex.sets} set · ${ex.reps} · ${ex.rest}</div><div class="ee-st">${lk?"Behålls":"Byts ut"}</div></div><button class="lkbtn ${lk?"on":"off"}" style="margin-right:4px" onclick="togLock(${i})">${lk?"Lås upp":"Lås"}</button><button class="btn" style="font-size:11px;padding:5px 10px" onclick="showSwapDialog(${i})">Byt</button></div>`;});const nu=exs.length-Object.values(S.locked).filter(Boolean).length;h+=`</div>`;if(nu>0)h+=`<div class="rinfo" style="margin-bottom:12px">${nu} övning(ar) byts ut</div>`;h+=`<div class="twocol"><button class="btn" style="padding:12px" onclick="go('doc')">Avbryt</button><button class="btn btn-p" style="padding:12px;border-radius:8px" ${nu===0?"disabled":""} onclick="doRegen()">Regenerera ${nu} övning(ar)</button></div></div>`;document.getElementById("s-editex").innerHTML=h;}
 function togLock(i){S.locked[i]=!S.locked[i];rEditEx();}
 function initEditEx(){const exs=S.plan&&S.plan.exercises||[];exs.forEach((_,i)=>{S.locked[i]=true;});go("editex");}
@@ -6082,25 +6173,65 @@ function addPlanToVisit(vid) {
 
 function showConsentPopup(patId) {
   document.getElementById('consent-popup')?.remove();
-  const ov = document.createElement('div');
+  var pat = S.patients.find(function(p){return p.id===patId;});
+  var existing = (pat && pat.consents) ? pat.consents : [];
+  var ov = document.createElement('div');
   ov.id = 'consent-popup';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:20px';
-  ov.innerHTML = `<div style="background:var(--surface);border-radius:16px;max-width:420px;width:100%;padding:24px">
-    <div style="font-size:18px;font-weight:600;color:var(--navy);margin-bottom:6px">Registrera samtycke</div>
-    <div style="font-size:13px;color:var(--text2);margin-bottom:18px;line-height:1.6">Registrera patientens samtycke till behandling och journalföring (GDPR).</div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
-      ${CONSENT_TYPES.map(ct=>`<label style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;background:var(--surface2);border-radius:8px;cursor:pointer">
-        <input type="checkbox" id="cp-${ct.key}" style="margin-top:2px;width:16px;height:16px;flex-shrink:0">
-        <div><div style="font-size:13px;font-weight:500;color:var(--ink)">${ct.label}</div></div>
-      </label>`).join('')}
-    </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn btn-p" style="flex:1;padding:11px" onclick="saveConsentPopup('${patId}')">Spara samtycken</button>
-      <button class="btn" style="padding:11px 16px" onclick="document.getElementById('consent-popup').remove()">Hoppa över</button>
-    </div>
-  </div>`;
+  ov.dataset.patId = patId;
+  ov.style.cssText = 'position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px';
+
+  var rows = CONSENT_TYPES.map(function(ct) {
+    var prev    = existing.find(function(x){return x.type===ct.key;});
+    var checked = prev ? prev.value : false;
+    var badge   = ct.required ? ' <span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;background:rgba(13,155,138,.12);color:var(--teal,#0d9b8a)">Obligatorisk</span>' : '';
+    var desc    = ct.desc ? '<div style="font-size:11px;color:var(--muted,#6b7280);margin-top:2px;line-height:1.5">'+ct.desc+'</div>' : '';
+    return '<label style="display:flex;gap:11px;align-items:flex-start;padding:11px 13px;background:var(--bg,#f5f7fc);border-radius:10px;cursor:pointer">'
+      + '<input type="checkbox" id="cp-'+ct.key+'" '+(checked?'checked':'')+' style="margin-top:3px;width:16px;height:16px;flex-shrink:0;accent-color:var(--teal,#0d9b8a)">'
+      + '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--ink,#0f2744)">' + ct.label + badge + '</div>' + desc + '</div>'
+      + '</label>';
+  }).join('');
+
+  var inner = document.createElement('div');
+  inner.onclick = function(ev){ ev.stopPropagation(); };
+  inner.style.cssText = 'background:var(--surface,#fff);border-radius:18px;max-width:460px;width:100%;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.2)';
+  inner.innerHTML = '<div style="font-size:18px;font-weight:700;color:var(--ink,#0f2744);margin-bottom:4px">Samtycke</div>'
+    + '<div style="font-size:12px;color:var(--muted,#6b7280);margin-bottom:18px;line-height:1.65">Bekr&#228;ftas muntligt eller skriftligt. Kan &#228;ndras n&#228;r som helst.</div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">' + rows + '</div>'
+    + '<div style="display:flex;gap:10px">'
+    + '<button id="consent-cancel-btn" style="flex:1;padding:11px;background:none;border:1px solid var(--border,#dde1ef);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>'
+    + '<button id="consent-save-btn" class="btn btn-p" style="flex:2;padding:11px;font-size:13px">Spara samtycke</button>'
+    + '</div>'
+    + '<div style="font-size:11px;color:var(--muted);margin-top:12px;text-align:center">Kommunikationsval kan alltid &#228;ndras p&#229; patientkortet.</div>';
+
+  ov.appendChild(inner);
+  ov.onclick = function(){ ov.remove(); };
   document.body.appendChild(ov);
+
+  document.getElementById('consent-cancel-btn').onclick = function(){ ov.remove(); };
+  document.getElementById('consent-save-btn').onclick   = function(){ saveConsentFromPopup(patId); };
 }
+
+
+function saveConsentFromPopup(patId) {
+  var pat = S.patients.find(function(p){return p.id===patId;}) || (S.pat&&S.pat.id===patId?S.pat:null);
+  if (!pat) return;
+  var now = new Date().toISOString();
+  var newConsents = CONSENT_TYPES.map(function(ct) {
+    var checked = document.getElementById('cp-'+ct.key)?.checked || false;
+    return {type:ct.key, value:checked, date: checked ? now : null};
+  });
+  pat.consents = newConsents;
+  // Also store comms preferences directly for easy access
+  pat.commsPrefs = {
+    mail: !!(newConsents.find(function(x){return x.type==='mail_info';})?.value),
+    sms:  !!(newConsents.find(function(x){return x.type==='sms_info';})?.value),
+  };
+  savePat(pat);
+  document.getElementById('consent-popup')?.remove();
+  showAutoSaveToast('Samtycke sparat ✓');
+  if (S.screen === 'detail') rDetail();
+}
+
 
 function saveConsentPopup(patId) {
   const pat = S.patients.find(p=>p.id===patId);
@@ -7272,38 +7403,110 @@ function setPayStatus(vid, status) {
 
 // -- SAMTYCKE -----------------------------------------------------------------
 const CONSENT_TYPES = [
-  {key:'behandling', label:'Behandlingssamtycke'},
-  {key:'journal',    label:'Journalföring (GDPR)'},
-  {key:'inspelning', label:'Inspelning & transkription'},
-  {key:'kontakt',    label:'Kontakt & påminnelser'},
+  {key:'behandling', label:'Behandlingssamtycke',          desc:'Godkänner behandling och undersökning', required:true},
+  {key:'journal',    label:'Journalföring (GDPR)',          desc:'Patientdata sparas och hanteras enligt GDPR', required:true},
+  {key:'mikrofon',   label:'Röstifyllning med mikrofon',    desc:'Mikrofon används för automatisk journalifyllnad via AI'},
+  {key:'mail_info',  label:'Informationsmail & uppföljning',desc:'Hael-plan, påminnelser, nytt forskning, uppföljning'},
+  {key:'sms_info',   label:'SMS-påminnelser & uppföljning', desc:'Bokningspåminnelser och hälsouppföljning via SMS'},
 ];
 
 function renderConsentBlock(p) {
-  const consents = p.consents || [];
-  const rows = CONSENT_TYPES.map(ct => {
-    const c = consents.find(x=>x.type===ct.key);
-    if (c) {
-      return `<div class="consent-row">
-        <div class="consent-dot" style="background:var(--green)"></div>
-        <div class="consent-type">${ct.label}</div>
-        <div class="consent-date">${c.date}</div>
-        <span class="consent-rev" onclick="revokeConsent('${ct.key}')">Återkalla</span>
-      </div>`;
-    } else {
-      return `<div class="consent-row">
-        <div class="consent-dot" style="background:var(--text3)"></div>
-        <div class="consent-type" style="color:var(--text3)">${ct.label}</div>
-        <div style="margin-left:auto"><button class="btn" style="padding:3px 10px;font-size:10px" onclick="addConsent('${ct.key}')">+ Registrera</button></div>
-      </div>`;
-    }
+  var consents = p.consents || [];
+  var commsPrefs = p.commsPrefs || {};
+
+  var rows = CONSENT_TYPES.map(function(ct) {
+    var con   = consents.find(function(x){return x.type===ct.key;});
+    var given = con && con.value;
+    var dateStr = con && con.date ? new Date(con.date).toLocaleDateString('sv-SE') : '';
+    var badge = ct.required ? ' <span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:20px;background:rgba(13,155,138,.1);color:var(--teal)">Obligatorisk</span>' : '';
+    var desc  = ct.desc ? '<div style="font-size:11px;color:var(--muted);margin-top:1px">'+ct.desc+'</div>' : '';
+    var dateLine = dateStr ? '<div style="font-size:10px;color:var(--muted);margin-top:2px">'+(given?'Givet':'Nekat')+' '+dateStr+'</div>' : '';
+    var actionId = 'consent-toggle-'+ct.key+'-'+p.id;
+    var actionLabel = given ? 'Återkalla' : 'Ge samtycke';
+    var actionStyle = given
+      ? 'padding:3px 10px;background:none;border:1px solid var(--border);border-radius:7px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font)'
+      : 'padding:3px 10px;background:none;border:1px solid rgba(13,155,138,.3);border-radius:7px;font-size:11px;color:var(--teal);cursor:pointer;font-family:var(--font)';
+    return '<div style="display:flex;align-items:flex-start;gap:9px;padding:10px 0;border-bottom:1px solid var(--border2)">'
+      + '<div style="width:8px;height:8px;border-radius:50%;background:'+(given?'var(--teal)':'rgba(200,100,100,.7)')+';flex-shrink:0;margin-top:5px"></div>'
+      + '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--ink)">' + ct.label + badge + '</div>' + desc + dateLine + '</div>'
+      + '<button id="'+actionId+'" style="'+actionStyle+'">'+actionLabel+'</button>'
+      + '</div>';
   }).join('');
-  return `<div class="consent-wrap">
-    <div class="consent-hdr">
-      <div class="consent-hdr-title">Samtycken (GDPR)</div>
-    </div>
-    ${rows}
-  </div>`;
+
+  // Communication override toggles — use IDs for post-render wiring
+  var mailOn = commsPrefs.mail !== false && !!(consents.find(function(x){return x.type==='mail_info';})?.value);
+  var smsOn  = commsPrefs.sms  !== false && !!(consents.find(function(x){return x.type==='sms_info'; })?.value);
+
+  function makeToggle(ch, on) {
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:9px;flex:1">'
+      + '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--ink)">'+(ch==='mail'?'Informationsmail':'SMS-info')+'</div>'
+      + '<div style="font-size:10px;color:var(--muted)">'+(on?'Aktiv':'Avstängd')+'</div></div>'
+      + '<div id="comms-toggle-'+ch+'-'+p.id+'" style="width:32px;height:18px;border-radius:9px;background:'+(on?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;transition:background .2s">'
+      + '<div style="position:absolute;top:2px;left:'+(on?'14px':'2px')+';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div></div>'
+      + '</div>';
+  }
+
+  var commsOverride = '<div style="margin-top:12px;padding:12px;background:rgba(13,155,138,.04);border:1px solid rgba(13,155,138,.12);border-radius:10px">'
+    + '<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Kommunikationsinställningar</div>'
+    + '<div style="display:flex;gap:12px">'
+    + makeToggle('mail', mailOn)
+    + makeToggle('sms',  smsOn)
+    + '</div>'
+    + '<div style="font-size:10px;color:var(--muted);margin-top:7px">Override åsidosätter samtycke — används om patient ber om att slippa utskick.</div>'
+    + '</div>';
+
+  // Wire up buttons after render — use setTimeout to wait for DOM
+  var patId = p.id;
+  setTimeout(function() {
+    CONSENT_TYPES.forEach(function(ct) {
+      var con2   = (p.consents||[]).find(function(x){return x.type===ct.key;});
+      var given2 = con2 && con2.value;
+      var btn    = document.getElementById('consent-toggle-'+ct.key+'-'+patId);
+      if (btn) btn.onclick = function(){ _toggleConsent(patId, ct.key, !given2); };
+    });
+    ['mail','sms'].forEach(function(ch) {
+      var cur = ch==='mail' ? mailOn : smsOn;
+      var tog = document.getElementById('comms-toggle-'+ch+'-'+patId);
+      if (tog) tog.onclick = function(){ _overrideComms(patId, ch, !cur); };
+    });
+  }, 50);
+
+  return '<div>' + rows + commsOverride + '</div>';
 }
+
+
+function _toggleConsent(patId, consentKey, newValue) {
+  var pat = S.patients.find(function(p){return p.id===patId;});
+  if (!pat) return;
+  pat.consents = pat.consents || [];
+  var existing = pat.consents.find(function(x){return x.type===consentKey;});
+  if (existing) {
+    existing.value = newValue;
+    existing.date  = newValue ? new Date().toISOString() : existing.date;
+  } else {
+    pat.consents.push({type:consentKey, value:newValue, date:newValue?new Date().toISOString():null});
+  }
+  // Sync commsPrefs
+  pat.commsPrefs = pat.commsPrefs || {};
+  if (consentKey === 'mail_info') pat.commsPrefs.mail = newValue;
+  if (consentKey === 'sms_info')  pat.commsPrefs.sms  = newValue;
+  savePat(pat);
+  showAutoSaveToast(newValue ? 'Samtycke registrerat ✓' : 'Samtycke återkallat');
+  if (S.screen === 'detail') rDetail();
+}
+
+function _overrideComms(patId, channel, newValue) {
+  var pat = S.patients.find(function(p){return p.id===patId;});
+  if (!pat) return;
+  pat.commsPrefs = pat.commsPrefs || {};
+  pat.commsPrefs[channel] = newValue;
+  pat.commsPrefs[channel + '_override'] = true;
+  pat.commsPrefs[channel + '_overrideDate'] = new Date().toISOString();
+  savePat(pat);
+  showAutoSaveToast((channel==='mail'?'Mail':'SMS') + (newValue?' aktiverat':' avstängt') + ' ✓');
+  if (S.screen === 'detail') rDetail();
+}
+
 
 function addConsent(type) {
   if (!S.pat) return;
@@ -13618,6 +13821,424 @@ Om frågan rör en specifik patient du kan se i listan ovan — namnge dem.`;
 
 
 // ── VELA INTELLIGENCE SCREEN ───────────────────────────────
+// ── VELA RETENTION ENGINE ─────────────────────────────────────────────────────
+// Autonominivåer: 'manual' | 'semi' | 'auto'
+const RETENTION_MODE_KEY = 'vela:retention-mode';
+const RETENTION_SENT_KEY = 'vela:retention-sent';  // [{patId, triggerId, date, msg}]
+const RETENTION_QUEUE_KEY = 'vela:retention-queue'; // [{patId, triggerId, scheduledFor, msg, approved}]
+
+function getRetentionMode() {
+  return localStorage.getItem(RETENTION_MODE_KEY) || 'manual';
+}
+
+function getRetentionSent() {
+  try { return JSON.parse(localStorage.getItem(RETENTION_SENT_KEY) || '[]'); } catch { return []; }
+}
+
+function getRetentionQueue() {
+  try { return JSON.parse(localStorage.getItem(RETENTION_QUEUE_KEY) || '[]'); } catch { return []; }
+}
+
+function saveRetentionQueue(q) {
+  try { localStorage.setItem(RETENTION_QUEUE_KEY, JSON.stringify(q)); } catch {}
+}
+
+// Compute retention signals for all patients
+function computeRetentionSignals() {
+  var now = new Date();
+  var signals = [];
+  var sent    = getRetentionSent();
+  var queue   = getRetentionQueue();
+
+  // Helper: has trigger already been handled?
+  function alreadyHandled(patId, triggerId) {
+    var thisYear = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+    return sent.some(function(s) {
+      return s.patId === patId && s.triggerId === triggerId && s.date && s.date.startsWith(thisYear);
+    }) || queue.some(function(q2) {
+      return q2.patId === patId && q2.triggerId === triggerId;
+    });
+  }
+
+  S.patients.forEach(function(pat) {
+    if (!pat.name) return;
+    var prefs = pat.commsPrefs || {};
+    // Respect explicit opt-out — if both channels are disabled, skip entirely
+    var mailOk = prefs.mail !== false;
+    var smsOk  = prefs.sms  !== false;
+    if (!mailOk && !smsOk) return;
+    var visits = pat.visits || [];
+    var lastVisit = visits.reduce(function(last, v) {
+      var d = new Date(v.date || 0);
+      return d > last ? d : last;
+    }, new Date(0));
+    var daysSince = Math.floor((now - lastVisit) / (24*60*60*1000));
+    var hasAnyVisit = lastVisit.getTime() > 0;
+
+    // Last plan
+    var lastPlan = null;
+    visits.forEach(function(v) { if (v.plan) lastPlan = {visit: v, plan: v.plan}; });
+
+    // NRS trend
+    var allNRS = [];
+    visits.forEach(function(v) {
+      (v.logs||[]).forEach(function(l) { if (l.nrs != null) allNRS.push({nrs: l.nrs, date: l.date}); });
+    });
+    allNRS.sort(function(a,b){ return (a.date||'') < (b.date||'') ? -1 : 1; });
+    var nrsTrend = allNRS.length >= 3
+      ? (allNRS[allNRS.length-1].nrs > allNRS[allNRS.length-3].nrs ? 'rising' : 'improving')
+      : null;
+
+    // Hael logging
+    var lastLog = null;
+    visits.forEach(function(v) {
+      (v.logs||[]).forEach(function(l) {
+        if (!lastLog || (l.date||'') > lastLog) lastLog = l.date;
+      });
+    });
+    var daysSinceLog = lastLog ? Math.floor((now - new Date(lastLog))/(24*60*60*1000)) : null;
+
+    // Birthday
+    var bdRaw = pat.birthdate || pat.birthYear;
+    var birthday = null;
+    if (bdRaw) {
+      try {
+        var bd = new Date(bdRaw);
+        var thisYearBd = new Date(now.getFullYear(), bd.getMonth(), bd.getDate());
+        var daysUntil = Math.ceil((thisYearBd - now)/(24*60*60*1000));
+        if (daysUntil >= 0 && daysUntil <= 3) birthday = {daysUntil: daysUntil, date: thisYearBd};
+      } catch(ex) {}
+    }
+
+    // ── TRIGGERS ──────────────────────────────────────────────────
+    // 1. Birthday
+    if (birthday && !alreadyHandled(pat.id, 'birthday')) {
+      signals.push({patId:pat.id, patName:pat.name, triggerId:'birthday', priority:1,
+        label:'Födelsedag', sub: birthday.daysUntil === 0 ? 'Idag!' : 'Om ' + birthday.daysUntil + ' dag' + (birthday.daysUntil>1?'ar':''),
+        icon:'M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z',
+        channel: 'mail', urgency: 'high',
+        context: {type:'birthday', daysUntil:birthday.daysUntil}});
+    }
+
+    // 2. NRS rising
+    if (nrsTrend === 'rising' && hasAnyVisit && !alreadyHandled(pat.id, 'nrs_rising')) {
+      signals.push({patId:pat.id, patName:pat.name, triggerId:'nrs_rising', priority:2,
+        label:'Smärtan ökar', sub:'NRS-trend stigande de senaste loggarna',
+        icon:'M22 12h-4l-3 9L9 3l-3 9H2',
+        channel: 'mail', urgency: 'high',
+        context: {type:'nrs_rising', nrsLast: allNRS[allNRS.length-1]?.nrs}});
+    }
+
+    // 3. Stopped logging in Hael (>7 days)
+    if (daysSinceLog !== null && daysSinceLog > 7 && lastPlan && !alreadyHandled(pat.id, 'hael_dropout')) {
+      signals.push({patId:pat.id, patName:pat.name, triggerId:'hael_dropout', priority:3,
+        label:'Slutat logga i Hael', sub: daysSinceLog + ' dagar utan loggning',
+        icon:'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+        channel: 'sms', urgency: 'medium',
+        context: {type:'hael_dropout', daysSince: daysSinceLog}});
+    }
+
+    // 4. Plan expired — no rebook
+    if (lastPlan) {
+      var planEnd = new Date(lastPlan.visit.date || now);
+      planEnd.setDate(planEnd.getDate() + (lastPlan.plan.totalWeeks || lastPlan.plan.form?.followup || 4)*7);
+      var planDaysAgo = Math.floor((now - planEnd)/(24*60*60*1000));
+      if (planDaysAgo > 7 && planDaysAgo < 60 && !alreadyHandled(pat.id, 'plan_expired')) {
+        signals.push({patId:pat.id, patName:pat.name, triggerId:'plan_expired', priority:4,
+          label:'Plan avslutad — inget återbesök', sub: 'Plan slutade för ' + planDaysAgo + ' dagar sedan',
+          icon:'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 0 0 1.946-.806 3.42 3.42 0 0 1 4.438 0 3.42 3.42 0 0 0 1.946.806',
+          channel: 'mail', urgency: 'medium',
+          context: {type:'plan_expired', daysAgo: planDaysAgo}});
+      }
+    }
+
+    // 5. 3 months since last visit
+    if (daysSince >= 90 && daysSince < 180 && hasAnyVisit && !alreadyHandled(pat.id, 'miss_3m')) {
+      signals.push({patId:pat.id, patName:pat.name, triggerId:'miss_3m', priority:5,
+        label:'3 månader sedan besök', sub: 'Mjuk incheckning',
+        icon:'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 5v5l3 3',
+        channel: 'mail', urgency: 'low',
+        context: {type:'miss_3m', daysSince}});
+    }
+
+    // 6. 6+ months
+    if (daysSince >= 180 && hasAnyVisit && !alreadyHandled(pat.id, 'miss_6m')) {
+      signals.push({patId:pat.id, patName:pat.name, triggerId:'miss_6m', priority:6,
+        label:'6+ månader borta', sub: 'Återaktivering',
+        icon:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2',
+        channel: 'mail', urgency: 'medium',
+        context: {type:'miss_6m', daysSince}});
+    }
+  });
+
+  // Filter channels per patient preference
+  signals = signals.map(function(sig) {
+    var pat2 = S.patients.find(function(p){return p.id===sig.patId;});
+    var prefs2 = (pat2&&pat2.commsPrefs) || {};
+    if (sig.channel === 'mail' && prefs2.mail === false) {
+      if (prefs2.sms !== false) { sig.channel = 'sms'; } // fallback to SMS
+      else return null; // both off
+    }
+    if (sig.channel === 'sms' && prefs2.sms === false) {
+      if (prefs2.mail !== false) { sig.channel = 'mail'; } // fallback to mail
+      else return null;
+    }
+    return sig;
+  }).filter(Boolean);
+
+  // Sort by priority
+  signals.sort(function(a,b){ return a.priority - b.priority; });
+  return signals;
+}
+
+// Generate AI message for a retention signal
+async function generateRetentionMessage(signal, pat) {
+  var key = getKey();
+  if (!key) return null;
+  var cfg = getClinicConfig();
+  var visit = (pat.visits||[]).slice().reverse()[0];
+  var diag = visit?.plan?.form?.diagnosis || visit?.plan?.form?.diagnos || visit?.form?.diagnosis || '';
+  var clinicianName = cfg.signatory || cfg.name || 'din behandlare';
+
+  var triggerContext = {
+    birthday:    'Patienten fyller år' + (signal.context.daysUntil===0 ? ' idag' : ' snart') + '. Skriv en varm, personlig gratulation. Nämn kortfattat att kliniken finns om de behöver.',
+    nrs_rising:  'Patientens smärta har ökat de senaste dagarna (NRS ' + signal.context.nrsLast + '/10). Skriv ett omtänksamt meddelande och erbjud ett återbesök.',
+    hael_dropout:'Patienten har inte loggat i Hael-appen på ' + signal.context.daysSince + ' dagar. Motivera dem varsamt att fortsätta — nyckeln är att det bara tar 2 minuter.',
+    plan_expired:'Patientens rehabplan slutade för ' + signal.context.daysAgo + ' dagar sedan utan nytt besök. Fråga hur det går och föreslå ett uppföljningsbesök.',
+    miss_3m:     'Det är 3 månader sedan patientens senaste besök. Inchecka mjukt — fråga hur det går och om de behöver något.',
+    miss_6m:     'Det är mer än 6 månader sedan sista besöket. Återaktiveringsmail — varm, inte säljig. Nämn att ni finns och att de är välkomna tillbaka.',
+  }[signal.triggerId] || 'Skriv ett personligt meddelande.';
+
+  var profileCtx = getAiProfileContext();
+  var prompt = [
+    'Du skriver ett ' + (signal.channel==='sms'?'SMS (max 160 tecken)':'mail') + ' till en patient på uppdrag av ' + clinicianName + ' på ' + (cfg.name||'kliniken') + '.',
+    'Patient: ' + pat.name + (diag ? ', diagnos: ' + diag : '') + '.',
+    'Uppdrag: ' + triggerContext,
+    'Skriv på svenska. Ton: varm och personlig men professionell. Inga generiska fraser.',
+    signal.channel==='sms' ? 'Svara ENBART med SMS-texten, max 160 tecken.' : 'Svara ENBART med mailämnet på rad 1 (Ämne: ...) sedan en blank rad, sedan mailkroppen. Ingen annan text.',
+    profileCtx || '',
+  ].filter(Boolean).join('\n');
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model: MODEL_HAIKU, max_tokens: 300, messages:[{role:'user',content:prompt}]})
+    });
+    var data = await res.json();
+    return (data.content||[]).map(function(b){return b.text||'';}).join('').trim();
+  } catch(ex) {
+    return null;
+  }
+}
+
+// Add a signal to the queue
+function queueRetentionAction(signal, msg) {
+  var q = getRetentionQueue();
+  var mode = getRetentionMode();
+  var now = new Date();
+  var scheduledFor = new Date(now.getTime() + (mode==='semi' ? 24*60*60*1000 : 0));
+  q.push({
+    id: 'ret_' + Date.now(),
+    patId: signal.patId, patName: signal.patName,
+    triggerId: signal.triggerId, label: signal.label,
+    channel: signal.channel, msg: msg,
+    scheduledFor: scheduledFor.toISOString(),
+    approved: mode === 'auto',
+    addedAt: now.toISOString(),
+  });
+  saveRetentionQueue(q);
+}
+
+// Mark as sent
+function markRetentionSent(queueId) {
+  var q = getRetentionQueue();
+  var item = q.find(function(x){return x.id===queueId;});
+  if (!item) return;
+  var sent = getRetentionSent();
+  sent.push({patId:item.patId, triggerId:item.triggerId, date:new Date().toISOString(), msg:item.msg, channel:item.channel});
+  try { localStorage.setItem(RETENTION_SENT_KEY, JSON.stringify(sent.slice(-500))); } catch {}
+  saveRetentionQueue(q.filter(function(x){return x.id!==queueId;}));
+  showAutoSaveToast((item.channel==='sms'?'SMS':'Mail') + ' markerat som skickat ✓');
+}
+
+// Approve a queued item
+function approveRetentionItem(queueId) {
+  var q = getRetentionQueue();
+  var item = q.find(function(x){return x.id===queueId;});
+  if (item) { item.approved = true; saveRetentionQueue(q); rRetentionPanel(); }
+}
+
+// Dismiss (remove from queue without sending)
+function dismissRetentionItem(queueId) {
+  var q = getRetentionQueue();
+  var item = q.find(function(x){return x.id===queueId;});
+  if (item) {
+    // Add to sent so it doesn't re-trigger
+    var sent = getRetentionSent();
+    sent.push({patId:item.patId, triggerId:item.triggerId, date:new Date().toISOString(), dismissed:true});
+    try { localStorage.setItem(RETENTION_SENT_KEY, JSON.stringify(sent.slice(-500))); } catch {}
+    saveRetentionQueue(q.filter(function(x){return x.id!==queueId;}));
+    rRetentionPanel();
+  }
+}
+
+// ── RENDER RETENTION PANEL ────────────────────────────────────────────────────
+function rRetentionPanel() {
+  var el = document.getElementById('retention-panel');
+  if (!el) return;
+
+  var mode    = getRetentionMode();
+  var signals = computeRetentionSignals();
+  var queue   = getRetentionQueue();
+  var sent    = getRetentionSent();
+
+  var urgencyColor = {high:'#e05555', medium:'var(--teal)', low:'var(--muted)'};
+
+  var h = '';
+
+  // Header + mode selector
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px">';
+  h += '<div>';
+  h += '<div style="font-size:18px;font-weight:800;color:var(--ink);margin-bottom:3px">AI Retention</div>';
+  h += '<div style="font-size:12px;color:var(--muted)">'+signals.length+' åtgärder identifierade · '+queue.length+' i kö · '+sent.filter(function(s){return !s.dismissed;}).length+' skickade</div>';
+  h += '</div>';
+  // Autonomy mode
+  h += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:3px;display:flex;gap:2px">';
+  [{id:'manual',label:'Manuellt'},{id:'semi',label:'Semi-auto'},{id:'auto',label:'Autopilot'}].forEach(function(m) {
+    var active = mode === m.id;
+    h += '<button onclick="localStorage.setItem(\''+RETENTION_MODE_KEY+'\',\''+m.id+'\');rRetentionPanel()" style="padding:6px 12px;border:none;border-radius:8px;font-size:12px;font-weight:'+(active?700:400)+';background:'+(active?'var(--surface)':'transparent')+';color:'+(active?'var(--teal)':'var(--muted)')+';cursor:pointer;font-family:var(--font);transition:all .12s">'+m.label+'</button>';
+  });
+  h += '</div></div>';
+
+  // Mode description
+  var modeDesc = {
+    manual:  'Du granskar och godkänner varje meddelande innan det skickas.',
+    semi:    'AI genererar och schemalägger — du kan avvisa inom 24h. Annars skickas automatiskt.',
+    auto:    'AI sköter allt autonomt baserat på dina regler. Du ser loggen.',
+  }[mode];
+  h += '<div style="background:rgba(13,155,138,.06);border:1px solid rgba(13,155,138,.15);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--text);margin-bottom:18px">';
+  h += '<strong style="color:var(--teal)">Autonominivå: '+(mode==='manual'?'Manuellt':mode==='semi'?'Semi-auto':'Autopilot')+'</strong> — '+modeDesc;
+  h += '</div>';
+
+  // Queue section
+  if (queue.length > 0) {
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px">';
+    h += '<div style="padding:12px 18px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Kö ('+queue.length+')</div>';
+    queue.forEach(function(item, i) {
+      h += '<div style="padding:14px 18px;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
+      h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
+      h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">'+e(item.patName)+'</div>';
+      h += '<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(13,155,138,.1);color:var(--teal);font-weight:700">'+e(item.label)+'</span>';
+      h += '<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:var(--bg);color:var(--muted);font-weight:600">'+(item.channel==='sms'?'SMS':'Mail')+'</span>';
+      if (!item.approved) h += '<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(186,117,23,.12);color:#c07000;font-weight:600">Väntar godkännande</span>';
+      else h += '<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:rgba(13,155,138,.1);color:var(--teal);font-weight:600">Godkänd</span>';
+      h += '</div>';
+      if (item.msg) {
+        h += '<div style="background:var(--bg);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.65;margin-bottom:10px;white-space:pre-wrap">'+e(item.msg)+'</div>';
+      }
+      h += '<div style="display:flex;gap:8px">';
+      if (!item.approved) {
+        h += '<button onclick="approveRetentionItem(\''+item.id+'\')" class="btn btn-p" style="font-size:11px;padding:5px 12px">Godkänn & skicka</button>';
+      } else {
+        h += '<button onclick="markRetentionSent(\''+item.id+'\')" class="btn btn-p" style="font-size:11px;padding:5px 12px">Markera skickat ✓</button>';
+      }
+      h += '<button onclick="dismissRetentionItem(\''+item.id+'\')" style="padding:5px 12px;background:none;border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avvisa</button>';
+      h += '</div></div>';
+    });
+    h += '</div>';
+  }
+
+  // Signals
+  if (signals.length === 0) {
+    h += '<div style="text-align:center;padding:32px;background:var(--surface);border:1px solid var(--border);border-radius:14px;color:var(--muted)">Inga åtgärder just nu — allt är i ordning.</div>';
+  } else {
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
+    h += '<div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
+    h += '<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Identifierade åtgärder ('+signals.length+')</div>';
+    h += '<button onclick="generateAllRetentionMessages()" class="btn" style="font-size:11px;padding:4px 12px;display:flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Generera alla med AI</button>';
+    h += '</div>';
+    signals.slice(0,10).forEach(function(sig, i) {
+      var uc = urgencyColor[sig.urgency] || 'var(--muted)';
+      h += '<div style="padding:13px 18px;'+(i>0?'border-top:1px solid var(--border2)':'')+';display:flex;align-items:center;gap:13px">';
+      // Icon
+      h += '<div style="width:32px;height:32px;border-radius:9px;background:rgba(13,155,138,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round"><path d="'+e(sig.icon)+'"/></svg></div>';
+      // Info
+      h += '<div style="flex:1;min-width:0">';
+      h += '<div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">';
+      h += '<span style="font-size:13px;font-weight:700;color:var(--ink)">'+e(sig.patName)+'</span>';
+      h += '<span style="font-size:11px;font-weight:700;color:'+uc+'">'+e(sig.label)+'</span>';
+      h += '</div>';
+      h += '<div style="font-size:11px;color:var(--muted)">'+e(sig.sub)+'</div>';
+      h += '</div>';
+      // Channel badge
+      h += '<span style="font-size:10px;padding:2px 8px;border-radius:20px;background:var(--bg);color:var(--muted);font-weight:600;flex-shrink:0">'+(sig.channel==='sms'?'SMS':'Mail')+'</span>';
+      // Action button
+      h += '<button onclick="generateSingleRetentionMsg(\''+sig.patId+'\',\''+sig.triggerId+'\')" style="padding:5px 12px;background:none;border:1px solid var(--teal);border-radius:8px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font);flex-shrink:0;display:flex;align-items:center;gap:5px">';
+      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>AI-meddelande</button>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  // Recent sent log
+  var recentSent = sent.filter(function(s){return !s.dismissed;}).slice(-5).reverse();
+  if (recentSent.length > 0) {
+    h += '<div style="margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden">';
+    h += '<div style="padding:10px 16px;border-bottom:1px solid var(--border);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Skickade ('+sent.filter(function(s){return !s.dismissed;}).length+')</div>';
+    recentSent.forEach(function(s,i) {
+      var pat2 = S.patients.find(function(p){return p.id===s.patId;});
+      h += '<div style="padding:9px 16px;font-size:12px;color:var(--muted);'+(i>0?'border-top:1px solid var(--border2)':'')+';display:flex;align-items:center;gap:10px">';
+      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
+      h += '<span style="font-weight:600;color:var(--text)">'+e(pat2?pat2.name:s.patId)+'</span>';
+      h += '<span>'+e(s.triggerId.replace(/_/g,' '))+'</span>';
+      h += '<span style="margin-left:auto;font-size:10px">'+new Date(s.date).toLocaleDateString('sv-SE')+'</span>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  el.innerHTML = h;
+}
+
+async function generateSingleRetentionMsg(patId, triggerId) {
+  var pat = S.patients.find(function(p){return p.id===patId;});
+  if (!pat) return;
+  var signals = computeRetentionSignals();
+  var sig = signals.find(function(s){return s.patId===patId && s.triggerId===triggerId;});
+  if (!sig) return;
+
+  // Show loading state in the button
+  var btn = document.querySelector('[onclick="generateSingleRetentionMsg(\''+patId+'\',\''+triggerId+'\')"]');
+  if (btn) { btn.textContent = '...'; btn.disabled = true; }
+
+  var msg = await generateRetentionMessage(sig, pat);
+  if (msg) {
+    queueRetentionAction(sig, msg);
+    rRetentionPanel();
+    showAutoSaveToast('Meddelande genererat och köat ✓');
+  } else {
+    showAutoSaveToast('Ange API-nyckel för att generera meddelanden');
+    if (btn) { btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>AI-meddelande'; btn.disabled = false; }
+  }
+}
+
+async function generateAllRetentionMessages() {
+  var signals = computeRetentionSignals().slice(0, 5); // max 5 at a time
+  if (signals.length === 0) return;
+  showAutoSaveToast('Genererar ' + signals.length + ' meddelanden...');
+  for (var i = 0; i < signals.length; i++) {
+    var sig = signals[i];
+    var pat = S.patients.find(function(p){return p.id===sig.patId;});
+    if (!pat) continue;
+    var msg = await generateRetentionMessage(sig, pat);
+    if (msg) queueRetentionAction(sig, msg);
+  }
+  rRetentionPanel();
+  showAutoSaveToast('Alla meddelanden genererade ✓');
+}
+
 function rIntelligence() {
   const now = new Date();
   const total = S.patients.length;
@@ -13799,7 +14420,14 @@ function rIntelligence() {
       </div>
     </div>
 
+    <!-- Retention -->
+    <div style="margin-top:28px;padding:0 0 8px">
+      <div style="font-size:16px;font-weight:800;color:var(--ink,#0f2744);margin-bottom:14px">AI Retention</div>
+      <div id="retention-panel"></div>
+    </div>
+
   </div>`;
+  rRetentionPanel();
 }
 
 // ── PLAN RISK REVIEW SYSTEM ────────────────────────────────────────────────
@@ -16429,6 +17057,8 @@ function _aiProfileNav(nextStep) {
 
 // Returns a context string for injecting into AI prompts
 function closeAiProfileOv() { document.getElementById('ai-profile-ov')?.remove(); }
+function closeConsentPopup() { document.getElementById('consent-popup')?.remove(); }
+
 
 function getAiProfileContext(userId) {
   var profile = getAiProfile(userId);

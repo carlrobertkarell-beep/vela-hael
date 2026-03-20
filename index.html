@@ -200,6 +200,58 @@ button, input, textarea, select { font-family: inherit; }
 /* ── CONTENT WRAPPER ────────────────────────────────────────── */
 .org-add-clinic-card { background:var(--bg);border:1.5px dashed var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:120px;transition:border-color .15s; }
 .org-add-clinic-card:hover { border-color:var(--teal); }
+
+/* ── BOOKING CALENDAR ─────────────────────────────────────────────────────── */
+.cal-wrap { display:flex; flex-direction:column; height:calc(100vh - 52px); overflow:hidden; background:var(--bg); }
+.cal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 24px 12px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; gap:12px; flex-wrap:wrap; }
+.cal-nav { display:flex; align-items:center; gap:8px; }
+.cal-nav-btn { background:none; border:1px solid var(--border); border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; color:var(--text); cursor:pointer; font-family:var(--font); transition:background .12s; }
+.cal-nav-btn:hover { background:var(--surface2); }
+.cal-nav-btn.today { background:var(--teal); color:white; border-color:var(--teal); }
+.cal-week-label { font-size:14px; font-weight:700; color:var(--ink); min-width:180px; text-align:center; }
+.cal-view-toggle { display:flex; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:2px; }
+.cal-view-btn { padding:5px 12px; border:none; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; font-family:var(--font); background:none; color:var(--muted); transition:all .12s; }
+.cal-view-btn.active { background:var(--surface); color:var(--teal); }
+.cal-grid-wrap { display:flex; flex:1; overflow:hidden; }
+.cal-time-col { width:52px; flex-shrink:0; padding-top:40px; overflow:hidden; }
+.cal-time-slot { height:60px; display:flex; align-items:flex-start; justify-content:flex-end; padding-right:8px; padding-top:2px; }
+.cal-time-label { font-size:10px; font-weight:600; color:var(--muted); white-space:nowrap; }
+.cal-days { display:flex; flex:1; overflow-x:auto; overflow-y:scroll; position:relative; }
+.cal-day-col { flex:1; min-width:100px; border-left:1px solid var(--border2); position:relative; }
+.cal-day-header { height:40px; display:flex; flex-direction:column; align-items:center; justify-content:center; position:sticky; top:0; background:var(--surface); border-bottom:1px solid var(--border); z-index:10; }
+.cal-day-name { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+.cal-day-num { font-size:16px; font-weight:800; color:var(--ink); line-height:1; }
+.cal-day-header.today .cal-day-num { color:var(--teal); }
+.cal-day-header.today::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:24px; height:2px; background:var(--teal); border-radius:1px; }
+.cal-slots { position:relative; }
+.cal-slot { height:60px; border-bottom:1px solid var(--border2); cursor:pointer; transition:background .1s; position:relative; }
+.cal-slot:hover { background:rgba(13,155,138,.05); }
+.cal-slot.half { border-bottom-style:dashed; border-bottom-color:rgba(255,255,255,.04); }
+.cal-booking { position:absolute; left:3px; right:3px; border-radius:8px; padding:4px 7px; cursor:pointer; overflow:hidden; z-index:5; transition:opacity .15s; }
+.cal-booking:hover { opacity:.85; }
+.cal-booking-time { font-size:10px; font-weight:700; opacity:.8; white-space:nowrap; }
+.cal-booking-name { font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cal-booking-svc { font-size:10px; opacity:.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cal-booking.new     { background:rgba(13,155,138,.85); color:white; }
+.cal-booking.returning { background:rgba(26,58,74,.85); color:rgba(255,255,255,.9); border:1px solid rgba(13,155,138,.3); }
+.cal-booking.completed { background:rgba(255,255,255,.08); color:var(--muted); border:1px solid var(--border); }
+.cal-booking.cancelled { background:rgba(192,48,48,.15); color:var(--muted); border:1px dashed rgba(192,48,48,.3); text-decoration:line-through; }
+.cal-now-line { position:absolute; left:0; right:0; height:2px; background:var(--red,#e05555); z-index:8; pointer-events:none; }
+.cal-now-line::before { content:''; position:absolute; left:-4px; top:-4px; width:10px; height:10px; border-radius:50%; background:var(--red,#e05555); }
+/* Booking dialog */
+.bk-dialog { background:var(--surface); border-radius:20px; width:100%; max-width:480px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,.3); max-height:90vh; display:flex; flex-direction:column; }
+.bk-header { background:var(--navy); padding:18px 22px 14px; flex-shrink:0; }
+.bk-body { padding:20px 22px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px; }
+.bk-footer { padding:0 22px 18px; display:flex; gap:10px; flex-shrink:0; }
+.bk-label { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--teal); margin-bottom:7px; }
+.bk-intake-banner { background:rgba(13,155,138,.08); border:1px solid rgba(13,155,138,.2); border-radius:10px; padding:12px 14px; display:flex; align-items:flex-start; gap:10px; }
+.bk-intake-warn { background:rgba(200,160,48,.08); border:1px solid rgba(200,160,48,.2); border-radius:10px; padding:12px 14px; display:flex; align-items:flex-start; gap:10px; }
+@media (max-width:768px) {
+  .cal-wrap { height:calc(100vh - 104px); }
+  .cal-day-col { min-width:80px; }
+  .cal-header { padding:10px 14px; }
+}
+
 .cx { max-width: 1200px; margin: 0 auto; padding: 28px 32px 60px; }
 @media (max-width: 768px) { .cx { padding: 16px 14px 60px; } }
 
@@ -1164,6 +1216,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
     <div id="s-sbs-soap" class="screen"></div>
     <div id="s-patjournal" class="screen"></div>
     <div id="s-intelligence" class="screen"></div>
+    <div id="s-calendar" class="screen"></div>
   </div>
 </div>
 
@@ -3737,9 +3790,727 @@ function go(scr){
     if(tb) tb.style.display = '';
   }
   rTopbar();
-  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:rMeeting,soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,settings:rSettings,hael:rHael,'public-plan':function(){}};
+  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:rMeeting,soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BOOKING CALENDAR — Data layer + render + intake flow
+// ══════════════════════════════════════════════════════════════════════════════
+
+const BOOKINGS_KEY = 'vela:bookings';
+const INTAKE_THRESHOLD_WEEKS = 12; // configurable in settings
+
+// ── DATA LAYER ────────────────────────────────────────────────────────────────
+function getBookings() {
+  try { return JSON.parse(localStorage.getItem(BOOKINGS_KEY) || '[]'); } catch { return []; }
+}
+function saveBookings(bks) {
+  try { localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bks)); } catch {}
+}
+function getBooking(id) {
+  return getBookings().find(function(b){ return b.id === id; }) || null;
+}
+function upsertBooking(bk) {
+  var bks = getBookings();
+  var idx = bks.findIndex(function(b){ return b.id === bk.id; });
+  if (idx >= 0) bks[idx] = bk; else bks.push(bk);
+  saveBookings(bks);
+  return bk;
+}
+function deleteBooking(id) {
+  saveBookings(getBookings().filter(function(b){ return b.id !== id; }));
+}
+
+// Get bookings for a specific week (Mon–Sun)
+function getBookingsForWeek(mondayDate) {
+  var bks = getBookings();
+  var start = new Date(mondayDate); start.setHours(0,0,0,0);
+  var end   = new Date(start); end.setDate(end.getDate() + 7);
+  return bks.filter(function(b){
+    var d = new Date(b.date + 'T' + (b.time || '00:00'));
+    return d >= start && d < end;
+  });
+}
+
+// Get Monday of week containing date
+function getMondayOf(date) {
+  var d = new Date(date);
+  var day = d.getDay(); // 0=Sun
+  var diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+// Format date as YYYY-MM-DD
+function dateStr(d) {
+  return d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+
+// Should this patient get an intake form for a new booking?
+function needsIntake(patId) {
+  var pat = S.patients.find(function(p){ return p.id === patId; });
+  if (!pat) return { needed: true, reason: 'new' };
+
+  var visits = (pat.visits || []).slice().sort(function(a,b){
+    return new Date(b.date||0) - new Date(a.date||0);
+  });
+  if (!visits.length) return { needed: true, reason: 'new' };
+
+  var lastVisit = visits[0];
+  var lastDate  = new Date(lastVisit.date || 0);
+  var weeksSince = (Date.now() - lastDate) / (7 * 86400000);
+
+  if (weeksSince >= INTAKE_THRESHOLD_WEEKS)
+    return { needed: true, reason: 'long_gap', weeks: Math.round(weeksSince) };
+
+  var thresh = parseInt(localStorage.getItem('vela:intake-threshold') || '12', 10);
+  var lastNRS = (function(){
+    var logs = lastVisit.logs || [];
+    var nrs = logs.filter(function(l){ return l.nrs != null; }).map(function(l){ return l.nrs; });
+    return nrs.length ? nrs[nrs.length-1] : (lastVisit.form?.pain ?? null);
+  })();
+  if (lastNRS !== null && lastNRS >= 6 && weeksSince >= 6)
+    return { needed: true, reason: 'high_nrs', weeks: Math.round(weeksSince), nrs: lastNRS };
+
+  return { needed: false };
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+window._calState = window._calState || {
+  week:   getMondayOf(new Date()),
+  view:   'week', // 'week' | 'day'
+  hours:  { start: 7, end: 19 },
+  dragDate: null,
+  dragTime: null,
+};
+
+// ── MAIN RENDER ───────────────────────────────────────────────────────────────
+function rCalendar() {
+  var el = document.getElementById('s-calendar');
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  el.classList.add('active');
+
+  var st   = window._calState;
+  var mon  = st.week;
+  var days = [];
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(mon); d.setDate(mon.getDate() + i);
+    days.push(d);
+  }
+
+  var bks = getBookingsForWeek(mon);
+  var now = new Date();
+  var todayStr = dateStr(now);
+
+  // Week label
+  var monFmt = mon.toLocaleDateString('sv-SE', { day:'numeric', month:'short' });
+  var sunDate = new Date(mon); sunDate.setDate(mon.getDate() + 6);
+  var sunFmt  = sunDate.toLocaleDateString('sv-SE', { day:'numeric', month:'short' });
+  var weekLabel = monFmt + ' – ' + sunFmt + ' ' + mon.getFullYear();
+
+  var h = '<div class="cal-wrap">';
+
+  // ── HEADER ────────────────────────────────────────────────────────────────
+  h += '<div class="cal-header">';
+  h += '<div class="cal-nav">';
+  h += '<button class="cal-nav-btn" onclick="_calPrev()">‹</button>';
+  h += '<span class="cal-week-label">' + weekLabel + '</span>';
+  h += '<button class="cal-nav-btn" onclick="_calNext()">›</button>';
+  h += '<button class="cal-nav-btn today" onclick="_calToday()">Idag</button>';
+  h += '</div>';
+  h += '<div style="display:flex;gap:10px;align-items:center">';
+  // Booking count badge
+  var todayBks = bks.filter(function(b){ return b.date === todayStr && b.status !== 'cancelled'; });
+  if (todayBks.length) {
+    h += '<div style="font-size:11px;font-weight:700;color:var(--teal)">' + todayBks.length + ' besök idag</div>';
+  }
+  h += '<button onclick="openBookingDialog(null, null)" class="btn btn-p" style="font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap">';
+  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+  h += 'Ta emot</button>';
+  h += '</div></div>';
+
+  // ── GRID ──────────────────────────────────────────────────────────────────
+  h += '<div class="cal-grid-wrap">';
+
+  // Time column
+  h += '<div class="cal-time-col">';
+  for (var hour = st.hours.start; hour < st.hours.end; hour++) {
+    h += '<div class="cal-time-slot"><span class="cal-time-label">' + String(hour).padStart(2,'0') + ':00</span></div>';
+    h += '<div class="cal-time-slot"></div>'; // :30
+  }
+  h += '</div>';
+
+  // Day columns
+  h += '<div class="cal-days" id="cal-days-scroll">';
+  var SLOT_H = 60; // px per hour, half = 30px
+
+  days.forEach(function(day, di) {
+    var dayStr  = dateStr(day);
+    var isToday = dayStr === todayStr;
+    var isWeekend = day.getDay() === 0 || day.getDay() === 6;
+    var dayName = day.toLocaleDateString('sv-SE', { weekday:'short' });
+    dayName = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+    var dayNum  = day.getDate();
+
+    h += '<div class="cal-day-col" style="' + (isWeekend?'background:rgba(255,255,255,.015)':'') + '">';
+    h += '<div class="cal-day-header' + (isToday?' today':'') + '">';
+    h += '<div class="cal-day-name">' + dayName + '</div>';
+    h += '<div class="cal-day-num">' + dayNum + '</div>';
+    h += '</div>';
+
+    h += '<div class="cal-slots" style="position:relative;height:' + ((st.hours.end - st.hours.start) * SLOT_H) + 'px">';
+
+    // Slot lines
+    for (var hr = st.hours.start; hr < st.hours.end; hr++) {
+      var top = (hr - st.hours.start) * SLOT_H;
+      var tStr = String(hr).padStart(2,'0') + ':00';
+      h += '<div class="cal-slot" style="position:absolute;top:' + top + 'px;left:0;right:0;height:' + SLOT_H + 'px" onclick="_calSlotClick(\'' + dayStr + '\',\'' + tStr + '\')">';
+      h += '<div style="position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(255,255,255,.04)"></div>';
+      h += '</div>';
+    }
+
+    // Now line
+    if (isToday) {
+      var nowMins = now.getHours() * 60 + now.getMinutes();
+      var startMins = st.hours.start * 60;
+      var nowTop = ((nowMins - startMins) / 60) * SLOT_H;
+      if (nowTop >= 0 && nowTop <= (st.hours.end - st.hours.start) * SLOT_H) {
+        h += '<div class="cal-now-line" style="top:' + nowTop + 'px"></div>';
+      }
+    }
+
+    // Bookings
+    var dayBks = bks.filter(function(b){ return b.date === dayStr; });
+    dayBks.forEach(function(bk) {
+      var bTime  = bk.time || '08:00';
+      var bHour  = parseInt(bTime.split(':')[0], 10);
+      var bMin   = parseInt(bTime.split(':')[1] || '0', 10);
+      var bMins  = bHour * 60 + bMin;
+      var startM = st.hours.start * 60;
+      var top2   = ((bMins - startM) / 60) * SLOT_H;
+      var dur    = bk.duration || 45;
+      var height = (dur / 60) * SLOT_H - 3;
+      if (top2 < 0 || top2 > (st.hours.end - st.hours.start) * SLOT_H) return;
+      var typeClass = bk.type === 'new' ? 'new' : (bk.status === 'completed' ? 'completed' : bk.status === 'cancelled' ? 'cancelled' : 'returning');
+      h += '<div class="cal-booking ' + typeClass + '" style="top:' + top2 + 'px;height:' + height + 'px" onclick="event.stopPropagation();openBookingDetail(\'' + bk.id + '\')">';
+      h += '<div class="cal-booking-time">' + bTime + ' · ' + dur + 'min</div>';
+      h += '<div class="cal-booking-name">' + e(bk.patientName || 'Okänd') + '</div>';
+      if (bk.serviceName) h += '<div class="cal-booking-svc">' + e(bk.serviceName) + '</div>';
+      if (bk.intakeSent && !bk.intakeCompleted) h += '<div style="font-size:9px;opacity:.7">📋 Intake skickat</div>';
+      if (bk.intakeCompleted) h += '<div style="font-size:9px;opacity:.7">✓ Intake klart</div>';
+      h += '</div>';
+    });
+
+    h += '</div></div>';
+  });
+
+  h += '</div></div></div>';
+  el.innerHTML = h;
+
+  // Scroll to working hours
+  setTimeout(function(){
+    var scroll = document.getElementById('cal-days-scroll');
+    if (scroll) scroll.scrollTop = (8 - window._calState.hours.start) * SLOT_H;
+  }, 50);
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function _calPrev() {
+  var d = new Date(window._calState.week);
+  d.setDate(d.getDate() - 7);
+  window._calState.week = d;
+  rCalendar();
+}
+function _calNext() {
+  var d = new Date(window._calState.week);
+  d.setDate(d.getDate() + 7);
+  window._calState.week = d;
+  rCalendar();
+}
+function _calToday() {
+  window._calState.week = getMondayOf(new Date());
+  rCalendar();
+}
+function _calSlotClick(dateStr, timeStr) {
+  openBookingDialog(dateStr, timeStr);
+}
+
+// ── BOOKING DIALOG ────────────────────────────────────────────────────────────
+function openBookingDialog(date, time, existingPatId) {
+  document.getElementById('bk-dialog-ov')?.remove();
+
+  var svcs = getServices().filter(function(s){ return s.price > 0; });
+  var pats = S.patients;
+  var intakeCheck = existingPatId ? needsIntake(existingPatId) : null;
+  var selectedPat = existingPatId ? pats.find(function(p){ return p.id === existingPatId; }) : null;
+
+  var ov = document.createElement('div');
+  ov.id = 'bk-dialog-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
+  ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
+
+  var h = '<div class="bk-dialog" onclick="event.stopPropagation()">';
+
+  // Header
+  h += '<div class="bk-header">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between">';
+  h += '<div><div style="font-size:17px;font-weight:700;color:white">Ta emot patient</div>';
+  h += '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:3px">' + (date ? _fmtBookingDate(date) : 'Välj datum') + (time ? ' · ' + time : '') + '</div></div>';
+  h += '<button onclick="document.getElementById(\'bk-dialog-ov\').remove()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1">×</button>';
+  h += '</div></div>';
+
+  h += '<div class="bk-body">';
+
+  // Patient selection
+  h += '<div>';
+  h += '<div class="bk-label">Patient</div>';
+  h += '<div style="position:relative">';
+  h += '<input id="bk-pat-search" type="text" placeholder="Sök befintlig eller skriv nytt namn..." class="field" style="margin-bottom:0" oninput="_bkPatSearch(this.value)" value="' + (selectedPat ? e(selectedPat.name) : '') + '">';
+  h += '<input type="hidden" id="bk-pat-id" value="' + (existingPatId || '') + '">';
+  h += '<div id="bk-pat-suggestions" style="position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;z-index:20;display:none;max-height:160px;overflow-y:auto;margin-top:4px;box-shadow:var(--shadow-md)"></div>';
+  h += '</div></div>';
+
+  // Intake banner (shown when patient selected + intake needed)
+  h += '<div id="bk-intake-banner" style="display:none"></div>';
+
+  // Date + time row
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">';
+  h += '<div><div class="bk-label">Datum</div><input id="bk-date" type="date" class="field" style="margin-bottom:0" value="' + (date || dateStr(new Date())) + '"></div>';
+  h += '<div><div class="bk-label">Tid</div><input id="bk-time" type="time" class="field" style="margin-bottom:0" value="' + (time || '09:00') + '" step="900"></div>';
+  h += '<div><div class="bk-label">Längd (min)</div>';
+  h += '<select id="bk-dur" class="field" style="margin-bottom:0">';
+  [30,45,60,75,90].forEach(function(d){
+    h += '<option value="' + d + '"' + (d===45?' selected':'') + '>' + d + ' min</option>';
+  });
+  h += '</select></div></div>';
+
+  // Service
+  if (svcs.length) {
+    h += '<div><div class="bk-label">Tjänst</div>';
+    h += '<select id="bk-svc" class="field" style="margin-bottom:0">';
+    h += '<option value="">Välj tjänst...</option>';
+    svcs.forEach(function(s){
+      h += '<option value="' + s.id + '" data-price="' + s.price + '" data-dur="' + (s.duration||45) + '">' + e(s.name) + ' · ' + s.price + ' kr</option>';
+    });
+    h += '</select></div>';
+  }
+
+  // Type
+  h += '<div><div class="bk-label">Besökstyp</div>';
+  h += '<div style="display:flex;gap:8px">';
+  [{v:'new',l:'Ny patient'},{v:'returning',l:'Återbesök'}].forEach(function(t,i){
+    h += '<label style="flex:1;display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;cursor:pointer;' + (i===0?'border-color:var(--teal);background:rgba(13,155,138,.07)':'') + '" id="bk-type-lbl-' + t.v + '">';
+    h += '<input type="radio" name="bk-type" value="' + t.v + '"' + (i===0?' checked':'') + ' onchange="_bkTypeChange(this.value)" style="accent-color:var(--teal)">';
+    h += '<span style="font-size:12px;font-weight:600;color:var(--ink)">' + t.l + '</span>';
+    h += '</label>';
+  });
+  h += '</div></div>';
+
+  // Notes
+  h += '<div><div class="bk-label">Anteckning (visas ej för patient)</div>';
+  h += '<textarea id="bk-notes" class="field" style="margin-bottom:0;height:60px;resize:none" placeholder="Kort info om besöket..."></textarea></div>';
+
+  h += '</div>'; // end bk-body
+
+  h += '<div class="bk-footer">';
+  h += '<button onclick="document.getElementById(\'bk-dialog-ov\').remove()" style="flex:1;padding:11px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>';
+  h += '<button onclick="_saveBooking()" class="btn btn-p" style="flex:2;padding:11px">Boka & skicka formulär →</button>';
+  h += '</div>';
+  h += '</div>';
+
+  ov.innerHTML = h;
+  document.body.appendChild(ov);
+
+  // Bind service → duration
+  var svcEl = document.getElementById('bk-svc');
+  if (svcEl) svcEl.onchange = function(){
+    var opt = svcEl.options[svcEl.selectedIndex];
+    var dur = opt.getAttribute('data-dur');
+    if (dur) document.getElementById('bk-dur').value = dur;
+  };
+
+  setTimeout(function(){ document.getElementById('bk-pat-search')?.focus(); }, 100);
+}
+
+function _fmtBookingDate(ds) {
+  var d = new Date(ds + 'T12:00');
+  return d.toLocaleDateString('sv-SE', { weekday:'long', day:'numeric', month:'long' });
+}
+
+function _bkTypeChange(val) {
+  ['new','returning'].forEach(function(v){
+    var lbl = document.getElementById('bk-type-lbl-' + v);
+    if (!lbl) return;
+    lbl.style.borderColor = v === val ? 'var(--teal)' : 'var(--border)';
+    lbl.style.background  = v === val ? 'rgba(13,155,138,.07)' : '';
+  });
+}
+
+// Patient search autocomplete
+function _bkPatSearch(val) {
+  var sug = document.getElementById('bk-pat-suggestions');
+  if (!sug) return;
+  if (val.length < 2) { sug.style.display = 'none'; return; }
+  var matches = S.patients.filter(function(p){
+    return p.name && p.name.toLowerCase().includes(val.toLowerCase());
+  }).slice(0,8);
+  if (!matches.length) { sug.style.display = 'none'; return; }
+  sug.innerHTML = matches.map(function(p){
+    var lastVisit = (p.visits||[]).slice(-1)[0];
+    var lastDate  = lastVisit?.date ? new Date(lastVisit.date).toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric'}) : 'Inga besök';
+    return '<div onclick="_bkSelectPat(\'' + p.id + '\',\'' + e(p.name) + '\')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border2);display:flex;justify-content:space-between;align-items:center" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'\'">'
+      + '<div><div style="font-size:13px;font-weight:600;color:var(--ink)">' + e(p.name) + '</div>'
+      + '<div style="font-size:11px;color:var(--muted)">Senast: ' + lastDate + '</div></div>'
+      + '<div style="font-size:11px;color:var(--muted)">' + e(p.phone||'') + '</div>'
+      + '</div>';
+  }).join('');
+  sug.style.display = 'block';
+}
+
+function _bkSelectPat(id, name) {
+  document.getElementById('bk-pat-id').value = id;
+  document.getElementById('bk-pat-search').value = name;
+  document.getElementById('bk-pat-suggestions').style.display = 'none';
+
+  // Check intake need
+  var intake = needsIntake(id);
+  var banner = document.getElementById('bk-intake-banner');
+  if (!banner) return;
+  if (intake.needed) {
+    var msg = intake.reason === 'long_gap'
+      ? intake.weeks + ' veckor sedan senaste besök'
+      : intake.reason === 'high_nrs'
+      ? intake.weeks + ' veckor sedan senast · NRS ' + intake.nrs + ' vid senaste besök'
+      : 'Ny patient';
+    banner.innerHTML = '<div class="bk-intake-warn">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c8a030" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+      + '<div style="font-size:12px;color:var(--text);line-height:1.6">'
+      + '<strong style="color:#c8a030">Rekommenderar intake-formulär</strong> — ' + msg + '.'
+      + '<div style="margin-top:4px;font-size:11px;color:var(--muted)">Formuläret skickas automatiskt när du bokar.</div>'
+      + '</div></div>';
+    banner.style.display = 'block';
+    // Auto-set returning
+    var retRadio = document.querySelector('input[name="bk-type"][value="returning"]');
+    if (retRadio) { retRadio.checked = true; _bkTypeChange('returning'); }
+  } else {
+    banner.style.display = 'none';
+    var retRadio = document.querySelector('input[name="bk-type"][value="returning"]');
+    if (retRadio) { retRadio.checked = true; _bkTypeChange('returning'); }
+  }
+}
+
+// ── SAVE BOOKING + QUEUE INTAKE ───────────────────────────────────────────────
+function _saveBooking() {
+  var patId    = document.getElementById('bk-pat-id')?.value?.trim();
+  var patName  = document.getElementById('bk-pat-search')?.value?.trim();
+  var bkDate   = document.getElementById('bk-date')?.value;
+  var bkTime   = document.getElementById('bk-time')?.value;
+  var dur      = parseInt(document.getElementById('bk-dur')?.value || '45', 10);
+  var notes    = document.getElementById('bk-notes')?.value?.trim() || '';
+  var typeEl   = document.querySelector('input[name="bk-type"]:checked');
+  var bkType   = typeEl ? typeEl.value : 'new';
+  var svcEl    = document.getElementById('bk-svc');
+  var svcId    = svcEl ? svcEl.value : '';
+  var svcName  = svcEl ? (svcEl.options[svcEl.selectedIndex]?.text?.split(' · ')[0] || '') : '';
+
+  if (!patName)  { showAutoSaveToast('Ange patientnamn'); return; }
+  if (!bkDate)   { showAutoSaveToast('Välj datum'); return; }
+  if (!bkTime)   { showAutoSaveToast('Välj tid'); return; }
+
+  // Create patient if new
+  if (!patId) {
+    var newPat = {
+      id: 'pat_' + Date.now(),
+      name: patName,
+      visits: [],
+      createdAt: new Date().toISOString(),
+      clinicId: getCurrentClinicId(),
+      source: 'phone',
+    };
+    savePatient(newPat);
+    S.patients.push(newPat);
+    patId = newPat.id;
+    showAutoSaveToast(patName + ' skapad som ny patient');
+  }
+
+  // Check intake
+  var intake = needsIntake(patId);
+  var intakeSent = false;
+  var intakeLink = '';
+
+  if (intake.needed || bkType === 'new') {
+    intakeSent = true;
+    intakeLink = _generateIntakeLink(patId);
+    // Queue intake send (SMS + mail depending on settings)
+    _queueIntakeSend(patId, patName, intakeLink, bkDate, bkTime);
+  }
+
+  var bk = {
+    id:              'bk_' + Date.now(),
+    patientId:       patId,
+    patientName:     patName,
+    date:            bkDate,
+    time:            bkTime,
+    duration:        dur,
+    type:            bkType,
+    status:          'scheduled',
+    source:          'phone',
+    serviceId:       svcId,
+    serviceName:     svcName,
+    notes:           notes,
+    intakeSent:      intakeSent,
+    intakeSentAt:    intakeSent ? new Date().toISOString() : null,
+    intakeLink:      intakeLink,
+    intakeCompleted: false,
+    clinicId:        getCurrentClinicId(),
+    createdAt:       new Date().toISOString(),
+  };
+
+  upsertBooking(bk);
+  document.getElementById('bk-dialog-ov')?.remove();
+
+  // Show confirmation with intake info
+  _showBookingConfirmation(bk, intake);
+
+  // Refresh calendar if open
+  if (S.screen === 'calendar') rCalendar();
+}
+
+function _generateIntakeLink(patId) {
+  // In production: generate a signed URL. For now: a local token.
+  var token = btoa(patId + ':' + Date.now()).replace(/=/g,'');
+  return window.location.origin + window.location.pathname + '#intake/' + token;
+}
+
+function _queueIntakeSend(patId, patName, link, bkDate, bkTime) {
+  // Determine timing: new patient → now, returning → 48h before appointment
+  var sendAt;
+  var apptTime = new Date(bkDate + 'T' + bkTime);
+  var now = new Date();
+  var hoursUntil = (apptTime - now) / 3600000;
+
+  if (hoursUntil <= 48) {
+    sendAt = new Date().toISOString(); // send immediately
+  } else {
+    var d = new Date(apptTime);
+    d.setHours(d.getHours() - 48);
+    sendAt = d.toISOString();
+  }
+
+  // Queue as retention action (uses existing retention infrastructure)
+  var sig = {
+    patId: patId, patName: patName,
+    triggerId: 'intake_form', priority: 2,
+    label: 'Intake-formulär inför besök',
+    sub: 'Skickas ' + new Date(sendAt).toLocaleDateString('sv-SE', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}),
+    icon: 'M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2',
+    channel: 'mail',
+    urgency: 'medium',
+    context: { type: 'intake', link: link, bkDate: bkDate, bkTime: bkTime, sendAt: sendAt }
+  };
+
+  var msg = {
+    subject: 'Hälsoprofilformulär inför ditt besök',
+    body: 'Hej ' + patName.split(' ')[0] + ',\n\nInför ditt besök den ' + _fmtBookingDate(bkDate) + ' kl ' + bkTime + ' ber vi dig fylla i ett kort hälsoformulär.\n\nDet tar 3–5 minuter och hjälper oss att förbereda ditt besök:\n→ ' + link + '\n\nVälkommen!',
+    channel: 'mail',
+    generated: true,
+  };
+
+  queueRetentionAction(sig, msg);
+}
+
+// ── BOOKING CONFIRMATION ──────────────────────────────────────────────────────
+function _showBookingConfirmation(bk, intake) {
+  document.getElementById('bk-confirm-ov')?.remove();
+  var ov = document.createElement('div');
+  ov.id = 'bk-confirm-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
+  ov.onclick = function(ev){ if(ev.target===ov){ ov.remove(); if(S.screen==='calendar') rCalendar(); } };
+
+  var h = '<div style="background:var(--surface);border-radius:20px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">';
+  h += '<div style="background:var(--navy);padding:22px 24px 18px">';
+  h += '<div style="width:40px;height:40px;border-radius:50%;background:rgba(13,155,138,.2);display:flex;align-items:center;justify-content:center;margin-bottom:12px">';
+  h += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div>';
+  h += '<div style="font-size:18px;font-weight:700;color:white">Bokning skapad</div>';
+  h += '<div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:4px">' + _fmtBookingDate(bk.date) + ' · ' + bk.time + ' · ' + bk.duration + ' min</div>';
+  h += '</div>';
+  h += '<div style="padding:20px 24px;display:flex;flex-direction:column;gap:12px">';
+
+  // Summary row
+  h += '<div style="display:flex;justify-content:space-between;font-size:13px">';
+  h += '<span style="color:var(--muted)">Patient</span><span style="font-weight:700;color:var(--ink)">' + e(bk.patientName) + '</span></div>';
+  if (bk.serviceName) {
+    h += '<div style="display:flex;justify-content:space-between;font-size:13px">';
+    h += '<span style="color:var(--muted)">Tjänst</span><span style="font-weight:600;color:var(--ink)">' + e(bk.serviceName) + '</span></div>';
+  }
+
+  // Intake status
+  if (bk.intakeSent) {
+    h += '<div class="bk-intake-banner">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+    h += '<div style="font-size:12px;line-height:1.6"><strong style="color:var(--teal)">Intake-formulär köat</strong><br>';
+    h += '<span style="color:var(--muted)">Skickas via mail 48h innan besöket. SMS om aktiverat i inställningar.</span>';
+    h += '<div style="margin-top:8px;display:flex;gap:8px">';
+    h += '<button onclick="_copyIntakeLink(\'' + bk.intakeLink + '\')" style="padding:5px 10px;background:none;border:1px solid var(--border);border-radius:7px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Kopiera länk</button>';
+    h += '<button onclick="_sendIntakeNow(\'' + bk.id + '\')" style="padding:5px 10px;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.2);border-radius:7px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Skicka nu</button>';
+    h += '</div></div></div>';
+  } else {
+    h += '<div style="font-size:12px;color:var(--muted);background:var(--bg);border-radius:10px;padding:10px 12px">Inget intake-formulär krävs för detta besök.</div>';
+  }
+
+  h += '</div>';
+  h += '<div style="padding:0 24px 20px;display:flex;gap:10px">';
+  h += '<button onclick="document.getElementById(\'bk-confirm-ov\').remove();if(S.screen===\'calendar\')rCalendar();" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Stäng</button>';
+  h += '<button onclick="document.getElementById(\'bk-confirm-ov\').remove();openPat(\'' + bk.patientId + '\')" class="btn btn-p" style="flex:1;padding:10px">Öppna patient →</button>';
+  h += '</div></div>';
+
+  ov.innerHTML = h;
+  document.body.appendChild(ov);
+}
+
+function _copyIntakeLink(link) {
+  navigator.clipboard?.writeText(link).then(function(){ showAutoSaveToast('Länk kopierad ✓'); });
+}
+function _sendIntakeNow(bkId) {
+  showAutoSaveToast('Skickar intake-formulär...');
+  // In production: trigger actual send. For now: mark as sent immediately.
+  var bk = getBooking(bkId);
+  if (bk) { bk.intakeSentAt = new Date().toISOString(); upsertBooking(bk); }
+  setTimeout(function(){ showAutoSaveToast('Intake skickat ✓'); }, 800);
+}
+
+// ── BOOKING DETAIL ────────────────────────────────────────────────────────────
+function openBookingDetail(bkId) {
+  if (bkId && typeof bkId === "object") bkId = bkId.dataset.bkid;
+  var bk = getBooking(bkId);
+  if (!bk) return;
+
+  document.getElementById('bk-detail-ov')?.remove();
+  var ov = document.createElement('div');
+  ov.id = 'bk-detail-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
+  ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
+
+  var statusColors = { scheduled:'var(--teal)', confirmed:'#1a7a4a', completed:'var(--muted)', cancelled:'#c03030', 'no-show':'#c8a030' };
+  var statusLabels = { scheduled:'Bokad', confirmed:'Bekräftad', completed:'Genomförd', cancelled:'Avbokad', 'no-show':'Uteblev' };
+  var sc = statusColors[bk.status] || 'var(--muted)';
+
+  var h = '<div class="bk-dialog" onclick="event.stopPropagation()">';
+  h += '<div class="bk-header">';
+  h += '<div style="display:flex;align-items:flex-start;justify-content:space-between">';
+  h += '<div><div style="font-size:17px;font-weight:700;color:white">' + e(bk.patientName) + '</div>';
+  h += '<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:3px">' + _fmtBookingDate(bk.date) + ' · ' + bk.time + ' · ' + bk.duration + ' min</div>';
+  if (bk.serviceName) h += '<div style="font-size:11px;color:rgba(13,155,138,.8);margin-top:2px">' + e(bk.serviceName) + '</div>';
+  h += '</div>';
+  h += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">';
+  h += '<button onclick="document.getElementById(\'bk-detail-ov\').remove()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1">×</button>';
+  h += '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:' + sc + '22;color:' + sc + ';border:1px solid ' + sc + '44">' + (statusLabels[bk.status]||bk.status) + '</span>';
+  h += '</div></div></div>';
+
+  h += '<div class="bk-body">';
+
+  // Status actions
+  h += '<div><div class="bk-label">Status</div>';
+  h += '<div style="display:flex;gap:7px;flex-wrap:wrap">';
+  ['scheduled','confirmed','completed','cancelled','no-show'].forEach(function(st){
+    var isCur = bk.status === st;
+    h += '<button onclick="_setBkStatus(\'' + bkId + '\',\'' + st + '\')" style="padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);border:1px solid ' + (isCur?statusColors[st]:'var(--border)') + ';background:' + (isCur?statusColors[st]+'22':'none') + ';color:' + (isCur?statusColors[st]:'var(--muted)') + '">' + statusLabels[st] + '</button>';
+  });
+  h += '</div></div>';
+
+  // Intake status
+  h += '<div>';
+  h += '<div class="bk-label">Intake-formulär</div>';
+  if (bk.intakeCompleted) {
+    h += '<div style="font-size:12px;color:#1a7a4a;font-weight:600">✓ Ifyllt av patient</div>';
+  } else if (bk.intakeSent) {
+    h += '<div style="font-size:12px;color:var(--muted)">Skickat ' + new Date(bk.intakeSentAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) + ' · Inväntar svar</div>';
+    h += '<div style="display:flex;gap:8px;margin-top:8px">';
+    h += '<button onclick="_copyIntakeLink(\'' + bk.intakeLink + '\')" style="padding:5px 10px;background:none;border:1px solid var(--border);border-radius:7px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Kopiera länk</button>';
+    h += '<button onclick="_sendIntakeNow(\'' + bkId + '\')" style="padding:5px 10px;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.2);border-radius:7px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Skicka igen</button>';
+    h += '</div>';
+  } else {
+    h += '<div style="display:flex;gap:8px">';
+    h += '<button onclick="_sendIntakeForBk(\'' + bkId + '\')" style="padding:7px 14px;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.2);border-radius:8px;font-size:12px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Skicka intake-formulär</button>';
+    h += '</div>';
+  }
+  h += '</div>';
+
+  if (bk.notes) {
+    h += '<div><div class="bk-label">Anteckning</div>';
+    h += '<div style="font-size:13px;color:var(--text);background:var(--bg);padding:10px 12px;border-radius:9px">' + e(bk.notes) + '</div></div>';
+  }
+
+  h += '</div>'; // bk-body
+
+  h += '<div class="bk-footer">';
+  h += '<button onclick="_deleteBk(\'' + bkId + '\')" style="padding:11px 16px;background:none;border:1px solid rgba(192,48,48,.3);border-radius:10px;font-size:12px;color:#c03030;cursor:pointer;font-family:var(--font)">Avboka</button>';
+  h += '<button onclick="document.getElementById(\'bk-detail-ov\').remove();openPat(\'' + bk.patientId + '\')" class="btn" style="flex:1;padding:11px">Öppna patient</button>';
+  h += '<button onclick="document.getElementById(\'bk-detail-ov\').remove();_startVisitFromBk(\'' + bkId + '\')" class="btn btn-p" style="flex:1;padding:11px">Ta emot →</button>';
+  h += '</div></div>';
+
+  ov.innerHTML = h;
+  document.body.appendChild(ov);
+}
+
+function _setBkStatus(bkId, status) {
+  var bk = getBooking(bkId);
+  if (!bk) return;
+  bk.status = status;
+  upsertBooking(bk);
+  document.getElementById('bk-detail-ov')?.remove();
+  openBookingDetail(bkId);
+  if (S.screen === 'calendar') rCalendar();
+}
+
+function _deleteBk(bkId) {
+  var bk = getBooking(bkId);
+  if (!bk || !confirm('Avboka ' + bk.patientName + '?')) return;
+  bk.status = 'cancelled';
+  upsertBooking(bk);
+  document.getElementById('bk-detail-ov')?.remove();
+  showAutoSaveToast('Bokning avbokad');
+  if (S.screen === 'calendar') rCalendar();
+}
+
+function _sendIntakeForBk(bkId) {
+  var bk = getBooking(bkId);
+  if (!bk) return;
+  var link = _generateIntakeLink(bk.patientId);
+  bk.intakeSent = true;
+  bk.intakeSentAt = new Date().toISOString();
+  bk.intakeLink = link;
+  upsertBooking(bk);
+  _queueIntakeSend(bk.patientId, bk.patientName, link, bk.date, bk.time);
+  showAutoSaveToast('Intake-formulär köat för ' + bk.patientName);
+  document.getElementById('bk-detail-ov')?.remove();
+  openBookingDetail(bkId);
+}
+
+// Start a visit directly from a booking (pre-fills patient + service)
+function _startVisitFromBk(bkId) {
+  var bk = getBooking(bkId);
+  if (!bk) return;
+  document.getElementById('bk-detail-ov')?.remove();
+  // Mark as in-progress
+  bk.status = 'confirmed';
+  upsertBooking(bk);
+  // Navigate to patient and trigger visit
+  openPat(bk.patientId);
+  showAutoSaveToast('Tar emot ' + bk.patientName + ' →');
+}
+
+// Today's bookings count for dashboard badge
+function getTodayBookingsCount() {
+  var today = dateStr(new Date());
+  return getBookings().filter(function(b){ return b.date === today && b.status !== 'cancelled'; }).length;
 }
 
 function toggleSidebarCollapse() {
@@ -3795,9 +4566,9 @@ function rTopbar() {
   // -- SIDEBAR NAV LINKS ------------------------------------------------------
   const nav = document.getElementById('nav-links');
   if (nav) {
-    // CTA: Starta besök
-    var nh = '<button class="nav-item" onclick="startVisitFlow();_closeSidebar()" style="background:rgba(13,155,138,.18);color:#3dcfbd;font-weight:700;border:1px solid rgba(13,155,138,.2);margin-bottom:10px">'
-      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Starta besök</button>';
+    // CTA: Ta emot
+    var nh = '<button class="nav-item" onclick="openBookingDialog(null,null);_closeSidebar()" style="background:rgba(13,155,138,.18);color:#3dcfbd;font-weight:700;border:1px solid rgba(13,155,138,.2);margin-bottom:10px">'
+      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ta emot</button>';
 
     // Clinic context switcher (visible to org owners with >1 clinic)
     var _clinics = getClinics();
@@ -3818,6 +4589,7 @@ function rTopbar() {
     nh += '<div class="nav-section-label">Klinik</div>';
     [{s:'dashboard',label:'Hem',svg:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'},
      {s:'list',label:'Patienter',badge:S.patients.length||null,svg:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'},
+     {s:'calendar',label:'Kalender',badge:null,svg:'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'},
     ].forEach(function(it) {
       nh += '<button class="nav-item '+(scr===it.s?'active':'')+'" onclick="go(\''+it.s+'\');_closeSidebar()">'
         +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+it.svg+'</svg>'+'<span class="nav-item-label">'+it.label+'</span>'+'<span class="nav-tooltip">'+it.label+'</span>'+'</button>';
@@ -4135,7 +4907,7 @@ function rDashboard() {
       + '</div>'
       + '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:6px">Lägg till din första patient</div>'
       + '<div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Starta ett besök för att registrera patienten och generera en Hael-plan.</div>'
-      + '<button onclick="startVisitFlow()" class="btn btn-p" style="font-size:13px;padding:9px 20px">Starta besök →</button>'
+      + '<button onclick="startVisitFlow()" class="btn btn-p" style="font-size:13px;padding:9px 20px">Ta emot →</button>'
       + '</div>';
 
   // ── KLINIKPULS ─────────────────────────────────────────────
@@ -4180,9 +4952,22 @@ function rDashboard() {
     +     '<div class="cc-date">'+dayName.charAt(0).toUpperCase()+dayName.slice(1)+' · '+dateStr+'</div>'
     +   '</div>'
 
-    +   '<button onclick="startVisitFlow()" style="background:var(--teal);color:white;border:none;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:7px;flex-shrink:0">'    +     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'    +     'Starta besök'    +   '</button>'    + '</div>'
+    +   '<button onclick="startVisitFlow()" style="background:var(--teal);color:white;border:none;border-radius:10px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:7px;flex-shrink:0">'    +     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'    +     'Ta emot'    +   '</button>'    + '</div>'
     // MORNING REPORT (nightly scan result)
     + '<div id="morning-report-card"></div>'
+
+    // DAGENS BOKNINGAR
+    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px">'
+    +   '<div style="padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">'
+    +     '<div style="font-size:13px;font-weight:700;color:var(--ink)">Dagens bokningar</div>'
+    +     '<button onclick="openBookingDialog(null,null)" style="padding:5px 12px;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.2);border-radius:8px;font-size:11px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px">'
+    +       '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ta emot'
+    +     '</button>'
+    +   '</div>'
+    +   '<div id="dash-bookings-widget" style="padding:4px 18px 8px">'
+    +     '<div style="font-size:12px;color:var(--muted);padding:12px 0">Laddar bokningar...</div>'
+    +   '</div>'
+    + '</div>'
 
     // AI BRIEFING
     + '<div class="cc-briefing" id="cc-briefing-card">'
@@ -4247,6 +5032,7 @@ function rDashboard() {
   setTimeout(() => generateDailyBriefing(), 400);
   setTimeout(() => checkAdaptivePlanAlerts(S.patients), 1000);
   setTimeout(function(){ _renderMorningReportCard(); }, 100);
+  setTimeout(function(){ _renderDashboardBookings(); }, 150);
 }
 
 // Quick actions from dashboard -- no patient required upfront
@@ -4690,7 +5476,7 @@ function rDetail(){
         <div class="det-action-card-body">
           <button class="det-action-btn primary" onclick="startVisitFlow()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Starta besök
+            Ta emot
           </button>
           <button class="det-action-btn" onclick="startManualSOAP()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
@@ -13666,7 +14452,7 @@ function startVisitFlow() {
   ov.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px);animation:fadeInOv .15s ease';
   ov.onclick = function(ev) { if(ev.target===ov) ov.remove(); };
   ov.innerHTML = '<div style="background:var(--surface);border-radius:20px;width:100%;max-width:420px;overflow:hidden;box-shadow:var(--shadow-lg)" onclick="event.stopPropagation()">'
-    + '<div style="background:var(--navy);padding:20px 24px 16px"><div style="font-size:20px;font-weight:700;color:white">Starta besök</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px">Välj patient och tjänst</div></div>'
+    + '<div style="background:var(--navy);padding:20px 24px 16px"><div style="font-size:20px;font-weight:700;color:white">Ta emot</div><div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:3px">Välj patient och tjänst</div></div>'
     + '<div style="padding:16px 20px;display:flex;flex-direction:column;gap:10px">'
     + '<button onclick="document.getElementById(\'start-visit-ov\').remove();newPatientFlow()" style="display:flex;align-items:center;gap:14px;background:var(--bg);border:1.5px solid var(--border);border-radius:14px;padding:14px 18px;text-align:left;cursor:pointer;font-family:var(--font);width:100%">'
     + '<div style="width:38px;height:38px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></div>'
@@ -13705,7 +14491,7 @@ function openHelpCenter() {
   ov2.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:flex-end;justify-content:flex-end;background:rgba(7,16,30,.5);backdrop-filter:blur(4px)';
   ov2.onclick = function(ev) { if(ev.target===ov2) ov2.remove(); };
   var topics = [
-    { q:'Hur skapar jag en Hael-plan?', a:'Kundkort → Starta besök → fyll i formuläret → Generera rehabplan. Planen skickas som en länk till patienten.' },
+    { q:'Hur skapar jag en Hael-plan?', a:'Kundkort → Ta emot → fyll i formuläret → Generera rehabplan. Planen skickas som en länk till patienten.' },
     { q:'Hur skickar jag intake-formulär?', a:'På kundkortet under Verktyg → Skicka intake-formulär. Patienten fyller i och planen genereras automatiskt.' },
     { q:'Vad är Planköen på dashboarden?', a:'AI granskar varje genererad plan och flaggar grön/gul/röd. Gröna auto-releasas efter 48h. Röda och gula kräver din godkänning.' },
     { q:'Hur bjuder jag in ett teammedlem?', a:'Inställningar → Användare → fyll i namn, e-post och roll → Bjud in.' },
@@ -17441,6 +18227,57 @@ async function _generateMorningSummary(report) {
 }
 
 // ── 7. RENDER MORNING REPORT CARD (injects into dashboard) ────────────────────
+
+function _renderDashboardBookings() {
+  var el = document.getElementById('dash-bookings-widget');
+  if (!el) return;
+  var today = dateStr(new Date());
+  var tomorrow = dateStr(new Date(Date.now() + 86400000));
+  var bks = getBookings().filter(function(b){ return (b.date===today||b.date===tomorrow) && b.status!=='cancelled'; });
+  var todayBks = bks.filter(function(b){ return b.date===today; }).sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
+  var tomorrowBks = bks.filter(function(b){ return b.date===tomorrow; }).sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
+  if (!todayBks.length && !tomorrowBks.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px 0">Inga bokningar idag eller imorgon.</div>';
+    var _cb = document.createElement('button');
+    _cb.textContent = 'Öppna kalender';
+    _cb.onclick = function(){ go('calendar'); };
+    _cb.style.cssText = 'margin-top:8px;padding:5px 14px;background:none;border:1px solid var(--border);border-radius:7px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)';
+    el.firstChild && el.firstChild.appendChild(_cb);
+    return;
+  }
+  var h = '';
+  function bkRow(bk) {
+    var cols = {scheduled:'var(--teal)',confirmed:'#1a7a4a',completed:'var(--muted)','no-show':'#c8a030'};
+    var col = cols[bk.status]||'var(--teal)';
+    return '<div onclick="openBookingDetail(this.dataset.bkid)" data-bkid="' + bk.id + '" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2);cursor:pointer">'
+      + '<div style="width:42px;text-align:right;font-size:12px;font-weight:700;color:var(--muted);flex-shrink:0">' + (bk.time||'—') + '</div>'
+      + '<div style="width:4px;height:4px;border-radius:50%;background:' + col + ';flex-shrink:0"></div>'
+      + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + e(bk.patientName) + '</div>'
+      + (bk.serviceName?'<div style="font-size:11px;color:var(--muted)">' + e(bk.serviceName) + ' · ' + bk.duration + ' min</div>':'')
+      + '</div>'
+      + (bk.intakeSent&&!bk.intakeCompleted?'<div style="font-size:10px;color:var(--teal);flex-shrink:0">📋</div>':'')
+      + (bk.intakeCompleted?'<div style="font-size:10px;color:#1a7a4a;flex-shrink:0">✓</div>':'')
+      + '<button onclick="event.stopPropagation();_startVisitFromBk(this.closest(\'[data-bkid]\').dataset.bkid)" style="padding:4px 10px;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.2);border-radius:7px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font);flex-shrink:0;white-space:nowrap">Ta emot</button>'
+      + '</div>';
+  }
+  if (todayBks.length) {
+    h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:4px 0 6px">Idag</div>';
+    todayBks.forEach(function(bk){ h += bkRow(bk); });
+  }
+  if (tomorrowBks.length) {
+    h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:10px 0 6px">Imorgon</div>';
+    tomorrowBks.forEach(function(bk){ h += bkRow(bk); });
+  }
+  var _gcb = document.createElement('button');
+  _gcb.textContent = 'Kalender →';
+  _gcb.onclick = function(){ go('calendar'); };
+  _gcb.style.cssText = 'padding-top:8px;background:none;border:none;font-size:11px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)';
+  h += '<div style="padding-top:8px;text-align:right" id="cal-link-row"></div>';
+  el.innerHTML = h;
+  var _clr = el.querySelector('#cal-link-row');
+  if (_clr) { var _gcb2 = document.createElement('button'); _gcb2.textContent = 'Kalender →'; _gcb2.onclick = function(){ go('calendar'); }; _gcb2.style.cssText = 'background:none;border:none;font-size:11px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)'; _clr.appendChild(_gcb2); }
+}
+
 function _renderMorningReportCard() {
   var el = document.getElementById('morning-report-card');
   if (!el) return;

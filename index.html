@@ -13241,7 +13241,7 @@ Månadsintäkt: ${monthRevenue.toLocaleString('sv-SE')} kr
 Kräver åtgärd: ${urgent.map(p=>p.name+'('+_clinPriority(p).primary+')').join(', ')||'inga'}
 Förfallna återbesök: ${overdue.map(p=>p.name).join(', ')||'inga'}`;
 
-  const prompt = `Du är AI-assistent för en kliniker. Skriv en kort morgonbriefing på 2-3 meningar på svenska. Tonen ska vara konkret och handlingsinriktad — som en erfaren kollega som sammanfattar läget. Nämn det viktigaste att agera på. Inga listor. Avsluta inte med "Ha en bra dag".\n\n${ctx}`;
+  const prompt = `Du är AI-assistent för en kliniker. Skriv en kort morgonbriefing på 2-3 meningar på svenska. Tonen ska vara konkret och handlingsinriktad — som en erfaren kollega som sammanfattar läget. Nämn det viktigaste att agera på. Inga listor. Avsluta inte med "Ha en bra dag".\n\n${ctx}${getAiProfileContext()}`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages',{
@@ -14188,439 +14188,371 @@ function _stField(id, label, val, placeholder, type) {
 }
 
 // ── KOMMUNIKATION TAB ────────────────────────────────────────
+// ── KOMMUNIKATION TAB ────────────────────────────────────────
 function _stComms(cfg) {
-  var sig = cfg.signatory || cfg.name || 'Kliniken';
   var tab = window._commsTab || 'mail';
 
-  // Helper: resolve variables in a template string
-  function resolveVars(text) {
-    return (text||'')
-      .replace(/\[klinik\]/g, e(cfg.name||'Kliniken'))
-      .replace(/\[adress\]/g, e(cfg.address||''))
-      .replace(/\[telefon\]/g, e(cfg.phone||''))
-      .replace(/\[signatur\]/g, e(sig))
-      .replace(/\[mail\]/g, e(cfg.email||''))
-      .replace(/\[webbplats\]/g, e(cfg.website||''));
+  // Resolve template variables with live clinic data
+  function resolveVars(text, patName) {
+    patName = patName || 'Patienten';
+    var clinic = getActiveClinic && getActiveClinic() || cfg;
+    return (text || '')
+      .replace(/\[klinik\]/g,   clinic.name    || cfg.name    || '')
+      .replace(/\[adress\]/g,   clinic.address || cfg.address || '')
+      .replace(/\[telefon\]/g,  clinic.phone   || cfg.phone   || '')
+      .replace(/\[mail\]/g,     clinic.email   || cfg.email   || '')
+      .replace(/\[signatur\]/g, clinic.signatory || cfg.signatory || clinic.name || cfg.name || '')
+      .replace(/\[webbplats\]/g,clinic.website || cfg.website || '')
+      .replace(/\[namn\]/g,     patName)
+      .replace(/\[datum\]/g,    new Date().toLocaleDateString('sv-SE'))
+      .replace(/\[tid\]/g,      '10:00')
+      .replace(/\[länk\]/g,     'hael.vela.se/plan/...');
   }
 
-  // SVG icon helper
-  function icon(path, size) {
-    size = size||16;
+  function svgIcon(path, size) {
+    size = size || 15;
     return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+path+'</svg>';
   }
 
+  var clinic = (getActiveClinic && getActiveClinic()) || cfg;
+  var clinicName = clinic.name || cfg.name || 'Kliniken';
+
   var h = '<div class="vela-st-section" style="max-width:820px">';
-
-  // ── PAGE HEADER ─────────────────────────────────────────────
-  h += '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px">';
-  h += '<div>';
-  h += '<div class="vela-st-title" style="margin-bottom:4px">Kommunikation</div>';
-  h += '<div class="vela-st-desc" style="max-width:560px">Automatiska mail och SMS, AI-svar på inkommande meddelanden, och full händelselogg per patient. Allt skickas från klinikens egen adress.</div>';
-  h += '</div>';
-  // Clinic context badge (multi-clinic awareness)
-  h += '<div style="flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px">';
-  h += icon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',14);
-  h += '<span style="font-size:12px;font-weight:600;color:var(--ink)">'+e(cfg.name||'Kliniken')+'</span>';
-  h += '</div>';
+  h += '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px">';
+  h += '<div><div class="vela-st-title" style="margin-bottom:4px">Kommunikation</div>';
+  h += '<div class="vela-st-desc">Automatiska mail och SMS. Allt skickas från klinikens adress och loggas på kundkortet.</div></div>';
+  h += '<div style="flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:7px 12px;display:flex;align-items:center;gap:7px">';
+  h += svgIcon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',13);
+  h += '<span style="font-size:12px;font-weight:600;color:var(--ink)">'+e(clinicName)+'</span></div>';
   h += '</div>';
 
-  // ── TAB BAR ─────────────────────────────────────────────────
+  // Tab bar
   var tabs = [
-    {id:'mail', label:'Mailflöde', icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>'},
-    {id:'sms', label:'SMS-automation', icon:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'},
-    {id:'signature', label:'Signatur & stil', icon:'<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>'},
-    {id:'connect', label:'Kopplingar', icon:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'},
+    {id:'mail',      label:'Mail & AI-svar',   path:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>'},
+    {id:'sms',       label:'SMS-automation',   path:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'},
+    {id:'signature', label:'Signatur',          path:'<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>'},
+    {id:'connect',   label:'Kopplingar',        path:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'},
   ];
-  h += '<div style="display:flex;gap:2px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:24px">';
+  h += '<div style="display:flex;gap:2px;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:3px;margin-bottom:22px">';
   tabs.forEach(function(t) {
     var a = tab === t.id;
-    h += '<button onclick="window._commsTab=\''+t.id+'\';_renderSettingsContent(\'comms\')" '
-      + 'style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 6px;border:none;border-radius:9px;font-size:12px;font-weight:'+(a?'700':'500')+';cursor:pointer;font-family:var(--font);'
-      + 'background:'+(a?'var(--surface)':'none')+';color:'+(a?'var(--teal)':'var(--muted)')+';transition:all .15s">';
-    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">'+t.icon+'</svg>';
-    h += t.label+'</button>';
+    h += '<button onclick="window._commsTab=\''+t.id+'\';_renderSettingsContent(\'comms\')"'
+      +' style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border:none;border-radius:9px;font-size:12px;font-weight:'+(a?'700':'500')+';cursor:pointer;font-family:var(--font);background:'+(a?'var(--surface)':'transparent')+';color:'+(a?'var(--teal)':'var(--muted)')+';transition:all .12s">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">'+t.path+'</svg>'+t.label+'</button>';
   });
   h += '</div>';
 
-  // ═══════════════════════════════════════════════════════════
+  // ═══ MAIL ═══════════════════════════════════════════════════
   if (tab === 'mail') {
+    var aiOn = localStorage.getItem('vela:ai-mail') === 'on';
+    var mailConn = !!localStorage.getItem('vela:mail-connected');
+    var tone = localStorage.getItem('vela:mail-tone') || 'professional';
 
-    // Status overview row
-    var hasMailConn = !!localStorage.getItem('vela:mail-connected');
-    h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">';
-    var statusItems = [
-      {label:'Mailkonto', val: hasMailConn ? 'Kopplat' : 'Ej kopplat', ok: hasMailConn, action:'connect'},
-      {label:'AI-svar', val: localStorage.getItem('vela:ai-mail')==='on' ? 'På' : 'Av', ok: localStorage.getItem('vela:ai-mail')==='on', action:'toggle'},
-      {label:'Aktiva mallar', val: ['intake','plan','reminder','followup'].filter(function(x){try{return JSON.parse(localStorage.getItem('vela:mail-tmpl:'+x)||'{}').active;}catch(e){return x==='intake'||x==='plan';}}).length + ' av 4', ok: true, action: null},
-      {label:'Logg på kundkort', val: 'Alltid på', ok: true, action: null},
-    ];
-    statusItems.forEach(function(s) {
-      h += '<div style="background:var(--surface);border:1px solid '+(s.ok?'rgba(13,155,138,.2)':'var(--border)')+';border-radius:10px;padding:12px 14px;cursor:'+(s.action?'pointer':'default')+'" '+(s.action==='connect'?'onclick="window._commsTab=\'connect\';_renderSettingsContent(\'comms\')"':s.action==='toggle'?'onclick="_toggleAiMail()"':'')+'>';
-      h += '<div style="font-size:10px;color:var(--muted);margin-bottom:3px">'+s.label+'</div>';
-      h += '<div style="font-size:13px;font-weight:700;color:'+(s.ok?'var(--teal)':'#c07070')+'">'+s.val+'</div>';
+    // Status row
+    h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">';
+    [
+      {l:'Mailkonto',    v:mailConn?'Kopplat':'Ej kopplat',   ok:mailConn, action:"window._commsTab='connect';_renderSettingsContent('comms')"},
+      {l:'AI-svar',      v:aiOn?'Aktivt':'Inaktivt',          ok:aiOn,     action:'_toggleAiMail()'},
+      {l:'Aktiva mallar',v:(function(){var n=0;['intake','plan','reminder','followup'].forEach(function(x){try{if(JSON.parse(localStorage.getItem('vela:mail-tmpl:'+x)||'{}').active)n++;}catch(ex){}});return n||2;})()+' av 4', ok:true, action:null},
+      {l:'Händelselogg', v:'Alltid på',                       ok:true,     action:null},
+    ].forEach(function(s) {
+      h += '<div style="background:var(--surface);border:1px solid '+(s.ok?'rgba(13,155,138,.2)':'var(--border)')+';border-radius:10px;padding:11px 13px;cursor:'+(s.action?'pointer':'default')+'"'+(s.action?' onclick="'+s.action+'"':'')+' >';
+      h += '<div style="font-size:10px;color:var(--muted);margin-bottom:3px">'+s.l+'</div>';
+      h += '<div style="font-size:13px;font-weight:700;color:'+(s.ok?'var(--teal)':'#c07070')+'">'+s.v+'</div>';
       h += '</div>';
     });
     h += '</div>';
 
-    // AI mail responder
-    var aiOn = localStorage.getItem('vela:ai-mail') === 'on';
-    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:16px">';
-    h += '<div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
+    // AI mail toggle card
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:14px">';
+    h += '<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
     h += '<div style="display:flex;align-items:center;gap:10px">';
-    h += '<div style="width:36px;height:36px;border-radius:10px;background:rgba(13,155,138,.1);display:flex;align-items:center;justify-content:center">';
-    h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    h += '<div style="width:34px;height:34px;border-radius:9px;background:rgba(13,155,138,.1);display:flex;align-items:center;justify-content:center">';
+    h += svgIcon('<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>', 16);
     h += '</div>';
     h += '<div><div style="font-size:13px;font-weight:700;color:var(--ink)">AI-mailsvar</div>';
-    h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">Föreslår svar på inkommande mail — du granskar innan det skickas</div></div>';
-    h += '</div>';
-    // Toggle
+    h += '<div style="font-size:11px;color:var(--muted)">AI föreslår svar — du granskar innan det skickas</div></div></div>';
     h += '<div style="display:flex;align-items:center;gap:8px">';
-    h += '<span style="font-size:12px;color:var(--muted)">'+(aiOn?'Aktiv':'Inaktiv')+'</span>';
-    h += '<div id="ai-mail-toggle" style="width:40px;height:22px;border-radius:11px;background:'+(aiOn?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;transition:background .2s;flex-shrink:0" onclick="_toggleAiMail()">';
-    h += '<div style="position:absolute;top:3px;left:'+(aiOn?'19px':'3px')+';width:16px;height:16px;border-radius:50%;background:white;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div>';
+    h += '<span style="font-size:12px;color:var(--muted)">'+(aiOn?'Aktivt':'Inaktivt')+'</span>';
+    h += '<div style="width:38px;height:21px;border-radius:11px;background:'+(aiOn?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;flex-shrink:0;transition:background .2s" onclick="_toggleAiMail()">';
+    h += '<div style="position:absolute;top:3px;left:'+(aiOn?'19px':'3px')+';width:15px;height:15px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div>';
     h += '</div></div>';
-
     if (aiOn) {
-      h += '<div style="padding:16px 20px;border-bottom:1px solid var(--border)">';
       // Flow diagram
-      h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Flöde</div>';
+      h += '<div style="padding:12px 18px;border-bottom:1px solid var(--border)">';
       h += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">';
-      var steps = [
-        {label:'Patient mailar', neutral:true},
-        {label:'AI klassificerar', neutral:false},
-        {label:'Förslag skapas', neutral:false},
-        {label:'Du godkänner', active:true},
-        {label:'Skickas från din adress', active:true},
-      ];
-      steps.forEach(function(s, i) {
-        if (i > 0) h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
-        h += '<span style="font-size:11px;padding:4px 9px;border-radius:6px;background:'+(s.active?'rgba(13,155,138,.12)':s.neutral?'var(--bg)':'var(--surface)')+';color:'+(s.active?'var(--teal)':'var(--text)')+';font-weight:'+(s.active?'700':'400')+'">'+s.label+'</span>';
+      ['Patient mailar','AI klassificerar','Förslag skapas','Du godkänner','Skickas'].forEach(function(s,i) {
+        if(i) h += svgIcon('<path d="M5 12h14M12 5l7 7-7 7"/>',11);
+        h += '<span style="font-size:11px;padding:3px 9px;border-radius:6px;background:'+(i>=3?'rgba(13,155,138,.1)':'var(--bg)')+';color:'+(i>=3?'var(--teal)':'var(--text)')+';font-weight:'+(i>=3?700:400)+'">'+s+'</span>';
       });
       h += '</div></div>';
-      // Tone setting
-      h += '<div style="padding:14px 20px">';
-      h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Svarstonalitet</div>';
-      var tone = localStorage.getItem('vela:mail-tone') || 'professional';
+      // Tone
+      h += '<div style="padding:12px 18px"><div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Svarstonalitet</div>';
       h += '<div style="display:flex;gap:8px">';
       [['professional','Professionell','Formellt och sakligt'],['warm','Varm','Personlig och omtänksam'],['brief','Kortfattat','Direkt och effektivt']].forEach(function(t) {
         var sel = tone === t[0];
-        h += '<button onclick="localStorage.setItem(\'vela:mail-tone\',\''+t[0]+'\');_renderSettingsContent(\'comms\')" '
-          + 'style="flex:1;padding:8px 10px;border:1.5px solid '+(sel?'var(--teal)':'var(--border)')+';border-radius:10px;background:'+(sel?'rgba(13,155,138,.07)':'none')+';cursor:pointer;font-family:var(--font)">';
-        h += '<div style="font-size:12px;font-weight:'+(sel?'700':'500')+';color:'+(sel?'var(--teal)':'var(--ink)')+'">'+t[1]+'</div>';
-        h += '<div style="font-size:10px;color:var(--muted);margin-top:2px">'+t[2]+'</div>';
-        h += '</button>';
+        h += '<button onclick="localStorage.setItem(\'vela:mail-tone\',\''+t[0]+'\');_renderSettingsContent(\'comms\')" style="flex:1;padding:8px;border:1.5px solid '+(sel?'var(--teal)':'var(--border)')+';border-radius:9px;background:'+(sel?'rgba(13,155,138,.07)':'none')+';cursor:pointer;font-family:var(--font)">';
+        h += '<div style="font-size:12px;font-weight:'+(sel?700:500)+';color:'+(sel?'var(--teal)':'var(--ink)')+'">'+t[1]+'</div>';
+        h += '<div style="font-size:10px;color:var(--muted);margin-top:2px">'+t[2]+'</div></button>';
       });
       h += '</div></div>';
     }
     h += '</div>';
 
     // Mail templates
-    var templateDefs = [
+    var tmplDefs = [
       {id:'intake',   icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
-        label:'Intake-formulär', trigger:'Skickas när du delar formulärlänk med ny patient',
-        defaultBody:'Hej [namn],\n\nVälkommen till [klinik]! Inför ditt besök ber vi dig fylla i ett kort hälsoformulär:\n[länk]\n\nDet tar bara ett par minuter och hjälper oss ge dig bästa möjliga vård.\n\nMed vänliga hälsningar,\n[signatur]\n[klinik]\n[telefon]'},
+        label:'Intake-formulär', trigger:'Skickas när du delar formulärlänk',
+        body:'Hej [namn],\n\nVälkommen till [klinik]! Fyll i ditt hälsoformulär inför besöket:\n[länk]\n\nMed vänliga hälsningar,\n[signatur]\n[klinik] · [telefon]'},
       {id:'plan',     icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
         label:'Hael-plan klar', trigger:'Skickas automatiskt när planen godkänns',
-        defaultBody:'Hej [namn],\n\nDin rehabplan är nu klar! Öppna den direkt i mobilen:\n[länk]\n\nPlanen är anpassad just för dig och uppdateras allteftersom vi följer din progress. Hör av dig om du har frågor.\n\nMed vänliga hälsningar,\n[signatur]\n[klinik] · [telefon]'},
+        body:'Hej [namn],\n\nDin rehabplan är klar! Öppna den direkt:\n[länk]\n\nHör av dig om du har frågor.\n\nMed vänliga hälsningar,\n[signatur]\n[klinik] · [telefon]'},
       {id:'reminder', icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
         label:'Påminnelse inför besök', trigger:'Skickas 24h innan bokat besök',
-        defaultBody:'Hej [namn],\n\nDetta är en påminnelse om din tid hos oss imorgon [datum] kl [tid].\n\nAdress: [adress]\n\nOm du behöver ändra eller avboka:\n[länk]\n\nVi ses imorgon!\n\n[signatur]\n[klinik] · [telefon]'},
+        body:'Hej [namn],\n\nPåminnelse om din tid imorgon [datum] kl [tid].\n\nAdress: [adress]\n\nÄndra eller avboka:\n[länk]\n\n[signatur]\n[klinik] · [telefon]'},
       {id:'followup', icon:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
         label:'Uppföljning efter besök', trigger:'Skickas 48h efter avslutat besök',
-        defaultBody:'Hej [namn],\n\nHoppas besöket hos oss gick bra! Vi vore glada om du tog ett par minuter att berätta hur du mår.\n\nBehöver du ett uppföljningsbesök eller har du frågor är du alltid välkommen att höra av dig.\n\n[telefon] · [mail]\n\nMed vänliga hälsningar,\n[signatur]\n[klinik]'},
+        body:'Hej [namn],\n\nHoppas besöket hos oss gick bra! Hör av dig om du har frågor.\n\n[telefon] · [mail]\n\nMed vänliga hälsningar,\n[signatur]\n[klinik]'},
     ];
 
     h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
-    h += '<div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
+    h += '<div style="padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
     h += '<div><div style="font-size:13px;font-weight:700;color:var(--ink)">Automatiska mailmallar</div>';
-    h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">Variablerna [klinik], [adress], [telefon] m.fl. ersätts automatiskt med klinikens uppgifter</div></div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">[klinik], [adress], [telefon], [signatur] ersätts automatiskt med <strong style="color:var(--teal)">'+e(clinicName)+'</strong>s uppgifter</div></div>';
     h += '</div>';
+    tmplDefs.forEach(function(tmpl,i) {
+      var stored = null; try { stored = JSON.parse(localStorage.getItem('vela:mail-tmpl:'+tmpl.id)||'null'); } catch(ex) {}
+      var active  = stored ? stored.active  : (tmpl.id==='intake'||tmpl.id==='plan');
+      var body    = stored ? stored.body    : tmpl.body;
+      // Live-resolved preview (first line only)
+      var preview = resolveVars(body).split('\n').filter(function(l){return l.trim();}).slice(0,2).join(' — ');
+      window._mailTmplCache = window._mailTmplCache || {};
+      window._mailTmplCache[tmpl.id] = {label: tmpl.label, body: body};
 
-    templateDefs.forEach(function(tmpl, i) {
-      var stored = JSON.parse(localStorage.getItem('vela:mail-tmpl:'+tmpl.id) || 'null');
-      var active = stored ? stored.active : (tmpl.id === 'intake' || tmpl.id === 'plan');
-      var body = stored ? stored.body : tmpl.defaultBody;
-
-      h += '<div style="padding:14px 20px;'+(i>0?'border-top:1px solid var(--border2)':'')+'display:flex;align-items:center;gap:14px">';
-      h += '<div style="width:32px;height:32px;border-radius:9px;background:rgba(13,155,138,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-      h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round">'+tmpl.icon+'</svg></div>';
+      h += '<div style="padding:12px 18px;'+(i>0?'border-top:1px solid var(--border2)':'')+';display:flex;align-items:center;gap:12px">';
+      h += '<div style="width:30px;height:30px;border-radius:8px;background:rgba(13,155,138,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--teal)">';
+      h += svgIcon(tmpl.icon, 14)+'</div>';
       h += '<div style="flex:1;min-width:0">';
       h += '<div style="font-size:13px;font-weight:600;color:var(--ink)">'+tmpl.label+'</div>';
       h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">'+tmpl.trigger+'</div>';
+      h += '<div style="font-size:11px;color:var(--text3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px" title="'+e(resolveVars(body))+'">'+e(preview)+'</div>';
       h += '</div>';
-      // Active toggle
       h += '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">';
-      h += '<span style="font-size:11px;color:var(--muted)">'+(active?'Aktiv':'Inaktiv')+'</span>';
-      h += '<div style="width:34px;height:19px;border-radius:10px;background:'+(active?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;transition:background .2s" onclick="_toggleMailTemplate(\''+tmpl.id+'\','+JSON.stringify(tmpl.defaultBody)+')">';
-      h += '<div style="position:absolute;top:2px;left:'+(active?'15px':'2px')+';width:15px;height:15px;border-radius:50%;background:white;transition:left .2s"></div></div>';
-      // Edit button
-      window._mailTmplCache = window._mailTmplCache || {}; window._mailTmplCache[tmpl.id] = {label: tmpl.label, body: body};
-      h += '<button onclick="_openMailEditor(\\\'' + tmpl.id + '\\\')" class="btn" style="font-size:11px;padding:4px 10px">Redigera</button>';
+      // Active toggle
+      h += '<span style="font-size:10px;color:var(--muted)">'+(active?'Aktiv':'Av')+'</span>';
+      h += '<div style="width:32px;height:18px;border-radius:9px;background:'+(active?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;transition:background .2s" onclick="_toggleMailTemplate(\''+tmpl.id+'\',\''+active+'\')">';
+      h += '<div style="position:absolute;top:2px;left:'+(active?'14px':'2px')+';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div></div>';
+      h += '<button onclick="_openMailEditor(\''+tmpl.id+'\')" style="padding:4px 10px;background:none;border:1px solid var(--border);border-radius:7px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Redigera</button>';
       h += '</div></div>';
     });
     h += '</div>';
 
-  // ═══════════════════════════════════════════════════════════
+  // ═══ SMS ════════════════════════════════════════════════════
   } else if (tab === 'sms') {
+    var smsItems = [
+      {id:'sms_booking',  label:'Bokningsbekräftelse',    sub:'Direkt vid ny bokning',
+        icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+        tpl:'Bokning bekräftad hos [klinik] — [datum] kl [tid]. Adress: [adress]. Frågor: [telefon]'},
+      {id:'sms_reminder', label:'Påminnelse',              sub:'24h innan besöket',
+        icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+        tpl:'Påminnelse: tid hos [klinik] imorgon [datum] kl [tid]. Adress: [adress]. Avboka: [länk]'},
+      {id:'sms_cancel',   label:'Avbokningsbekräftelse',  sub:'Direkt vid avbokning',
+        icon:'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+        tpl:'Din tid hos [klinik] [datum] är avbokad. Ny tid: [länk]'},
+      {id:'sms_plan',     label:'Hael-plan klar',          sub:'När planen skickas till patienten',
+        icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+        tpl:'Din rehabplan från [klinik] är klar: [länk] · Frågor: [telefon]'},
+      {id:'sms_after',    label:'Uppföljning efter besök', sub:'3h efter avslutat besök',
+        icon:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+        tpl:'Hoppas besöket gick bra! Hör av dig om du har frågor. [telefon] / [klinik]'},
+      {id:'sms_followup', label:'Uppföljning 7 dagar',     sub:'7 dagar efter senaste besök',
+        icon:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+        tpl:'Hur mår du? Dags för uppföljning? Boka enkelt: [länk] · [klinik]'},
+      {id:'sms_checkin',  label:'Träningspåminnelse',      sub:'Dagar utan loggning i Hael',
+        icon:'<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+        tpl:'Glöm inte träningen! Logga i din Hael-plan: [länk]'},
+    ];
 
-    // Provider + status
-    var smsProvider = localStorage.getItem('vela:sms-provider') || '';
-    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">';
-    [
-      {id:'46elks', name:'46elks', tagline:'Svensk · GDPR-säker · Enkelt API', color:'#2563eb',
-       desc:'Rekommenderas för svenska kliniker. Ingen bindningstid, betala per SMS.'},
-      {id:'twilio', name:'Twilio', tagline:'Global · Kraftfull · Webhooks', color:'#F22F46',
-       desc:'Används av stora plattformar globalt. Bra om kliniken redan har Twilio.'},
-    ].forEach(function(p) {
-      var connected = smsProvider === p.id;
-      h += '<div style="background:var(--surface);border:1.5px solid '+(connected?'var(--teal)':'var(--border)')+';border-radius:14px;padding:16px;position:relative">';
-      if (connected) h += '<div style="position:absolute;top:-8px;right:14px;background:var(--teal);color:white;font-size:9px;font-weight:700;padding:2px 10px;border-radius:20px">Aktiv</div>';
-      h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
-      h += '<div style="width:34px;height:34px;border-radius:9px;background:'+p.color+'18;border:1px solid '+p.color+'30;display:flex;align-items:center;justify-content:center">';
-      // SMS icon
-      h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+p.color+'" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
-      h += '</div>';
+    // SMS provider picker
+    var smsProv = localStorage.getItem('vela:sms-provider') || '';
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">';
+    [{id:'46elks',name:'46elks',tag:'Svensk · GDPR-säker',col:'#2563eb'},{id:'twilio',name:'Twilio',tag:'Global · Kraftfull',col:'#F22F46'}].forEach(function(p) {
+      var conn = smsProv===p.id;
+      h += '<div style="background:var(--surface);border:1.5px solid '+(conn?'var(--teal)':'var(--border)')+';border-radius:13px;padding:14px;position:relative">';
+      if(conn) h += '<div style="position:absolute;top:-7px;right:12px;background:var(--teal);color:#fff;font-size:9px;font-weight:700;padding:2px 9px;border-radius:20px">Aktiv</div>';
+      h += '<div style="display:flex;align-items:center;gap:9px;margin-bottom:7px">';
+      h += '<div style="width:30px;height:30px;border-radius:8px;background:'+p.col+'18;display:flex;align-items:center;justify-content:center">';
+      h += svgIcon('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',14)+'</div>';
       h += '<div><div style="font-size:13px;font-weight:700;color:var(--ink)">'+p.name+'</div>';
-      h += '<div style="font-size:10px;color:var(--muted)">'+p.tagline+'</div></div></div>';
-      h += '<div style="font-size:11px;color:var(--muted);line-height:1.55;margin-bottom:12px">'+p.desc+'</div>';
-      if (connected) {
-        h += '<button onclick="localStorage.removeItem(\'vela:sms-provider\');_renderSettingsContent(\'comms\')" style="width:100%;padding:8px;background:none;border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font)">Koppla från</button>';
+      h += '<div style="font-size:10px;color:var(--muted)">'+p.tag+'</div></div></div>';
+      if(conn) {
+        h += '<button onclick="localStorage.removeItem(\'vela:sms-provider\');_renderSettingsContent(\'comms\')" style="width:100%;padding:7px;background:none;border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font)">Koppla från</button>';
       } else {
-        h += '<button onclick="localStorage.setItem(\'vela:sms-provider\',\''+p.id+'\');showAutoSaveToast(\''+p.name+' vald — lägg till API-nyckel under AI & API\');_renderSettingsContent(\'comms\')" class="btn btn-p" style="width:100%;padding:8px;font-size:12px">Välj '+p.name+' →</button>';
+        h += '<button onclick="localStorage.setItem(\'vela:sms-provider\',\''+p.id+'\');showAutoSaveToast(\''+p.name+' valt\');_renderSettingsContent(\'comms\')" class="btn btn-p" style="width:100%;padding:7px;font-size:12px">Välj '+p.name+' →</button>';
       }
       h += '</div>';
     });
     h += '</div>';
 
-    // SMS triggers list
-    var smsItems = [
-      {id:'sms_booking',  label:'Bokningsbekräftelse',
-       desc:'Direkt vid ny bokning',
-       icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
-       tpl:'Bokning bekräftad hos [klinik] — [datum] kl [tid]. Adress: [adress]. Frågor? Ring [telefon]'},
-      {id:'sms_reminder', label:'Påminnelse',
-       desc:'24h innan besöket',
-       icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-       tpl:'Påminnelse: du har tid hos [klinik] imorgon [datum] kl [tid]. Adress: [adress]. Ändra/avboka: [länk]'},
-      {id:'sms_cancel',   label:'Avbokningsbekräftelse',
-       desc:'Direkt vid avbokning',
-       icon:'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
-       tpl:'Din tid hos [klinik] [datum] är avbokad. Boka en ny tid enkelt på: [länk]'},
-      {id:'sms_plan',     label:'Hael-plan skickad',
-       desc:'När planen godkänns och skickas',
-       icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
-       tpl:'Din rehabplan från [klinik] är klar. Öppna den här: [länk] · Frågor? [telefon]'},
-      {id:'sms_after',    label:'Uppföljning efter besök',
-       desc:'3h efter avslutat besök',
-       icon:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-       tpl:'Hoppas besöket gick bra! Hör gärna av dig om du har frågor. [telefon] / [klinik]'},
-      {id:'sms_followup', label:'Uppföljning 7 dagar',
-       desc:'7 dagar efter senaste besök',
-       icon:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
-       tpl:'Hur mår du? Dags för ett uppföljningsbesök? Boka enkelt: [länk] · [klinik]'},
-      {id:'sms_checkin',  label:'Träningspåminnelse',
-       desc:'Dagar utan loggning i Hael',
-       icon:'<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
-       tpl:'Glöm inte din träning idag! Logga i din Hael-plan: [länk]'},
-    ];
-
+    // SMS triggers
     h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
-    h += '<div style="padding:14px 20px;border-bottom:1px solid var(--border)">';
+    h += '<div style="padding:13px 18px;border-bottom:1px solid var(--border)">';
     h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">SMS-triggers</div>';
-    h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">Variablerna [klinik], [adress], [datum] etc. fylls i automatiskt från klinikuppgifterna</div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">[klinik] → <strong style="color:var(--teal)">'+e(clinicName)+'</strong> · [adress] → <strong style="color:var(--teal)">'+e(clinic.address||'saknas')+' </strong>· bytts ut live</div>';
     h += '</div>';
 
-    smsItems.forEach(function(sms, i) {
-      var stored = JSON.parse(localStorage.getItem('vela:sms:'+sms.id) || 'null');
-      var on = stored ? stored.active : (sms.id === 'sms_booking' || sms.id === 'sms_reminder' || sms.id === 'sms_cancel' || sms.id === 'sms_plan');
-      var text = stored ? stored.text : sms.tpl;
+    smsItems.forEach(function(sms,i) {
+      var stored = null; try{stored=JSON.parse(localStorage.getItem('vela:sms:'+sms.id)||'null');}catch(ex){}
+      var on   = stored ? stored.active : (i < 4);
+      var text = stored ? stored.text   : sms.tpl;
+      var preview = resolveVars(text);
 
-      h += '<div style="padding:14px 20px;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
-      h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">';
-      // Icon
-      h += '<div style="width:32px;height:32px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round">'+sms.icon+'</svg></div>';
-      h += '<div style="flex:1;min-width:0">';
-      h += '<div style="font-size:13px;font-weight:600;color:var(--ink)">'+sms.label+'</div>';
-      h += '<div style="font-size:11px;color:var(--muted)">'+sms.desc+'</div></div>';
+      h += '<div style="padding:12px 18px;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
+      h += '<div style="display:flex;align-items:center;gap:11px;margin-bottom:7px">';
+      // SVG icon — NO emoji
+      h += '<div style="width:30px;height:30px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--teal)">';
+      h += svgIcon(sms.icon,14)+'</div>';
+      h += '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--ink)">'+sms.label+'</div>';
+      h += '<div style="font-size:11px;color:var(--muted)">'+sms.sub+'</div></div>';
       // Toggle
-      h += '<div style="width:34px;height:19px;border-radius:10px;background:'+(on?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;transition:background .2s;flex-shrink:0" onclick="_toggleSms2(\''+sms.id+'\')">';
-      h += '<div style="position:absolute;top:2px;left:'+(on?'15px':'2px')+';width:15px;height:15px;border-radius:50%;background:white;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div>';
+      h += '<div style="width:32px;height:18px;border-radius:9px;background:'+(on?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;flex-shrink:0;transition:background .2s" onclick="_toggleSms2(\''+sms.id+'\')">';
+      h += '<div style="position:absolute;top:2px;left:'+(on?'14px':'2px')+';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div>';
       h += '</div>';
-      // Text field — live preview with resolved vars shown below
-      var resolved = resolveVars(text);
+      // Text field + live preview
       h += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:9px;overflow:hidden">';
-      h += '<textarea id="sms-text-'+sms.id+'" onchange="_saveSmsText(\''+sms.id+'\',this.value)" '
-        + 'style="width:100%;background:none;border:none;border-bottom:1px solid var(--border2);outline:none;font-size:12px;color:var(--text);font-family:var(--font);resize:none;line-height:1.65;padding:9px 12px;" rows="2">'+e(text)+'</textarea>';
-      h += '<div style="padding:6px 12px;font-size:10px;color:var(--muted)">Förhandsgranskning: <span style="color:var(--teal)">'+resolved+'</span></div>';
+      h += '<textarea id="sms-text-'+sms.id+'" onchange="_saveSmsText(\''+sms.id+'\',this.value);this.nextElementSibling.textContent=this.value" style="width:100%;background:none;border:none;border-bottom:1px solid var(--border2);outline:none;font-size:12px;color:var(--text);font-family:var(--font);resize:none;line-height:1.6;padding:8px 11px" rows="2">'+e(text)+'</textarea>';
+      h += '<div style="padding:5px 11px;font-size:10px;color:var(--teal);line-height:1.5">'+e(preview)+'</div>';
       h += '</div>';
-      // Char count info
-      h += '<div style="font-size:10px;color:var(--muted);margin-top:4px">'+text.length+' tecken · Variabler: [klinik] [adress] [datum] [tid] [telefon] [länk] [signatur]</div>';
+      h += '<div style="font-size:10px;color:var(--muted);margin-top:3px">Variabler: [klinik] [adress] [datum] [tid] [telefon] [länk]</div>';
       h += '</div>';
     });
     h += '</div>';
 
     // Multi-clinic note
-    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:12px;display:flex;gap:12px;align-items:flex-start">';
-    h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
-    h += '<div style="font-size:12px;color:var(--text);line-height:1.65"><strong style="color:var(--teal)">Multi-klinik:</strong> SMS-mallar kan sättas globalt för alla dina kliniker eller åsidosättas per klinik. Variabeln [klinik] byter automatiskt namn, adress och telefonnummer baserat på vilken klinik patienten tillhör.</div>';
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:12px 15px;margin-top:12px;display:flex;gap:10px;align-items:flex-start">';
+    h += svgIcon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',13);
+    h += '<div style="font-size:12px;color:var(--text);line-height:1.65"><strong style="color:var(--teal)">Multi-klinik:</strong> [klinik] och [adress] byts automatiskt per klinik. En ägare med 10 kliniker behöver bara ett template — rätt info går till rätt patient.</div>';
     h += '</div>';
 
-  // ═══════════════════════════════════════════════════════════
+  // ═══ SIGNATUR ════════════════════════════════════════════════
   } else if (tab === 'signature') {
+    var sigName = clinic.signatory || clinic.name || cfg.name || '';
 
-    h += '<div style="display:grid;gap:16px">';
+    h += '<div style="display:grid;gap:14px">';
 
-    // Live signature preview
+    // Live mail preview
     h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
-    h += '<div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
-    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Mailsignatur — förhandsgranskning</div>';
-    h += '<div style="font-size:11px;color:var(--muted)">Uppdateras live när klinikuppgifterna ändras</div>';
-    h += '</div>';
-    h += '<div style="padding:20px 24px">';
-    // Simulated email preview
-    h += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;overflow:hidden">';
-    h += '<div style="padding:10px 14px;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted)">Från: '+e(cfg.email||'din@klinik.se')+' &nbsp;|&nbsp; Till: patient@exempel.se</div>';
-    h += '<div style="padding:16px 14px">';
-    h += '<div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.8">Hej [patientnamn],<br><br>[Ditt meddelande här]<br><br></div>';
-    // Divider
-    h += '<div style="border-top:1px solid var(--border);padding-top:12px;display:flex;gap:14px;align-items:flex-start">';
-    if (cfg.logo) {
-      h += '<img src="'+cfg.logo+'" style="height:32px;object-fit:contain;flex-shrink:0">';
+    h += '<div style="padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Förhandsgranskning — uppdateras live</div>';
+    h += '<div style="font-size:11px;color:var(--muted)">Ändra klinikuppgifter under Klinik-fliken</div></div>';
+    h += '<div style="padding:18px 20px">';
+    h += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:9px;overflow:hidden">';
+    h += '<div style="padding:9px 13px;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted)">Från: '+e(clinic.email||cfg.email||'din@klinik.se')+'</div>';
+    h += '<div style="padding:14px 13px">';
+    h += '<div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.8">Hej [patientnamn],<br><br>[Ditt meddelande]<br><br></div>';
+    h += '<div style="border-top:1px solid var(--border);padding-top:11px;display:flex;gap:12px;align-items:flex-start">';
+    if (clinic.logoData || cfg.logoData) {
+      h += '<img src="'+(clinic.logoData||cfg.logoData)+'" style="height:28px;object-fit:contain;flex-shrink:0">';
     }
-    h += '<div style="font-size:12px;color:var(--text);line-height:1.85">';
-    h += '<strong>'+e(sig)+'</strong><br>';
-    if (cfg.name) h += e(cfg.name)+'<br>';
-    h += (cfg.phone ? e(cfg.phone) : '')+((cfg.phone && cfg.email) ? ' &nbsp;·&nbsp; ' : '')+(cfg.email ? e(cfg.email) : '')+'<br>';
-    if (cfg.website) h += '<span style="color:var(--teal)">'+e(cfg.website)+'</span>';
+    h += '<div style="font-size:12px;color:var(--text);line-height:1.9"><strong>'+e(sigName)+'</strong><br>';
+    if (clinic.name||cfg.name) h += e(clinic.name||cfg.name)+'<br>';
+    var contactLine = [clinic.phone||cfg.phone, clinic.email||cfg.email].filter(Boolean).join(' · ');
+    if (contactLine) h += e(contactLine)+'<br>';
+    if (clinic.website||cfg.website) h += '<span style="color:var(--teal)">'+e(clinic.website||cfg.website)+'</span>';
     h += '</div></div></div></div>';
-    h += '<div style="padding:12px 20px;background:rgba(13,155,138,.04);border-top:1px solid var(--border);font-size:11px;color:var(--muted)">';
-    h += '→ Ändra namn via Klinik → Behandlarnamn (signatur) · Logotyp via Klinik → Logotyp';
-    h += '</div></div>';
-
-    // Custom HTML signature upload
-    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px">';
-    h += '<div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px">Ladda upp anpassad signatur</div>';
-    h += '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Har du en befintlig HTML-signatur från Gmail eller Outlook? Ladda upp den här så används den i alla Vela-mail.</div>';
-
-    var uploadedSig = cfg.emailSignature;
-    if (uploadedSig && uploadedSig.startsWith('<')) {
-      h += '<div style="background:var(--bg);border:1px solid rgba(13,155,138,.2);border-radius:9px;padding:12px 14px;margin-bottom:12px;font-size:11px;color:var(--muted)">HTML-signatur uppladdad ✓</div>';
-    } else if (uploadedSig && uploadedSig.startsWith('data:image')) {
-      h += '<div style="background:var(--bg);border:1px solid rgba(13,155,138,.2);border-radius:9px;padding:12px 14px;margin-bottom:12px"><img src="'+uploadedSig+'" style="max-height:60px;object-fit:contain"></div>';
-    }
-
-    h += '<label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;border:1.5px dashed var(--border);border-radius:12px;cursor:pointer;text-align:center;transition:border-color .15s" onmouseover="this.style.borderColor=\'var(--teal)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
-    h += '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
-    h += '<div><div style="font-size:13px;font-weight:600;color:var(--teal)">Dra hit eller klicka för att ladda upp</div>';
-    h += '<div style="font-size:11px;color:var(--muted);margin-top:3px">.html, .htm, .png, .jpg — max 200 kb</div></div>';
-    h += '<input type="file" accept=".html,.htm,.png,.jpg,.jpeg" style="display:none" onchange="_uploadSignature(this)">';
-    h += '</label>';
-
-    h += '<div style="margin-top:12px;padding:12px 14px;background:rgba(13,155,138,.05);border:1px solid rgba(13,155,138,.15);border-radius:9px;font-size:11px;color:var(--muted);line-height:1.65">Varje behandlare i teamet kan ha en egen signatur. Aktiveras fullt under Team & Behörigheter.</div>';
+    h += '<div style="padding:9px 18px;background:rgba(13,155,138,.04);border-top:1px solid var(--border);font-size:11px;color:var(--muted)">';
+    h += 'Ändra signatur-namn: Klinik → Behandlarnamn · Logotyp: Klinik → Logotyp</div>';
     h += '</div>';
 
-    // Copy from Gmail guide
-    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 20px">';
-    h += '<div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Hur kopierar jag min Gmail-signatur?</div>';
-    var steps = ['Öppna Gmail → Inställningar (kugghjulet) → Se alla inställningar','Scrolla ner till Signatur — markera och kopiera din signatur','Klistra in i en .html-fil och ladda upp ovan','Klart — Vela använder din befintliga signatur'];
-    steps.forEach(function(s, i) {
-      h += '<div style="display:flex;gap:10px;padding:6px 0;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
-      h += '<div style="width:20px;height:20px;border-radius:50%;background:rgba(13,155,138,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:var(--teal)">'+(i+1)+'</div>';
+    // Upload custom signature
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px">';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px">Ladda upp anpassad signatur</div>';
+    h += '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">HTML-signatur från Gmail/Outlook eller bildfil. Används i alla Vela-mail.</div>';
+    var uploadedSig = clinic.emailSignature || cfg.emailSignature;
+    if (uploadedSig) {
+      h += '<div style="background:var(--bg);border:1px solid rgba(13,155,138,.2);border-radius:8px;padding:10px 13px;margin-bottom:10px;font-size:11px;color:var(--teal)">Signatur uppladdad ✓</div>';
+    }
+    h += '<label style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px;border:1.5px dashed var(--border);border-radius:10px;cursor:pointer;text-align:center" onmouseover="this.style.borderColor=\'var(--teal)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
+    h += svgIcon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',20);
+    h += '<div><div style="font-size:12px;font-weight:600;color:var(--teal)">Dra hit eller klicka</div>';
+    h += '<div style="font-size:11px;color:var(--muted)">.html .htm .png .jpg — max 200 kb</div></div>';
+    h += '<input type="file" accept=".html,.htm,.png,.jpg,.jpeg" style="display:none" onchange="_uploadSignature(this)"></label>';
+    h += '</div>';
+
+    // Gmail guide
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:15px 18px">';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Kopiera din Gmail-signatur</div>';
+    ['Gmail → Inställningar → Se alla inställningar','Scrolla till Signatur — markera och kopiera','Klistra in i .html-fil och ladda upp ovan','Klart — Vela använder din existerande signatur'].forEach(function(s,i) {
+      h += '<div style="display:flex;gap:9px;padding:5px 0;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
+      h += '<div style="width:19px;height:19px;border-radius:50%;background:rgba(13,155,138,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:var(--teal)">'+(i+1)+'</div>';
       h += '<div style="font-size:12px;color:var(--text);padding-top:1px">'+s+'</div></div>';
     });
     h += '</div>';
-
     h += '</div>';
 
-  // ═══════════════════════════════════════════════════════════
+  // ═══ KOPPLINGAR ══════════════════════════════════════════════
   } else if (tab === 'connect') {
+    h += '<div style="display:grid;gap:14px">';
 
-    h += '<div style="display:grid;gap:16px">';
-
-    // What connecting does
+    // What you get card
     h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
-    h += '<div style="padding:14px 20px;border-bottom:1px solid var(--border)">';
-    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Vad händer när du kopplar ett mailkonto?</div>';
-    h += '</div>';
-    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0">';
-    var benefits = [
-      {icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', title:'Inkorg i Vela', desc:'Inkommande mail visas per patient — ingen separat mailapp behövs'},
-      {icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>', title:'Automatisk logg', desc:'Varje mail sparas direkt på kundkortet under Händelser'},
-      {icon:'<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>', title:'AI-svarförslag', desc:'AI läser patientens journal och historik för att skriva ett relevant svar'},
-      {icon:'<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>', title:'Skicka från din adress', desc:'Svar skickas från din befintliga mailadress — patienten ser inget om Vela'},
-    ];
-    benefits.forEach(function(b, i) {
-      h += '<div style="padding:16px 18px;'+(i%2===0?'border-right:1px solid var(--border2)':'')+';'+(i>=2?'border-top:1px solid var(--border2)':'')+';display:flex;gap:12px">';
-      h += '<div style="width:32px;height:32px;border-radius:9px;background:rgba(13,155,138,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round">'+b.icon+'</svg></div>';
-      h += '<div><div style="font-size:12px;font-weight:700;color:var(--ink)">'+b.title+'</div>';
-      h += '<div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.55">'+b.desc+'</div></div></div>';
+    h += '<div style="padding:13px 18px;border-bottom:1px solid var(--border)">';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Vad du får när du kopplar ett mailkonto</div></div>';
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr">';
+    [
+      ['<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>','Inkorg i Vela','Inkommande mail sorterat per patient — ingen separat mailapp'],
+      ['<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>','Automatisk händelselogg','Varje mail sparas direkt på kundkortet'],
+      ['<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>','AI-svarförslag','AI läser patientens journal och föreslår relevant svar'],
+      ['<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>','Skicka från din adress','Svar skickas från din befintliga adress — patienten ser inget om Vela'],
+    ].forEach(function(b,i) {
+      h += '<div style="padding:14px 16px;'+(i%2===0?'border-right:1px solid var(--border2)':'')+';'+(i>=2?'border-top:1px solid var(--border2)':'')+';display:flex;gap:10px">';
+      h += '<div style="width:30px;height:30px;border-radius:8px;background:rgba(13,155,138,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--teal)">';
+      h += svgIcon(b[0],14)+'</div>';
+      h += '<div><div style="font-size:12px;font-weight:700;color:var(--ink)">'+b[1]+'</div>';
+      h += '<div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5">'+b[2]+'</div></div></div>';
     });
     h += '</div></div>';
 
-    // Providers
+    // Provider list
     h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
-    h += '<div style="padding:14px 20px;border-bottom:1px solid var(--border)">';
+    h += '<div style="padding:13px 18px;border-bottom:1px solid var(--border)">';
     h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Mailkopplingar</div>';
-    h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">OAuth2 stöds i Vela 2.0 med backend. IMAP/SMTP fungerar redan idag.</div>';
-    h += '</div>';
-
-    var providers = [
-      {id:'gmail', name:'Gmail / Google Workspace', color:'#EA4335',
-       icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>',
-       status:'oauth_coming', note:'OAuth2 i Vela 2.0. Fungerar nu via App Password + IMAP nedan.'},
-      {id:'outlook', name:'Outlook / Microsoft 365', color:'#0078D4',
-       icon:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
-       status:'oauth_coming', note:'OAuth2 i Vela 2.0. Fungerar nu via IMAP/SMTP med app-lösenord.'},
-      {id:'imap', name:'IMAP / SMTP (alla mailservrar)', color:'#6B7280',
-       icon:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l.82-.82a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>',
-       status:'available', note:'Loopia, Telia, One.com, eget mailserver. Kräver IMAP aktiverat och eventuellt app-lösenord.'},
-    ];
-
-    providers.forEach(function(p, i) {
-      var avail = p.status === 'available';
-      h += '<div style="padding:16px 20px;'+(i>0?'border-top:1px solid var(--border2)':'')+'display:flex;align-items:center;gap:14px">';
-      h += '<div style="width:36px;height:36px;border-radius:10px;background:'+p.color+'18;display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-      h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="'+p.color+'" stroke-width="2" stroke-linecap="round">'+p.icon+'</svg></div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">OAuth2 för Gmail/Outlook kräver backend och lanseras i Vela 2.0. IMAP/SMTP fungerar redan idag.</div></div>';
+    [
+      {name:'Gmail / Google Workspace', col:'#EA4335', icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>',
+       note:'OAuth2 i Vela 2.0. Fungerar nu via App Password + IMAP nedan.', avail:false},
+      {name:'Outlook / Microsoft 365', col:'#0078D4', icon:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+       note:'OAuth2 i Vela 2.0. Fungerar nu via IMAP med app-lösenord.', avail:false},
+      {name:'IMAP / SMTP (alla mailservrar)', col:'#6B7280', icon:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l.82-.82a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 1 2.81.7A2 2 0 0 1 22 16.92z"/>',
+       note:'Loopia, Telia, One.com, eget mailserver — aktiveras nu.', avail:true},
+    ].forEach(function(p,i) {
+      h += '<div style="display:flex;align-items:center;gap:13px;padding:14px 18px;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
+      h += '<div style="width:34px;height:34px;border-radius:9px;background:'+p.col+'18;display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+      h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="'+p.col+'" stroke-width="2" stroke-linecap="round">'+p.icon+'</svg></div>';
       h += '<div style="flex:1;min-width:0">';
-      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">';
+      h += '<div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">';
       h += '<div style="font-size:13px;font-weight:600;color:var(--ink)">'+p.name+'</div>';
-      if (!avail) h += '<span style="font-size:10px;font-weight:600;color:#8a6000;background:rgba(138,96,0,.1);padding:2px 7px;border-radius:20px">Vela 2.0</span>';
+      if(!p.avail) h += '<span style="font-size:10px;font-weight:600;color:#8a6000;background:rgba(138,96,0,.1);padding:2px 7px;border-radius:20px">Vela 2.0</span>';
       else h += '<span style="font-size:10px;font-weight:600;color:#1a7a4a;background:rgba(26,122,74,.1);padding:2px 7px;border-radius:20px">Tillgänglig nu</span>';
-      h += '</div>';
-      h += '<div style="font-size:11px;color:var(--muted)">'+p.note+'</div></div>';
-      if (avail) {
-        h += '<button onclick="_openImapSetup()" style="padding:7px 14px;background:none;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font);white-space:nowrap">Konfigurera →</button>';
-      } else {
-        h += '<button onclick="showAutoSaveToast(\'Kommer i Vela 2.0 med backend-stöd\')" style="padding:7px 14px;background:none;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);cursor:pointer;font-family:var(--font);white-space:nowrap">Notifiera mig</button>';
-      }
+      h += '</div><div style="font-size:11px;color:var(--muted)">'+p.note+'</div></div>';
+      if(p.avail) h += '<button onclick="_openImapSetup()" style="padding:6px 13px;background:none;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font);white-space:nowrap">Konfigurera →</button>';
+      else h += '<button onclick="showAutoSaveToast(\'Notifierar dig när OAuth2 lanseras\')" style="padding:6px 13px;background:none;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);cursor:pointer;font-family:var(--font);white-space:nowrap">Notifiera mig</button>';
       h += '</div>';
     });
     h += '</div>';
 
-    // IMAP setup guide (collapsed by default)
-    h += '<div id="imap-setup" style="display:none;background:var(--surface);border:1px solid rgba(13,155,138,.3);border-radius:14px;padding:18px 20px">';
-    h += '<div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:14px">IMAP/SMTP-konfiguration</div>';
-    var imapFields = [
-      {id:'imap-host', label:'IMAP-server', ph:'imap.gmail.com'},
-      {id:'imap-port', label:'IMAP-port', ph:'993'},
-      {id:'imap-user', label:'E-postadress', ph:'din@klinik.se'},
-      {id:'imap-pass', label:'Lösenord / App-lösenord', ph:''},
-      {id:'smtp-host', label:'SMTP-server', ph:'smtp.gmail.com'},
-      {id:'smtp-port', label:'SMTP-port', ph:'587'},
-    ];
-    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">';
-    imapFields.forEach(function(f) {
-      h += '<div>';
-      h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">'+f.label+'</div>';
-      h += '<input id="'+f.id+'" class="field" type="'+(f.id.includes('pass')?'password':'text')+'" placeholder="'+f.ph+'" style="margin-bottom:0">';
-      h += '</div>';
+    // IMAP setup form
+    h += '<div id="imap-setup" style="display:none;background:var(--surface);border:1px solid rgba(13,155,138,.3);border-radius:14px;padding:16px 18px">';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:13px">IMAP/SMTP-konfiguration</div>';
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">';
+    [['imap-host','IMAP-server','imap.gmail.com'],['imap-port','IMAP-port','993'],['imap-user','E-postadress','din@klinik.se'],['imap-pass','App-lösenord',''],['smtp-host','SMTP-server','smtp.gmail.com'],['smtp-port','SMTP-port','587']].forEach(function(f) {
+      h += '<div><div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">'+f[1]+'</div>';
+      h += '<input id="'+f[0]+'" class="field" type="'+(f[0].includes('pass')?'password':'text')+'" placeholder="'+f[2]+'" style="margin-bottom:0"></div>';
     });
     h += '</div>';
-    h += '<div style="display:flex;gap:10px">';
-    h += '<button onclick="document.getElementById(\"imap-setup\").style.display=\'none\'" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>';
-    h += '<button onclick="showAutoSaveToast(\'IMAP-konfiguration sparad — testar anslutning...\')" class="btn btn-p" style="flex:1;padding:10px">Testa & spara</button>';
+    h += '<div style="display:flex;gap:8px">';
+    h += '<button onclick="document.getElementById(\'imap-setup\').style.display=\'none\'" style="flex:1;padding:9px;background:none;border:1px solid var(--border);border-radius:9px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>';
+    h += '<button onclick="showAutoSaveToast(\'IMAP sparad — testar anslutning...\')" class="btn btn-p" style="flex:1;padding:9px">Testa & spara</button>';
     h += '</div></div>';
 
     h += '</div>';
@@ -14629,106 +14561,6 @@ function _stComms(cfg) {
   h += '</div>';
   return h;
 }
-
-function _openImapSetup() {
-  var el = document.getElementById('imap-setup');
-  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
-}
-
-function _toggleAiMail() {
-  var cur = localStorage.getItem('vela:ai-mail') === 'on';
-  localStorage.setItem('vela:ai-mail', cur ? 'off' : 'on');
-  _renderSettingsContent('comms');
-}
-
-function _toggleSms2(id) {
-  var stored = JSON.parse(localStorage.getItem('vela:sms:'+id) || '{}');
-  stored.active = !stored.active;
-  localStorage.setItem('vela:sms:'+id, JSON.stringify(stored));
-  _renderSettingsContent('comms');
-}
-
-function _toggleMailTemplate(id, defaultBody) {
-  var stored = JSON.parse(localStorage.getItem('vela:mail-tmpl:'+id) || '{}');
-  stored.active = !stored.active;
-  if (!stored.body) stored.body = defaultBody;
-  localStorage.setItem('vela:mail-tmpl:'+id, JSON.stringify(stored));
-  _renderSettingsContent('comms');
-}
-
-function _openMailTemplateEditor(id, label, body) {
-  document.getElementById('mail-tmpl-ov')?.remove();
-  var cfg = getClinicConfig();
-  var sig = cfg.signatory || cfg.name || 'Kliniken';
-
-  function resolve(text) {
-    return (text||'')
-      .replace(/\[klinik\]/g, cfg.name||'Kliniken')
-      .replace(/\[adress\]/g, cfg.address||'')
-      .replace(/\[telefon\]/g, cfg.phone||'')
-      .replace(/\[signatur\]/g, sig)
-      .replace(/\[mail\]/g, cfg.email||'')
-      .replace(/\[webbplats\]/g, cfg.website||'')
-      .replace(/\[namn\]/g, 'Patienten')
-      .replace(/\[datum\]/g, new Date().toLocaleDateString('sv-SE'))
-      .replace(/\[tid\]/g, '10:00')
-      .replace(/\[länk\]/g, 'hael.vela.se/plan/...');
-  }
-
-  var ov = document.createElement('div');
-  ov.id = 'mail-tmpl-ov';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
-  ov.onclick = function(ev) { if(ev.target===ov) ov.remove(); };
-
-  var preview = resolve(body);
-
-  ov.innerHTML = '<div style="background:var(--surface);border-radius:20px;width:100%;max-width:680px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;max-height:85vh" onclick="event.stopPropagation()">'
-    + '<div style="background:var(--navy);padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">'
-    + '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(13,155,138,.8);margin-bottom:4px">Mailmall</div>'
-    + '<div style="font-size:17px;font-weight:700;color:white">'+e(label)+'</div></div>'
-    + '<button onclick="document.getElementById(\"mail-tmpl-ov\").remove()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">×</button>'
-    + '</div>'
-    + '<div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden">'
-    // Left: editor
-    + '<div style="padding:18px 20px;border-right:1px solid var(--border2);display:flex;flex-direction:column;gap:12px">'
-    + '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Redigera</div>'
-    + '<textarea id="tmpl-body-'+id+'" oninput="_updateMailPreview(\''+id+'\')" '
-    + 'style="flex:1;min-height:200px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:12px;color:var(--text);font-family:var(--font);resize:none;line-height:1.75">'+e(body)+'</textarea>'
-    + '<div style="font-size:10px;color:var(--muted);line-height:1.6">Variabler:<br>[namn] [klinik] [adress] [telefon] [mail] [signatur] [datum] [tid] [länk]</div>'
-    + '</div>'
-    // Right: preview
-    + '<div style="padding:18px 20px;overflow-y:auto">'
-    + '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Förhandsgranskning</div>'
-    + '<div id="tmpl-preview-'+id+'" style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:12px;color:var(--text);line-height:1.85;white-space:pre-wrap">'+e(preview)+'</div>'
-    + '</div></div>'
-    + '<div style="padding:14px 22px 18px;border-top:1px solid var(--border);display:flex;gap:10px;flex-shrink:0">'
-    + '<button onclick="document.getElementById(\"mail-tmpl-ov\").remove()" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>'
-    + '<button onclick="_saveMailTemplate(\''+id+'\',document.getElementById(\'tmpl-body-'+id+'\').value)" class="btn btn-p" style="flex:1;padding:10px">Spara mall</button>'
-    + '</div></div>';
-
-  document.body.appendChild(ov);
-}
-
-function _updateMailPreview(id) {
-  var ta = document.getElementById('tmpl-body-'+id);
-  var preview = document.getElementById('tmpl-preview-'+id);
-  if (!ta || !preview) return;
-  var cfg = getClinicConfig();
-  var sig = cfg.signatory || cfg.name || 'Kliniken';
-  var resolved = ta.value
-    .replace(/\[klinik\]/g, cfg.name||'Kliniken')
-    .replace(/\[adress\]/g, cfg.address||'')
-    .replace(/\[telefon\]/g, cfg.phone||'')
-    .replace(/\[signatur\]/g, sig)
-    .replace(/\[mail\]/g, cfg.email||'')
-    .replace(/\[webbplats\]/g, cfg.website||'')
-    .replace(/\[namn\]/g, 'Patienten')
-    .replace(/\[datum\]/g, new Date().toLocaleDateString('sv-SE'))
-    .replace(/\[tid\]/g, '10:00')
-    .replace(/\[länk\]/g, 'hael.vela.se/plan/...');
-  preview.textContent = resolved;
-}
-
 
 
 // ── AI & API TAB ─────────────────────────────────────────────
@@ -16074,6 +15906,24 @@ async function generateOrgReport() {
 }
 
 // ── MAIL EDITOR SAFE WRAPPER ─────────────────────────────────────────────────
+function _toggleMailTemplate(id, currentActive) {
+  try {
+    var stored = JSON.parse(localStorage.getItem('vela:mail-tmpl:'+id) || '{}');
+    stored.active = (currentActive === 'true' || currentActive === true) ? false : true;
+    if (!stored.body) {
+      var defaults = {
+        intake:'Hej [namn],\n\nVälkommen till [klinik]! Fyll i ditt hälsoformulär:\n[länk]\n\nMed vänliga hälsningar,\n[signatur]\n[klinik]',
+        plan:'Hej [namn],\n\nDin rehabplan är klar:\n[länk]\n\nMed vänliga hälsningar,\n[signatur]\n[klinik]',
+        reminder:'Hej [namn],\n\nPåminnelse om din tid imorgon [datum] kl [tid] hos [klinik].\n\n[signatur]',
+        followup:'Hej [namn],\n\nHoppas besöket gick bra!\n\n[telefon] · [mail]\n\nMed vänliga hälsningar,\n[signatur]'
+      };
+      stored.body = defaults[id] || '';
+    }
+    localStorage.setItem('vela:mail-tmpl:'+id, JSON.stringify(stored));
+    _renderSettingsContent('comms');
+  } catch(ex) { console.error(ex); }
+}
+
 function _openMailEditor(id) {
   var cache = window._mailTmplCache || {};
   var item = cache[id];

@@ -16391,6 +16391,13 @@ function showDropoutList() {
       const _storedAuth = getStoredAuth();
       if (_storedAuth) {
         _authUser = _storedAuth.user;
+        // Show app-shell + topbar (rLogin() normally does this — must do it here too on refresh)
+        var _shell = document.getElementById('app-shell');
+        var _tb    = document.getElementById('mobile-topbar');
+        var _topbar = document.querySelector('.topbar');
+        if (_shell)  _shell.style.display  = '';
+        if (_tb)     _tb.style.display     = '';
+        if (_topbar) _topbar.style.display = '';
         loadPats();
         S.apiKey = getKey();
         startAutoSave();

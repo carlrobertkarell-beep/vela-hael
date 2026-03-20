@@ -14448,7 +14448,8 @@ function _stComms(cfg) {
       h += '<div style="width:34px;height:19px;border-radius:10px;background:'+(active?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;transition:background .2s" onclick="_toggleMailTemplate(\''+tmpl.id+'\','+JSON.stringify(tmpl.defaultBody)+')">';
       h += '<div style="position:absolute;top:2px;left:'+(active?'15px':'2px')+';width:15px;height:15px;border-radius:50%;background:white;transition:left .2s"></div></div>';
       // Edit button
-      h += '<button onclick="_openMailTemplateEditor(\''+tmpl.id+'\','+JSON.stringify(tmpl.label)+','+JSON.stringify(body)+')" style="padding:5px 10px;background:none;border:1px solid var(--border);border-radius:7px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Redigera</button>';
+      window._mailTmplCache = window._mailTmplCache || {}; window._mailTmplCache[tmpl.id] = {label: tmpl.label, body: body};
+      h += '<button onclick="_openMailEditor(\\\'' + tmpl.id + '\\\')" class="btn" style="font-size:11px;padding:4px 10px">Redigera</button>';
       h += '</div></div>';
     });
     h += '</div>';
@@ -14846,7 +14847,38 @@ function _stAI(key) {
   h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:8px">Vela Ask — kunskapsbas</div>';
   h += '<div style="font-size:12px;color:var(--muted);margin-bottom:12px">Ladda upp kliniska riktlinjer, protokoll eller produktblad.</div>';
   h += '<div style="background:var(--surface);border:1.5px dashed var(--border);border-radius:12px;padding:20px;text-align:center;font-size:12px;color:var(--muted)">Dokumentuppladdning kommer i en kommande uppdatering.</div>';
-  h += '</div></div>';
+  h += '</div>';
+
+  // AI Profil section
+  var profile = getAiProfile();
+  var profileDone = !!profile.completedAt;
+  var profileFields = [
+    profile.tone ? ['Kommunikationston', profile.tone] : null,
+    profile.style && profile.style.length ? ['Personlighet', (Array.isArray(profile.style)?profile.style:[profile.style]).slice(0,2).join(', ')] : null,
+    profile.strengths && profile.strengths.length ? ['Expertis', (Array.isArray(profile.strengths)?profile.strengths:[profile.strengths]).slice(0,2).join(', ')] : null,
+  ].filter(Boolean);
+
+  h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">';
+  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)">Din AI-profil</div>';
+  h += '<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:'+(profileDone?'rgba(26,122,74,.1)':'rgba(13,155,138,.1)')+';color:'+(profileDone?'#1a7a4a':'var(--teal)')+'">'+( profileDone?'✓ Klar':'Ej ifylld')+'</span>';
+  h += '</div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">Lär AI hur du kommunicerar, vad du är duktig på och hur din röst låter. Används i all AI-genererad text — mail, journaler, briefings.</div>';
+
+  if (profileDone && profileFields.length) {
+    h += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:grid;gap:6px">';
+    profileFields.forEach(function(f) {
+      h += '<div style="display:flex;gap:10px;font-size:12px"><span style="color:var(--muted);min-width:110px">'+f[0]+'</span><span style="color:var(--ink);font-weight:600">'+e(f[1])+'</span></div>';
+    });
+    h += '</div>';
+  }
+
+  h += '<button onclick="openAiProfileWizard()" class="btn btn-p" style="width:100%;padding:11px;display:flex;align-items:center;justify-content:center;gap:8px">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/></svg>';
+  h += (profileDone ? 'Uppdatera min AI-profil' : 'Starta AI-profilguiden') + '</button>';
+  h += '</div>';
+
+  h += '</div>';
   return h;
 }
 
@@ -16136,4 +16168,249 @@ async function generateOrgReport() {
 }
 </script>
 </body>
-</html>
+      h += '<button onclick="_openMailEditor(\'\'+tmpl.id+\'\')" style="padding:5px 10px;background:none;border:1px solid var(--border);border-radius:7px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Redigera</button>\';  
+// ── MAIL EDITOR SAFE WRAPPER ─────────────────────────────────────────────────
+function _openMailEditor(id) {
+  var cache = window._mailTmplCache || {};
+  var item = cache[id];
+  if (!item) {
+    // Rebuild from localStorage
+    var defaults = {
+      intake: {label:'Intake-formulär', body:'Hej [namn],\n\nVälkommen till [klinik]! Fyll i ditt hälsoformulär:\n[länk]\n\nMed vänliga hälsningar,\n[signatur]\n[klinik]'},
+      plan:   {label:'Hael-plan klar', body:'Hej [namn],\n\nDin rehabplan är klar:\n[länk]\n\nMed vänliga hälsningar,\n[signatur]\n[klinik] · [telefon]'},
+      reminder:{label:'Påminnelse inför besök', body:'Hej [namn],\n\nPåminnelse om din tid imorgon [datum] kl [tid] hos [klinik].\n\nAdress: [adress]\n\n[signatur]'},
+      followup:{label:'Uppföljning efter besök', body:'Hej [namn],\n\nHoppas besöket gick bra! Hör av dig om du har frågor.\n\n[telefon] · [mail]\n\nMed vänliga hälsningar,\n[signatur]\n[klinik]'},
+    };
+    var stored = JSON.parse(localStorage.getItem('vela:mail-tmpl:'+id) || 'null');
+    item = stored ? {label: defaults[id]?.label || id, body: stored.body} : (defaults[id] || {label: id, body: ''});
+  }
+  _openMailTemplateEditor(id, item.label, item.body);
+}
+
+// ── AI-PROFIL / ANVÄNDARPERSONLIGHET ─────────────────────────────────────────
+// Lagras i localStorage som vela:ai-profile:{userId}
+// Feeds into: mail-ton, SOAP-ton, AI-konsultation, briefing, SMS
+
+const AI_PROFILE_KEY_PREFIX = 'vela:ai-profile:';
+
+function getAiProfile(userId) {
+  userId = userId || (_authUser?.email || 'default');
+  try { return JSON.parse(localStorage.getItem(AI_PROFILE_KEY_PREFIX + userId) || 'null') || {}; } catch { return {}; }
+}
+function saveAiProfile(profile, userId) {
+  userId = userId || (_authUser?.email || 'default');
+  try { localStorage.setItem(AI_PROFILE_KEY_PREFIX + userId, JSON.stringify(profile)); } catch {}
+  showAutoSaveToast('AI-profil sparad ✓');
+}
+
+// Question definitions — structured + free text options
+const AI_PROFILE_QUESTIONS = [
+  {
+    id: 'style',
+    q: 'Hur beskriver du dig som behandlare?',
+    hint: 'Välj det som stämmer bäst — du kan kombinera flera',
+    type: 'multi',
+    options: ['Metodisk och strukturerad','Intuitiv och erfarenhetsbaserad','Analytisk och datadriven','Empatisk och relationsorienterad','Direkt och effektiv','Pedagogisk och förklarande'],
+  },
+  {
+    id: 'tone',
+    q: 'Hur kommunicerar du med dina patienter?',
+    hint: 'AI anpassar ton i mail, SMS och journaler',
+    type: 'single',
+    options: ['Formellt och professionellt','Varmt och personligt','Kortfattat och effektivt','Pedagogiskt och förklarande','Uppmuntrande och motiverande'],
+  },
+  {
+    id: 'strengths',
+    q: 'Vad är du extra duktig på?',
+    hint: 'Välj gärna flera',
+    type: 'multi',
+    options: ['Diagnos och bedömning','Manuell behandlingsteknik','Motivera och coacha patienter','Förklara komplexa begrepp enkelt','Rehabilitering och träningsprogram','Smärthantering','Idrottsskador','Äldre patienter','Långvariga besvär'],
+  },
+  {
+    id: 'specialties',
+    q: 'Vilka diagnoser/areas arbetar du mest med?',
+    type: 'multi',
+    options: ['Ländryggssmärta','Nacksmärta','Axelbesvär','Knä och höft','Idrottsskador','Fibromyalgi / centralsensitiering','Neurologiska tillstånd','Postoperativ rehab','Äldre och geriatrik'],
+  },
+  {
+    id: 'patient_motivation',
+    q: 'Vad motiverar dina patienter bäst, generellt?',
+    type: 'single',
+    options: ['Tydliga mål och milstolpar','Positiv förstärkning och beröm','Data och progress i siffror','Frihet att anpassa träningen','Förklaring av varför — mekanismer','Jämförelse med sig själva över tid'],
+  },
+  {
+    id: 'avoid',
+    q: 'Vad ska AI ALDRIG skriva eller göra i ditt namn?',
+    hint: 'Fritext — t.ex. "använd aldrig medicinska garantier", "skriv inte för formellt"',
+    type: 'text',
+  },
+  {
+    id: 'voice_sample',
+    q: 'Skriv en mening eller två som du faktiskt skulle skriva till en patient',
+    hint: 'AI lär sig din röst och ton från detta',
+    type: 'text',
+  },
+];
+
+function openAiProfileWizard() {
+  document.getElementById('ai-profile-ov')?.remove();
+  var profile = getAiProfile();
+  var ov = document.createElement('div');
+  ov.id = 'ai-profile-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.8);backdrop-filter:blur(6px)';
+  ov.onclick = function(ev) { if(ev.target===ov) ov.remove(); };
+  ov.innerHTML = _buildAiProfileWizardHTML(profile, 0);
+  document.body.appendChild(ov);
+}
+
+function _buildAiProfileWizardHTML(profile, step) {
+  var q = AI_PROFILE_QUESTIONS[step];
+  var total = AI_PROFILE_QUESTIONS.length;
+  var pct = Math.round((step / total) * 100);
+
+  var optionsHTML = '';
+  if (q.type === 'single' || q.type === 'multi') {
+    optionsHTML = '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">';
+    q.options.forEach(function(opt) {
+      var sel = Array.isArray(profile[q.id]) ? profile[q.id].includes(opt) : profile[q.id] === opt;
+      optionsHTML += '<button onclick="_aiProfileToggleOption(''+q.id+'',''+q.type+'',this,''+opt.replace(/'/g,"\'")+'')"'
+        + ' style="text-align:left;padding:10px 14px;border:1.5px solid '+(sel?'var(--teal)':'var(--border)')+';border-radius:10px;background:'+(sel?'rgba(13,155,138,.08)':'var(--bg)')+';cursor:pointer;font-family:var(--font);font-size:13px;color:'+(sel?'var(--teal)':'var(--text)')+';font-weight:'+(sel?'600':'400')+';transition:all .12s">'
+        + (sel ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>' : '')
+        + opt + '</button>';
+    });
+    optionsHTML += '</div>';
+  }
+  if (q.type === 'text' || true) {
+    if (q.type === 'text') {
+      optionsHTML += '<textarea id="ai-profile-text-'+q.id+'" placeholder="'+e(q.hint||'Din svar...')+'" style="width:100%;min-height:80px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px;color:var(--text);font-family:var(--font);resize:none;line-height:1.65">'+e(profile[q.id]||'')+'</textarea>';
+    } else if (q.hint) {
+      optionsHTML += '<div style="font-size:11px;color:var(--muted);margin-bottom:8px">Eller skriv med egna ord:</div>';
+      optionsHTML += '<textarea id="ai-profile-text-'+q.id+'" placeholder="Fritext (valfritt)..." style="width:100%;min-height:56px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:12px;color:var(--text);font-family:var(--font);resize:none;line-height:1.6">'+e(Array.isArray(profile[q.id+'_text']) ? '' : (profile[q.id+'_text']||''))+'</textarea>';
+    }
+  }
+
+  return '<div style="background:var(--surface);border-radius:24px;width:100%;max-width:520px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.4)" onclick="event.stopPropagation()">'
+    // Header
+    + '<div style="background:linear-gradient(135deg,#08192f,#0a2540);padding:22px 26px 18px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'
+    + '<div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(13,155,138,.8)">Din AI-profil · ' + (step+1) + ' / ' + total + '</div>'
+    + '<button onclick="document.getElementById('ai-profile-ov').remove()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:20px;cursor:pointer;line-height:1">×</button>'
+    + '</div>'
+    // Progress bar
+    + '<div style="height:3px;background:rgba(255,255,255,.1);border-radius:2px;margin-bottom:14px">'
+    + '<div style="height:100%;width:'+pct+'%;background:var(--teal);border-radius:2px;transition:width .3s"></div></div>'
+    + '<div style="font-size:18px;font-weight:700;color:white;line-height:1.3">'+e(q.q)+'</div>'
+    + (q.hint && q.type !== 'text' ? '<div style="font-size:12px;color:rgba(255,255,255,.35);margin-top:5px">'+e(q.hint)+'</div>' : '')
+    + '</div>'
+    // Options
+    + '<div style="padding:20px 24px">'
+    + optionsHTML
+    + '</div>'
+    // Footer
+    + '<div style="padding:0 24px 20px;display:flex;gap:10px">'
+    + (step > 0 ? '<button onclick="_aiProfileNav('+(step-1)+')" style="padding:11px 20px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">← Tillbaka</button>' : '')
+    + '<button onclick="_aiProfileNav('+(step+1)+')" class="btn btn-p" style="flex:1;padding:12px">'+(step < total-1 ? 'Nästa →' : 'Spara min AI-profil ✓')+'</button>'
+    + '</div></div>';
+}
+
+window._aiProfileDraft = {};
+
+function _aiProfileToggleOption(qId, type, btn, opt) {
+  window._aiProfileDraft = window._aiProfileDraft || {};
+  if (type === 'single') {
+    window._aiProfileDraft[qId] = opt;
+    // Deselect all other buttons in this question
+    btn.closest('[onclick]') && btn.parentNode.querySelectorAll('button').forEach(function(b) {
+      b.style.borderColor = 'var(--border)';
+      b.style.background = 'var(--bg)';
+      b.style.color = 'var(--text)';
+      b.style.fontWeight = '400';
+      b.innerHTML = b.innerHTML.replace(/<svg[^>]*>.*?<\/svg>/s, '');
+    });
+    btn.style.borderColor = 'var(--teal)';
+    btn.style.background = 'rgba(13,155,138,.08)';
+    btn.style.color = 'var(--teal)';
+    btn.style.fontWeight = '600';
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>' + opt;
+  } else {
+    var arr = Array.isArray(window._aiProfileDraft[qId]) ? window._aiProfileDraft[qId] : [];
+    var i = arr.indexOf(opt);
+    if (i >= 0) {
+      arr.splice(i, 1);
+      btn.style.borderColor = 'var(--border)';
+      btn.style.background = 'var(--bg)';
+      btn.style.color = 'var(--text)';
+      btn.style.fontWeight = '400';
+      btn.innerHTML = opt;
+    } else {
+      arr.push(opt);
+      btn.style.borderColor = 'var(--teal)';
+      btn.style.background = 'rgba(13,155,138,.08)';
+      btn.style.color = 'var(--teal)';
+      btn.style.fontWeight = '600';
+      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>' + opt;
+    }
+    window._aiProfileDraft[qId] = arr;
+  }
+}
+
+function _aiProfileNav(nextStep) {
+  window._aiProfileDraft = window._aiProfileDraft || {};
+  // Save any textarea values from current step
+  var total = AI_PROFILE_QUESTIONS.length;
+  var curStep = nextStep > 0 ? nextStep - 1 : 0;
+  var q = AI_PROFILE_QUESTIONS[Math.min(curStep, total-1)];
+  if (q) {
+    var ta = document.getElementById('ai-profile-text-' + q.id);
+    if (ta && ta.value.trim()) {
+      window._aiProfileDraft[q.id + (q.type !== 'text' ? '_text' : '')] = ta.value.trim();
+      if (q.type === 'text') window._aiProfileDraft[q.id] = ta.value.trim();
+    }
+  }
+
+  if (nextStep >= total) {
+    // Save profile
+    var merged = Object.assign(getAiProfile(), window._aiProfileDraft, { completedAt: new Date().toISOString() });
+    saveAiProfile(merged);
+    window._aiProfileDraft = {};
+    document.getElementById('ai-profile-ov')?.remove();
+    // Show completion toast
+    showAutoSaveToast('AI-profil sparad — din AI lär sig nu hur du jobbar ✓');
+    // If in settings, refresh AI tab
+    if (S.screen === 'settings') _renderSettingsContent('ai');
+    return;
+  }
+
+  // Update wizard HTML
+  var ov = document.getElementById('ai-profile-ov');
+  if (!ov) return;
+  var profile = Object.assign(getAiProfile(), window._aiProfileDraft);
+  var inner = ov.querySelector('[onclick="event.stopPropagation()"]');
+  if (inner) inner.outerHTML = _buildAiProfileWizardHTML(profile, nextStep);
+  // Re-attach the stopPropagation to new inner element
+  var newInner = ov.firstElementChild;
+  if (newInner) newInner.onclick = function(ev) { ev.stopPropagation(); };
+}
+
+// Returns a context string for injecting into AI prompts
+function getAiProfileContext(userId) {
+  var profile = getAiProfile(userId);
+  if (!Object.keys(profile).length) return '';
+  var parts = [];
+  if (profile.style) {
+    var styles = Array.isArray(profile.style) ? profile.style : [profile.style];
+    if (styles.length) parts.push('Behandlarens personlighet: ' + styles.join(', '));
+  }
+  if (profile.tone) parts.push('Kommunikationston: ' + profile.tone);
+  if (profile.strengths) {
+    var s = Array.isArray(profile.strengths) ? profile.strengths : [profile.strengths];
+    if (s.length) parts.push('Expertområden: ' + s.join(', '));
+  }
+  if (profile.patient_motivation) parts.push('Patientmotivation: ' + profile.patient_motivation);
+  if (profile.avoid) parts.push('VIKTIGT — undvik alltid: ' + profile.avoid);
+  if (profile.voice_sample) parts.push('Behandlarens röst (exempel): "' + profile.voice_sample + '"');
+  if (profile.tone_text) parts.push('Ytterligare om ton: ' + profile.tone_text);
+  return parts.length ? '\n\n--- BEHANDLARPROFIL ---\n' + parts.join('\n') + '\n---' : '';
+}
+
+>

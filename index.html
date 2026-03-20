@@ -16609,48 +16609,167 @@ function rHael() {
 
 async function _generateHaelInsight() {
   var key = getKey();
+  var el = document.getElementById('hael-ai-insight');
   if (!key) {
-    var el = document.getElementById('hael-ai-insight');
-    if (el) el.textContent = 'Lägg till API-nyckel under Inställningar → AI & API för AI-insikter.';
+    if (el) el.innerHTML = '<span style="color:var(--muted)">Lägg till API-nyckel under Inställningar → AI & API för att aktivera kliniska insikter.</span>';
     return;
   }
+
+  // ── BUILD RICH ANALYTICS DATASET ─────────────────────────────────────────
   var plans = [];
+  var now = new Date();
+
   S.patients.forEach(function(pat) {
     (pat.visits||[]).forEach(function(v) {
       if (!v.plan) return;
       var logs = v.logs||[];
       var allNRS = logs.filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;});
+      var nrsFirst = allNRS[0] != null ? allNRS[0] : (v.plan.form?.pain ?? null);
+      var nrsLast  = allNRS.length ? allNRS[allNRS.length-1] : null;
+      var nrsDrop  = (nrsFirst!=null && nrsLast!=null) ? Math.round((nrsFirst-nrsLast)*10)/10 : null;
+
+      // Days since start
+      var startDate = v.date ? new Date(v.date) : null;
+      var daysSinceStart = startDate ? Math.floor((now-startDate)/(24*60*60*1000)) : null;
+      var weeksSince = daysSinceStart ? Math.floor(daysSinceStart/7) : null;
+
+      // Passes per week (actual adherence)
+      var passesPerWeek = (logs.length > 0 && weeksSince > 0)
+        ? Math.round((logs.length / weeksSince) * 10) / 10
+        : null;
+
+      // Days since last log
+      var lastLog = logs.reduce(function(d,l){return l.date&&l.date>d?l.date:d;},'');
+      var daysSinceLog = lastLog ? Math.floor((now-new Date(lastLog))/(24*60*60*1000)) : null;
+
+      // Total weeks planned
+      var totalWeeks = v.plan.totalWeeks || v.plan.form?.followup || 4;
+
+      // Plan completion % (week progress)
+      var completionPct = weeksSince ? Math.min(100, Math.round(weeksSince/totalWeeks*100)) : 0;
+
       plans.push({
-        pat: pat.name,
-        diag: v.plan.form?.diagnosis||v.plan.form?.diagnos||'',
+        patId: pat.id,
+        diag: v.plan.form?.diagnosis||v.plan.form?.diagnos||'Okänd',
+        nrsFirst: nrsFirst,
+        nrsLast: nrsLast,
+        nrsDrop: nrsDrop,
         passes: logs.length,
-        nrsFirst: allNRS[0]??null,
-        nrsLast: allNRS.length?allNRS[allNRS.length-1]:null,
+        passesPerWeek: passesPerWeek,
+        daysSinceLog: daysSinceLog,
+        totalWeeks: totalWeeks,
+        completionPct: completionPct,
+        exerciseCount: (v.plan.exercises||[]).length,
+        status: (!startDate||new Date(startDate.getTime()+totalWeeks*7*86400000)>now)
+          ? (daysSinceLog!==null&&daysSinceLog>7?'inaktiv':'aktiv')
+          : 'avslutad',
       });
     });
   });
-  if (!plans.length) return;
 
-  var el = document.getElementById('hael-ai-insight');
-  if (el) el.textContent = 'Analyserar...';
+  if (!plans.length) {
+    if (el) el.innerHTML = '<span style="color:var(--muted)">Inga Hael-planer att analysera ännu. Skapa planer för dina patienter för att få kliniska insikter.</span>';
+    return;
+  }
 
-  var prompt = 'Du analyserar rehabdata från en naprapatisk klinik. '
-    + plans.length + ' aktiva Hael-planer. '
-    + 'Data (sammanfattning): ' + JSON.stringify(plans.slice(0,8)) + '. '
-    + 'Ge EN konkret, kliniskt relevant observation på svenska. Max 2 meningar. '
-    + 'Fokus på mönster, avvikelser eller åtgärdsförslag. Ingen rubrik, bara texten.';
+  // ── COMPUTE PRE-ANALYTICS (feed AI both raw + computed) ─────────────────
+  var active = plans.filter(function(p){return p.status==='aktiv';});
+  var inactive = plans.filter(function(p){return p.status==='inaktiv';});
+  var avgPassesPerWeek = active.length
+    ? Math.round(active.filter(function(p){return p.passesPerWeek!==null;}).reduce(function(a,p){return a+(p.passesPerWeek||0);},0) / Math.max(1,active.filter(function(p){return p.passesPerWeek!==null;}).length) * 10)/10
+    : null;
+  var avgNRSDrop = plans.filter(function(p){return p.nrsDrop!==null&&p.nrsDrop>0;});
+  var avgDrop = avgNRSDrop.length ? Math.round(avgNRSDrop.reduce(function(a,p){return a+p.nrsDrop;},0)/avgNRSDrop.length*10)/10 : null;
+
+  // Diagnos grouping
+  var byDiag = {};
+  plans.forEach(function(p) {
+    var d = (p.diag||'Okänd').split('(')[0].trim();
+    if (!byDiag[d]) byDiag[d] = {count:0,drops:[],passes:[],inactive:0};
+    byDiag[d].count++;
+    if (p.nrsDrop!=null) byDiag[d].drops.push(p.nrsDrop);
+    if (p.passesPerWeek!=null) byDiag[d].passes.push(p.passesPerWeek);
+    if (p.status==='inaktiv') byDiag[d].inactive++;
+  });
+  var diagSummary = Object.entries(byDiag).slice(0,5).map(function(e) {
+    var d=e[0],g=e[1];
+    var avgDrop2 = g.drops.length ? Math.round(g.drops.reduce(function(a,b){return a+b;},0)/g.drops.length*10)/10 : null;
+    var avgPass  = g.passes.length ? Math.round(g.passes.reduce(function(a,b){return a+b;},0)/g.passes.length*10)/10 : null;
+    return d+': '+g.count+' planer, NRS-drop '+avgDrop2+', '+avgPass+' pass/v, '+g.inactive+' inaktiva';
+  }).join(' | ');
+
+  if (el) el.innerHTML = '<span style="color:var(--muted);font-style:italic">Analyserar din klinikdata...</span>';
+
+  // ── PROMPT WITH BENCHMARKS + STRUCTURE ───────────────────────────────────
+  var prompt = [
+    'Du är klinisk AI-rådgivare för en naprapatisk klinik. Analysera datan och ge EXAKT 3 insikter.',
+    '',
+    'KLINISKA REFERENSVÄRDEN (använd dessa för tolkning — kommunicera dem aldrig direkt):',
+    '- Följsamhet: ≥3 pass/vecka = optimal | 2–2.9 = acceptabel | <2 = riskzon | <1 = hög dropout-risk',
+    '- NRS-minskning: ≥3 enheter = kliniskt signifikant | 1–2.9 = måttlig | <1 = otillräcklig effekt',
+    '- Inaktivitet: >7 dagar utan loggning = varningssignal | >14 dagar = hög dropout-risk',
+    '- Programlängd: <4 veckor riskerar otillräcklig effekt för kroniska tillstånd',
+    '',
+    'KLINIKDATA:',
+    '- Totalt ' + plans.length + ' planer: ' + active.length + ' aktiva, ' + inactive.length + ' inaktiva',
+    '- Genomsnittlig följsamhet: ' + (avgPassesPerWeek !== null ? avgPassesPerWeek + ' pass/vecka' : 'data saknas'),
+    '- Genomsnittlig NRS-minskning: ' + (avgDrop !== null ? '-' + avgDrop + ' enheter' : 'data saknas'),
+    '- Per diagnos: ' + (diagSummary || 'ej tillräcklig data'),
+    '',
+    'FORMAT — returnera exakt detta JSON utan backticks:',
+    '[',
+    '  {',
+    '    "signal": "hög|medel|låg",',
+    '    "title": "Kort rubrik (max 6 ord)",',
+    '    "finding": "Vad du ser i datan — med siffra",',
+    '    "meaning": "Vad det betyder kliniskt — jämfört med referensvärdet",',
+    '    "action": "En konkret sak kliniker kan göra NU"',
+    '  }',
+    ']',
+    '',
+    'Regler: Skriv på svenska. Inga generiska fraser. Varje insikt ska vara omedelbart handlingsbar.',
+    'Om datan är begränsad — säg det ärligt i finding och ge råd baserat på det du kan se.',
+  ].join('\n');
 
   try {
     var res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:MODEL_HAIKU, max_tokens:120, messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({model:MODEL_HAIKU, max_tokens:500, messages:[{role:'user',content:prompt}]})
     });
     var data = await res.json();
-    var txt = (data.content||[]).map(function(b){return b.text||'';}).join('').trim();
-    if (el && txt) el.textContent = txt;
+    var raw = (data.content||[]).map(function(b){return b.text||'';}).join('').trim();
+
+    var insights;
+    try { insights = JSON.parse(raw.replace(/```json|```/g,'').trim()); }
+    catch(ex) { insights = null; }
+
+    if (!insights || !insights.length) {
+      if (el) el.textContent = raw || 'AI-analys otillgänglig just nu.';
+      return;
+    }
+
+    var signalColor = {'hög':'#e05555','medel':'#c8a030','låg':'var(--teal)'};
+    var signalBg    = {'hög':'rgba(224,85,85,.08)','medel':'rgba(200,160,48,.07)','låg':'rgba(13,155,138,.07)'};
+    var signalBorder= {'hög':'rgba(224,85,85,.2)','medel':'rgba(200,160,48,.2)','låg':'rgba(13,155,138,.18)'};
+
+    var html = insights.map(function(ins, i) {
+      var sc = signalColor[ins.signal] || 'var(--teal)';
+      var sb = signalBg[ins.signal]    || 'rgba(13,155,138,.07)';
+      var sbo= signalBorder[ins.signal]|| 'rgba(13,155,138,.18)';
+      return '<div style="background:'+sb+';border:1px solid '+sbo+';border-radius:10px;padding:11px 14px;'+(i>0?'margin-top:8px':'')+'">'
+        + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">'
+        + '<div style="width:6px;height:6px;border-radius:50%;background:'+sc+';flex-shrink:0"></div>'
+        + '<div style="font-size:12px;font-weight:700;color:var(--ink)">'+ins.title+'</div>'
+        + '</div>'
+        + '<div style="font-size:12px;color:var(--text);line-height:1.6;margin-bottom:5px">'+ins.finding+' — '+ins.meaning+'</div>'
+        + '<div style="font-size:11px;font-weight:700;color:'+sc+'">→ '+ins.action+'</div>'
+        + '</div>';
+    }).join('');
+
+    if (el) el.innerHTML = html;
   } catch(ex) {
-    if (el) el.textContent = 'AI-analys otillgänglig just nu.';
+    if (el) el.innerHTML = '<span style="color:var(--muted)">AI-analys otillgänglig just nu.</span>';
   }
 }
 

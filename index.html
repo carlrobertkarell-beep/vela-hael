@@ -1050,6 +1050,8 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
     <div id="s-public-plan" class="screen"></div>
     <div id="s-doc" class="screen"></div>
     <div id="s-settings" class="screen"></div>
+    <div id="s-hael" class="screen"></div>
+    <div id="s-hael" class="screen"></div>
     <div id="s-meeting" class="screen"></div>
     <div id="s-soap" class="screen"></div>
     <div id="s-editpat" class="screen"></div>
@@ -1305,6 +1307,40 @@ const ROLES = {
   report_reader:{ id:'report_reader',label:'Rapportläsare',  desc:'Dashboard och rapporter, ej patientdata', color:'#888780', scope:'clinic' },
 };
 
+// ── RUNTIME ROLE ENFORCEMENT ──────────────────────────────────────────────────
+function currentUserRole() {
+  try {
+    var users = JSON.parse(localStorage.getItem('vela:users') || '[]');
+    var me = users.find(function(u) { return u.email === (_authUser?.email || ''); });
+    if (me && me.role) return me.role;
+    // First user / no match = org_owner
+    return 'org_owner';
+  } catch(ex) { return 'org_owner'; }
+}
+
+function roleCanDo(action) {
+  var role = currentUserRole();
+  var perms = {
+    org_owner:    ['patients','journal','plans','ai','revenue_own','revenue_all','reports','settings','integrations','services','invite','multi_clinic'],
+    clinic_owner: ['patients','journal','plans','ai','revenue_own','revenue_all','reports','settings','integrations','services','invite'],
+    it_admin:     ['settings','integrations'],
+    therapist:    ['patients','journal','plans','ai','revenue_own'],
+    reception:    ['patients'],
+    report_reader:['revenue_all','reports'],
+  };
+  return (perms[role] || []).includes(action);
+}
+
+// Returns true if the sidebar section should show for current user
+function showNavSection(section) {
+  var role = currentUserRole();
+  if (section === 'intelligence')  return roleCanDo('reports');
+  if (section === 'settings')      return roleCanDo('settings') || role === 'org_owner' || role === 'clinic_owner';
+  if (section === 'patients')      return roleCanDo('patients');
+  return true; // home, hael always visible
+}
+
+
 function getOrg() {
   try { return JSON.parse(localStorage.getItem(ORG_KEY) || 'null') || { id:'org_1', name:'Min organisation', tier:'pro' }; } catch { return { id:'org_1', name:'Min organisation', tier:'pro' }; }
 }
@@ -1341,6 +1377,42 @@ function isOrgOwner() {
     return self.role === 'org_owner' || self.role === 'superadmin';
   } catch { return true; }
 }
+
+// ── RUNTIME ROLE ENFORCEMENT ──────────────────────────────────────────────
+function getMyRole() {
+  try {
+    var users = JSON.parse(localStorage.getItem('vela:users') || '[]');
+    var me = users.find(function(u){ return u.email === (_authUser && _authUser.email); });
+    return me ? me.role : 'org_owner';  // default: org owner (first user)
+  } catch(ex) { return 'org_owner'; }
+}
+
+// Feature permission map per role
+var ROLE_PERMISSIONS = {
+  org_owner:    ['patients','soap','plan','ai','own_revenue','all_revenue','reports','settings','integrations','services','invite','org_overview','intelligence'],
+  clinic_owner: ['patients','soap','plan','ai','own_revenue','all_revenue','settings','integrations','services','invite','intelligence'],
+  it_admin:     ['settings','integrations'],
+  therapist:    ['patients','soap','plan','ai','own_revenue'],
+  reception:    ['patients'],
+  report_reader:['all_revenue','reports','intelligence'],
+};
+
+function hasPermission(feature) {
+  var role = getMyRole();
+  var perms = ROLE_PERMISSIONS[role] || [];
+  return perms.indexOf(feature) >= 0;
+}
+
+// Filter sidebar nav items based on role
+function roleFilterNav(items) {
+  var role = getMyRole();
+  return items.filter(function(item) {
+    if (!item.requires) return true;
+    return hasPermission(item.requires);
+  });
+}
+
+
 
 // Global service catalog (set by org owner, inherited by all clinics)
 function getGlobalServices() {
@@ -3561,7 +3633,7 @@ function go(scr){
     if(tb) tb.style.display = '';
   }
   rTopbar();
-  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:rMeeting,soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,settings:rSettings};
+  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:rMeeting,soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,settings:rSettings,hael:rHael};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
 }
@@ -3639,6 +3711,18 @@ function rTopbar() {
     nh += '<button class="nav-item" onclick="toggleVelaAsk();_closeSidebar()">'
       +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
       +'Vela Ask <span style="font-size:9px;background:rgba(13,155,138,.2);color:#3dcfbd;padding:1px 6px;border-radius:6px;margin-left:auto;font-weight:700">AI</span></button>';
+
+    // Hael-planer
+    nh += '<div class="nav-section-label" style="margin-top:8px">Hael</div>';
+    nh += '<button class="nav-item '+(scr==='hael'?'active':'')+'" onclick="go(\'hael\');_closeSidebar()">'
+      + '<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+      + 'Rehabplaner</button>';
+
+    // Hael
+    nh += '<div class="nav-section-label" style="margin-top:8px">Hael</div>';
+    nh += '<button class="nav-item '+(scr==='hael'?'active':'') + '" onclick="go(\'hael\');_closeSidebar()" style="">'
+      + '<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+      + 'Rehabplaner</button>';
 
     // Inställningar
     nh += '<div class="nav-section-label" style="margin-top:8px">Konto</div>';
@@ -14690,66 +14774,104 @@ function _stClinic(cfg) {
 
 // ── ANVÄNDARE & ROLLER ───────────────────────────────────────
 function _stUsers() {
-  const users = _getVelaUsers();
-  const roles = {
-    owner:    { label:'Ägare',       color:'#1a7a4a', bg:'rgba(26,122,74,.1)',   desc:'Ser allt, ändrar allt, ser alla intäkter' },
-    therapist:{ label:'Behandlare',  color:'var(--teal)', bg:'rgba(13,155,138,.08)', desc:'Egna patienter, journal, egna intäkter' },
-    reception:{ label:'Reception',   color:'#4a7aaa', bg:'rgba(74,122,170,.08)', desc:'Registrerar & bokar, ser ej journal/ekonomi' },
-  };
+  var users = _getVelaUsers();
+  var currentEmail = _authUser?.email || '';
 
-  var h = '<div class="vela-st-section">';
-  h += '<div class="vela-st-title">Användare & Roller</div>';
+  // Full 7-role definitions (excluding Vela Superadmin which is internal)
+  var klinikRoles = [
+    { id:'org_owner',    label:'Systemägare',    desc:'Äger alla kliniker, ser allt aggregerat', color:'#0d9b8a' },
+    { id:'clinic_owner', label:'Klinikägare',    desc:'Ser och gör allt inom sin klinik',         color:'#0d9b8a' },
+    { id:'it_admin',     label:'IT / Admin',     desc:'Inställningar & integrationer, ej patient',color:'#378ADD' },
+    { id:'therapist',    label:'Behandlare',     desc:'Egna patienter, journal, egna intäkter',   color:'#EF9F27' },
+    { id:'reception',    label:'Reception',      desc:'Bokning & patientlista, ej journal',        color:'#D85A30' },
+    { id:'report_reader',label:'Rapportläsare',  desc:'Dashboard & rapporter, ej patientdata',    color:'#888780' },
+  ];
+
+  function roleName(id) {
+    var r = klinikRoles.find(function(x){return x.id===id;});
+    return r ? r.label : id;
+  }
+  function roleColor(id) {
+    var r = klinikRoles.find(function(x){return x.id===id;});
+    return r ? r.color : '#888';
+  }
+
+  var h = '<div class="vela-st-section" style="max-width:820px">';
+  h += '<div class="vela-st-title" style="margin-bottom:4px">Användare & Roller</div>';
   h += '<div class="vela-st-desc">Bjud in teammedlemmar och sätt vad de får se och göra.</div>';
 
-  // Role definitions
-  h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px;margin-bottom:24px">';
-  Object.entries(roles).forEach(([id, r]) => {
-    h += '<div style="border:1px solid var(--border);border-radius:12px;padding:14px;background:'+r.bg+'">';
-    h += '<div style="font-size:12px;font-weight:700;color:'+r.color+';margin-bottom:4px">'+r.label+'</div>';
+  // Role cards — all 6 clinic roles
+  h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0">';
+  klinikRoles.forEach(function(r) {
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px">';
+    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
+    h += '<div style="width:10px;height:10px;border-radius:50%;background:'+r.color+';flex-shrink:0"></div>';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">'+r.label+'</div></div>';
     h += '<div style="font-size:11px;color:var(--muted);line-height:1.5">'+r.desc+'</div>';
     h += '</div>';
   });
   h += '</div>';
 
-  // Current users
-  h += '<div style="margin-bottom:20px">';
-  h += '<div class="vela-st-label" style="margin-bottom:12px">Aktiva användare</div>';
-  h += '<div style="border:1px solid var(--border);border-radius:14px;overflow:hidden">';
-  users.forEach((u, i) => {
-    const r = roles[u.role] || roles.therapist;
-    h += '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;'+(i>0?'border-top:1px solid var(--border)':'')+'">';
-    h += '<div style="width:34px;height:34px;border-radius:50%;background:'+r.bg+';display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:'+r.color+'">'+u.name.slice(0,2).toUpperCase()+'</div>';
+  // Active users section
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:16px">';
+  h += '<div style="padding:13px 18px;border-bottom:1px solid var(--border)">';
+  h += '<div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal)">Aktiva användare</div>';
+  h += '</div>';
+
+  users.forEach(function(u, i) {
+    var isSelf = u.email === currentEmail;
+    var initials = (u.name||u.email||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    var rColor = roleColor(u.role);
+    h += '<div style="display:flex;align-items:center;gap:14px;padding:13px 18px;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
+    h += '<div style="width:36px;height:36px;border-radius:50%;background:rgba(13,155,138,.12);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--teal);flex-shrink:0">'+initials+'</div>';
     h += '<div style="flex:1;min-width:0">';
-    h += '<div style="font-size:13px;font-weight:600;color:var(--ink)">'+e(u.name)+'</div>';
+    h += '<div style="font-size:13px;font-weight:600;color:var(--ink)">'+e(u.name||u.email)+(isSelf?' <span style="font-size:10px;color:var(--muted)">(dig)</span>':'')+'</div>';
     h += '<div style="font-size:11px;color:var(--muted)">'+e(u.email)+'</div>';
+    if (u.speciality) h += '<div style="font-size:11px;color:var(--muted)">'+e(u.speciality)+'</div>';
     h += '</div>';
-    h += '<select onchange="_updateUserRole(\''+u.id+'\',this.value)" style="font-size:11px;padding:4px 8px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);font-family:var(--font);cursor:pointer">';
-    Object.entries(roles).forEach(([rid, r2]) => {
-      h += '<option value="'+rid+'"'+(u.role===rid?' selected':'')+'>'+r2.label+'</option>';
+    // Role badge + dropdown
+    h += '<div style="position:relative">';
+    h += '<div style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+rColor+'18;color:'+rColor+';cursor:pointer;white-space:nowrap" data-ddid="role-dd-" data-ddidx="' + i + '" onclick="_toggleRoleDropdown(this.dataset.ddid+this.dataset.ddidx)">';
+    h += roleName(u.role||'therapist')+' ▾</div>';
+    h += '<div id="role-dd-'+i+'" style="display:none;position:absolute;right:0;top:28px;background:var(--navy);border:1px solid var(--border);border-radius:10px;overflow:hidden;z-index:100;min-width:140px;box-shadow:0 4px 20px rgba(0,0,0,.3)">';
+    klinikRoles.forEach(function(r) {
+      h += '<div onclick="_velaRoleSelect(\'' + e(u.email) + '\',\'' + r.id + '\''+ ',' + i + ')" style="padding:8px 13px;font-size:12px;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:8px" onmouseover="this.style.background=\'rgba(255,255,255,.06)\'" onmouseout="this.style.background=\'none\'">';
+      h += '<div style="width:8px;height:8px;border-radius:50%;background:'+r.color+';flex-shrink:0"></div>'+r.label+'</div>';
     });
-    h += '</select>';
-    if (u.id !== 'owner-self') h += '<button onclick="_removeVelaUser(\''+u.id+'\')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:16px;line-height:1" title="Ta bort">×</button>';
+    h += '</div></div>';
+    // Remove (not self, not last owner)
+    if (!isSelf) {
+      h += '<button onclick="_velaRemoveUser(\'' + e(u.email) + '\')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:4px">×</button>';
+    }
     h += '</div>';
   });
-  if (!users.length) h += '<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted)">Inga användare tillagda ännu</div>';
-  h += '</div></div>';
+
+  if (!users.length) {
+    h += '<div style="padding:20px;text-align:center;font-size:12px;color:var(--muted)">Inga användare ännu</div>';
+  }
+  h += '</div>';
 
   // Invite form
-  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px">';
-  h += '<div class="vela-st-label" style="margin-bottom:12px">Bjud in ny användare</div>';
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:18px">';
+  h += '<div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin-bottom:13px">Bjud in ny användare</div>';
   h += '<div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px;align-items:end">';
-  h += _stField('inv-name','Namn','','T.ex. Anna Lindqvist','text');
-  h += _stField('inv-email','E-post','','anna@klinik.se','email');
-  h += '<div><div class="vela-st-label" style="margin-bottom:7px">Roll</div>';
-  h += '<select id="inv-role" style="height:42px;padding:0 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:var(--font);width:100%;font-size:13px">';
-  h += '<option value="therapist">Behandlare</option><option value="reception">Reception</option><option value="owner">Ägare</option>';
+  h += '<div><div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Namn</div>';
+  h += '<input id="inv-name" class="field" placeholder="T.ex. Anna Lindqvist" style="margin-bottom:0"></div>';
+  h += '<div><div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">E-post</div>';
+  h += '<input id="inv-email" class="field" type="email" placeholder="anna@klinik.se" style="margin-bottom:0"></div>';
+  h += '<div><div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px">Roll</div>';
+  h += '<select id="inv-role" class="field" style="margin-bottom:0;padding:9px 10px">';
+  klinikRoles.forEach(function(r) {
+    h += '<option value="'+r.id+'">'+r.label+'</option>';
+  });
   h += '</select></div>';
-  h += '<button onclick="_inviteVelaUser()" class="btn btn-p" style="height:42px;white-space:nowrap">Bjud in</button>';
+  h += '<button onclick="_inviteVelaUser()" class="btn btn-p" style="padding:9px 16px;white-space:nowrap">Bjud in</button>';
   h += '</div></div>';
 
-  // Permissions matrix
-  h += '<div style="margin-top:24px">';
-  h += '<div class="vela-st-label" style="margin-bottom:12px">Behörighetsmatris</div>';
+  // Permission matrix
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
+  h += '<div style="padding:13px 18px;border-bottom:1px solid var(--border)">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Behörighetsmatris</div></div>';
   h += _stPermMatrix();
   h += '</div>';
 
@@ -15675,6 +15797,160 @@ function showDropoutList() {
     document.body.appendChild(diagDiv);
   }
 })();
+
+// ── HAEL — REHABPLAN OVERVIEW ────────────────────────────────────────────────
+function rHael() {
+  var el = document.getElementById('s-hael');
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  el.classList.add('active');
+
+  var now = new Date();
+  var plans = [];
+  S.patients.forEach(function(pat) {
+    (pat.visits||[]).forEach(function(v) {
+      if (!v.plan) return;
+      var plan = v.plan;
+      var totalWeeks = plan.totalWeeks || plan.form?.followup || 4;
+      var startDate  = v.date ? new Date(v.date) : null;
+      var endDate    = startDate ? new Date(startDate.getTime() + totalWeeks*7*24*60*60*1000) : null;
+      var daysLeft   = endDate ? Math.ceil((endDate - now)/(24*60*60*1000)) : null;
+      var logs       = v.logs || [];
+      var lastLog    = logs.length ? new Date(logs[logs.length-1].date||v.date) : startDate;
+      var daysSinceLog = lastLog ? Math.floor((now - lastLog)/(24*60*60*1000)) : null;
+      var allNRS     = logs.filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;});
+      var nrsFirst   = allNRS[0] ?? (plan.form?.pain ?? null);
+      var nrsLast    = allNRS[allNRS.length-1] ?? null;
+      var nrsDrop    = (nrsFirst!=null&&nrsLast!=null) ? Math.round((nrsFirst-nrsLast)*10)/10 : null;
+      var donePasses = logs.filter(function(l){return l.completed||(l.exercises&&Object.values(l.exercises).filter(Boolean).length>0);}).length;
+
+      var status;
+      if (!endDate || endDate > now) {
+        if (daysSinceLog !== null && daysSinceLog > 7) status = 'inaktiv';
+        else status = 'aktiv';
+      } else {
+        status = 'avslutad';
+      }
+
+      plans.push({
+        patId: pat.id, patName: pat.name, visitId: v.id,
+        diag: plan.form?.diagnosis || plan.form?.diagnos || '',
+        daysLeft: daysLeft, donePasses: donePasses, totalWeeks: totalWeeks,
+        nrsFirst: nrsFirst, nrsLast: nrsLast, nrsDrop: nrsDrop,
+        status: status, daysSinceLog: daysSinceLog, startDate: startDate,
+        exercises: (plan.exercises||[]).length,
+      });
+    });
+  });
+
+  // Sort: active first, then by daysLeft
+  plans.sort(function(a,b) {
+    var ord = {aktiv:0, inaktiv:1, avslutad:2};
+    if ((ord[a.status]||0) !== (ord[b.status]||0)) return (ord[a.status]||0)-(ord[b.status]||0);
+    return (a.daysLeft||9999)-(b.daysLeft||9999);
+  });
+
+  var active   = plans.filter(function(p){return p.status==='aktiv';}).length;
+  var inactive = plans.filter(function(p){return p.status==='inaktiv';}).length;
+  var ended    = plans.filter(function(p){return p.status==='avslutad';}).length;
+
+  var h = '<div class="cc-wrap" style="padding-top:20px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">';
+  h += '<div><div style="font-size:22px;font-weight:800;color:var(--ink)">Hael-planer</div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin-top:3px">' + plans.length + ' planer totalt</div></div>';
+  h += '<div style="display:flex;gap:8px">';
+  ['all','aktiv','inaktiv'].forEach(function(f) {
+    var labels = {all:'Alla', aktiv:'Aktiva', inaktiv:'Inaktiva'};
+    var counts = {all:plans.length, aktiv:active, inaktiv:inactive};
+    var col    = {all:'', aktiv:'rgba(13,155,138,.15)', inaktiv:'rgba(220,85,85,.12)'};
+    var tcol   = {all:'', aktiv:'var(--teal)', inaktiv:'#e05555'};
+    var cur    = (!window._haelFilter && f==='all') || window._haelFilter===f;
+    h += '<button data-filter="'+f+'" onclick="window._haelFilter=this.dataset.filter;rHael()" class="btn'+(cur?' btn-p':'')+'" style="font-size:12px">'+labels[f];
+    if(counts[f]!==undefined&&f!=='all') h += ' <span style="background:'+col[f]+';color:'+tcol[f]+';padding:1px 7px;border-radius:20px;font-size:10px;margin-left:4px">'+counts[f]+'</span>';
+    h += '</button>';
+  });
+  h += '</div></div>';
+
+  // KPI row
+  h += '<div class="cc-kpi-row" style="margin-bottom:20px">';
+  var avgDrop = plans.filter(function(p){return p.nrsDrop!==null;}).reduce(function(s,p){return s+p.nrsDrop;}, 0);
+  avgDrop = plans.filter(function(p){return p.nrsDrop!==null;}).length ? Math.round(avgDrop/plans.filter(function(p){return p.nrsDrop!==null;}).length*10)/10 : null;
+  [
+    {v:active,    l:'Aktiva planer',     s:'följs just nu'},
+    {v:inactive,  l:'Inaktiva',          s:'ingen logg >7 dagar'},
+    {v:ended,     l:'Avslutade',         s:'klara program'},
+    {v:avgDrop!==null?'-'+avgDrop:'-',   l:'Snitt NRS-minskning', s:'sedan start'},
+  ].forEach(function(k) {
+    h += '<div class="cc-kpi"><div class="cc-kpi-val">'+k.v+'</div><div class="cc-kpi-lbl">'+k.l+'</div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+k.s+'</div></div>';
+  });
+  h += '</div>';
+
+  // Plan list
+  var filter = window._haelFilter || 'all';
+  var visible = filter === 'all' ? plans : plans.filter(function(p){return p.status===filter;});
+
+  if (visible.length === 0) {
+    h += '<div style="text-align:center;padding:40px;background:var(--surface);border:1px solid var(--border);border-radius:16px;color:var(--muted)">Inga planer matchar filtret.</div>';
+  } else {
+    h += '<div style="display:grid;gap:10px">';
+    visible.forEach(function(plan) {
+      var statusColor = plan.status==='aktiv' ? 'var(--teal)' : plan.status==='inaktiv' ? '#e05555' : 'var(--muted)';
+      var statusBg    = plan.status==='aktiv' ? 'rgba(13,155,138,.1)' : plan.status==='inaktiv' ? 'rgba(220,85,85,.1)' : 'rgba(136,135,128,.1)';
+      var statusLabel = plan.status==='aktiv' ? 'Aktiv' : plan.status==='inaktiv' ? 'Inaktiv' : 'Avslutad';
+
+      h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:16px;cursor:pointer" data-patid="'+plan.patId+'" onclick="_hOpenPat(this.dataset.patid)">';
+
+      // Avatar
+      var initials = (plan.patName||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+      h += '<div style="width:38px;height:38px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--teal);flex-shrink:0">'+initials+'</div>';
+
+      // Info
+      h += '<div style="flex:1;min-width:0">';
+      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">';
+      h += '<div style="font-size:14px;font-weight:700;color:var(--ink)">'+e(plan.patName)+'</div>';
+      h += '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+statusBg+';color:'+statusColor+'">'+statusLabel+'</span>';
+      h += '</div>';
+      h += '<div style="font-size:12px;color:var(--muted)">'+e(plan.diag)+(plan.diag&&plan.exercises?' · ':'')+(plan.exercises?plan.exercises+' övningar':'')+'</div>';
+      h += '</div>';
+
+      // Stats
+      h += '<div style="display:flex;gap:20px;flex-shrink:0">';
+      if (plan.nrsDrop !== null) {
+        h += '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:'+(plan.nrsDrop>0?'var(--teal)':'var(--muted)')+'">'+( plan.nrsDrop>0 ? '-'+plan.nrsDrop : '±0')+'</div>';
+        h += '<div style="font-size:10px;color:var(--muted)">NRS</div></div>';
+      }
+      h += '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:var(--ink)">'+plan.donePasses+'</div>';
+      h += '<div style="font-size:10px;color:var(--muted)">pass</div></div>';
+      if (plan.daysLeft !== null && plan.status !== 'avslutad') {
+        var urgency = plan.daysLeft <= 7 ? '#e05555' : plan.daysLeft <= 14 ? '#c07000' : 'var(--muted)';
+        h += '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:'+urgency+'">'+Math.max(0,plan.daysLeft)+'</div>';
+        h += '<div style="font-size:10px;color:var(--muted)">dagar kvar</div></div>';
+      }
+      h += '</div>';
+
+      // Open plan button
+      (function(pid,vid){ h += '<button onclick="_openPublicPlanFromAdmin(\\\'' + pid + '\\\',\\\'' + vid + '\\\')" style="padding:6px 12px;background:none;border:1px solid var(--border);border-radius:8px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font);flex-shrink:0">Öppna plan</button>'; })(plan.patId, plan.visitId);
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  h += '</div>';
+  el.innerHTML = h;
+}
+
+function _hOpenPat(pid){if(pid){loadPat(pid);go('detail');}}
+
+function _openPublicPlanFromAdmin(patId, visitId) {
+  var pat = S.patients.find(function(p){return p.id===patId;});
+  if (!pat) return;
+  var visit = (pat.visits||[]).find(function(v){return v.id===visitId;}) || pat.visits[0];
+  if (!visit || !visit.plan) { showAutoSaveToast('Ingen plan hittades'); return; }
+  go('public-plan');
+  renderPublicPlan(visit.plan, pat);
+}
+
 
 // ── ORG OVERVIEW (systemägare) ─────────────────────────────────────────────
 function rOrgOverview() {

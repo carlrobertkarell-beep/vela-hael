@@ -3710,7 +3710,7 @@ function go(scr){
     if(tb) tb.style.display = '';
   }
   rTopbar();
-  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:rMeeting,soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,settings:rSettings,hael:rHael};
+  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:rMeeting,soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,settings:rSettings,hael:rHael,'public-plan':function(){}};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
 }
@@ -3789,13 +3789,7 @@ function rTopbar() {
       +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
       +'Vela Ask <span style="font-size:9px;background:rgba(13,155,138,.2);color:#3dcfbd;padding:1px 6px;border-radius:6px;margin-left:auto;font-weight:700">AI</span></button>';
 
-    // Hael-planer
-    nh += '<div class="nav-section-label" style="margin-top:8px">Hael</div>';
-    nh += '<button class="nav-item '+(scr==='hael'?'active':'')+'" onclick="go(\'hael\');_closeSidebar()">'
-      + '<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
-      + 'Rehabplaner</button>';
-
-    // Hael
+        // Hael
     nh += '<div class="nav-section-label" style="margin-top:8px">Hael</div>';
     nh += '<button class="nav-item '+(scr==='hael'?'active':'') + '" onclick="go(\'hael\');_closeSidebar()" style="">'
       + '<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
@@ -16427,155 +16421,244 @@ function showDropoutList() {
 })();
 
 // ── HAEL — REHABPLAN OVERVIEW ────────────────────────────────────────────────
+
 function rHael() {
   var el = document.getElementById('s-hael');
   if (!el) return;
   document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   el.classList.add('active');
 
-  var now = new Date();
+  var now   = new Date();
   var plans = [];
+
   S.patients.forEach(function(pat) {
     (pat.visits||[]).forEach(function(v) {
       if (!v.plan) return;
-      var plan = v.plan;
+      var plan       = v.plan;
       var totalWeeks = plan.totalWeeks || plan.form?.followup || 4;
       var startDate  = v.date ? new Date(v.date) : null;
       var endDate    = startDate ? new Date(startDate.getTime() + totalWeeks*7*24*60*60*1000) : null;
       var daysLeft   = endDate ? Math.ceil((endDate - now)/(24*60*60*1000)) : null;
       var logs       = v.logs || [];
-      var lastLog    = logs.length ? new Date(logs[logs.length-1].date||v.date) : startDate;
-      var daysSinceLog = lastLog ? Math.floor((now - lastLog)/(24*60*60*1000)) : null;
       var allNRS     = logs.filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;});
       var nrsFirst   = allNRS[0] ?? (plan.form?.pain ?? null);
-      var nrsLast    = allNRS[allNRS.length-1] ?? null;
+      var nrsLast    = allNRS.length ? allNRS[allNRS.length-1] : null;
       var nrsDrop    = (nrsFirst!=null&&nrsLast!=null) ? Math.round((nrsFirst-nrsLast)*10)/10 : null;
-      var donePasses = logs.filter(function(l){return l.completed||(l.exercises&&Object.values(l.exercises).filter(Boolean).length>0);}).length;
+      var donePasses = logs.filter(function(l){return l.completed||(l.exercises&&Object.values(l.exercises).filter(Boolean).length);}).length;
+      var lastLog    = logs.reduce(function(d,l){return l.date&&l.date>d?l.date:d;}, '');
+      var daysSinceLog = lastLog ? Math.floor((now-new Date(lastLog))/(24*60*60*1000)) : null;
 
-      var status;
-      if (!endDate || endDate > now) {
-        if (daysSinceLog !== null && daysSinceLog > 7) status = 'inaktiv';
-        else status = 'aktiv';
-      } else {
-        status = 'avslutad';
-      }
+      var status = (!endDate||endDate>now) ? (daysSinceLog!==null&&daysSinceLog>7?'inaktiv':'aktiv') : 'avslutad';
 
       plans.push({
-        patId: pat.id, patName: pat.name, visitId: v.id,
-        diag: plan.form?.diagnosis || plan.form?.diagnos || '',
-        daysLeft: daysLeft, donePasses: donePasses, totalWeeks: totalWeeks,
-        nrsFirst: nrsFirst, nrsLast: nrsLast, nrsDrop: nrsDrop,
-        status: status, daysSinceLog: daysSinceLog, startDate: startDate,
-        exercises: (plan.exercises||[]).length,
+        patId:pat.id, patName:pat.name, visitId:v.id,
+        diag: plan.form?.diagnosis||plan.form?.diagnos||'',
+        daysLeft:daysLeft, donePasses:donePasses, totalWeeks:totalWeeks,
+        nrsFirst:nrsFirst, nrsLast:nrsLast, nrsDrop:nrsDrop,
+        status:status, daysSinceLog:daysSinceLog, startDate:startDate,
+        exercises:(plan.exercises||[]).length,
       });
     });
   });
 
-  // Sort: active first, then by daysLeft
-  plans.sort(function(a,b) {
-    var ord = {aktiv:0, inaktiv:1, avslutad:2};
-    if ((ord[a.status]||0) !== (ord[b.status]||0)) return (ord[a.status]||0)-(ord[b.status]||0);
+  plans.sort(function(a,b){
+    var ord={aktiv:0,inaktiv:1,avslutad:2};
+    if((ord[a.status]||0)!==(ord[b.status]||0)) return (ord[a.status]||0)-(ord[b.status]||0);
     return (a.daysLeft||9999)-(b.daysLeft||9999);
   });
 
   var active   = plans.filter(function(p){return p.status==='aktiv';}).length;
   var inactive = plans.filter(function(p){return p.status==='inaktiv';}).length;
   var ended    = plans.filter(function(p){return p.status==='avslutad';}).length;
+  var improved = plans.filter(function(p){return p.nrsDrop!==null&&p.nrsDrop>0;}).length;
+  var nrsDropArr = plans.filter(function(p){return p.nrsDrop!==null;}).map(function(p){return p.nrsDrop;});
+  var avgDrop  = nrsDropArr.length ? Math.round(nrsDropArr.reduce(function(a,b){return a+b;},0)/nrsDropArr.length*10)/10 : null;
+  var completionRate = plans.length ? Math.round((ended+active)/plans.length*100) : 0;
+  var adherence = plans.length ? Math.round(plans.filter(function(p){return p.donePasses>0;}).length/plans.length*100) : 0;
+
+  var filter = window._haelFilter || 'all';
 
   var h = '<div class="cc-wrap" style="padding-top:20px">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">';
-  h += '<div><div style="font-size:22px;font-weight:800;color:var(--ink)">Hael-planer</div>';
-  h += '<div style="font-size:12px;color:var(--muted);margin-top:3px">' + plans.length + ' planer totalt</div></div>';
-  h += '<div style="display:flex;gap:8px">';
-  ['all','aktiv','inaktiv'].forEach(function(f) {
-    var labels = {all:'Alla', aktiv:'Aktiva', inaktiv:'Inaktiva'};
-    var counts = {all:plans.length, aktiv:active, inaktiv:inactive};
-    var col    = {all:'', aktiv:'rgba(13,155,138,.15)', inaktiv:'rgba(220,85,85,.12)'};
-    var tcol   = {all:'', aktiv:'var(--teal)', inaktiv:'#e05555'};
-    var cur    = (!window._haelFilter && f==='all') || window._haelFilter===f;
-    h += '<button data-filter="'+f+'" onclick="window._haelFilter=this.dataset.filter;rHael()" class="btn'+(cur?' btn-p':'')+'" style="font-size:12px">'+labels[f];
-    if(counts[f]!==undefined&&f!=='all') h += ' <span style="background:'+col[f]+';color:'+tcol[f]+';padding:1px 7px;border-radius:20px;font-size:10px;margin-left:4px">'+counts[f]+'</span>';
-    h += '</button>';
-  });
+
+  // Header
+  h += '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px">';
+  h += '<div>';
+  h += '<div style="font-size:24px;font-weight:800;color:var(--ink);letter-spacing:-.02em">Hael-planer</div>';
+  h += '<div style="font-size:13px;color:var(--muted);margin-top:3px">'+plans.length+' aktiva program · rehabdata från alla patienter</div>';
+  h += '</div>';
+  h += '<div style="display:flex;gap:8px;align-items:center">';
+  h += '<button onclick="window._haelFilter=\'all\';rHael()" class="btn'+((!filter||filter==='all')?' btn-p':'')+'" style="font-size:12px">Alla</button>';
+  h += '<button onclick="window._haelFilter=\'aktiv\';rHael()" class="btn'+(filter==='aktiv'?' btn-p':'')+'" style="font-size:12px">Aktiva <span style="background:rgba(13,155,138,.15);color:var(--teal);padding:1px 7px;border-radius:20px;font-size:10px;margin-left:4px">'+active+'</span></button>';
+  h += '<button onclick="window._haelFilter=\'inaktiv\';rHael()" class="btn'+(filter==='inaktiv'?' btn-p':'')+'" style="font-size:12px">Inaktiva <span style="background:rgba(220,85,85,.12);color:#e05555;padding:1px 7px;border-radius:20px;font-size:10px;margin-left:4px">'+inactive+'</span></button>';
   h += '</div></div>';
 
-  // KPI row
-  h += '<div class="cc-kpi-row" style="margin-bottom:20px">';
-  var avgDrop = plans.filter(function(p){return p.nrsDrop!==null;}).reduce(function(s,p){return s+p.nrsDrop;}, 0);
-  avgDrop = plans.filter(function(p){return p.nrsDrop!==null;}).length ? Math.round(avgDrop/plans.filter(function(p){return p.nrsDrop!==null;}).length*10)/10 : null;
-  [
-    {v:active,    l:'Aktiva planer',     s:'följs just nu'},
-    {v:inactive,  l:'Inaktiva',          s:'ingen logg >7 dagar'},
-    {v:ended,     l:'Avslutade',         s:'klara program'},
-    {v:avgDrop!==null?'-'+avgDrop:'-',   l:'Snitt NRS-minskning', s:'sedan start'},
-  ].forEach(function(k) {
-    h += '<div class="cc-kpi"><div class="cc-kpi-val">'+k.v+'</div><div class="cc-kpi-lbl">'+k.l+'</div>';
-    h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+k.s+'</div></div>';
+  // Analytics row — the AI-powered insight section
+  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">';
+  var kpis = [
+    {v:active,  l:'Aktiva planer', s:'följs just nu',         c:'var(--teal)'},
+    {v:(avgDrop!==null?'-'+avgDrop:'—'), l:'Snitt NRS-minskning', s:'sedan planstart', c:avgDrop>0?'var(--teal)':'var(--muted)'},
+    {v:improved, l:'Förbättrade',   s:'av '+nrsDropArr.length+' med NRS-data', c:'var(--teal)'},
+    {v:adherence+'%', l:'Följsamhet', s:'loggat minst ett pass',  c:adherence>=70?'var(--teal)':adherence>=40?'#c8a030':'#e05555'},
+  ];
+  kpis.forEach(function(k){
+    h += '<div class="cc-kpi" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px">';
+    h += '<div style="font-size:26px;font-weight:800;color:'+k.c+';letter-spacing:-.02em;margin-bottom:4px">'+k.v+'</div>';
+    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">'+k.l+'</div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">'+k.s+'</div>';
+    h += '</div>';
   });
   h += '</div>';
 
-  // Plan list
-  var filter = window._haelFilter || 'all';
-  var visible = filter === 'all' ? plans : plans.filter(function(p){return p.status===filter;});
+  // AI insight strip — calls AI if API key set
+  h += '<div id="hael-ai-strip" style="background:linear-gradient(135deg,rgba(13,155,138,.06),rgba(13,155,138,.02));border:1px solid rgba(13,155,138,.15);border-radius:14px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:13px">';
+  h += '<div style="width:30px;height:30px;border-radius:9px;background:rgba(13,155,138,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>';
+  h += '<div style="flex:1;font-size:13px;color:var(--text2)" id="hael-ai-insight">Laddar AI-analys av dina rehabplaner...</div>';
+  h += '<button onclick="_generateHaelInsight()" style="padding:5px 12px;background:none;border:1px solid rgba(13,155,138,.3);border-radius:8px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font);flex-shrink:0">Uppdatera</button>';
+  h += '</div>';
 
-  if (visible.length === 0) {
-    h += '<div style="text-align:center;padding:40px;background:var(--surface);border:1px solid var(--border);border-radius:16px;color:var(--muted)">Inga planer matchar filtret.</div>';
-  } else {
-    h += '<div style="display:grid;gap:10px">';
-    visible.forEach(function(plan) {
-      var statusColor = plan.status==='aktiv' ? 'var(--teal)' : plan.status==='inaktiv' ? '#e05555' : 'var(--muted)';
-      var statusBg    = plan.status==='aktiv' ? 'rgba(13,155,138,.1)' : plan.status==='inaktiv' ? 'rgba(220,85,85,.1)' : 'rgba(136,135,128,.1)';
-      var statusLabel = plan.status==='aktiv' ? 'Aktiv' : plan.status==='inaktiv' ? 'Inaktiv' : 'Avslutad';
-
-      h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:16px;cursor:pointer" data-patid="'+plan.patId+'" onclick="_hOpenPat(this.dataset.patid)">';
-
-      // Avatar
-      var initials = (plan.patName||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-      h += '<div style="width:38px;height:38px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--teal);flex-shrink:0">'+initials+'</div>';
-
-      // Info
-      h += '<div style="flex:1;min-width:0">';
-      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">';
-      h += '<div style="font-size:14px;font-weight:700;color:var(--ink)">'+e(plan.patName)+'</div>';
-      h += '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+statusBg+';color:'+statusColor+'">'+statusLabel+'</span>';
-      h += '</div>';
-      h += '<div style="font-size:12px;color:var(--muted)">'+e(plan.diag)+(plan.diag&&plan.exercises?' · ':'')+(plan.exercises?plan.exercises+' övningar':'')+'</div>';
-      h += '</div>';
-
-      // Stats
-      h += '<div style="display:flex;gap:20px;flex-shrink:0">';
-      if (plan.nrsDrop !== null) {
-        h += '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:'+(plan.nrsDrop>0?'var(--teal)':'var(--muted)')+'">'+( plan.nrsDrop>0 ? '-'+plan.nrsDrop : '±0')+'</div>';
-        h += '<div style="font-size:10px;color:var(--muted)">NRS</div></div>';
-      }
-      h += '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:var(--ink)">'+plan.donePasses+'</div>';
-      h += '<div style="font-size:10px;color:var(--muted)">pass</div></div>';
-      if (plan.daysLeft !== null && plan.status !== 'avslutad') {
-        var urgency = plan.daysLeft <= 7 ? '#e05555' : plan.daysLeft <= 14 ? '#c07000' : 'var(--muted)';
-        h += '<div style="text-align:center"><div style="font-size:15px;font-weight:800;color:'+urgency+'">'+Math.max(0,plan.daysLeft)+'</div>';
-        h += '<div style="font-size:10px;color:var(--muted)">dagar kvar</div></div>';
-      }
-      h += '</div>';
-
-      // Open plan button
-      (function(pid,vid){ h += '<button onclick="_openPublicPlanFromAdmin(\\\'' + pid + '\\\',\\\'' + vid + '\\\')" style="padding:6px 12px;background:none;border:1px solid var(--border);border-radius:8px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font);flex-shrink:0">Öppna plan</button>'; })(plan.patId, plan.visitId);
+  // NRS improvement chart (sparkline bars)
+  var withNRS = plans.filter(function(p){return p.nrsFirst!==null&&p.nrsLast!==null;});
+  if (withNRS.length > 0) {
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:20px">';
+    h += '<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:14px">NRS-förändring per patient</div>';
+    h += '<div style="display:flex;gap:8px;align-items:flex-end;height:60px">';
+    withNRS.slice(0,12).forEach(function(p) {
+      var drop = p.nrsFirst - p.nrsLast;
+      var pct  = Math.max(0, Math.min(100, Math.abs(drop)/10*100));
+      var col  = drop > 0 ? 'var(--teal)' : drop < 0 ? '#e05555' : 'var(--border)';
+      var initials = (p.patName||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+      h += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0">';
+      h += '<div style="font-size:9px;font-weight:700;color:'+col+'">'+(drop>0?'-':drop<0?'+':'')+Math.abs(drop)+'</div>';
+      h += '<div style="width:100%;border-radius:3px 3px 0 0;background:'+col+';opacity:.8" style2="height:'+Math.max(4,pct*0.55)+'px">';
+      // Inline height
+      h = h.replace('style2="height:', 'style="height:') ; // hack
+      h += Math.max(4,Math.round(pct*0.55))+'px"></div>';
+      h += '<div style="font-size:9px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center">'+initials+'</div>';
       h += '</div>';
     });
     h += '</div>';
+    h += '<div style="font-size:10px;color:var(--muted);margin-top:8px">Negativa värden = smärtan ökat. Grön = förbättring.</div>';
+    h += '</div>';
   }
 
+  // Plan list
+  var visible = filter==='all' ? plans : plans.filter(function(p){return p.status===filter;});
+  if (visible.length === 0) {
+    h += '<div style="text-align:center;padding:40px;background:var(--surface);border:1px solid var(--border);border-radius:16px;color:var(--muted)">Inga planer matchar filtret.</div>';
+  } else {
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
+    h += '<div style="padding:12px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
+    h += '<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Planer ('+visible.length+')</div>';
+    h += '<div style="display:grid;grid-template-columns:1fr 60px 60px 70px 100px;gap:8px;width:320px;text-align:right">';
+    h += '<div></div>';
+    ['NRS','Pass','Kvar',''].forEach(function(lbl){
+      h += '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">'+lbl+'</div>';
+    });
+    h += '</div></div>';
+
+    visible.forEach(function(plan, i) {
+      var sc = {aktiv:'var(--teal)',inaktiv:'#e05555',avslutad:'var(--muted)'}[plan.status]||'var(--muted)';
+      var sb = {aktiv:'rgba(13,155,138,.1)',inaktiv:'rgba(220,85,85,.1)',avslutad:'rgba(136,135,128,.1)'}[plan.status];
+      var sl = {aktiv:'Aktiv',inaktiv:'Inaktiv',avslutad:'Avslutad'}[plan.status];
+      var initials = (plan.patName||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+      var nrsDisplay = (plan.nrsDrop!==null) ? (plan.nrsDrop>0?'<span style="color:var(--teal)">-'+plan.nrsDrop+'</span>':'<span style="color:#e05555">+'+Math.abs(plan.nrsDrop)+'</span>') : '<span style="color:var(--muted)">—</span>';
+      var daysColor  = plan.daysLeft!==null&&plan.daysLeft<=7?'#e05555':plan.daysLeft!==null&&plan.daysLeft<=14?'#c8a030':'var(--muted)';
+
+      h += '<div style="display:flex;align-items:center;gap:14px;padding:12px 18px;'+(i>0?'border-top:1px solid var(--border2)':'')+';cursor:pointer;transition:background .12s" '
+        + 'onclick="_hOpenPat(\''+plan.patId+'\')" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'\'">'; 
+
+      // Avatar
+      h += '<div style="width:36px;height:36px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--teal);flex-shrink:0">'+initials+'</div>';
+      // Info
+      h += '<div style="flex:1;min-width:0">';
+      h += '<div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">';
+      h += '<span style="font-size:14px;font-weight:700;color:var(--ink)">'+e(plan.patName)+'</span>';
+      h += '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+sb+';color:'+sc+'">'+sl+'</span>';
+      h += '</div>';
+      h += '<div style="font-size:12px;color:var(--muted)">'+e(plan.diag||(plan.exercises+' övningar'))+'</div>';
+      h += '</div>';
+      // Stats
+      h += '<div style="display:grid;grid-template-columns:60px 60px 70px 100px;gap:8px;text-align:right;flex-shrink:0">';
+      h += '<div style="font-size:14px;font-weight:700">'+nrsDisplay+'</div>';
+      h += '<div style="font-size:14px;font-weight:700;color:var(--ink)">'+plan.donePasses+'</div>';
+      if (plan.status!=='avslutad'&&plan.daysLeft!==null) {
+        h += '<div style="font-size:14px;font-weight:700;color:'+daysColor+'">'+Math.max(0,plan.daysLeft)+'d</div>';
+      } else {
+        h += '<div style="font-size:14px;color:var(--muted)">—</div>';
+      }
+      h += '<button onclick="event.stopPropagation();_openPublicPlanFromAdmin(\''+plan.patId+'\',\''+plan.visitId+'\')" style="padding:5px 10px;background:none;border:1px solid var(--border);border-radius:8px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Öppna plan</button>';
+      h += '</div></div>';
+    });
+    h += '</div>';
+  }
   h += '</div>';
   el.innerHTML = h;
+  rTopbar();
+
+  // Auto-generate AI insight
+  setTimeout(function(){ _generateHaelInsight(); }, 200);
 }
 
-function _hOpenPat(pid){if(pid){loadPat(pid);go('detail');}}
+async function _generateHaelInsight() {
+  var key = getKey();
+  if (!key) {
+    var el = document.getElementById('hael-ai-insight');
+    if (el) el.textContent = 'Lägg till API-nyckel under Inställningar → AI & API för AI-insikter.';
+    return;
+  }
+  var plans = [];
+  S.patients.forEach(function(pat) {
+    (pat.visits||[]).forEach(function(v) {
+      if (!v.plan) return;
+      var logs = v.logs||[];
+      var allNRS = logs.filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;});
+      plans.push({
+        pat: pat.name,
+        diag: v.plan.form?.diagnosis||v.plan.form?.diagnos||'',
+        passes: logs.length,
+        nrsFirst: allNRS[0]??null,
+        nrsLast: allNRS.length?allNRS[allNRS.length-1]:null,
+      });
+    });
+  });
+  if (!plans.length) return;
+
+  var el = document.getElementById('hael-ai-insight');
+  if (el) el.textContent = 'Analyserar...';
+
+  var prompt = 'Du analyserar rehabdata från en naprapatisk klinik. '
+    + plans.length + ' aktiva Hael-planer. '
+    + 'Data (sammanfattning): ' + JSON.stringify(plans.slice(0,8)) + '. '
+    + 'Ge EN konkret, kliniskt relevant observation på svenska. Max 2 meningar. '
+    + 'Fokus på mönster, avvikelser eller åtgärdsförslag. Ingen rubrik, bara texten.';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:MODEL_HAIKU, max_tokens:120, messages:[{role:'user',content:prompt}]})
+    });
+    var data = await res.json();
+    var txt = (data.content||[]).map(function(b){return b.text||'';}).join('').trim();
+    if (el && txt) el.textContent = txt;
+  } catch(ex) {
+    if (el) el.textContent = 'AI-analys otillgänglig just nu.';
+  }
+}
+
+
+function _hOpenPat(pid){if(pid){openPat(pid);}}
 
 function _openPublicPlanFromAdmin(patId, visitId) {
   var pat = S.patients.find(function(p){return p.id===patId;});
   if (!pat) return;
-  var visit = (pat.visits||[]).find(function(v){return v.id===visitId;}) || pat.visits[0];
+  var visit = (pat.visits||[]).find(function(v){return v.id===visitId;}) || (pat.visits||[])[0];
   if (!visit || !visit.plan) { showAutoSaveToast('Ingen plan hittades'); return; }
-  go('public-plan');
+  S.pat = pat;
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  var el = document.getElementById('s-public-plan');
+  if (el) { el.classList.add('active'); el.innerHTML = ''; }
   renderPublicPlan(visit.plan, pat);
 }
 

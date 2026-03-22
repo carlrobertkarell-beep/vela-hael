@@ -6033,31 +6033,10 @@ function closeAmbientSession() {
 
 // ── HOOK: Ta emot → ambient session ──────────────────────────────────────────
 // Override _dayTaEmot to open ambient session instead of direct visit
-var _origDayTaEmot = _dayTaEmot;
-function _dayTaEmot(bkId) {
-  var bk = getBooking(bkId);
-  if (!bk) return;
-  bk.status = 'confirmed';
-  upsertBooking(bk);
-  if (bk.patientId) {
-    openAmbientSession(bk.patientId, bkId);
-  } else {
-    showAutoSaveToast('Tar emot ' + bk.patientName);
-  }
-}
+
 
 // Also hook _startSmartVisit to offer ambient session
-var _origStartSmartVisit = _startSmartVisit;
-function _startSmartVisit(patId, bkId) {
-  // If window._skipAmbient is set, go directly to SOAP
-  if (window._skipAmbient) {
-    window._skipAmbient = false;
-    _origStartSmartVisit(patId, bkId);
-    return;
-  }
-  // Open ambient session
-  openAmbientSession(patId, bkId);
-}
+
 
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -6523,13 +6502,7 @@ function _updateNavCTA() {
 }
 
 // Call _updateNavCTA after rTopbar renders
-var _origRTopbar = rTopbar;
-function rTopbar() {
-  _origRTopbar();
-  setTimeout(_updateNavCTA, 50);
-}
-
-// Update every 2 minutes
+// Update nav CTA every 2 minutes
 setInterval(_updateNavCTA, 120000);
 
 
@@ -6647,18 +6620,7 @@ function _checkPendingWebBookings() {
 }
 
 // Show web bookings in day view with special badge
-var _origRenderBookingSlot = _renderBookingSlot;
-function _renderBookingSlot(slot, todayStr) {
-  var html = _origRenderBookingSlot(slot, todayStr);
-  // Add web badge if it's a web booking
-  if (slot.bk && slot.bk.source === 'web' && html) {
-    html = html.replace('class="day-slot-body', 
-      'class="day-slot-body" style="border-left-color:#9b6ee0 !important"');
-    html = html.replace('</div></div>',  // near the end of the slot
-      '<span style="position:absolute;top:4px;right:8px;font-size:8px;font-weight:700;color:#9b6ee0;background:rgba(155,110,224,.1);padding:2px 6px;border-radius:20px">WEBB</span></div></div>');
-  }
-  return html;
-}
+// _renderBookingSlot web badge hooked directly below
 
 function toggleSidebarCollapse() {
   var sb = document.getElementById('nav-sidebar');
@@ -6853,7 +6815,8 @@ function rTopbar() {
     dhAvatar.textContent = em.slice(0,2).toUpperCase() || '?';
     dhAvatar.title = em || 'Konto';
   }
-  updateInboxBadge();
+  updateInboxBadg
+  setTimeout(_updateNavCTA, 50);
 }
 
 function goBack(){
@@ -24851,6 +24814,10 @@ function _renderBookingSlot(slot, todayStr) {
   }
 
   h += '</div>';
+  // Add WEBB badge for web bookings
+  if (slot.bk && slot.bk.source === 'web') {
+    h = h.replace('class="day-slot"', 'class="day-slot" style="outline:1px solid rgba(155,110,224,.3)"');
+  }
   return h;
 }
 
@@ -24907,39 +24874,32 @@ async function _loadDayAiPrep(bkId, bk, pat) {
 function _dayTaEmot(bkId) {
   var bk = getBooking(bkId);
   if (!bk) return;
-  // Mark as confirmed
   bk.status = 'confirmed';
   upsertBooking(bk);
-  // Navigate to patient with smart SOAP setup
   if (bk.patientId) {
-    _startSmartVisit(bk.patientId, bkId);
+    openAmbientSession(bk.patientId, bkId);
   } else {
-    showAutoSaveToast('Öppnar ny patient...');
+    showAutoSaveToast('Tar emot ' + bk.patientName);
   }
 }
 
 async function _startSmartVisit(patId, bkId) {
-  var pat = (S.patients||[]).find(function(p){ return p.id===patId; });
-  if (!pat) { showAutoSaveToast('Patient ej hittad'); return; }
-
-  _activeVisitBkId = bkId || null;
-  S.pat = pat;
-
-  // Get intake prefill if available
-  var intake = getLatestIntakeForPatient(patId);
-  if (intake && !intake._reviewedAt && intake.aiSoapPrefill) {
-    window._intakePrefill = intake.aiSoapPrefill;
+  if (window._skipAmbient) {
+    window._skipAmbient = false;
+    // Direct to SOAP without ambient
+    var pat = (S.patients||[]).find(function(p){ return p.id===patId; });
+    if (!pat) { showAutoSaveToast('Patient ej hittad'); return; }
+    _activeVisitBkId = bkId || null;
+    S.pat = pat;
+    var intake = getLatestIntakeForPatient(patId);
+    if (intake && !intake._reviewedAt && intake.aiSoapPrefill) {
+      window._intakePrefill = intake.aiSoapPrefill;
+    }
+    showAutoSaveToast('Förbereder besök med ' + pat.name + '...');
+    openPat(patId);
+    return;
   }
-
-  showAutoSaveToast('Förbereder besök med ' + pat.name + '...');
-
-  // Navigate to SOAP
-  openPat(patId);
-
-  // After render, inject AI sidebar
-  setTimeout(function(){
-    _injectSoapAiSidebar(patId, intake);
-  }, 600);
+  openAmbientSession(patId, bkId);
 }
 
 async function _injectSoapAiSidebar(patId, intake) {

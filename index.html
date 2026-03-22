@@ -944,6 +944,77 @@ button, input, textarea, select { font-family: inherit; }
 .ldtitle      { font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px; }
 </style>
 <style id="vela-ux-css">
+/* ── Avatar dropdown menu — GitHub-style ────────────────────────────────── */
+.vela-user-menu-overlay {
+  position: fixed; inset: 0; z-index: 499;
+}
+.vela-user-menu {
+  position: fixed; top: 52px; right: 8px; z-index: 500;
+  width: 260px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(1,4,9,.7);
+  overflow: hidden;
+  animation: vela-menu-in .12s ease;
+}
+@keyframes vela-menu-in {
+  from { opacity:0; transform:translateY(-6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.vela-user-menu-head {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.vela-user-menu-email {
+  font-size: 13px; font-weight: 600; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.vela-user-menu-plan {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 700; letter-spacing: .04em;
+  padding: 2px 8px; border-radius: 20px; margin-top: 4px;
+}
+.vela-user-menu-plan.pro   { background: rgba(45,212,191,.1); color: var(--teal); border: 1px solid rgba(45,212,191,.2); }
+.vela-user-menu-plan.free  { background: rgba(177,186,196,.1); color: var(--text2); border: 1px solid var(--border); }
+.vela-user-menu-group {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.vela-user-menu-group:last-child { border-bottom: none; }
+.vela-user-menu-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 7px 16px; cursor: pointer; width: 100%;
+  background: none; border: none; text-align: left;
+  font-size: 13px; font-weight: 400; color: var(--text);
+  font-family: var(--font); transition: background .1s;
+  white-space: nowrap;
+}
+.vela-user-menu-item:hover { background: rgba(177,186,196,.06); color: var(--ink); }
+.vela-user-menu-item.danger { color: var(--red); }
+.vela-user-menu-item.danger:hover { background: var(--red-lt); }
+.vela-user-menu-item svg { opacity: .6; flex-shrink: 0; }
+.vela-user-menu-item:hover svg { opacity: 1; }
+.vela-user-menu-badge {
+  margin-left: auto; font-size: 10px; font-weight: 700;
+  padding: 1px 7px; border-radius: 20px;
+  background: rgba(45,212,191,.1); color: var(--teal);
+}
+.vela-user-menu-item .theme-toggle {
+  margin-left: auto; display: flex; gap: 3px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; padding: 2px;
+}
+.vela-user-menu-item .theme-btn {
+  padding: 2px 7px; border: none; border-radius: 4px;
+  font-size: 10px; font-weight: 600; cursor: pointer;
+  font-family: var(--font); background: none; color: var(--text2);
+  transition: all .1s;
+}
+.vela-user-menu-item .theme-btn.active {
+  background: var(--surface3); color: var(--ink);
+}
+
 /* ════════════════════════════════════════════════════════════════════════
    VELA GLOBAL TOPBAR — GitHub-style persistent top navigation
    ════════════════════════════════════════════════════════════════════════ */
@@ -1380,9 +1451,9 @@ button, input, textarea, select { font-family: inherit; }
 }
 .vela-stab {
   display: flex; align-items: center; gap: 9px;
-  padding: 9px 12px; border: none; background: none; border-radius: 9px;
-  font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer;
-  font-family: var(--font); text-align: left; width: 100%; transition: all .12s;
+  padding: 7px 12px; border: none; background: none; border-radius: 7px;
+  font-size: 13px; font-weight: 400; color: var(--text); cursor: pointer;
+  font-family: var(--font); text-align: left; width: 100%; transition: all .1s;
 }
 .vela-stab:hover { background: rgba(177,186,196,.06); color: var(--ink); }
 .vela-stab.active { background: rgba(177,186,196,.06); color: var(--ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--teal); }
@@ -6586,7 +6657,7 @@ async function _ambientEndSession() {
     _renderAmbientReview(pat, journal, mins);
 
   } catch(err) {
-    console.error('Journal generation error:', err);
+    console.error('Besök-generation error:', err);
     // Fallback to manual
     closeAmbientSession();
     _startSmartVisit(pat.id, _ambientState.bkId);
@@ -6617,7 +6688,7 @@ function _renderAmbientReview(pat, journal, mins) {
 
     // Journal preview
     + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px">'
-    + '<div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--teal)">Journal-utkast · AI-genererat</div>'
+    + '<div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--teal)">Besöksutkast · AI-genererat</div>'
     + ['S','O','A','P'].map(function(field) {
         var labels = {S:'Subjektivt',O:'Objektivt',A:'Bedömning',P:'Plan'};
         var colors = {S:'var(--teal)',O:'#4a7aee',A:'#d29922',P:'#9b6ee0'};
@@ -7324,6 +7395,151 @@ function _navItemGhost(label, svg) {
 // VELA GLOBAL TOPBAR — renders once, updates on navigation
 // ══════════════════════════════════════════════════════════════════════════════
 
+
+// ════════════════════════════════════════════════════════════════════════════
+// VELA USER MENU — GitHub-style avatar dropdown
+// ════════════════════════════════════════════════════════════════════════════
+
+function _openUserMenu() {
+  // Close if already open
+  document.getElementById('vela-user-menu-overlay')?.remove();
+  document.getElementById('vela-user-menu')?.remove();
+
+  var email    = (typeof _authUser !== 'undefined' && _authUser?.email) || '';
+  var initials = email.slice(0,2).toUpperCase() || 'VA';
+  var tier     = getClinicTier ? getClinicTier() : 'pro';
+  var tierName = tier === 'free' ? 'Free' : tier === 'intelligence' ? 'Intelligence' : 'Pro';
+  var isDark   = !document.body.classList.contains('light');
+  var cfg      = getClinicConfig ? getClinicConfig() : {};
+
+  // Overlay (closes menu on outside click)
+  var overlay = document.createElement('div');
+  overlay.id = 'vela-user-menu-overlay';
+  overlay.className = 'vela-user-menu-overlay';
+  overlay.onclick = _closeUserMenu;
+  document.body.appendChild(overlay);
+  document.addEventListener('keydown', _userMenuEscHandler);
+
+  // Menu
+  var menu = document.createElement('div');
+  menu.id = 'vela-user-menu';
+  menu.className = 'vela-user-menu';
+  menu.onclick = function(e) { e.stopPropagation(); };
+
+  function icon(path, size) {
+    size = size || 14;
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
+  }
+
+  function item(iconPath, label, action, extra, danger) {
+    return '<button class="vela-user-menu-item' + (danger ? ' danger' : '') + '" id="' + action + '">'
+      + icon(iconPath)
+      + label
+      + (extra || '')
+      + '</button>';
+  }
+
+  var h = '';
+
+  // ── Header: user identity ─────────────────────────────────────────────
+  h += '<div class="vela-user-menu-head">';
+  h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
+  h += '<div style="width:34px;height:34px;border-radius:50%;background:var(--teal-lt);border:1px solid rgba(45,212,191,.2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--teal);font-family:var(--font-mono);flex-shrink:0">' + initials + '</div>';
+  h += '<div style="flex:1;min-width:0">';
+  h += '<div class="vela-user-menu-email">' + e(email || 'Okänd användare') + '</div>';
+  if (cfg.name) h += '<div style="font-size:11px;color:var(--text2);margin-top:1px">' + e(cfg.name) + '</div>';
+  h += '</div></div>';
+  h += '<span class="vela-user-menu-plan ' + tier + '">' + tierName + '</span>';
+  h += '</div>';
+
+  // ── Group 1: Klinik ───────────────────────────────────────────────────
+  h += '<div class="vela-user-menu-group">';
+  h += item('<circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>', 'Klinikinställningar', 'um-clinic-settings');
+  h += item('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>', 'Behandlare & användare', 'um-users');
+  h += item('<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>', 'Abonnemang', 'um-billing',
+    '<span class="vela-user-menu-badge">' + tierName + '</span>');
+  h += '</div>';
+
+  // ── Group 2: Konto ────────────────────────────────────────────────────
+  h += '<div class="vela-user-menu-group">';
+  h += '<button class="vela-user-menu-item" id="um-appearance">'
+    + icon('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>')
+    + 'Utseende'
+    + '<div class="theme-toggle">'
+    + '<button class="theme-btn' + (isDark ? ' active' : '') + '" id="um-theme-dark">Mörkt</button>'
+    + '<button class="theme-btn' + (!isDark ? ' active' : '') + '" id="um-theme-light">Ljust</button>'
+    + '</div>'
+    + '</button>';
+  h += item('<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>', 'Hjälpcenter', 'um-help');
+  h += '</div>';
+
+  // ── Group 3: Sign out ─────────────────────────────────────────────────
+  h += '<div class="vela-user-menu-group">';
+  h += item('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>', 'Logga ut', 'um-signout', null, true);
+  h += '</div>';
+
+  menu.innerHTML = h;
+  document.body.appendChild(menu);
+
+  // ── Wire actions ──────────────────────────────────────────────────────
+  function wire(id, fn) {
+    var el = document.getElementById(id);
+    if (el) el.onclick = fn;
+  }
+
+  wire('um-clinic-settings', function() {
+    _closeUserMenu();
+    window._settingsActiveTab = 'clinic';
+    go('settings');
+  });
+  wire('um-users', function() {
+    _closeUserMenu();
+    window._settingsActiveTab = 'users';
+    go('settings');
+  });
+  wire('um-billing', function() {
+    _closeUserMenu();
+    window._settingsActiveTab = 'billing';
+    go('settings');
+  });
+  wire('um-help', function() {
+    _closeUserMenu();
+    openHelpCenter && openHelpCenter();
+  });
+  wire('um-signout', function() {
+    _closeUserMenu();
+    sbSignOut();
+  });
+
+  // Theme toggle
+  var darkBtn  = document.getElementById('um-theme-dark');
+  var lightBtn = document.getElementById('um-theme-light');
+  if (darkBtn) darkBtn.onclick = function(e) {
+    e.stopPropagation();
+    document.body.classList.remove('light');
+    localStorage.setItem('vela:theme','dark');
+    darkBtn.classList.add('active');
+    if (lightBtn) lightBtn.classList.remove('active');
+  };
+  if (lightBtn) lightBtn.onclick = function(e) {
+    e.stopPropagation();
+    document.body.classList.add('light');
+    localStorage.setItem('vela:theme','light');
+    lightBtn.classList.add('active');
+    if (darkBtn) darkBtn.classList.remove('active');
+  };
+}
+
+function _closeUserMenu() {
+  document.getElementById('vela-user-menu-overlay')?.remove();
+  document.getElementById('vela-user-menu')?.remove();
+  document.removeEventListener('keydown', _userMenuEscHandler);
+}
+
+function _userMenuEscHandler(e) {
+  if (e.key === 'Escape') _closeUserMenu();
+}
+
 function _renderGlobalTopbar() {
   var wrap = document.getElementById('vela-global-topbar-wrap');
   if (!wrap) return;
@@ -7352,9 +7568,11 @@ function _renderGlobalTopbar() {
   var tabs = [
     { id:'home',         label:'Klinik',        dest:'dashboard', icon:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
     { id:'calendar',     label:'Kalender',       dest:'calendar',  icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
-    { id:'journal',      label:'Journal',        dest:'manualsoap',icon:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
+    { id:'journal',      label:'Besök',        dest:'manualsoap',icon:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
     { id:'hael',         label:'Hael',           dest:'hael',      icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
-    { id:'intelligence', label:'Intelligence',   dest:'intelligence', icon:'<path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>', badge: alerts||null },
+    { id:'intelligence', label:'Insikter',   dest:'intelligence', icon:'<path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>', badge: alerts||null },
+    { id:'actions',      label:'Åtgärder',      dest:'list',      icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' },
+    { id:'activity',     label:'Aktivitet',     dest:'dashboard', icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',                                                                  badge: null },
     { id:'settings',     label:'Inställningar',  dest:'settings',  icon:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>' },
   ];
 
@@ -7409,7 +7627,7 @@ function _renderGlobalTopbar() {
   if (inboxBtn) inboxBtn.onclick = function() { openInbox && openInbox(); };
 
   var avatarBtn = document.getElementById('vela-gtb-avatar-btn');
-  if (avatarBtn) avatarBtn.onclick = function() { go('settings'); };
+  if (avatarBtn) avatarBtn.onclick = function(e) { e.stopPropagation(); _openUserMenu(); };
 
   // Wire tab buttons
   wrap.querySelectorAll('.vela-gtb-tab').forEach(function(btn) {
@@ -7438,7 +7656,7 @@ function rTopbar() {
   // -- SIDEBAR NAV LINKS ------------------------------------------------------
   const nav = document.getElementById('nav-links');
   if (nav) {
-        // ── Nav items — GitHub-style grouped, no section label shouting ──────────
+        // ── Contextual sidebar — changes per active top-tab ─────────────────────
     var retQ = getRetentionQueue ? getRetentionQueue() : [];
     var alertCount = retQ.filter(function(q){ return !q.sentAt && !q.approved; }).length;
     var dropoutCount = _scanDropoutRisks ? _scanDropoutRisks().filter(function(d){
@@ -7446,41 +7664,24 @@ function rTopbar() {
       return p && (p.visits||[]).length > 0;
     }).length : 0;
 
+    // Map screen → active top-tab
+    var tabMap = {
+      dashboard:'klinik', list:'klinik', detail:'klinik',
+      calendar:'calendar',
+      meeting:'journal', soap:'journal', manualsoap:'journal', 'sbs-soap':'journal',
+      hael:'hael', form:'hael', doc:'hael',
+      intelligence:'intelligence', retention:'intelligence', insikter:'intelligence',
+      settings:'settings',
+    };
+    var activeTopTab = tabMap[scr] || 'klinik';
+
     var nh = '';
 
-    // ── Primary CTA — search/book ─────────────────────────────────────────────
-    nh += '<button onclick="openCommandPalette();_closeSidebar()" style="'
-      + 'display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;'
-      + 'margin-bottom:4px;border:1px solid var(--border);border-radius:8px;'
-      + 'background:var(--surface2);color:var(--text);font-size:13px;'
-      + 'cursor:pointer;font-family:var(--font);text-align:left;transition:background .1s">'
-      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;opacity:.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
-      + '<span style="color:var(--text2);font-size:12px">Sök patient...</span>'
-      + '<span style="margin-left:auto;font-size:10px;color:var(--text2);background:var(--surface3);padding:2px 6px;border-radius:4px;font-family:var(--font-mono)">⌘K</span>'
-      + '</button>';
-
-    // ── Clinic switcher (multi-clinic) ────────────────────────────────────────
-    var _clinics = getClinics();
-    if (_clinics.length > 1) {
-      var _activeClinic = getActiveClinic();
-      nh += '<select onchange="var v=this.value;setActiveClinicId(v);loadPats();rTopbar();go(&quot;dashboard&quot;)" '
-        + 'style="width:100%;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);'
-        + 'border-radius:8px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;'
-        + 'font-family:var(--font);outline:none;margin-bottom:8px">';
-      if (_clinics.length > 1) nh += '<option value="__all__" ' + (getActiveClinicId()==='__all__'?'selected':'') + '>Alla kliniker</option>';
-      _clinics.forEach(function(cl) {
-        nh += '<option value="' + cl.id + '" ' + (getActiveClinicId()===cl.id?'selected':'') + '>' + e(cl.name||'Klinik') + '</option>';
-      });
-      nh += '</select>';
-    }
-
-    // ── Group 1: Klinik ───────────────────────────────────────────────────────
-    nh += '<div class="nav-section-label">Klinik</div>';
-
-    function _navBtn(s, label, iconPath, badge, badgeType) {
-      var active = scr === s;
-      var b = '<button class="nav-item' + (active?' active':'') + '" onclick="go(&quot;' + s + '&quot;);_closeSidebar()">';
-      b += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="nav-item-icon">' + iconPath + '</svg>';
+    // ── Helper: nav item button ───────────────────────────────────────────────
+    function _nb(screen, label, iconPath, badge, badgeType) {
+      var active = scr === screen;
+      var b = '<button class="nav-item' + (active ? ' active' : '') + '" data-screen="' + screen + '">';
+      b += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="nav-item-icon">' + iconPath + '</svg>';
       b += '<span class="nav-item-label">' + label + '</span>';
       if (badge) {
         if (badgeType === 'alert') b += '<span class="nav-badge-alert">' + badge + '</span>';
@@ -7491,46 +7692,199 @@ function rTopbar() {
       return b;
     }
 
-    nh += _navBtn('dashboard', 'Hem',
-      '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>');
-    nh += _navBtn('list', 'Patienter',
-      '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-      S.patients.length || null, 'count');
-    nh += _navBtn('calendar', 'Kalender',
-      '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
+    function _nsep(label) {
+      return '<div class="nav-section-label">' + label + '</div>';
+    }
 
-    // ── Group 2: Vela ─────────────────────────────────────────────────────────
-    nh += '<div class="nav-section-label">Vela Intelligence</div>';
-    nh += _navBtn('intelligence', 'Analys & insikter',
-      '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>');
-    nh += _navBtn('hael', 'Rehabplaner',
-      '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>');
+    // ── KLINIK TAB ────────────────────────────────────────────────────────────
+    if (activeTopTab === 'klinik') {
+      // Search shortcut at top
+      nh += '<button class="nav-item" style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;margin-bottom:6px;gap:8px" data-action="search">'
+        + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="nav-item-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
+        + '<span class="nav-item-label" style="color:var(--text2);font-size:12px">Sök patient...</span>'
+        + '<span class="nav-item-label" style="margin-left:auto;font-size:10px;color:var(--text2);background:var(--surface3);padding:1px 5px;border-radius:4px;font-family:var(--font-mono)">⌘K</span>'
+        + '</button>';
 
-    // AI Retention alert
-    var retBtn = '<button class="nav-item' + (scr==='retention'?' active':'') + '" onclick="go(&quot;retention&quot;);_closeSidebar()">'
-      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l.82-.82a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 1 2.81.7A2 2 0 0 1 22 16.92z"/></svg>'
-      + '<span class="nav-item-label">AI Retention</span>';
-    if (alertCount > 0) retBtn += '<span class="nav-badge-alert">' + alertCount + '</span>';
-    else if (dropoutCount > 0) retBtn += '<span class="nav-badge-count">' + dropoutCount + '</span>';
-    retBtn += '<span class="nav-tooltip">AI Retention</span></button>';
-    nh += retBtn;
+      nh += _nsep('Klinik');
+      nh += _nb('dashboard', 'Hem', '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>');
+      nh += _nb('list', 'Patienter', '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+        S.patients && S.patients.length > 0 ? S.patients.length : null, 'count');
+      nh += _nb('calendar', 'Kalender', '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
+    }
 
-    nh += '<button class="nav-item" onclick="toggleVelaAsk();_closeSidebar()">'
-      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
-      + '<span class="nav-item-label">Vela Ask</span>'
-      + '<span style="font-size:9px;background:var(--teal-lt);color:var(--teal);padding:1px 6px;border-radius:4px;margin-left:auto;font-weight:700;flex-shrink:0">AI</span>'
-      + '<span class="nav-tooltip">Vela Ask</span></button>';
+    // ── CALENDAR TAB ─────────────────────────────────────────────────────────
+    else if (activeTopTab === 'calendar') {
+      nh += _nsep('Vy');
+      nh += _nb('calendar', 'Veckovy', '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
+      nh += _nb('dashboard', 'Dagsvy', '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>');
 
-    // ── Group 3: Konto ────────────────────────────────────────────────────────
-    nh += '<div class="nav-section-label">Konto</div>';
-    nh += _navBtn('settings', 'Inställningar',
-      '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>');
-    nh += '<button class="nav-item" onclick="openHelpCenter && openHelpCenter();_closeSidebar()">'
-      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
-      + '<span class="nav-item-label">Hjälp</span>'
-      + '<span class="nav-tooltip">Hjälpcenter</span></button>';
+      // Therapist filter if multiple
+      var _thers = getTherapists ? getTherapists() : [];
+      if (_thers.length > 1) {
+        nh += _nsep('Behandlare');
+        _thers.forEach(function(t) {
+          var selThers = window._calState ? (window._calState.therapists || []) : [];
+          var isActive = !window._calState || !window._calState.therapists || window._calState.therapists.indexOf(t.id) !== -1;
+          nh += '<button class="nav-item' + (isActive ? ' active' : '') + '" data-therapist="' + t.id + '">'
+            + '<span style="width:8px;height:8px;border-radius:50%;background:' + (t.color||'var(--teal)') + ';flex-shrink:0"></span>'
+            + '<span class="nav-item-label">' + e(t.name) + '</span>'
+            + '</button>';
+        });
+      }
+
+      nh += _nsep('Åtgärder');
+      nh += '<button class="nav-item" data-action="newbooking">'
+        + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+        + '<span class="nav-item-label">Ny bokning</span></button>';
+
+      var wl = getWaitlist ? getWaitlist() : [];
+      if (wl.length) {
+        nh += '<button class="nav-item" data-action="waitlist">'
+          + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'
+          + '<span class="nav-item-label">Väntelista</span>'
+          + '<span class="nav-badge-count">' + wl.length + '</span>'
+          + '</button>';
+      }
+    }
+
+    // ── JOURNAL TAB ───────────────────────────────────────────────────────────
+    else if (activeTopTab === 'journal') {
+      if (S.pat) {
+        nh += _nsep(e(S.pat.name || 'Patient'));
+        nh += _nb('detail', 'Patientkort', '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>');
+        nh += _nb('manualsoap', 'Dokumentera besök', '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>');
+        nh += _nb('meeting', 'AI-inspelning', '<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83"/>');
+      } else {
+        nh += _nsep('Besök');
+        nh += '<div style="padding:12px 10px;font-size:12px;color:var(--text2);line-height:1.6">V\u00e4lj en patient f\u00f6r att skriva journal.</div>';
+        nh += _nb('list', 'Välj patient', '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>');
+      }
+      nh += _nsep('Typ');
+      nh += '<button class="nav-item' + (scr==='meeting'?' active':'') + '" data-screen="meeting">'
+        + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4"/></svg>'
+        + '<span class="nav-item-label">AI-inspelning</span></button>';
+      nh += '<button class="nav-item' + (scr==='manualsoap'?' active':'') + '" data-screen="manualsoap">'
+        + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>'
+        + '<span class="nav-item-label">Manuell SOAP</span></button>';
+    }
+
+    // ── HAEL TAB ──────────────────────────────────────────────────────────────
+    else if (activeTopTab === 'hael') {
+      nh += _nsep('Rehabplaner');
+      nh += _nb('hael', 'Alla planer', '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>');
+      nh += '<button class="nav-item" data-action="newplan">'
+        + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+        + '<span class="nav-item-label">Ny Hael-plan</span></button>';
+      if (S.pat && S.visitId) {
+        nh += _nsep('Aktiv plan');
+        nh += _nb('doc', 'Visa plan', '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>');
+        nh += _nb('form', 'Redigera', '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>');
+      }
+    }
+
+    // ── INTELLIGENCE TAB ──────────────────────────────────────────────────────
+    else if (activeTopTab === 'intelligence') {
+      nh += _nsep('Vela Intelligence');
+      nh += _nb('intelligence', 'Analys & Insikter', '<path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>');
+      nh += _nb('retention', 'AI Retention', '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l.82-.82a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 1 2.81.7A2 2 0 0 1 22 16.92z"/>',
+        alertCount||null, alertCount ? 'alert' : 'count');
+      nh += _nb('hael', 'Rehabplaner', '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>');
+      nh += '<button class="nav-item" data-action="velaask">'
+        + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+        + '<span class="nav-item-label">Vela Ask</span>'
+        + '<span style="font-size:9px;background:var(--teal-lt);color:var(--teal);padding:1px 6px;border-radius:4px;margin-left:auto;font-weight:700;flex-shrink:0">AI</span>'
+        + '</button>';
+    }
+
+    // ── ÅTGÄRDER TAB ─────────────────────────────────────────────────────────
+    else if (activeTopTab === 'actions') {
+      var prioCount = S.patients ? S.patients.filter(function(p){
+        return (_clinPriority(p)||{}).level >= 2;
+      }).length : 0;
+      var unreadMsgs = S.patients ? S.patients.reduce(function(acc,p){
+        return acc + (p.messages||[]).filter(function(m){ return m.from==='patient'&&!m.read; }).length;
+      }, 0) : 0;
+      nh += _nsep('Prioritet');
+      nh += '<button class="nav-item" data-screen="list"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span class="nav-item-label">Kräver uppföljning</span>'
+        + (prioCount ? '<span class="nav-badge-alert">'+prioCount+'</span>' : '')
+        + '</button>';
+      nh += '<button class="nav-item" data-screen="list"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><span class="nav-item-label">Olästa meddelanden</span>'
+        + (unreadMsgs ? '<span class="nav-badge-alert">'+unreadMsgs+'</span>' : '')
+        + '</button>';
+      nh += _nsep('Retention');
+      nh += '<button class="nav-item' + (scr==='retention'?' active':'') + '" data-screen="retention"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07"/></svg><span class="nav-item-label">Avhoppsrisk</span>'
+        + (dropoutCount ? '<span class="nav-badge-count">'+dropoutCount+'</span>' : '')
+        + '</button>';
+      nh += '<button class="nav-item' + (scr==='retention'?' active':'') + '" data-screen="retention"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span class="nav-item-label">Meddelandekö</span>'
+        + (alertCount ? '<span class="nav-badge-alert">'+alertCount+'</span>' : '')
+        + '</button>';
+    }
+
+    // ── AKTIVITET TAB ─────────────────────────────────────────────────────────
+    else if (activeTopTab === 'activity') {
+      nh += _nsep('Aktivitetslogg');
+      nh += '<button class="nav-item active" data-screen="intelligence"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg><span class="nav-item-label">Alla händelser</span></button>';
+      nh += '<button class="nav-item" data-screen="retention"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M22 12h-4l-3 8L9 4l-3 8H2"/></svg><span class="nav-item-label">Skickade meddelanden</span></button>';
+      nh += '<button class="nav-item" data-action="velaask"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/></svg><span class="nav-item-label">Vela Ask</span><span style="font-size:9px;background:var(--teal-lt);color:var(--teal);padding:1px 6px;border-radius:4px;margin-left:auto;font-weight:700">AI</span></button>';
+    }
+
+        // ── SETTINGS TAB ─────────────────────────────────────────────────────────
+    else if (activeTopTab === 'settings') {
+      var curST = window._settingsActiveTab || 'clinic';
+      function _st(id, label, iconPath) {
+        var active = curST === id;
+        return '<button class="nav-item' + (active ? ' active' : '') + '" data-settings="' + id + '">'
+          + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon">' + iconPath + '</svg>'
+          + '<span class="nav-item-label">' + label + '</span>'
+          + '</button>';
+      }
+      nh += _nsep('Klinik');
+      nh += _st('clinic',   'Klinikprofil',    '<circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>');
+      nh += _st('users',    'Behandlare',       '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>');
+      nh += _st('services', 'Tjänster & priser','<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>');
+      nh += _nsep('Automation');
+      nh += _st('comms',    'Kommunikation',    '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>');
+      nh += _st('ai',       'AI & retention',   '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>');
+      nh += _st('workflow', 'Arbetsflöde',      '<path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/>');
+      nh += _nsep('Konto');
+      nh += _st('apikey',   'API-nycklar',      '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>');
+      nh += _st('billing',  'Abonnemang',       '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>');
+      nh += _st('sync',     'Synk & data',      '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>');
+    }
 
     nav.innerHTML = nh;
+
+    // ── Wire all nav buttons via event delegation ─────────────────────────────
+    nav.onclick = function(e) {
+      var btn = e.target.closest('button');
+      if (!btn) return;
+
+      // Screen navigation
+      var screen = btn.getAttribute('data-screen');
+      if (screen) { go(screen); _closeSidebar(); return; }
+
+      // Actions
+      var action = btn.getAttribute('data-action');
+      if (action === 'search')     { openCommandPalette && openCommandPalette(); _closeSidebar(); return; }
+      if (action === 'newbooking') { openBookingDialog && openBookingDialog(null,null); return; }
+      if (action === 'waitlist')   { openWaitlistDialog && openWaitlistDialog(); return; }
+      if (action === 'newplan')    { if (S.pat) { prepVisitForm && prepVisitForm(S.pat.id); go('form'); } else { go('list'); } return; }
+      if (action === 'velaask')    { toggleVelaAsk && toggleVelaAsk(); return; }
+
+      // Settings tab
+      var stab = btn.getAttribute('data-settings');
+      if (stab) {
+        window._settingsActiveTab = stab;
+        _renderSettingsNav && _renderSettingsNav();
+        _renderSettingsContent && _renderSettingsContent(stab);
+        return;
+      }
+
+      // Therapist toggle
+      var ther = btn.getAttribute('data-therapist');
+      if (ther) { _calToggleTherapist && _calToggleTherapist(ther); rTopbar(); return; }
+    };
+
     updateInboxBadge();
     rNavLogo();
 
@@ -7599,10 +7953,10 @@ function rTopbar() {
       detail: S.pat ? e(S.pat.name) : 'Patient',
       form: 'Hael-plan',
       doc: 'Hael-plan',
-      meeting: 'Möte & Journal',
-      soap: 'Journal',
-      manualsoap: 'Journal',
-      'sbs-soap': 'Journal',
+      meeting: 'Besök',
+      soap: 'Besök',
+      manualsoap: 'Besök',
+      'sbs-soap': 'Besök',
       intelligence: 'Vela Intelligence',
       settings: 'Inställningar',
       editex: 'Redigera övningar',
@@ -8085,7 +8439,7 @@ function _clinNextAction(p, priority) {
     fn: `openPat('${pid}');setTimeout(()=>newVisit(),500)`
   };
   if (!visit?.soap?.S) return {
-    label: 'Ny journal',
+    label: 'Nytt besök',
     fn: `openPat('${pid}');setTimeout(()=>startManualSOAP(),500)`
   };
   return {
@@ -8382,7 +8736,7 @@ function rDetail(){
   h += '<div class="subnav">';
   const tabs = [
     {id:'overview', label:'Översikt'},
-    {id:'journal',  label:'Journal', count: visits.length},
+    {id:'journal',  label:'Besök', count: visits.length},
     {id:'hael',     label:'Hael-plan', count: visits.filter(v=>v.plan).length},
     {id:'messages', label:'Meddelanden', count: unread||null},
     {id:'intake',   label:'Intake'},
@@ -8399,7 +8753,7 @@ function rDetail(){
   if (tab === 'overview') {
     h += _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData);
   }
-  // ── TAB: Journal ────────────────────────────────────────────────────
+  // ── TAB: Besök ────────────────────────────────────────────────────
   else if (tab === 'journal') {
     h += _detJournal(p, visits);
   }
@@ -8467,7 +8821,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
   h += '<div class="item-list">';
   const actions = [
     { icon:'<path d="M5 3l14 9-14 9V3z"/>', label:'Ta emot nu', desc:'Starta besök och journalföring', action:'newVisit()', primary:true },
-    { icon:'<path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', label:'Skriv journal', desc:'Manuell SOAP-anteckning', action:'newVisit()' },
+    { icon:'<path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', label:'Dokumentera besök', desc:'Manuell SOAP-anteckning', action:'newVisit()' },
     { icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label:'Ny Hael-plan', desc:'Generera rehabiliteringsplan', action:'prepVisitForm(\'' + p.id + '\');go(\'form\')' },
     { icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', label:'Skicka intake', desc:'Skicka formulär till patient', action:'sendIntakeLink(\'' + p.id + '\')' },
   ];
@@ -8486,7 +8840,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
   return h;
 }
 
-// ── Journal tab ───────────────────────────────────────────────────────────────
+// ── Besök tab ───────────────────────────────────────────────────────────────
 function _detJournal(p, visits) {
   var h = '<div class="section">';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
@@ -8519,7 +8873,7 @@ function _detJournal(p, visits) {
       h += '<div class="item-row-title">';
       h += e(v.date||'Okänt datum');
       if (vNrsLast !== null) h += '<span class="status-pill ' + (vNrsLast>=7?'red':vNrsLast>=4?'amber':'green') + '" style="font-size:10px">NRS ' + vNrsLast + '</span>';
-      if (hasSOAP) h += '<span class="status-pill teal" style="font-size:10px">Journal</span>';
+      if (hasSOAP) h += '<span class="status-pill teal" style="font-size:10px">Besök</span>';
       if (hasPlan) h += '<span class="status-pill blue" style="font-size:10px">Hael-plan</span>';
       h += '</div>';
       h += '<div class="item-row-meta">';
@@ -8747,7 +9101,7 @@ function renderVisitTimeline(pat) {
             <div class="vt-date">${v.date || '--'}${service ? ' · ' + e(service) : ''}${price ? ' · ' + price : ''}</div>
             <div class="vt-title">${diag || e(icd || 'Besök ' + (visits.length - idx))}</div>
             <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">
-              <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${hasSoap?'var(--teal-lt)':'var(--surface3)'};color:${hasSoap?'var(--teal)':'var(--muted)'}">${hasSoap?'Journal':'Ingen journal'}</span>
+              <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${hasSoap?'var(--teal-lt)':'var(--surface3)'};color:${hasSoap?'var(--teal)':'var(--muted)'}">${hasSoap?'Besök':'Ingen besnal'}</span>
               <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${hasPlan?'var(--green-lt)':'var(--surface3)'};color:${hasPlan?'#3fb950':'var(--muted)'}">${hasPlan?`Plan · ${exCount} övn`:'Ingen plan'}</span>
               ${pain != null ? `<span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:var(--surface2);color:var(--text2)">NRS ${pain}/10</span>` : ''}
               <span style="font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;background:${sc.bg};color:${sc.col}">${st}</span>
@@ -8792,7 +9146,7 @@ function renderVisitTimeline(pat) {
           </div>` : ''}
           ${hasSoap ? `
           <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-bottom:10px">
-            <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Journal</div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Besök</div>
             ${['S','O','A','P'].filter(l => v.soap?.[l]).map(l =>
               `<div style="margin-bottom:8px">
                 <div style="font-size:9px;font-weight:700;color:var(--teal);letter-spacing:.1em;margin-bottom:2px">${l}</div>
@@ -8804,7 +9158,7 @@ function renderVisitTimeline(pat) {
             <div style="font-size:11px;color:var(--muted)">Läser genomförda pass...</div>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
-            <button onclick="S.visitId='${v.id}';startManualSOAP()" style="font-size:11px;font-weight:600;color:var(--teal);background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.07);border-radius:6px;padding:5px 10px;cursor:pointer;font-family:var(--font)">${hasSoap?'Redigera journal':'Ny journal'}</button>
+            <button onclick="S.visitId='${v.id}';startManualSOAP()" style="font-size:11px;font-weight:600;color:var(--teal);background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.07);border-radius:6px;padding:5px 10px;cursor:pointer;font-family:var(--font)">${hasSoap?'Redigera journal':'Nytt besök'}</button>
             ${hasPlan ? `<button onclick="S.visitId='${v.id}';S.plan=(S.pat.visits||[]).find(x=>x.id==='${v.id}')?.plan;go('doc')" style="font-size:11px;font-weight:600;color:var(--teal);background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.07);border-radius:6px;padding:5px 10px;cursor:pointer;font-family:var(--font)">Öppna Hael-plan</button>` : `<button onclick="S.visitId='${v.id}';go('form')" style="font-size:11px;font-weight:600;color:var(--teal);background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.07);border-radius:6px;padding:5px 10px;cursor:pointer;font-family:var(--font)">Skapa Hael-plan</button>`}
           </div>
         </div>
@@ -8927,7 +9281,7 @@ function viewDoc(vid){
   if(v.soap && (v.soap.S||v.soap.O||v.soap.A||v.soap.P)){
     go('journaldoc');
   } else {
-    alert('Ingen SOAP-journal finns sparad. Skriv en via Journal-knappen i topbaren.');
+    alert('Ingen SOAP-journal finns sparad. Skriv via Besök-fliken i topbaren.');
   }
 }
 function viewPlan(vid){
@@ -9815,7 +10169,7 @@ function newPatientFlow() {
         <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:10px">Samtycken</div>
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:8px">
           <input type="checkbox" id="consent-journal" checked style="margin-top:2px;accent-color:var(--teal);flex-shrink:0;width:14px;height:14px">
-          <span style="font-size:12px;color:var(--text);line-height:1.5">Journalföring och behandlingsdokumentation</span>
+          <span style="font-size:12px;color:var(--text);line-height:1.5">Besöksdokumentation och behandlingsdokumentation</span>
         </label>
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:8px">
           <input type="checkbox" id="consent-gdpr" checked style="margin-top:2px;accent-color:var(--teal);flex-shrink:0;width:14px;height:14px">
@@ -9976,8 +10330,8 @@ function showVisitActionChooser() {
   const actions = [
     {label:'Spela in möte', sub:'Transkribera samtal och skapa journal automatiskt', fn:`document.getElementById(&quot;new-visit-overlay&quot;).remove();_applySelectedService();startMeeting()`},
     prevWithSoap
-      ? {label:'Skriv journal', sub:`Jämför med förra besöket (${prevWithSoap.date||''})`, fn:`document.getElementById(&quot;new-visit-overlay&quot;).remove();_applySelectedService();startSBSsoap(window._sbsPrevVisit)`}
-      : {label:'Skriv journal', sub:'SOAP-anteckning', fn:`document.getElementById(&quot;new-visit-overlay&quot;).remove();_applySelectedService();startManualSOAP()`},
+      ? {label:'Dokumentera besök', sub:`Jämför med förra besöket (${prevWithSoap.date||''})`, fn:`document.getElementById(&quot;new-visit-overlay&quot;).remove();_applySelectedService();startSBSsoap(window._sbsPrevVisit)`}
+      : {label:'Dokumentera besök', sub:'SOAP-anteckning', fn:`document.getElementById(&quot;new-visit-overlay&quot;).remove();_applySelectedService();startManualSOAP()`},
     {label:'Skapa rehabplan', sub:'Generera träningsplan utan journal', fn:`document.getElementById(&quot;new-visit-overlay&quot;).remove();_applySelectedService();prepVisitForm('${p.id}');go('form')`},
   ];
 
@@ -11071,13 +11425,13 @@ function rManualSOAP() {
     </button>
     <span style="color:var(--border2)">></span>
     <span style="font-size:13px;font-weight:600;color:var(--ink)">${e(p.name)}</span>
-    <span style="font-size:11px;color:var(--muted)">-- Journalanteckning</span>
+    <span style="font-size:11px;color:var(--muted)">-- Besöksjournal</span>
     <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
       <span id="soap-autosave-label" style="font-size:11px;color:var(--muted);display:none">Sparad</span>
     </div>
   </div>
   <div style="max-width:800px;margin:0 auto;padding:28px 32px 80px">
-    <div class="ftit">Journalanteckning -- ${e(p.name)}</div>
+    <div class="ftit">Besöksjournal -- ${e(p.name)}</div>
     <div class="msoap-hint">Fyll i de fält som är relevanta. AI föreslår differentialdiagnoser och riktlinjer i realtid.</div>
 
     ${smartIntakeHTML()}
@@ -11363,7 +11717,7 @@ function rJournalDoc() {
       <div class="jdoc">
         <div class="jdoc-hdr">
           <div>
-            <div class="jdoc-title">Journalanteckning</div>
+            <div class="jdoc-title">Besöksjournal</div>
             <div class="jdoc-sub">${e(p.name||'')} · ${v.date||''}</div>
             <div class="jdoc-meta">
               ${[['Diagnos',meta.diagnosis||p.diagnosis||'--'],['Födelsedatum',p.birthdate||p.birthYear||'--'],['Ålder',(new Date().getFullYear()-birthdateToYear(p.birthdate||p.birthYear||''))+' år']].map(([l,v2])=>`<div><div class="dml">${l}</div><div class="dmv">${e(String(v2))}</div></div>`).join('')}
@@ -18818,6 +19172,12 @@ function rNavLogo() {
 
 // ── SETTINGS SCREEN ─────────────────────────────────────────
 function rSettings() {
+  // Scroll content to top when settings opened
+  setTimeout(function(){
+    var content = document.getElementById('vela-settings-content');
+    if (content) content.scrollTop = 0;
+  }, 50);
+
   const el = document.getElementById('s-settings');
   if (!el) return;
   window._settingsActiveTab = window._settingsActiveTab || 'clinic';
@@ -19234,24 +19594,53 @@ function _retQueueFromModal() {
 function _renderSettingsNav() {
   const nav = document.getElementById('vela-settings-nav');
   if (!nav) return;
-  const tabs = [
-    { id:'clinic',    label:'Klinik',         icon:'<circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>' },
-    { id:'users',     label:'Användare',       icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
-    { id:'services',  label:'Tjänster',        icon:'<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>' },
-    { id:'comms',     label:'Kommunikation',   icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>' },
-    { id:'ai',        label:'AI',              icon:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>' },
-    { id:'apikey',    label:'API-nyckel',      icon:'<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>' },
-    { id:'billing',   label:'Abonnemang',      icon:'<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>' },
-    { id:'sync',      label:'Synk & Data',     icon:'<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>' },
-    { id:'workflow',  label:'Arbetsflöde',    icon:'<path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>' },
-  ];
-  const cur = window._settingsActiveTab;
-  nav.innerHTML = tabs.map(t =>
-    '<button onclick="window._settingsActiveTab=\''+t.id+'\';_renderSettingsNav();_renderSettingsContent(\''+t.id+'\')" class="vela-stab'+(cur===t.id?' active':'')+'">'
-    +'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+t.icon+'</svg>'
-    +t.label+'</button>'
-  ).join('');
+  const cur = window._settingsActiveTab || 'clinic';
+
+  function tab(id, label, iconPath) {
+    var active = cur === id;
+    return '<button class="vela-stab' + (active ? ' active' : '') + '" data-tab="' + id + '">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="flex-shrink:0;opacity:' + (active?'1':'.6') + '">' + iconPath + '</svg>'
+      + label
+      + '</button>';
+  }
+
+  function group(label) {
+    return '<div style="font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);padding:16px 12px 5px;cursor:default">' + label + '</div>';
+  }
+
+  var h = '';
+
+  // ── Klinik ───────────────────────────────────────────────────────────
+  h += group('Klinik');
+  h += tab('clinic',   'Klinikprofil',    '<circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>');
+  h += tab('users',    'Behandlare',      '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>');
+  h += tab('services', 'Tjänster & priser','<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>');
+
+  // ── Automation ───────────────────────────────────────────────────────
+  h += group('Automation');
+  h += tab('comms',    'Kommunikation',   '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>');
+  h += tab('ai',       'AI & retention',  '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>');
+  h += tab('workflow', 'Arbetsflöde',     '<path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>');
+
+  // ── Konto ────────────────────────────────────────────────────────────
+  h += group('Konto');
+  h += tab('apikey',   'API-nycklar',     '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>');
+  h += tab('billing',  'Abonnemang',      '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>');
+  h += tab('sync',     'Synk & data',     '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>');
+
+  nav.innerHTML = h;
+
+  // Wire tab clicks
+  nav.querySelectorAll('.vela-stab').forEach(function(btn) {
+    btn.onclick = function() {
+      var tabId = btn.getAttribute('data-tab');
+      window._settingsActiveTab = tabId;
+      _renderSettingsNav();
+      _renderSettingsContent(tabId);
+    };
+  });
 }
+
 
 function _renderSettingsContent(tab) {
   const el = document.getElementById('vela-settings-content');
@@ -19943,7 +20332,7 @@ function _stApiKey(key) {
   h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px">';
   h += '<div style="font-size:12px;font-weight:700;color:var(--ink);margin-bottom:8px">Varför behövs en API-nyckel?</div>';
   var features = [
-    ['Journal & SOAP-ifyllnad', 'AI strukturerar och förbättrar dina journalanteckningar'],
+    ['Besöksdok & SOAP-ifyllnad', 'AI strukturerar och förbättrar dina journalanteckningar'],
     ['Hael-plan generering', 'Skapar personliga rehabprogram utifrån patientens profil'],
     ['Vela Ask', 'Svarar på frågor om dina patienter och klinikens data'],
     ['Retention-meddelanden', 'Skriver personliga mail och SMS till patienter'],
@@ -20105,7 +20494,7 @@ function renderActivityLog(pat) {
   var logs = [];
   (pat.visits||[]).forEach(function(v) {
     if (v.date) logs.push({ date: v.date, text: 'Besök' + (v.service ? ' — ' + v.service : '') + (v.status ? ' (' + v.status + ')' : '') });
-    if (v.soap && v.soap.S) logs.push({ date: v.date, text: 'Journal skapad' });
+    if (v.soap && v.soap.S) logs.push({ date: v.date, text: 'Besök dokumenterat' });
     if (v.plan) logs.push({ date: v.date, text: 'Hael-plan genererad (' + (v.plan.exercises||[]).length + ' övningar)' });
   });
   (pat.messages||[]).slice(0,5).forEach(function(m) {
@@ -23996,7 +24385,7 @@ function _injectAiJournalAssistUI() {
 
   var panelHeader = document.createElement('div');
   panelHeader.style.cssText = 'padding:8px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between';
-  panelHeader.innerHTML = '<div style="display:flex;align-items:center;gap:7px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span style="font-size:11px;font-weight:700;color:var(--teal)">AI Journal-assistent</span></div><span style="font-size:10px;color:var(--muted)">Uppdateras när du skriver</span>';
+  panelHeader.innerHTML = '<div style="display:flex;align-items:center;gap:7px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span style="font-size:11px;font-weight:700;color:var(--teal)">AI Besöksassistent</span></div><span style="font-size:10px;color:var(--muted)">Uppdateras när du skriver</span>';
   panel.appendChild(panelHeader);
 
   var content = document.createElement('div');
@@ -24113,7 +24502,7 @@ function renderGDPRPanel(patId) {
 
   var consents = pat.consents || [];
   var consentTypes = [
-    {id:'journal', label:'Journalföring', desc:'Behandlingsjournal sparas digitalt', required:true},
+    {id:'journal', label:'Besöksdokumentation', desc:'Besöksanteckningar sparas digitalt', required:true},
     {id:'mail_info', label:'Informationsmail', desc:'Nyheter, tips och information från kliniken'},
     {id:'sms_reminder', label:'SMS-påminnelser', desc:'Påminnelse inför bokade besök'},
     {id:'hael_data', label:'Hael-data', desc:'Träningsdata och smärtloggning sparas'},

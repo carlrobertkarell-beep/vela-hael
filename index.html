@@ -365,6 +365,73 @@ button, input, textarea, select { font-family: inherit; }
 .ss-lbl { font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em; }
 .ambient-finish-btn { width:100%;padding:15px;background:var(--teal);color:white;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em;box-shadow:0 6px 20px rgba(13,155,138,.3); }
 .ambient-finish-btn:hover { opacity:.92; }
+
+/* ══ BOOKING DIALOG REBUILD ══════════════════════════════════════════════════ */
+.bk2-overlay { position:fixed;inset:0;z-index:700;background:rgba(7,16,30,.78);
+  backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;
+  padding:20px;animation:cmd-fade-in .15s ease; }
+.bk2-box { background:var(--surface);border-radius:22px;width:100%;max-width:560px;
+  overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45);display:flex;flex-direction:column;
+  max-height:92vh; }
+.bk2-header { background:var(--navy);padding:18px 22px 14px;flex-shrink:0; }
+.bk2-title { font-size:18px;font-weight:800;color:white;letter-spacing:-.02em; }
+.bk2-subtitle { font-size:12px;color:rgba(255,255,255,.35);margin-top:3px; }
+.bk2-body { overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:14px; }
+.bk2-label { font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--teal);margin-bottom:6px; }
+.bk2-field { background:var(--bg);border:1.5px solid var(--border);border-radius:11px;
+  padding:10px 14px;color:var(--ink);font-size:13px;font-family:var(--font);
+  outline:none;width:100%;box-sizing:border-box;transition:border-color .15s; }
+.bk2-field:focus { border-color:rgba(13,155,138,.5); }
+.bk2-field::placeholder { color:rgba(255,255,255,.2); }
+/* Patient card */
+.bk2-pat-card { background:rgba(13,155,138,.06);border:1px solid rgba(13,155,138,.2);
+  border-radius:13px;padding:13px 16px;display:flex;align-items:center;gap:12px; }
+.bk2-pat-avatar { width:38px;height:38px;border-radius:50%;background:rgba(13,155,138,.15);
+  color:var(--teal);font-size:12px;font-weight:800;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0; }
+.bk2-pat-name { font-size:14px;font-weight:700;color:var(--ink); }
+.bk2-pat-meta { font-size:11px;color:var(--muted);margin-top:2px; }
+.bk2-pat-stats { display:flex;gap:8px;margin-top:6px;flex-wrap:wrap; }
+.bk2-pat-stat { font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px; }
+/* Suggestions */
+.bk2-suggestions { position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);
+  border:1px solid var(--border);border-radius:12px;z-index:50;overflow:hidden;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);max-height:200px;overflow-y:auto; }
+.bk2-sug-item { padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;
+  transition:background .1s; }
+.bk2-sug-item:hover { background:rgba(13,155,138,.08); }
+.bk2-sug-name { font-size:13px;font-weight:600;color:var(--ink); }
+.bk2-sug-meta { font-size:11px;color:var(--muted); }
+/* Contact fields */
+.bk2-contact-row { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+/* Time row */
+.bk2-time-row { display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px; }
+/* Type pills */
+.bk2-type-row { display:flex;gap:8px; }
+.bk2-type-pill { flex:1;padding:9px 12px;background:var(--bg);border:1.5px solid var(--border);
+  border-radius:11px;cursor:pointer;text-align:center;font-size:12px;font-weight:600;
+  color:var(--muted);transition:all .12s;user-select:none; }
+.bk2-type-pill.active { border-color:var(--teal);background:rgba(13,155,138,.08);color:var(--teal); }
+/* Footer */
+.bk2-footer { padding:14px 22px 18px;display:flex;gap:10px;flex-shrink:0;
+  border-top:1px solid var(--border); }
+.bk2-btn-primary { flex:2;padding:13px;background:var(--teal);color:white;border:none;
+  border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s; }
+.bk2-btn-primary:hover { opacity:.9; }
+.bk2-btn-cancel { flex:1;padding:13px;background:none;border:1px solid var(--border);
+  border-radius:12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;
+  font-family:var(--font); }
+/* Comms chain preview */
+.bk2-chain { background:var(--bg);border-radius:12px;padding:12px 14px; }
+.bk2-chain-title { font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:rgba(255,255,255,.3);margin-bottom:8px; }
+.bk2-chain-item { display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:11px;color:var(--muted); }
+.bk2-chain-dot { width:6px;height:6px;border-radius:50%;flex-shrink:0; }
+/* Nav CTA smart */
+.nav-ta-emot-next { font-size:10px;opacity:.6;font-weight:400;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;max-width:140px; }
 .org-add-clinic-card { background:var(--bg);border:1.5px dashed var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:120px;transition:border-color .15s; }
 .org-add-clinic-card:hover { border-color:var(--teal); }
 
@@ -1499,6 +1566,14 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 </style>
 
 </head><body>
+<div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0e1825;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+  <div style="width:36px;height:36px;border:2.5px solid rgba(13,155,138,.2);border-top-color:#0d9b8a;border-radius:50%;animation:spin .7s linear infinite"></div>
+  <div style="font-size:12px;color:rgba(255,255,255,.3);font-family:system-ui,sans-serif;letter-spacing:.06em">VELA</div>
+</div>
+
+<!-- Mobile sidebar overlay -->
+<div id="sb-overlay" onclick="togSidebar()" style="display:none;position:fixed;inset:0;z-index:149;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);cursor:pointer"></div>
+
 <div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0e1825;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
   <div style="width:36px;height:36px;border:2.5px solid rgba(13,155,138,.2);border-top-color:#0d9b8a;border-radius:50%;animation:spin .7s linear infinite"></div>
   <div style="font-size:12px;color:rgba(255,255,255,.3);font-family:system-ui,sans-serif;letter-spacing:.06em">VELA</div>
@@ -5984,6 +6059,607 @@ function _startSmartVisit(patId, bkId) {
   openAmbientSession(patId, bkId);
 }
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+// BOKNINGSDIALOG 2.0 — Komplett patientlinjeintegration
+// • Patientkort med NRS, diagnos, Hael-status
+// • E-post + telefon direkt i dialogen
+// • Skapar patient om ny
+// • Kommunikationskedja visas innan bokning
+// • Smart "Ta emot" som vet vem som är näst
+// ══════════════════════════════════════════════════════════════════════════════
+
+var _bk2State = {
+  patId: null, patName: '', email: '', phone: '',
+  type: 'returning', date: '', time: '', dur: 45,
+  svcId: '', svcName: '', notes: '',
+};
+
+function openBookingDialog(date, time, existingPatId) {
+  document.getElementById('bk-dialog-ov')?.remove();
+  document.getElementById('bk2-overlay')?.remove();
+
+  var now = new Date();
+  var defaultDate = date || (now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0'));
+  var defaultTime = time || '09:00';
+
+  var existingPat = existingPatId ? (S.patients||[]).find(function(p){ return p.id===existingPatId; }) : null;
+
+  _bk2State = {
+    patId: existingPatId || null,
+    patName: existingPat ? existingPat.name : '',
+    email: existingPat ? (existingPat.email || '') : '',
+    phone: existingPat ? (existingPat.phone || '') : '',
+    type: existingPat && (existingPat.visits||[]).length > 0 ? 'returning' : 'new',
+    date: defaultDate, time: defaultTime, dur: 45,
+    svcId: '', svcName: '', notes: '',
+  };
+
+  _renderBk2Dialog();
+}
+
+function _renderBk2Dialog() {
+  document.getElementById('bk2-overlay')?.remove();
+  var st = _bk2State;
+  var pat = st.patId ? (S.patients||[]).find(function(p){ return p.id===st.patId; }) : null;
+  var svcs = getServices().filter(function(s){ return s.price > 0; });
+
+  var ov = document.createElement('div');
+  ov.id = 'bk2-overlay';
+  ov.className = 'bk2-overlay';
+  ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
+
+  var h = '<div class="bk2-box" onclick="event.stopPropagation()">';
+
+  // Header
+  h += '<div class="bk2-header">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between">';
+  h += '<div><div class="bk2-title">Boka patient</div>';
+  h += '<div class="bk2-subtitle">' + _fmtBookingDate(st.date) + (st.time ? ' · ' + st.time : '') + '</div></div>';
+  h += '<button onclick="document.getElementById(\'bk2-overlay\').remove()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:22px;cursor:pointer;line-height:1;padding:0">×</button>';
+  h += '</div></div>';
+
+  h += '<div class="bk2-body">';
+
+  // ── PATIENT SECTION ──
+  if (pat) {
+    // Existing patient card
+    var visits = pat.visits || [];
+    var lastVisit = visits.slice(-1)[0];
+    var nrsVals = lastVisit ? (lastVisit.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }) : [];
+    var nrsLast = nrsVals.length ? nrsVals[nrsVals.length-1] : (lastVisit?.form?.pain ?? null);
+    var diag = lastVisit?.form?.diagnosis || lastVisit?.plan?.form?.diagnosis || '';
+    var haelActive = visits.some(function(v){
+      if (!v.plan) return false;
+      var tw = v.plan.totalWeeks||4;
+      var sd = v.date ? new Date(v.date) : null;
+      return sd && new Date(sd.getTime()+tw*7*86400000) > new Date();
+    });
+    var initials = pat.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+    var nrsColor = nrsLast==null?'var(--muted)':nrsLast>=7?'#e05555':nrsLast>=4?'#c8a030':'#1a7a4a';
+    var weeksSince = lastVisit?.date ? Math.round((Date.now()-new Date(lastVisit.date))/604800000) : null;
+
+    h += '<div>';
+    h += '<div class="bk2-label">Patient</div>';
+    h += '<div class="bk2-pat-card">';
+    h += '<div class="bk2-pat-avatar">' + initials + '</div>';
+    h += '<div style="flex:1;min-width:0">';
+    h += '<div class="bk2-pat-name">' + e(pat.name) + '</div>';
+    h += '<div class="bk2-pat-meta">';
+    if (diag) h += e(diag.split('(')[0].trim());
+    if (weeksSince !== null) h += (diag?' · ':'') + weeksSince + ' veckor sedan';
+    h += '</div>';
+    h += '<div class="bk2-pat-stats">';
+    if (nrsLast !== null) h += '<span class="bk2-pat-stat" style="background:'+nrsColor+'18;color:'+nrsColor+'">NRS '+nrsLast+'</span>';
+    h += '<span class="bk2-pat-stat" style="background:rgba(255,255,255,.06);color:var(--muted)">' + visits.length + ' besök</span>';
+    if (haelActive) h += '<span class="bk2-pat-stat" style="background:rgba(13,155,138,.1);color:var(--teal)">Hael aktiv</span>';
+    h += '</div></div>';
+    h += '<button onclick="_bk2ClearPat()" style="background:none;border:none;color:rgba(255,255,255,.25);font-size:18px;cursor:pointer;line-height:1;flex-shrink:0">×</button>';
+    h += '</div></div>';
+  } else {
+    // Patient search
+    h += '<div>';
+    h += '<div class="bk2-label">Patient *</div>';
+    h += '<div style="position:relative">';
+    h += '<input id="bk2-pat-search" class="bk2-field" type="text" placeholder="Sök befintlig patient eller ange nytt namn..." value="' + e(st.patName) + '" oninput="_bk2PatSearch(this.value)" autocomplete="off">';
+    h += '<div id="bk2-suggestions" style="display:none" class="bk2-suggestions"></div>';
+    h += '</div>';
+    // New patient indicator
+    if (st.patName && !st.patId) {
+      h += '<div style="font-size:11px;color:var(--teal);margin-top:5px;display:flex;align-items:center;gap:5px">';
+      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+      h += 'Ny patient — profil skapas automatiskt';
+      h += '</div>';
+    }
+    h += '</div>';
+  }
+
+  // ── CONTACT (shown when no existing patient or patient missing contact) ──
+  var showContact = !pat || !pat.email || !pat.phone;
+  if (showContact) {
+    h += '<div class="bk2-contact-row">';
+    h += '<div><div class="bk2-label">E-post' + (!pat ? ' *' : '') + '</div>';
+    h += '<input id="bk2-email" class="bk2-field" type="email" placeholder="patient@exempel.se" value="' + e(st.email) + '" oninput="_bk2State.email=this.value;_bk2UpdateChain()"></div>';
+    h += '<div><div class="bk2-label">Telefon</div>';
+    h += '<input id="bk2-phone" class="bk2-field" type="tel" placeholder="070-000 00 00" value="' + e(st.phone) + '" oninput="_bk2State.phone=this.value"></div>';
+    h += '</div>';
+  }
+
+  // ── DATE / TIME / DURATION ──
+  h += '<div class="bk2-time-row">';
+  h += '<div><div class="bk2-label">Datum *</div>';
+  h += '<input id="bk2-date" class="bk2-field" type="date" value="' + st.date + '" oninput="_bk2State.date=this.value;_bk2UpdateChain()"></div>';
+  h += '<div><div class="bk2-label">Tid *</div>';
+  h += '<input id="bk2-time" class="bk2-field" type="time" value="' + st.time + '" step="900" oninput="_bk2State.time=this.value"></div>';
+  h += '<div><div class="bk2-label">Längd</div>';
+  h += '<select id="bk2-dur" class="bk2-field" onchange="_bk2State.dur=parseInt(this.value)">';
+  [30,45,60,75,90].forEach(function(d){
+    h += '<option value="'+d+'"'+(d===st.dur?' selected':'')+'>'+d+' min</option>';
+  });
+  h += '</select></div></div>';
+
+  // ── SERVICE ──
+  if (svcs.length) {
+    h += '<div><div class="bk2-label">Tjänst</div>';
+    h += '<select id="bk2-svc" class="bk2-field" onchange="_bk2SvcChange(this)">';
+    h += '<option value="">Välj tjänst...</option>';
+    svcs.forEach(function(s){
+      h += '<option value="'+s.id+'" data-price="'+s.price+'" data-dur="'+(s.duration||45)+'" data-name="'+e(s.name)+'"'+(st.svcId===s.id?' selected':'')+'>'+e(s.name)+' · '+s.price+' kr</option>';
+    });
+    h += '</select></div>';
+  }
+
+  // ── VISIT TYPE ──
+  h += '<div><div class="bk2-label">Besökstyp</div>';
+  h += '<div class="bk2-type-row">';
+  [{v:'new',l:'Ny patient',icon:'✨'},{v:'returning',l:'Återbesök',icon:'🔄'},{v:'followup',l:'Uppföljning',icon:'📋'}].forEach(function(t){
+    h += '<div class="bk2-type-pill'+(st.type===t.v?' active':'')+'" onclick="_bk2SetType(\''+t.v+'\')">'+t.icon+' '+t.l+'</div>';
+  });
+  h += '</div></div>';
+
+  // ── NOTES ──
+  h += '<div><div class="bk2-label">Anteckning</div>';
+  h += '<textarea id="bk2-notes" class="bk2-field" rows="2" style="resize:none" placeholder="Kort info om besöket (visas ej för patient)..." oninput="_bk2State.notes=this.value">'+e(st.notes)+'</textarea></div>';
+
+  // ── COMMUNICATIONS CHAIN PREVIEW ──
+  h += '<div class="bk2-chain" id="bk2-chain">' + _bk2BuildChain() + '</div>';
+
+  h += '</div>'; // end body
+
+  // Footer
+  h += '<div class="bk2-footer">';
+  h += '<button class="bk2-btn-cancel" onclick="document.getElementById(\'bk2-overlay\').remove()">Avbryt</button>';
+  h += '<button class="bk2-btn-primary" onclick="_bk2Save()">';
+  h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
+  h += 'Boka →';
+  h += '</button>';
+  h += '</div>';
+  h += '</div>'; // end box
+
+  ov.innerHTML = h;
+  document.body.appendChild(ov);
+  setTimeout(function(){ document.getElementById('bk2-pat-search')?.focus(); }, 80);
+}
+
+function _bk2BuildChain() {
+  var st = _bk2State;
+  var email = st.email;
+  var hasEmail = email && email.includes('@');
+  var apptDate = st.date;
+  var d48h = apptDate ? new Date(new Date(apptDate+'T12:00').getTime() - 48*3600000) : null;
+  var d24h = apptDate ? new Date(new Date(apptDate+'T12:00').getTime() - 24*3600000) : null;
+  var now = new Date();
+
+  var items = [];
+  if (hasEmail) {
+    items.push({color:'#1a7a4a', text:'Bokningsbekräftelse skickas direkt till ' + email});
+  } else {
+    items.push({color:'#e05555', text:'Ingen e-post — bekräftelse kan ej skickas. Ange e-post.'});
+  }
+  if (st.type === 'new' || !st.patId) {
+    items.push({color:hasEmail?'var(--teal)':'#c8a030', text:'Intake-formulär skickas ' + (hasEmail?'direkt vid bokning':'— kräver e-post')});
+  } else if (st.patId) {
+    var intake = needsIntake(st.patId);
+    if (intake.needed) {
+      items.push({color:'var(--teal)', text:'Intake rekommenderas ('+intake.reason+') — skickas 48h innan'});
+    }
+  }
+  if (hasEmail && d48h && d48h > now) {
+    items.push({color:'rgba(255,255,255,.3)', text:'Påminnelse + intake: ' + d48h.toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short'})});
+  }
+  if (hasEmail && d24h && d24h > now) {
+    items.push({color:'rgba(255,255,255,.3)', text:'Påminnelse: ' + d24h.toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short'})});
+  }
+  if (!hasEmail && st.phone) {
+    items.push({color:'#c8a030', text:'SMS-påminnelse kan skickas via 46elks'});
+  }
+
+  var h = '<div class="bk2-chain-title">Kommunikationskedja vid bokning</div>';
+  items.forEach(function(item){
+    h += '<div class="bk2-chain-item">';
+    h += '<div class="bk2-chain-dot" style="background:'+item.color+'"></div>';
+    h += '<span>'+item.text+'</span>';
+    h += '</div>';
+  });
+  return h;
+}
+
+function _bk2UpdateChain() {
+  var el = document.getElementById('bk2-chain');
+  if (el) el.innerHTML = _bk2BuildChain();
+}
+
+function _bk2PatSearch(val) {
+  _bk2State.patName = val;
+  _bk2State.patId = null;
+  var sug = document.getElementById('bk2-suggestions');
+  if (!sug) return;
+  if (val.length < 2) { sug.style.display='none'; return; }
+
+  var matches = (S.patients||[]).filter(function(p){
+    return p.name && p.name.toLowerCase().includes(val.toLowerCase());
+  }).slice(0,8);
+
+  if (!matches.length) { sug.style.display='none'; return; }
+
+  var h = '';
+  matches.forEach(function(p){
+    var visits = p.visits||[];
+    var lastV = visits.slice(-1)[0];
+    var diag = lastV?.form?.diagnosis || '';
+    var initials = p.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+    h += '<div class="bk2-sug-item" onclick="_bk2SelectPat(\''+p.id+'\')">';
+    h += '<div style="width:28px;height:28px;border-radius:50%;background:rgba(13,155,138,.12);color:var(--teal);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">'+initials+'</div>';
+    h += '<div><div class="bk2-sug-name">'+e(p.name)+'</div>';
+    h += '<div class="bk2-sug-meta">'+visits.length+' besök'+(diag?' · '+e(diag.split('(')[0].trim()):'')+(p.email?' · '+p.email:'')+'</div></div>';
+    h += '</div>';
+  });
+
+  sug.innerHTML = h;
+  sug.style.display = 'block';
+}
+
+function _bk2SelectPat(patId) {
+  var pat = (S.patients||[]).find(function(p){ return p.id===patId; });
+  if (!pat) return;
+  _bk2State.patId = patId;
+  _bk2State.patName = pat.name;
+  _bk2State.email = pat.email || '';
+  _bk2State.phone = pat.phone || '';
+  _bk2State.type = (pat.visits||[]).length > 0 ? 'returning' : 'new';
+  // Hide suggestions
+  var sug = document.getElementById('bk2-suggestions');
+  if (sug) sug.style.display = 'none';
+  _renderBk2Dialog();
+}
+
+function _bk2ClearPat() {
+  _bk2State.patId = null;
+  _bk2State.patName = '';
+  _bk2State.email = '';
+  _bk2State.phone = '';
+  _renderBk2Dialog();
+  setTimeout(function(){ document.getElementById('bk2-pat-search')?.focus(); }, 80);
+}
+
+function _bk2SetType(type) {
+  _bk2State.type = type;
+  document.querySelectorAll('.bk2-type-pill').forEach(function(el){
+    el.classList.toggle('active', el.getAttribute('onclick') === "_bk2SetType('"+type+"')");
+  });
+  _bk2UpdateChain();
+}
+
+function _bk2SvcChange(sel) {
+  var opt = sel.options[sel.selectedIndex];
+  _bk2State.svcId = opt.value;
+  _bk2State.svcName = opt.getAttribute('data-name') || '';
+  var dur = opt.getAttribute('data-dur');
+  if (dur) {
+    _bk2State.dur = parseInt(dur);
+    var durEl = document.getElementById('bk2-dur');
+    if (durEl) durEl.value = dur;
+  }
+}
+
+function _bk2Save() {
+  var st = _bk2State;
+  // Read live values from form
+  var patName = (document.getElementById('bk2-pat-search')?.value || st.patName).trim();
+  var email   = (document.getElementById('bk2-email')?.value || st.email).trim();
+  var phone   = (document.getElementById('bk2-phone')?.value || st.phone).trim();
+  var bkDate  = document.getElementById('bk2-date')?.value || st.date;
+  var bkTime  = document.getElementById('bk2-time')?.value || st.time;
+  var dur     = parseInt(document.getElementById('bk2-dur')?.value || st.dur);
+  var notes   = document.getElementById('bk2-notes')?.value || st.notes;
+  var svcEl   = document.getElementById('bk2-svc');
+  if (svcEl && svcEl.value) {
+    st.svcId = svcEl.value;
+    st.svcName = (svcEl.options[svcEl.selectedIndex]?.getAttribute('data-name')) || '';
+  }
+
+  if (!patName) { showAutoSaveToast('Ange patientnamn'); return; }
+  if (!bkDate)  { showAutoSaveToast('Välj datum'); return; }
+  if (!bkTime)  { showAutoSaveToast('Välj tid'); return; }
+
+  // Create or update patient
+  var patId = st.patId;
+  var isNewPat = !patId;
+
+  if (!patId) {
+    // New patient
+    patId = 'pat_' + Date.now();
+    var newPat = {
+      id: patId, name: patName, email: email, phone: phone,
+      visits: [], status: 'Aktiv', source: 'phone',
+      clinicId: getCurrentClinicId(),
+      createdAt: new Date().toISOString(),
+    };
+    savePatient(newPat);
+    if (!S.patients) S.patients = [];
+    S.patients.push(newPat);
+    showAutoSaveToast(patName + ' skapad ✓');
+  } else {
+    // Update contact info if provided
+    var existPat = (S.patients||[]).find(function(p){ return p.id===patId; });
+    if (existPat) {
+      var changed = false;
+      if (email && !existPat.email) { existPat.email = email; changed = true; }
+      if (phone && !existPat.phone) { existPat.phone = phone; changed = true; }
+      if (changed) savePatient(existPat);
+    }
+  }
+
+  // Build booking
+  var intake = needsIntake(patId);
+  var intakeSent = (st.type === 'new' || isNewPat || intake.needed) && !!(email);
+  var intakeLink = intakeSent ? _generateIntakeLink(patId) : '';
+
+  var bk = {
+    id:               'bk_' + Date.now(),
+    patientId:        patId,
+    patientName:      patName,
+    date:             bkDate,
+    time:             bkTime,
+    duration:         dur,
+    type:             st.type,
+    status:           'scheduled',
+    source:           'manual',
+    serviceId:        st.svcId,
+    serviceName:      st.svcName,
+    notes:            notes,
+    intakeSent:       intakeSent,
+    intakeSentAt:     intakeSent ? new Date().toISOString() : null,
+    intakeLink:       intakeLink,
+    intakeCompleted:  false,
+    clinicId:         getCurrentClinicId(),
+    createdAt:        new Date().toISOString(),
+  };
+
+  upsertBooking(bk);
+  _queueReminderChain(bk);
+  if (intakeSent) _queueIntakeSend(patId, patName, intakeLink, bkDate, bkTime);
+
+  document.getElementById('bk2-overlay')?.remove();
+  _showBk2Confirmation(bk, patName, email, intakeSent);
+
+  if (S.screen === 'calendar') rCalendar();
+  if (S.screen === 'dashboard') _renderDayView();
+}
+
+function _showBk2Confirmation(bk, patName, email, intakeSent) {
+  var toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:900;background:var(--surface);border:1px solid rgba(13,155,138,.3);border-radius:14px;padding:14px 20px;box-shadow:0 8px 24px rgba(0,0,0,.3);animation:signal-in .25s ease;max-width:380px;width:90%';
+  var lines = [
+    '<div style="font-size:14px;font-weight:700;color:white;margin-bottom:6px">✓ ' + e(patName) + ' bokad ' + _fmtBookingDate(bk.date) + ' kl ' + bk.time + '</div>',
+    email ? '<div style="font-size:12px;color:var(--muted)">📧 Bekräftelse köad → ' + e(email) + '</div>' : '<div style="font-size:12px;color:#e05555">⚠ Ingen e-post — bekräftelse kunde ej skickas</div>',
+    intakeSent ? '<div style="font-size:12px;color:var(--teal)">📋 Intake-formulär skickas automatiskt</div>' : '',
+  ];
+  toast.innerHTML = lines.join('');
+  document.body.appendChild(toast);
+  setTimeout(function(){ toast.style.opacity='0'; toast.style.transition='opacity .4s'; setTimeout(function(){ toast.remove(); }, 400); }, 4000);
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SMART "TA EMOT" — Kontextmedveten CTA som vet nästa patient
+// ══════════════════════════════════════════════════════════════════════════════
+
+function getNextPatient() {
+  var now = new Date();
+  var todayStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+  var nowMins = now.getHours() * 60 + now.getMinutes();
+
+  var todayBks = getBookings().filter(function(b){
+    return b.date === todayStr && 
+           b.status !== 'cancelled' && 
+           b.status !== 'completed' &&
+           b.status !== 'no-show';
+  }).sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
+
+  if (!todayBks.length) return null;
+
+  // Find next upcoming booking within 60 min window
+  for (var i=0; i<todayBks.length; i++) {
+    var bk = todayBks[i];
+    if (!bk.time) continue;
+    var parts = bk.time.split(':');
+    var bkMins = parseInt(parts[0])*60 + parseInt(parts[1]);
+    var diff = bkMins - nowMins;
+    // Within 60 min ahead or up to 30 min past (patient might be running late)
+    if (diff >= -30 && diff <= 60) return bk;
+  }
+
+  // If past all bookings, return first unfinished one
+  return todayBks[0] || null;
+}
+
+// Update the nav CTA dynamically based on next patient
+function _updateNavCTA() {
+  var ctaBtn = document.getElementById('nav-cta-btn');
+  if (!ctaBtn) return;
+
+  var next = getNextPatient();
+  if (next) {
+    var firstName = next.patientName.split(' ')[0];
+    ctaBtn.innerHTML = 
+      '<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 3l14 9-14 9V3z"/></svg>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div>Ta emot</div>'
+      + '<div class="nav-ta-emot-next">' + e(firstName) + ' · ' + next.time + '</div>'
+      + '</div>';
+    ctaBtn.onclick = function(){
+      _closeSidebar();
+      openAmbientSession(next.patientId, next.id);
+    };
+    ctaBtn.style.background = 'rgba(13,155,138,.22)';
+  } else {
+    ctaBtn.innerHTML = 
+      '<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
+      + 'Sök &amp; boka';
+    ctaBtn.onclick = function(){ openCommandPalette(); _closeSidebar(); };
+    ctaBtn.style.background = 'rgba(13,155,138,.18)';
+  }
+}
+
+// Call _updateNavCTA after rTopbar renders
+var _origRTopbar = rTopbar;
+function rTopbar() {
+  _origRTopbar();
+  setTimeout(_updateNavCTA, 50);
+}
+
+// Update every 2 minutes
+setInterval(_updateNavCTA, 120000);
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// WEBBOKNINGS-INTEGRATION — Bokningar från kansei.se hamnar direkt i Vela
+// ══════════════════════════════════════════════════════════════════════════════
+
+var WEB_BOOKING_KEY = 'vela:web-bookings-inbox';
+
+// Called when a web booking form is submitted (from the embedded widget)
+// Also called via postMessage from the booking widget
+function receiveWebBooking(data) {
+  // data: { name, email, phone, service, date, time, message }
+  if (!data || !data.name || !data.date) return;
+
+  var patName = data.name;
+  var email   = data.email || '';
+  var phone   = data.phone || '';
+
+  // Find or create patient
+  var existPat = (S.patients||[]).find(function(p){
+    return p.name?.toLowerCase() === patName.toLowerCase() ||
+           (email && p.email?.toLowerCase() === email.toLowerCase());
+  });
+
+  var patId;
+  if (existPat) {
+    patId = existPat.id;
+    if (email && !existPat.email) { existPat.email = email; savePatient(existPat); }
+    if (phone && !existPat.phone) { existPat.phone = phone; savePatient(existPat); }
+  } else {
+    patId = 'pat_' + Date.now();
+    var newPat = {
+      id: patId, name: patName, email: email, phone: phone,
+      visits: [], status: 'Aktiv', source: 'web',
+      clinicId: getCurrentClinicId(),
+      createdAt: new Date().toISOString(),
+    };
+    savePatient(newPat);
+    if (!S.patients) S.patients = [];
+    S.patients.push(newPat);
+  }
+
+  // Create booking
+  var intakeLink = _generateIntakeLink(patId);
+  var bk = {
+    id:              'bk_web_' + Date.now(),
+    patientId:       patId,
+    patientName:     patName,
+    date:            data.date,
+    time:            data.time || '09:00',
+    duration:        45,
+    type:            existPat ? 'returning' : 'new',
+    status:          'scheduled',
+    source:          'web',
+    serviceId:       data.serviceId || '',
+    serviceName:     data.service || '',
+    notes:           data.message || '',
+    intakeSent:      !!email,
+    intakeSentAt:    email ? new Date().toISOString() : null,
+    intakeLink:      intakeLink,
+    intakeCompleted: false,
+    clinicId:        getCurrentClinicId(),
+    createdAt:       new Date().toISOString(),
+    webSource:       true,
+  };
+  upsertBooking(bk);
+
+  // Queue communications
+  _queueReminderChain(bk);
+  if (email) _queueIntakeSend(patId, patName, intakeLink, bk.date, bk.time);
+
+  // Add to inbox for clinician to see
+  var inbox = [];
+  try { inbox = JSON.parse(localStorage.getItem(WEB_BOOKING_KEY)||'[]'); } catch {}
+  inbox.unshift({ bkId: bk.id, patName: patName, date: bk.date, time: bk.time,
+                   receivedAt: new Date().toISOString(), seen: false });
+  localStorage.setItem(WEB_BOOKING_KEY, JSON.stringify(inbox.slice(0,50)));
+
+  // Show notification if app is open
+  showAutoSaveToast('📲 Ny webbokning: ' + patName + ' · ' + bk.date + ' kl ' + bk.time);
+
+  if (S.screen === 'dashboard') _renderDayView();
+  if (S.screen === 'calendar') rCalendar();
+
+  return bk.id;
+}
+
+// Listen for postMessage from embedded booking widget
+window.addEventListener('message', function(event) {
+  if (!event.data || event.data.type !== 'vela_web_booking') return;
+  receiveWebBooking(event.data.booking);
+});
+
+// Also check for pending web bookings in localStorage on startup
+function _checkPendingWebBookings() {
+  var inbox = [];
+  try { inbox = JSON.parse(localStorage.getItem(WEB_BOOKING_KEY)||'[]'); } catch {}
+  var unseen = inbox.filter(function(b){ return !b.seen; });
+  if (unseen.length) {
+    // Show badge on inbox button
+    var inboxBtn = document.getElementById('vela-dh-inbox');
+    if (inboxBtn) {
+      var badge = inboxBtn.querySelector('.dh-inbox-badge');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'dh-inbox-badge';
+        badge.style.cssText = 'position:absolute;top:-3px;right:-3px;min-width:14px;height:14px;border-radius:7px;background:#c8a030;color:white;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px';
+        inboxBtn.style.position = 'relative';
+        inboxBtn.appendChild(badge);
+      }
+      badge.textContent = unseen.length;
+    }
+  }
+}
+
+// Show web bookings in day view with special badge
+var _origRenderBookingSlot = _renderBookingSlot;
+function _renderBookingSlot(slot, todayStr) {
+  var html = _origRenderBookingSlot(slot, todayStr);
+  // Add web badge if it's a web booking
+  if (slot.bk && slot.bk.source === 'web' && html) {
+    html = html.replace('class="day-slot-body', 
+      'class="day-slot-body" style="border-left-color:#9b6ee0 !important"');
+    html = html.replace('</div></div>',  // near the end of the slot
+      '<span style="position:absolute;top:4px;right:8px;font-size:8px;font-weight:700;color:#9b6ee0;background:rgba(155,110,224,.1);padding:2px 6px;border-radius:20px">WEBB</span></div></div>');
+  }
+  return html;
+}
+
 function toggleSidebarCollapse() {
   var sb = document.getElementById('nav-sidebar');
   if (!sb) return;
@@ -6038,7 +6714,7 @@ function rTopbar() {
   const nav = document.getElementById('nav-links');
   if (nav) {
     // CTA: Ta emot
-    var nh = '<button class="nav-item" onclick="openCommandPalette();_closeSidebar()" style="background:rgba(13,155,138,.18);color:#3dcfbd;font-weight:700;border:1px solid rgba(13,155,138,.2);margin-bottom:10px">'
+    var nh = '<button id="nav-cta-btn" class="nav-item" onclick="openCommandPalette();_closeSidebar()" style="background:rgba(13,155,138,.18);color:#3dcfbd;font-weight:700;border:1px solid rgba(13,155,138,.2);margin-bottom:10px">'
       +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ta emot</button>';
 
     // Clinic context switcher (visible to org owners with >1 clinic)
@@ -26041,6 +26717,68 @@ function _aiProfileToggleOption(qId, type, btn, opt) {
   }
 }
 
+function _aiProfileNav(nextStep) {
+  window._aiProfileDraft = window._aiProfileDraft || {};
+  // Save any textarea values from current step
+  var total = AI_PROFILE_QUESTIONS.length;
+  var curStep = nextStep > 0 ? nextStep - 1 : 0;
+  var q = AI_PROFILE_QUESTIONS[Math.min(curStep, total-1)];
+  if (q) {
+    var ta = document.getElementById('ai-profile-text-' + q.id);
+    if (ta && ta.value.trim()) {
+      window._aiProfileDraft[q.id + (q.type !== 'text' ? '_text' : '')] = ta.value.trim();
+      if (q.type === 'text') window._aiProfileDraft[q.id] = ta.value.trim();
+    }
+  }
+
+  if (nextStep >= total) {
+    // Save profile
+    var merged = Object.assign(getAiProfile(), window._aiProfileDraft, { completedAt: new Date().toISOString() });
+    saveAiProfile(merged);
+    window._aiProfileDraft = {};
+    document.getElementById('ai-profile-ov')?.remove();
+    // Show completion toast
+    showAutoSaveToast('AI-profil sparad — din AI lär sig nu hur du jobbar ✓');
+    // If in settings, refresh AI tab
+    if (S.screen === 'settings') _renderSettingsContent('ai');
+    return;
+  }
+
+  // Update wizard HTML
+  var ov = document.getElementById('ai-profile-ov');
+  if (!ov) return;
+  var profile = Object.assign(getAiProfile(), window._aiProfileDraft);
+  var inner = ov.querySelector('[onclick="event.stopPropagation()"]');
+  if (inner) inner.outerHTML = _buildAiProfileWizardHTML(profile, nextStep);
+  // Re-attach the stopPropagation to new inner element
+  var newInner = ov.firstElementChild;
+  if (newInner) newInner.onclick = function(ev) { ev.stopPropagation(); };
+}
+
+// Returns a context string for injecting into AI prompts
+function closeAiProfileOv() { document.getElementById('ai-profile-ov')?.remove(); }
+function closeConsentPopup() { document.getElementById('consent-popup')?.remove(); }
+
+
+function getAiProfileContext(userId) {
+  var profile = getAiProfile(userId);
+  if (!Object.keys(profile).length) return '';
+  var parts = [];
+  if (profile.style) {
+    var styles = Array.isArray(profile.style) ? profile.style : [profile.style];
+    if (styles.length) parts.push('Behandlarens personlighet: ' + styles.join(', '));
+  }
+  if (profile.tone) parts.push('Kommunikationston: ' + profile.tone);
+  if (profile.strengths) {
+    var s = Array.isArray(profile.strengths) ? profile.strengths : [profile.strengths];
+    if (s.length) parts.push('Expertområden: ' + s.join(', '));
+  }
+  if (profile.patient_motivation) parts.push('Patientmotivation: ' + profile.patient_motivation);
+  if (profile.avoid) parts.push('VIKTIGT — undvik alltid: ' + profile.avoid);
+  if (profile.voice_sample) parts.push('Behandlarens röst (exempel): "' + profile.voice_sample + '"');
+  if (profile.tone_text) parts.push('Ytterligare om ton: ' + profile.tone_text);
+  return parts.length ? '\n\n--- BEHANDLARPROFIL ---\n' + parts.join('\n') + '\n---' : '';
+}
 function _aiProfileNav(nextStep) {
   window._aiProfileDraft = window._aiProfileDraft || {};
   // Save any textarea values from current step

@@ -1266,6 +1266,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
     <div id="s-hael" class="screen"></div>
     <div id="s-hael" class="screen"></div>
     <div id="s-meeting" class="screen"></div>
+<script>
 // Register service worker for PWA
 // Clear old service worker + caches (prevents stale code serving)
 if ('serviceWorker' in navigator) {
@@ -13486,21 +13487,7 @@ async function sbLoadAll() {
   } catch(e) { return null; }
 }
 
-async function syncFromCloud() {
-  setSyncStatus('syncing', 'Hämtar...');
-  const cloudPats = await sbLoadAll();
-  if (!cloudPats) { setSyncStatus('error', 'Synkfel'); setTimeout(()=>setSyncStatus('idle',''),3000); return; }
-  const local = S.patients || [];
-  const merged = [...cloudPats];
-  local.forEach(lp => {
-    if (!merged.find(cp => cp.id === lp.id)) merged.push(lp);
-  });
-  S.patients = merged;
-  try { localStorage.setItem('kansei:patients', JSON.stringify(merged)); } catch(e) {}
-  if (S.screen === 'list' || S.screen === 'dashboard') { if (typeof rList === 'function' && S.screen === 'list') rList(); if (typeof rDashboard === 'function' && S.screen === 'dashboard') rDashboard(); }
-  setSyncStatus('ok', 'Synkad');
-  setTimeout(() => setSyncStatus('idle',''), 2500);
-}
+
 
 async function syncToCloud() {
   setSyncStatus('syncing', 'Laddar upp...');

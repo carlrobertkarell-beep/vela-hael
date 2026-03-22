@@ -7534,6 +7534,547 @@ function _renderExportPanel() {
   return h;
 }
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SUPABASE DATA LAYER — v3 schema
+// All patient/visit/booking data synced to cloud
+// Swap localStorage <-> Supabase transparently
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── CLINIC + ORG BOOTSTRAP ───────────────────────────────────────────────────
+// Called once after login — ensures org/clinic record exists for this user
+async function sbBootstrapClinic() {
+  var auth = getStoredAuth();
+  if (!auth || !auth.token) return false;
+
+  try {
+    // 1. Check if profile has clinic_id already
+    var res = await fetch(SB_URL + '/rest/v1/profiles?id=eq.' + auth.userId + '&select=clinic_id,org_id,role', {
+      headers: sbHeaders()
+    });
+    if (!res.ok) return false;
+    var profiles = await res.json();
+    var profile = profiles[0];
+
+    if (profile && profile.clinic_id) {
+      // Already bootstrapped — store IDs
+      window._sbClinicId = profile.clinic_id;
+      window._sbOrgId    = profile.org_id;
+      return true;
+    }
+
+    // 2. Create org
+    var clinicCfg = getClinicConfig();
+    var orgName = clinicCfg.name || 'Min organisation';
+    var orgId = 'org_' + Date.now();
+
+    var orgRes = await fetch(SB_URL + '/rest/v1/organizations', {
+      method: 'POST',
+      headers: Object.assign(sbHeaders(), {'Prefer': 'return=representation'}),
+      body: JSON.stringify({
+        id: orgId,
+        name: orgName,
+        tier: getClinicTier() || 'free',
+        email: auth.email || clinicCfg.email || '',
+      })
+    });
+    if (!orgRes.ok) {
+      var err = await orgRes.text();
+      console.error('Org create failed:', err);
+      // Org might already exist - try to find it
+      var existingOrg = await fetch(SB_URL + '/rest/v1/organizations?select=id&limit=1', { headers: sbHeaders() });
+      if (existingOrg.ok) {
+        var orgs = await existingOrg.json();
+        if (orgs[0]) orgId = orgs[0].id;
+      }
+    }
+
+    // 3. Create clinic
+    var clinicId = getCurrentClinicId() || ('clinic_' + Date.now());
+    var clinicRes = await fetch(SB_URL + '/rest/v1/clinics', {
+      method: 'POST',
+      headers: Object.assign(sbHeaders(), {'Prefer': 'return=representation'}),
+      body: JSON.stringify({
+        id: clinicId,
+        org_id: orgId,
+        name: clinicCfg.name || 'Min klinik',
+        address: clinicCfg.address || '',
+        phone: clinicCfg.phone || '',
+        email: clinicCfg.email || '',
+        signatory: clinicCfg.signatory || '',
+        website: clinicCfg.website || '',
+      })
+    });
+    if (!clinicRes.ok) {
+      var cerr = await clinicRes.text();
+      // Clinic might exist
+      var existingClinic = await fetch(SB_URL + '/rest/v1/clinics?org_id=eq.' + orgId + '&select=id&limit=1', { headers: sbHeaders() });
+      if (existingClinic.ok) {
+        var clinics = await existingClinic.json();
+        if (clinics[0]) clinicId = clinics[0].id;
+      }
+    }
+
+    // 4. Update profile with org + clinic
+    await fetch(SB_URL + '/rest/v1/profiles?id=eq.' + auth.userId, {
+      method: 'PATCH',
+      headers: sbHeaders(),
+      body: JSON.stringify({
+        org_id: orgId,
+        clinic_id: clinicId,
+        full_name: auth.email?.split('@')[0] || 'Behandlare',
+        role: 'org_owner',
+        updated_at: new Date().toISOString(),
+      })
+    });
+
+    window._sbClinicId = clinicId;
+    window._sbOrgId    = orgId;
+    console.log('Supabase clinic bootstrapped:', clinicId, orgId);
+    return true;
+  } catch(err) {
+    console.error('sbBootstrapClinic error:', err);
+    return false;
+  }
+}
+
+function sbGetClinicId() {
+  return window._sbClinicId || getCurrentClinicId() || 'clinic_main';
+}
+function sbGetOrgId() {
+  return window._sbOrgId || 'org_main';
+}
+
+// ── PATIENT SYNC ──────────────────────────────────────────────────────────────
+
+// Load all patients from Supabase into S.patients
+async function sbLoadAllPatients() {
+  try {
+    var clinicId = sbGetClinicId();
+    var res = await fetchWithTimeout(
+      SB_URL + '/rest/v1/patients?clinic_id=eq.' + encodeURIComponent(clinicId) +
+      '&order=updated_at.desc&limit=1000&select=*',
+      { headers: sbHeaders() },
+      8000
+    );
+    if (!res.ok) return null;
+    var rows = await res.json();
+    if (!Array.isArray(rows)) return null;
+
+    // Merge cloud patients with localStorage visits/logs (visits still stored locally for now)
+    return rows.map(function(row) {
+      // Try to get visits from localStorage
+      var localPat = null;
+      try {
+        var stored = localStorage.getItem('kansei-data:' + row.id) ||
+                     localStorage.getItem('pat:' + row.id);
+        if (stored) localPat = JSON.parse(stored);
+      } catch(e) {}
+
+      return {
+        id:         row.id,
+        name:       row.name,
+        email:      row.email || '',
+        phone:      row.phone || '',
+        pnr:        row.pnr || '',
+        birthdate:  row.birthdate || '',
+        birthYear:  row.birth_year,
+        address:    row.address || '',
+        diagnosis:  row.diagnosis || '',
+        status:     row.status || 'Aktiv',
+        source:     row.source || 'manual',
+        commsPrefs: row.comms_prefs || {mail:true, sms:true},
+        consents:   row.consents || [],
+        notes:      row.notes || '',
+        clinicId:   row.clinic_id,
+        createdAt:  row.created_at,
+        updatedAt:  row.updated_at,
+        // Preserve visits/logs from localStorage
+        visits:     localPat?.visits || [],
+        intakeForms: localPat?.intakeForms || [],
+        _fromCloud: true,
+      };
+    });
+  } catch(err) {
+    console.error('sbLoadAllPatients error:', err);
+    return null;
+  }
+}
+
+// Save a single patient to Supabase (upsert)
+async function sbSavePatient(pat) {
+  try {
+    var clinicId = pat.clinicId || sbGetClinicId();
+    var orgId    = sbGetOrgId();
+    var row = {
+      id:          pat.id,
+      clinic_id:   clinicId,
+      org_id:      orgId,
+      name:        pat.name || '',
+      email:       pat.email || '',
+      phone:       pat.phone || '',
+      pnr:         pat.pnr || '',
+      birthdate:   pat.birthdate || '',
+      birth_year:  pat.birthYear || null,
+      address:     pat.address || '',
+      diagnosis:   pat.diagnosis || '',
+      status:      pat.status || 'Aktiv',
+      source:      pat.source || 'manual',
+      comms_prefs: pat.commsPrefs || {mail:true, sms:true},
+      consents:    pat.consents || [],
+      notes:       pat.notes || '',
+      updated_at:  new Date().toISOString(),
+    };
+    var res = await fetchWithTimeout(
+      SB_URL + '/rest/v1/patients',
+      {
+        method: 'POST',
+        headers: Object.assign(sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+        body: JSON.stringify(row),
+      },
+      5000
+    );
+    return res.ok;
+  } catch(err) {
+    console.error('sbSavePatient error:', err);
+    return false;
+  }
+}
+
+// Save visits for a patient (stored as visit rows)
+async function sbSaveVisit(visit, patId) {
+  try {
+    var clinicId = sbGetClinicId();
+    var row = {
+      id:            visit.id,
+      patient_id:    patId,
+      clinic_id:     clinicId,
+      org_id:        sbGetOrgId(),
+      date:          visit.date || null,
+      time:          visit.time || null,
+      duration:      visit.duration || 45,
+      service_id:    visit.serviceId || null,
+      service_name:  visit.serviceName || null,
+      service_price: visit.servicePrice || 0,
+      status:        visit.status || 'completed',
+      form:          visit.form || {},
+      soap:          visit.soap || {},
+      soap_meta:     visit.soapMeta || {},
+      plan:          visit.plan || null,
+      logs:          visit.logs || [],
+      notes:         visit.notes || '',
+      source:        visit.source || 'manual',
+      updated_at:    new Date().toISOString(),
+    };
+    var res = await fetchWithTimeout(
+      SB_URL + '/rest/v1/visits',
+      {
+        method: 'POST',
+        headers: Object.assign(sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+        body: JSON.stringify(row),
+      },
+      5000
+    );
+    return res.ok;
+  } catch(err) {
+    console.error('sbSaveVisit error:', err);
+    return false;
+  }
+}
+
+// ── BOOKING SYNC ──────────────────────────────────────────────────────────────
+
+async function sbSaveBooking(bk) {
+  try {
+    var res = await fetchWithTimeout(
+      SB_URL + '/rest/v1/bookings',
+      {
+        method: 'POST',
+        headers: Object.assign(sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+        body: JSON.stringify({
+          id:                   bk.id,
+          clinic_id:            sbGetClinicId(),
+          org_id:               sbGetOrgId(),
+          patient_id:           bk.patientId || null,
+          patient_name:         bk.patientName || '',
+          patient_email:        bk.patientEmail || '',
+          patient_phone:        bk.patientPhone || '',
+          date:                 bk.date,
+          time:                 bk.time,
+          duration:             bk.duration || 45,
+          type:                 bk.type || 'new',
+          status:               bk.status || 'scheduled',
+          source:               bk.source || 'phone',
+          service_id:           bk.serviceId || null,
+          service_name:         bk.serviceName || null,
+          service_price:        bk.servicePrice || null,
+          notes:                bk.notes || '',
+          intake_sent:          bk.intakeSent || false,
+          intake_sent_at:       bk.intakeSentAt || null,
+          intake_link:          bk.intakeLink || null,
+          intake_completed:     bk.intakeCompleted || false,
+          intake_completed_at:  bk.intakeCompletedAt || null,
+          updated_at:           new Date().toISOString(),
+        }),
+      },
+      5000
+    );
+    return res.ok;
+  } catch(err) {
+    console.error('sbSaveBooking error:', err);
+    return false;
+  }
+}
+
+async function sbLoadBookings() {
+  try {
+    var clinicId = sbGetClinicId();
+    var today = new Date();
+    today.setDate(today.getDate() - 30);
+    var fromDate = today.toISOString().slice(0,10);
+    var res = await fetchWithTimeout(
+      SB_URL + '/rest/v1/bookings?clinic_id=eq.' + encodeURIComponent(clinicId) +
+      '&date=gte.' + fromDate + '&order=date.asc&limit=200&select=*',
+      { headers: sbHeaders() },
+      5000
+    );
+    if (!res.ok) return null;
+    var rows = await res.json();
+    return rows.map(function(r) {
+      return {
+        id:              r.id,
+        patientId:       r.patient_id,
+        patientName:     r.patient_name,
+        patientEmail:    r.patient_email || '',
+        patientPhone:    r.patient_phone || '',
+        date:            r.date,
+        time:            r.time,
+        duration:        r.duration,
+        type:            r.type,
+        status:          r.status,
+        source:          r.source,
+        serviceId:       r.service_id,
+        serviceName:     r.service_name,
+        servicePrice:    r.service_price,
+        notes:           r.notes || '',
+        intakeSent:      r.intake_sent,
+        intakeSentAt:    r.intake_sent_at,
+        intakeLink:      r.intake_link,
+        intakeCompleted: r.intake_completed,
+        clinicId:        r.clinic_id,
+      };
+    });
+  } catch(err) {
+    console.error('sbLoadBookings error:', err);
+    return null;
+  }
+}
+
+// ── RETENTION QUEUE SYNC ──────────────────────────────────────────────────────
+
+async function sbSaveRetentionItem(item) {
+  try {
+    var res = await fetchWithTimeout(
+      SB_URL + '/rest/v1/retention_queue',
+      {
+        method: 'POST',
+        headers: Object.assign(sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+        body: JSON.stringify({
+          id:            item.id || ('rq_' + Date.now()),
+          clinic_id:     sbGetClinicId(),
+          patient_id:    item.patId || null,
+          patient_name:  item.patName || '',
+          trigger_id:    item.triggerId || '',
+          channel:       item.channel || 'mail',
+          status:        item.status || 'pending',
+          scheduled_for: item.scheduledFor || new Date().toISOString(),
+          subject:       item.subject || '',
+          body:          item.body || '',
+          metadata:      item.metadata || {},
+        }),
+      },
+      5000
+    );
+    return res.ok;
+  } catch(err) {
+    console.error('sbSaveRetentionItem error:', err);
+    return false;
+  }
+}
+
+// ── INVOICE SYNC ──────────────────────────────────────────────────────────────
+
+async function sbSaveInvoice(inv) {
+  try {
+    var res = await fetchWithTimeout(
+      SB_URL + '/rest/v1/invoices',
+      {
+        method: 'POST',
+        headers: Object.assign(sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+        body: JSON.stringify({
+          id:           inv.id,
+          clinic_id:    sbGetClinicId(),
+          org_id:       sbGetOrgId(),
+          number:       inv.number || '',
+          patient_id:   inv.patientId || null,
+          patient_name: inv.patientName || '',
+          patient_email:inv.patientEmail || '',
+          visit_id:     inv.visitId || null,
+          amount:       inv.amount || 0,
+          service_name: inv.serviceName || '',
+          status:       inv.status || 'draft',
+          due_date:     inv.dueDate || null,
+          paid_at:      inv.paidAt || null,
+          updated_at:   new Date().toISOString(),
+        }),
+      },
+      5000
+    );
+    return res.ok;
+  } catch(err) {
+    console.error('sbSaveInvoice error:', err);
+    return false;
+  }
+}
+
+// ── MASTER SYNC — push all local data to Supabase ─────────────────────────────
+async function sbFullSync() {
+  setSyncStatus('syncing', 'Synkroniserar...');
+  var success = 0, failed = 0;
+
+  try {
+    // Bootstrap clinic/org first
+    await sbBootstrapClinic();
+
+    // Sync all patients
+    var patients = S.patients || [];
+    for (var i = 0; i < patients.length; i++) {
+      var pat = patients[i];
+      var ok = await sbSavePatient(pat);
+      if (ok) {
+        // Also sync visits
+        var visits = pat.visits || [];
+        for (var j = 0; j < visits.length; j++) {
+          await sbSaveVisit(visits[j], pat.id);
+        }
+        success++;
+      } else {
+        failed++;
+      }
+      // Brief pause to avoid rate limiting
+      if (i % 10 === 9) await new Promise(function(r){ setTimeout(r, 100); });
+    }
+
+    // Sync bookings
+    var bookings = getBookings();
+    for (var bi = 0; bi < bookings.length; bi++) {
+      await sbSaveBooking(bookings[bi]);
+    }
+
+    // Sync invoices
+    var invoices = getInvoices();
+    for (var ii = 0; ii < invoices.length; ii++) {
+      await sbSaveInvoice(invoices[ii]);
+    }
+
+    setSyncStatus('ok', success + ' patienter synkade');
+    setTimeout(function(){ setSyncStatus('idle', ''); }, 3000);
+    showAutoSaveToast('Supabase-sync klar: ' + success + ' patienter ✓');
+    return { success: success, failed: failed };
+  } catch(err) {
+    setSyncStatus('error', 'Synkfel');
+    console.error('sbFullSync error:', err);
+    return { success: success, failed: failed, error: err.message };
+  }
+}
+
+// ── UPDATED syncFromCloud — pull from Supabase first ─────────────────────────
+async function syncFromCloud() {
+  setSyncStatus('syncing', 'Hämtar...');
+
+  // Try new schema first
+  var cloudPats = await sbLoadAllPatients();
+
+  // Fall back to old schema if new returns empty
+  if (!cloudPats || cloudPats.length === 0) {
+    cloudPats = await sbLoadAll(); // old function
+  }
+
+  if (!cloudPats) {
+    setSyncStatus('error', 'Synkfel');
+    setTimeout(function(){ setSyncStatus('idle',''); }, 3000);
+    return;
+  }
+
+  // Merge with local
+  var local = S.patients || [];
+  var merged = [...cloudPats];
+  local.forEach(function(lp) {
+    if (!merged.find(function(cp){ return cp.id === lp.id; })) {
+      merged.push(lp);
+    }
+  });
+  S.patients = merged;
+  try { localStorage.setItem('kansei:patients', JSON.stringify(merged)); } catch(e) {}
+
+  // Also load bookings from Supabase
+  var cloudBookings = await sbLoadBookings();
+  if (cloudBookings && cloudBookings.length > 0) {
+    // Merge with local bookings
+    var localBks = getBookings();
+    var mergedBks = [...cloudBookings];
+    localBks.forEach(function(lb) {
+      if (!mergedBks.find(function(cb){ return cb.id === lb.id; })) {
+        mergedBks.push(lb);
+      }
+    });
+    saveBookings(mergedBks);
+  }
+
+  setSyncStatus('ok', merged.length + ' pat');
+  setTimeout(function(){ setSyncStatus('idle',''); }, 2000);
+
+  if (S.screen === 'list') { if (typeof rList === 'function') rList(); }
+  if (S.screen === 'dashboard') { if (typeof rDashboard === 'function') rDashboard(); }
+}
+
+// ── HOOK savePat TO ALSO SYNC TO SUPABASE ────────────────────────────────────
+var _originalSavePat = null;
+
+function _initSupabaseHooks() {
+  // Wrap savePat to auto-sync
+  if (!_originalSavePat && typeof savePat === 'function') {
+    _originalSavePat = savePat;
+  }
+  // Wrap upsertBooking to auto-sync
+  var _origUpsertBk = upsertBooking;
+  window.upsertBooking = function(bk) {
+    _origUpsertBk(bk);
+    // Async sync to Supabase (non-blocking)
+    if (sbGetClinicId()) sbSaveBooking(bk).catch(function(e){ console.error(e); });
+    return bk;
+  };
+  // Wrap createInvoice to auto-sync
+  var _origCreateInv = createInvoice;
+  window.createInvoice = function(patId, visitId, amount, serviceName) {
+    var inv = _origCreateInv(patId, visitId, amount, serviceName);
+    if (inv && sbGetClinicId()) sbSaveInvoice(inv).catch(function(e){ console.error(e); });
+    return inv;
+  };
+  console.log('Supabase hooks initialized');
+}
+
+// Extend savePatient (from multi-clinic layer) to sync to Supabase
+var _origSavePatient = savePatient;
+function savePatient(p) {
+  var result = _origSavePatient(p);
+  // Async cloud sync
+  if (sbGetClinicId()) {
+    sbSavePatient(p).catch(function(e){ console.error('sbSavePatient:', e); });
+  }
+  return result;
+}
+
 function toggleSidebarCollapse() {
   var sb = document.getElementById('nav-sidebar');
   if (!sb) return;
@@ -19113,6 +19654,14 @@ function _stSync() {
   h += '</div>';
 
   h += '</div>';
+  // Supabase full sync button
+  h += '<div style="margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px">Supabase-synk</div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin-bottom:14px">Synka all lokal data (patienter, bokningar, fakturor) till Supabase-databasen.</div>';
+  h += '<div style="display:flex;gap:10px">';
+  h += '<button onclick="sbFullSync()" class="btn btn-p" style="font-size:13px;padding:10px 20px">Synka all data till Supabase →</button>';
+  h += '<button onclick="syncFromCloud()" class="btn" style="font-size:13px;padding:10px 20px">Hämta från Supabase</button>';
+  h += '</div></div>';
   return h;
 }
 
@@ -21508,6 +22057,7 @@ function _showDropoutRisks() {
         setTimeout(() => rNavLogo(), 100);
         setTimeout(() => syncFromCloud(), 800);
         setTimeout(() => sbKeepAlive(), 2000);
+        setTimeout(function(){ sbBootstrapClinic().then(function(ok){ if(ok) { _initSupabaseHooks(); console.log('Supabase ready'); } }); }, 1500);
         setTimeout(function(){ runNightlyScanIfNeeded().then(function(){ _renderMorningReportCard(); }); }, 3000);
         setTimeout(() => runInboxAgent(S.patients), 3500);
       } else {

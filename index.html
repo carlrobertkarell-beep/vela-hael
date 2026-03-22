@@ -461,6 +461,31 @@ button, input, textarea, select { font-family: inherit; }
 .cal-slot { height:60px; border-bottom:1px solid var(--border2); cursor:pointer; transition:background .1s; position:relative; }
 .cal-slot:hover { background:rgba(13,155,138,.05); }
 .cal-slot.half { border-bottom-style:dashed; border-bottom-color:rgba(255,255,255,.04); }
+.dv-wrap { display:flex;flex-direction:column;height:100%;overflow-y:auto; }
+.dv-topbar { display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;flex-shrink:0; }
+.dv-date { font-size:22px;font-weight:900;color:var(--ink);letter-spacing:-.03em;line-height:1; }
+.dv-sub { font-size:12px;color:var(--muted);margin-top:2px; }
+.dv-nav-btn { width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;font-size:16px;font-family:var(--font);transition:border-color .12s,color .12s; }
+.dv-nav-btn:hover { border-color:rgba(255,255,255,.2);color:var(--ink); }
+.dv-hero { display:flex;align-items:flex-start;gap:16px;margin:0 16px 14px;padding:18px 20px;background:linear-gradient(135deg,rgba(13,155,138,.14) 0%,rgba(7,16,30,.6) 100%);border:1px solid rgba(13,155,138,.2);border-radius:16px;cursor:pointer;transition:border-color .15s; }
+.dv-hero:hover { border-color:rgba(13,155,138,.35); }
+.dv-list { padding:0 16px 12px;flex:1; }
+.dv-row { display:flex;align-items:flex-start;gap:0;padding:10px 12px;border-radius:12px;cursor:pointer;transition:background .12s;position:relative; }
+.dv-row:hover { background:rgba(255,255,255,.035); }
+.dv-row-next { background:rgba(13,155,138,.05);border:1px solid rgba(13,155,138,.12); }
+.dv-row-next:hover { background:rgba(13,155,138,.08); }
+.dv-row-done { opacity:.45; }
+.dv-row-time { width:52px;flex-shrink:0;padding-top:1px; }
+.dv-row-line { width:24px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;padding-top:5px; }
+.dv-row-dot { width:10px;height:10px;border-radius:50%;background:var(--border);flex-shrink:0; }
+.dv-row-dot.active { background:var(--teal);box-shadow:0 0 0 3px rgba(13,155,138,.2); }
+.dv-row-dot.done { background:rgba(255,255,255,.15); }
+.dv-row-connector { flex:1;width:1px;background:var(--border);min-height:20px;margin-top:3px; }
+.dv-row-content { flex:1;min-width:0;padding-top:0; }
+.dv-row-action { flex-shrink:0;padding:6px 14px;border:none;border-radius:8px;background:var(--teal);color:white;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);margin-top:2px;opacity:0;transition:opacity .15s; }
+.dv-row:hover .dv-row-action { opacity:1; }
+.dv-row-next .dv-row-action { opacity:1; }
+.dv-alerts { margin:4px 16px 20px;padding:14px 16px;background:rgba(224,85,85,.04);border:1px solid rgba(224,85,85,.12);border-radius:12px; }
 .cal-booking { position:absolute; left:3px; right:3px; border-radius:8px; padding:4px 7px; cursor:pointer; overflow:hidden; z-index:5; transition:opacity .15s; }
 .cal-booking:hover { opacity:.85; }
 .cal-booking-time { font-size:10px; font-weight:700; opacity:.8; white-space:nowrap; }
@@ -6678,9 +6703,9 @@ function rTopbar() {
   // -- SIDEBAR NAV LINKS ------------------------------------------------------
   const nav = document.getElementById('nav-links');
   if (nav) {
-    // CTA: Ta emot
-    var nh = '<button id="nav-cta-btn" class="nav-item" onclick="openCommandPalette();_closeSidebar()" style="background:rgba(13,155,138,.18);color:#3dcfbd;font-weight:700;border:1px solid rgba(13,155,138,.2);margin-bottom:10px">'
-      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ta emot</button>';
+    // CTA: Boka/ta emot — opens command palette (smart search)
+    var nh = '<button id="nav-cta-btn" class="nav-item" onclick="openCommandPalette();_closeSidebar()" style="background:rgba(13,155,138,.15);color:#3dcfbd;font-weight:700;border:1px solid rgba(13,155,138,.18);margin-bottom:10px">'
+      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Sök patient</button>';
 
     // Clinic context switcher (visible to org owners with >1 clinic)
     var _clinics = getClinics();
@@ -17024,6 +17049,235 @@ async function generateRetentionMessage(signal, pat) {
 }
 
 // Add a signal to the queue
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VELA COMMUNICATIONS ENGINE — Resend (mail) + 46elks (SMS) + retention dispatcher
+// ══════════════════════════════════════════════════════════════════════════════
+
+function _velaGetApiKey(id) {
+  try { return (JSON.parse(localStorage.getItem('vela:api-keys') || '{}')||{})[id] || ''; }
+  catch { return ''; }
+}
+
+// ── MAIL via Resend ───────────────────────────────────────────────────────────
+async function _velaSendMail(to, subject, body, fromName) {
+  var key = _velaGetApiKey('resend');
+  if (!key) { console.warn('Vela: Resend API-nyckel saknas'); return { ok:false, err:'no_key' }; }
+
+  var cfg = getClinicConfig();
+  fromName = fromName || cfg.name || 'Kliniken';
+  var fromAddr = cfg.email || 'no-reply@hael.se';
+
+  try {
+    var res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: fromName + ' <' + fromAddr + '>',
+        to: [to],
+        subject: subject,
+        text: body,
+        html: _velaMailHtml(body, fromName, cfg),
+      })
+    });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Resend error');
+    return { ok: true, id: data.id };
+  } catch(err) {
+    console.error('Vela mail error:', err);
+    return { ok: false, err: err.message };
+  }
+}
+
+function _velaMailHtml(body, fromName, cfg) {
+  var lines = body.split('\n').map(function(l){ return l ? '<p style="margin:0 0 10px;line-height:1.65">' + l + '</p>' : '<br>'; }).join('');
+  return '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:#f7f8fa;margin:0;padding:40px 20px">'
+    + '<div style="max-width:560px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)">'
+    + '<div style="background:#07101e;padding:20px 28px">'
+    + '<div style="font-size:15px;font-weight:700;color:white;letter-spacing:-.02em">' + (cfg.name || fromName) + '</div>'
+    + '</div>'
+    + '<div style="padding:28px 28px 20px;color:#1a2233;font-size:15px">' + lines + '</div>'
+    + '<div style="padding:16px 28px 24px;font-size:12px;color:#8898aa;border-top:1px solid #edf2f7">'
+    + (cfg.address ? cfg.address + '<br>' : '')
+    + (cfg.phone ? cfg.phone + ' · ' : '') + (cfg.email || '') + '</div>'
+    + '</div></body></html>';
+}
+
+// ── SMS via 46elks ────────────────────────────────────────────────────────────
+async function _velaSendSMS(to, body) {
+  var key = _velaGetApiKey('46elks');
+  if (!key) { console.warn('Vela: 46elks API-nyckel saknas'); return { ok:false, err:'no_key' }; }
+
+  // 46elks uses Basic Auth: username:password, key stored as "user:password"
+  var parts = key.split(':');
+  if (parts.length < 2) { return { ok:false, err:'invalid_key_format' }; }
+  var auth = btoa(parts[0] + ':' + parts.slice(1).join(':'));
+
+  var cfg = getClinicConfig();
+  var from = (cfg.smsName || cfg.name || 'Kliniken').replace(/[^a-zA-Z0-9åäöÅÄÖ ]/g,'').slice(0,11);
+
+  try {
+    var fd = new URLSearchParams();
+    fd.append('from', from);
+    fd.append('to', to.replace(/\s/g,''));
+    fd.append('message', body);
+
+    var res = await fetch('https://api.46elks.com/a1/sms', {
+      method: 'POST',
+      headers: { 'Authorization': 'Basic ' + auth, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: fd.toString()
+    });
+    var data = await res.json();
+    if (!res.ok || data.status === 'failed') throw new Error(data.message || '46elks error');
+    return { ok: true, id: data.id };
+  } catch(err) {
+    console.error('Vela SMS error:', err);
+    return { ok: false, err: err.message };
+  }
+}
+
+// ── AI message generator — relational, not robotic ────────────────────────────
+async function _velaAiRetentionMsg(pat, trigger, channel) {
+  var cfg = getClinicConfig();
+  var clinicianName = cfg.signatory || cfg.name || 'Kliniken';
+  var visits = (pat.visits||[]).sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; });
+  var lastVisit = visits[0];
+  var diag = lastVisit?.form?.diagnosis || lastVisit?.plan?.form?.diagnosis || '';
+  var nrsVals = lastVisit ? (lastVisit.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;}) : [];
+  var nrsCurrent = nrsVals.slice(-1)[0] ?? null;
+  var weeksSince = lastVisit?.date ? Math.round((Date.now()-new Date(lastVisit.date))/604800000) : null;
+
+  var isSMS = channel === 'sms';
+  var maxWords = isSMS ? 40 : 120;
+
+  var systemPrompt = 'Du är ' + clinicianName + '. Skriv ett personligt, varmt meddelande till en patient. '
+    + 'VIKTIGT: Skriv som en människa — aldrig som en bot. Inga mallar, inga klichéer. '
+    + 'Nämn aldrig "AI", "system" eller "automatiskt". '
+    + 'Kort och äkta. Max ' + maxWords + ' ord. '
+    + (isSMS ? 'SMS-format: ingen hälsning, direkt och koncis. ' : 'Mail-format: kort hälsning, en eller två meningar, din signatur. ')
+    + 'Signera med: ' + clinicianName + '.';
+
+  var userPrompt = 'Patient: ' + pat.name + '\n'
+    + (diag ? 'Diagnos/besvär: ' + diag.split('(')[0].trim() + '\n' : '')
+    + (weeksSince !== null ? 'Veckor sedan senaste besök: ' + weeksSince + '\n' : '')
+    + (nrsCurrent !== null ? 'Senaste NRS: ' + nrsCurrent + '\n' : '')
+    + 'Trigger: ' + trigger + '\n'
+    + 'Skriv meddelandet:';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 300,
+        messages: [{ role:'user', content: systemPrompt + '\n\n' + userPrompt }]
+      })
+    });
+    var data = await res.json();
+    return data.content?.[0]?.text || null;
+  } catch { return null; }
+}
+
+// ── Retention dispatcher — runs on startup + periodically ────────────────────
+var _retentionDispatchRunning = false;
+
+async function _dispatchRetentionQueue() {
+  if (_retentionDispatchRunning) return;
+  _retentionDispatchRunning = true;
+
+  try {
+    var q = getRetentionQueue();
+    var now = new Date();
+    var pending = q.filter(function(item){
+      return item.approved && !item.sentAt && new Date(item.scheduledFor) <= now;
+    });
+
+    if (!pending.length) return;
+
+    var smsEnabled = localStorage.getItem('vela:sms-enabled') !== 'off';
+    var mailEnabled = localStorage.getItem('vela:mail-enabled') !== 'off';
+
+    for (var i = 0; i < pending.length; i++) {
+      var item = pending[i];
+      var pat = (S.patients||[]).find(function(p){ return p.id === item.patId; });
+      if (!pat) { _markRetentionSent(item.id, false, 'patient_not_found'); continue; }
+
+      var channel = item.channel || 'mail';
+      var msg = item.msg;
+
+      // Generate AI message if none stored
+      if (!msg || !msg.body) {
+        var aiText = await _velaAiRetentionMsg(pat, item.label || item.triggerId, channel);
+        if (!aiText) { _markRetentionSent(item.id, false, 'ai_failed'); continue; }
+        msg = { subject: item.label || 'Hälsning från kliniken', body: aiText, channel: channel };
+      }
+
+      var result = { ok: false };
+      if (channel === 'sms' && smsEnabled && pat.phone) {
+        result = await _velaSendSMS(pat.phone, msg.body);
+      } else if (channel === 'mail' && mailEnabled && pat.email) {
+        result = await _velaSendMail(pat.email, msg.subject, msg.body);
+      } else if (mailEnabled && pat.email) {
+        // fallback to mail
+        result = await _velaSendMail(pat.email, msg.subject || item.label, msg.body);
+      }
+
+      _markRetentionSent(item.id, result.ok, result.err || null);
+
+      // Log on patient record
+      if (result.ok && pat) {
+        pat.messages = pat.messages || [];
+        pat.messages.push({
+          id: 'msg_' + Date.now(),
+          from: 'clinic',
+          channel: channel,
+          subject: msg.subject,
+          body: msg.body,
+          sentAt: new Date().toISOString(),
+          triggerId: item.triggerId,
+          read: true,
+        });
+        savePat && savePat(pat);
+      }
+    }
+  } finally {
+    _retentionDispatchRunning = false;
+  }
+}
+
+function _markRetentionSent(itemId, ok, err) {
+  var q = getRetentionQueue();
+  var item = q.find(function(i){ return i.id === itemId; });
+  if (!item) return;
+  item.sentAt = new Date().toISOString();
+  item.sendOk = ok;
+  item.sendErr = err || null;
+  saveRetentionQueue(q);
+}
+
+// ── Settings helper: save API key with validation ─────────────────────────────
+async function _velaSaveAndTestKey(service, keyVal) {
+  if (!keyVal) return;
+  var keys = {};
+  try { keys = JSON.parse(localStorage.getItem('vela:api-keys')||'{}'); } catch {}
+  keys[service] = keyVal;
+  localStorage.setItem('vela:api-keys', JSON.stringify(keys));
+
+  if (service === 'resend') {
+    showAutoSaveToast('Resend-nyckel sparad — testar...');
+    var res = await _velaSendMail(
+      (getClinicConfig().email || 'test@vela.se'),
+      'Vela ansluten',
+      'Mail från Vela fungerar. Resend är aktiverat.',
+    );
+    showAutoSaveToast(res.ok ? 'Resend ansluten — testmail skickat' : 'Nyckel sparad (kunde inte verifiera: ' + res.err + ')');
+  } else if (service === '46elks') {
+    showAutoSaveToast('46elks-nyckel sparad ✓');
+  }
+  _renderSettingsContent && _renderSettingsContent('comms');
+}
+
 function queueRetentionAction(signal, msg) {
   var q = getRetentionQueue();
   var mode = getRetentionMode();
@@ -18575,6 +18829,39 @@ function _stComms(cfg) {
       h += '<div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.5">'+b[2]+'</div></div></div>';
     });
     h += '</div></div>';
+
+        // ── Resend + 46elks API keys ──────────────────────────────────────────────
+    var _rk = _velaGetApiKey('resend');
+    var _ek = _velaGetApiKey('46elks');
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:14px">';
+    h += '<div style="padding:13px 18px;border-bottom:1px solid var(--border)">';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">API-nycklar för utskick</div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">Krävs för att Vela ska skicka mail och SMS automatiskt.</div></div>';
+    // Resend
+    h += '<div style="padding:14px 18px;border-bottom:1px solid var(--border2)">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    h += '<div><div style="font-size:13px;font-weight:600;color:var(--ink)">Resend — mail</div>';
+    h += '<div style="font-size:11px;color:var(--muted)">resend.com · Gratis upp till 3 000 mail/mån</div></div>';
+    h += _rk ? '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(13,155,138,.12);color:var(--teal)">Ansluten</span>'
+             : '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--muted)">Ej ansluten</span>';
+    h += '</div>';
+    h += '<div style="display:flex;gap:8px">';
+    h += '<input id="st-resend-key" type="password" class="field" style="margin-bottom:0;flex:1;font-size:12px" placeholder="re_xxxxxxxxxxxxxxxx" value="' + e(_rk) + '">';
+    h += '<button onclick="_velaSaveAndTestKey(&quot;resend&quot;,document.getElementById(&quot;st-resend-key&quot;).value)" class="btn btn-p" style="font-size:12px;white-space:nowrap">Spara &#38; testa</button>';
+    h += '</div></div>';
+    // 46elks
+    h += '<div style="padding:14px 18px">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    h += '<div><div style="font-size:13px;font-weight:600;color:var(--ink)">46elks — SMS</div>';
+    h += '<div style="font-size:11px;color:var(--muted)">46elks.com · Svensk leverantör, GDPR-säker · Format: användarnamn:lösenord</div></div>';
+    h += _ek ? '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(13,155,138,.12);color:var(--teal)">Ansluten</span>'
+             : '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--muted)">Ej ansluten</span>';
+    h += '</div>';
+    h += '<div style="display:flex;gap:8px">';
+    h += '<input id="st-elks-key" type="password" class="field" style="margin-bottom:0;flex:1;font-size:12px" placeholder="u_abc123:abc123xyz" value="' + e(_ek) + '">';
+    h += '<button onclick="_velaSaveAndTestKey(&quot;46elks&quot;,document.getElementById(&quot;st-elks-key&quot;).value)" class="btn btn-p" style="font-size:12px;white-space:nowrap">Spara</button>';
+    h += '</div></div>';
+    h += '</div>';
 
     // Provider list
     h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
@@ -24602,101 +24889,239 @@ function rDayView(dateOverride) {
   _renderDayView();
 }
 
+
+
 function _renderDayView() {
   var el = document.getElementById('s-dashboard');
   if (!el) return;
 
-  var today = _dayViewDate ? new Date(_dayViewDate + 'T12:00') : new Date();
-  var todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-  var isToday = todayStr === (new Date().toISOString().slice(0,10));
-  var dayName  = today.toLocaleDateString('sv-SE',{weekday:'long'});
-  var dateLabel = today.toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'});
-  var hour = new Date().getHours();
-  var greeting = hour<5?'God natt':hour<12?'God morgon':hour<17?'God eftermiddag':'God kväll';
+  var today     = _dayViewDate ? new Date(_dayViewDate + 'T12:00') : new Date();
+  var todayStr  = today.toISOString().slice(0,10);
+  var isToday   = todayStr === new Date().toISOString().slice(0,10);
+  var hour      = new Date().getHours();
+  var now       = new Date();
 
-  // Get today's bookings
+  // All today's bookings, sorted
   var bks = getBookings().filter(function(b){
     return b.date === todayStr && b.status !== 'cancelled';
   }).sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
 
-  // Get retention alerts for today
+  // Determine "next up" patient — first unfinished booking whose time is closest to now
+  var nextBk = null;
+  if (isToday) {
+    var upcoming = bks.filter(function(b){
+      return b.status !== 'completed' && b.status !== 'no-show';
+    });
+    nextBk = upcoming[0] || null;
+  }
+
+  // Retention alerts (dropout risk) — only real patients with visits
   var dropouts = _scanDropoutRisks ? _scanDropoutRisks().filter(function(d){
     var p = (S.patients||[]).find(function(x){ return x.id===d.patId; });
-    return p && (p.visits||[]).length > 0; // only patients with actual visits
-  }).slice(0,3) : [];
+    return p && (p.visits||[]).length > 0;
+  }).slice(0,4) : [];
 
-  var h = '<div class="day-view-wrap">';
+  // Upcoming (if no bookings today)
+  var upcomingDays = [];
+  if (!bks.length) {
+    var allBks = getBookings().filter(function(b){ return b.status !== 'cancelled'; });
+    for (var di = 1; di <= 14; di++) {
+      var d = new Date(today); d.setDate(d.getDate() + di);
+      var ds = d.toISOString().slice(0,10);
+      var dayBks = allBks.filter(function(b){ return b.date === ds; });
+      if (dayBks.length) upcomingDays.push({ date:ds, dateObj:d, bookings:dayBks });
+      if (upcomingDays.length >= 3) break;
+    }
+  }
 
-  // ── HEADER ──
-  h += '<div class="day-view-header">';
-  h += '<div style="display:flex;align-items:flex-start;justify-content:space-between">';
-  h += '<div>';
-  if (isToday) h += '<div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:4px">' + greeting + '</div>';
-  h += '<div class="day-view-date">' + (isToday?'Idag':dayName.charAt(0).toUpperCase()+dayName.slice(1)) + '</div>';
-  h += '<div class="day-view-sub">' + dateLabel;
-  if (bks.length) h += ' · ' + bks.length + ' patient' + (bks.length!==1?'er':'');
-  else h += ' · Inga bokningar';
-  h += '</div></div>';
-  // Nav arrows
-  h += '<div style="display:flex;gap:4px;align-items:center">';
-  var prev = new Date(today); prev.setDate(prev.getDate()-1);
-  var next = new Date(today); next.setDate(next.getDate()+1);
-  var prevStr = prev.getFullYear()+'-'+String(prev.getMonth()+1).padStart(2,'0')+'-'+String(prev.getDate()).padStart(2,'0');
-  var nextStr = next.getFullYear()+'-'+String(next.getMonth()+1).padStart(2,'0')+'-'+String(next.getDate()).padStart(2,'0');
-  h += '<button onclick="rDayView(\''+prevStr+'\')" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;font-size:14px;font-family:var(--font)">‹</button>';
-  if (!isToday) h += '<button onclick="rDayView(null)" style="padding:0 12px;height:32px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--teal);cursor:pointer;font-size:11px;font-weight:700;font-family:var(--font)">Idag</button>';
-  h += '<button onclick="rDayView(\''+nextStr+'\')" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;font-size:14px;font-family:var(--font)">›</button>';
-  h += '<button onclick="go(\'calendar\')" style="padding:0 12px;height:32px;border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--font);margin-left:4px">Vecka →</button>';
-  h += '</div></div>';
-
-  // Morning report (if any)
+  // Morning report
   var report = null;
   try { report = JSON.parse(localStorage.getItem('vela:morning-report')||'null'); } catch {}
-  // Only show report if it's from today
-  var reportIsToday = report && report.generatedAt && 
+  var reportIsToday = report && report.generatedAt &&
     new Date(report.generatedAt).toISOString().slice(0,10) === todayStr;
-  if (reportIsToday && report.summary && isToday) {
-    h += '<div style="margin-top:12px;background:rgba(13,155,138,.06);border:1px solid rgba(13,155,138,.15);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--text);line-height:1.6">';
-    h += '<span style="font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-right:8px">AI</span>' + report.summary;
+
+  // Nav prev/next
+  var prev = new Date(today); prev.setDate(prev.getDate()-1);
+  var next = new Date(today); next.setDate(next.getDate()+1);
+  var prevStr = prev.toISOString().slice(0,10);
+  var nextStr = next.toISOString().slice(0,10);
+
+  var h = '<div class="dv-wrap">';
+
+  // ── TOPBAR ────────────────────────────────────────────────────────────────
+  h += '<div class="dv-topbar">';
+  h += '<div style="display:flex;align-items:center;gap:10px">';
+  // Date nav
+  h += '<button onclick="rDayView(\''+prevStr+'\')" class="dv-nav-btn">‹</button>';
+  h += '<div>';
+  if (isToday) {
+    h += '<div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)">';
+    h += hour<5?'God natt':hour<12?'God morgon':hour<17?'God eftermiddag':'God kväll';
     h += '</div>';
   }
-  h += '</div>'; // end header
+  h += '<div class="dv-date">' + (isToday ? 'Idag' : today.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})) + '</div>';
+  if (bks.length) h += '<div class="dv-sub">' + bks.length + ' patient' + (bks.length!==1?'er':'') + ' bokad' + (bks.length!==1?'e':'') + '</div>';
+  h += '</div>';
+  h += '</div>';
+  h += '<div style="display:flex;align-items:center;gap:8px">';
+  if (!isToday) h += '<button onclick="rDayView(null)" class="dv-nav-btn" style="font-size:11px;font-weight:700;color:var(--teal);padding:0 12px">Idag</button>';
+  h += '<button onclick="rDayView(\''+nextStr+'\')" class="dv-nav-btn">›</button>';
+  h += '<button onclick="go(\'calendar\')" style="padding:0 14px;height:34px;border-radius:9px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--font)">Vecka</button>';
+  h += '</div>';
+  h += '</div>'; // end topbar
 
-  // ── PATIENT LIST ──
-  h += '<div class="day-view-list">';
+  // ── HERO: Näste patient ───────────────────────────────────────────────────
+  if (nextBk) {
+    var np = (S.patients||[]).find(function(p){ return p.id===nextBk.patientId; });
+    var npVisits = np ? (np.visits||[]).sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; }) : [];
+    var npLast   = npVisits[0];
+    var npNrs    = npLast ? ((npLast.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;}).slice(-1)[0] ?? npLast.form?.pain ?? null) : null;
+    var npDiag   = npLast ? (npLast.form?.diagnosis||npLast.plan?.form?.diagnosis||'') : '';
+    var npIsNew  = npVisits.length === 0;
+    var npIntake = np ? getLatestIntakeForPatient(np.id) : null;
+    var npNsRisk = np ? _predictNoShow(np) : null;
 
-  if (!bks.length) {
-    // Kolla om det finns bokningar kommande 7 dagar
-    var upcomingBks = (function() {
-      var all = getBookings().filter(function(b){ return b.status !== 'cancelled'; });
-      var result = [];
-      for (var di = 1; di <= 7; di++) {
-        var d = new Date(today); d.setDate(d.getDate() + di);
-        var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-        var dayBks = all.filter(function(b){ return b.date === ds; });
-        if (dayBks.length) result.push({ date: ds, dateObj: d, bookings: dayBks });
-        if (result.length >= 3) break;
+    // Minutes until appointment
+    var apptMins = null;
+    if (isToday && nextBk.time) {
+      var apptH = parseInt(nextBk.time.split(':')[0]);
+      var apptM = parseInt(nextBk.time.split(':')[1]||'0');
+      apptMins  = (apptH*60 + apptM) - (now.getHours()*60 + now.getMinutes());
+    }
+
+    var nrsCol = npNrs==null?'var(--muted)':npNrs>=7?'#f87171':npNrs>=4?'#c8a030':'#4ade80';
+
+    h += '<div class="dv-hero" onclick="openTreatmentPanel(\''+nextBk.id+'\')">';
+
+    // Left: patient info
+    h += '<div style="flex:1;min-width:0">';
+    h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px">';
+    if (apptMins !== null) {
+      h += apptMins <= 0 ? 'Pågår nu' : apptMins <= 10 ? 'Om ' + apptMins + ' min' : nextBk.time;
+    } else {
+      h += nextBk.time || 'Näst upp';
+    }
+    h += ' · ' + nextBk.duration + ' min';
+    if (nextBk.serviceName) h += ' · ' + e(nextBk.serviceName);
+    h += '</div>';
+    h += '<div style="font-size:24px;font-weight:900;color:white;letter-spacing:-.03em;line-height:1.1;margin-bottom:4px">' + e(nextBk.patientName) + '</div>';
+
+    // Clinical signals row
+    h += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px">';
+    if (npIsNew) {
+      h += '<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(13,155,138,.25);color:var(--teal)">Ny patient</span>';
+    } else {
+      h += '<span style="font-size:11px;color:rgba(255,255,255,.5)">' + npVisits.length + ' besök</span>';
+    }
+    if (npNrs !== null) {
+      h += '<span style="font-size:11px;font-weight:700;color:' + nrsCol + '">NRS ' + npNrs + '</span>';
+    }
+    if (npDiag) {
+      h += '<span style="font-size:11px;color:rgba(255,255,255,.4)">' + e(npDiag.split('(')[0].trim().slice(0,36)) + '</span>';
+    }
+    if (npIntake && !npIntake._reviewedAt) {
+      h += '<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(13,155,138,.2);color:var(--teal)">Intake mottaget</span>';
+    }
+    if (npNsRisk && npNsRisk.risk === 'high') {
+      h += '<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(224,85,85,.2);color:#f87171">Uteblivanderisk</span>';
+    }
+    h += '</div>';
+    h += '</div>';
+
+    // Right: CTA
+    h += '<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0">';
+    h += '<button onclick="event.stopPropagation();_startVisitFromBk(\''+nextBk.id+'\')" style="padding:12px 20px;background:var(--teal);border:none;border-radius:11px;font-size:14px;font-weight:800;color:white;cursor:pointer;font-family:var(--font);white-space:nowrap;letter-spacing:-.01em">Ta emot</button>';
+    h += '<button onclick="event.stopPropagation();openTreatmentPanel(\''+nextBk.id+'\')" style="padding:8px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:9px;font-size:11px;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer;font-family:var(--font)">Detaljer</button>';
+    h += '</div>';
+
+    h += '</div>'; // end hero
+  }
+
+  // ── MORNING BRIEF ─────────────────────────────────────────────────────────
+  if (reportIsToday && report.summary && isToday) {
+    h += '<div style="margin:0 16px 12px;padding:12px 14px;background:rgba(13,155,138,.06);border:1px solid rgba(13,155,138,.12);border-radius:11px">';
+    h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:5px">Dagsbriefing</div>';
+    h += '<div style="font-size:12px;color:var(--text);line-height:1.65">' + report.summary + '</div>';
+    h += '</div>';
+  }
+
+  // ── PATIENT TIMELINE ──────────────────────────────────────────────────────
+  if (bks.length) {
+    h += '<div class="dv-list">';
+    bks.forEach(function(bk, i) {
+      var isDone     = bk.status === 'completed' || bk.status === 'no-show';
+      var isNext     = nextBk && bk.id === nextBk.id;
+      var isInProgress = isToday && !isDone && bk.time && (function(){
+        var bMins = parseInt(bk.time.split(':')[0])*60 + parseInt(bk.time.split(':')[1]||'0');
+        var nowMins = now.getHours()*60 + now.getMinutes();
+        return nowMins >= bMins && nowMins < bMins + (bk.duration||45);
+      })();
+
+      var pat = (S.patients||[]).find(function(p){ return p.id===bk.patientId; });
+      var patLast = pat ? (pat.visits||[]).sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0] : null;
+      var nrs = patLast ? ((patLast.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;}).slice(-1)[0] ?? patLast.form?.pain ?? null) : null;
+      var nrsC = nrs==null?'var(--muted)':nrs>=7?'#f87171':nrs>=4?'#c8a030':'#4ade80';
+      var hasIntake = pat && getLatestIntakeForPatient(pat.id) && !getLatestIntakeForPatient(pat.id)._reviewedAt;
+
+      h += '<div class="dv-row' + (isNext?' dv-row-next':'') + (isDone?' dv-row-done':'') + '" onclick="openTreatmentPanel(\''+bk.id+'\')">';
+
+      // Time column
+      h += '<div class="dv-row-time">';
+      h += '<div style="font-size:13px;font-weight:700;color:' + (isDone?'var(--muted)':isInProgress?'var(--teal)':'var(--ink)') + '">' + (bk.time||'') + '</div>';
+      h += '<div style="font-size:10px;color:var(--muted);margin-top:1px">' + bk.duration + 'm</div>';
+      h += '</div>';
+
+      // Status line
+      h += '<div class="dv-row-line">';
+      h += '<div class="dv-row-dot' + (isDone?' done':isInProgress?' active':'') + '"></div>';
+      if (i < bks.length-1) h += '<div class="dv-row-connector"></div>';
+      h += '</div>';
+
+      // Content
+      h += '<div class="dv-row-content">';
+      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">';
+      h += '<div style="font-size:14px;font-weight:800;color:' + (isDone?'var(--muted)':'var(--ink)') + ';letter-spacing:-.02em">' + e(bk.patientName) + '</div>';
+      if (nrs !== null && !isDone) h += '<span style="font-size:10px;font-weight:700;color:'+nrsC+'">NRS '+nrs+'</span>';
+      if (hasIntake) h += '<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(13,155,138,.12);color:var(--teal)">Intake</span>';
+      if (isDone && bk.status==='completed') h += '<span style="font-size:10px;font-weight:700;color:var(--muted)">Genomförd</span>';
+      if (bk.status==='no-show') h += '<span style="font-size:10px;font-weight:700;color:#f87171">Uteblev</span>';
+      h += '</div>';
+      if (bk.serviceName || (pat && !isDone)) {
+        h += '<div style="font-size:11px;color:var(--muted)">';
+        if (bk.serviceName) h += e(bk.serviceName);
+        if (pat && !isDone && (pat.visits||[]).length === 0) h += (bk.serviceName?' · ':'') + 'Ny patient';
+        h += '</div>';
       }
-      return result;
-    })();
+      h += '</div>';
 
-    h += '<div style="padding:24px 20px">';
-    h += '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">Inga bokningar ' + (isToday?'idag':'denna dag') + '</div>';
-    h += '<div style="font-size:13px;color:var(--muted);margin-bottom:16px">Sök och boka en patient med ⌘K</div>';
+      // Action — only for upcoming/in-progress
+      if (!isDone) {
+        h += '<button onclick="event.stopPropagation();_startVisitFromBk(\''+bk.id+'\')" class="dv-row-action">Ta emot</button>';
+      }
+
+      h += '</div>'; // end row
+    });
+    h += '</div>'; // end list
+
+  } else {
+    // ── NO BOOKINGS ─────────────────────────────────────────────────────────
+    h += '<div style="padding:28px 20px 20px">';
+    h += '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">Inga bokningar ' + (isToday?'idag':'denna dag') + '</div>';
+    h += '<div style="font-size:13px;color:var(--muted);margin-bottom:18px">Tryck ⌘K för att söka och boka</div>';
     h += '<button onclick="openCommandPalette()" class="btn btn-p" style="padding:10px 20px">Boka patient</button>';
 
-    if (upcomingBks.length) {
-      h += '<div style="margin-top:24px">';
-      h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Kommande bokningar</div>';
-      upcomingBks.forEach(function(day) {
-        var dayLabel = day.dateObj.toLocaleDateString('sv-SE', {weekday:'long',day:'numeric',month:'short'});
-        dayLabel = dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1);
-        h += '<div style="margin-bottom:10px">';
-        h += '<div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:6px">' + dayLabel + ' · ' + day.bookings.length + ' patient' + (day.bookings.length!==1?'er':'') + '</div>';
-        day.bookings.slice(0,3).forEach(function(bk) {
-          h += '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:9px;margin-bottom:4px;cursor:pointer" onclick="rDayView(\'' + bk.date + '\')">';
-          h += '<div style="font-size:12px;font-weight:700;color:var(--muted);width:36px;flex-shrink:0">' + (bk.time||'') + '</div>';
-          h += '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--ink)">' + e(bk.patientName) + '</div>';
+    if (upcomingDays.length) {
+      h += '<div style="margin-top:28px">';
+      h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Kommande</div>';
+      upcomingDays.forEach(function(day) {
+        var lbl = day.dateObj.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'short'});
+        lbl = lbl.charAt(0).toUpperCase() + lbl.slice(1);
+        h += '<div style="margin-bottom:14px">';
+        h += '<div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:7px">' + lbl + '</div>';
+        day.bookings.slice(0,4).forEach(function(bk) {
+          h += '<div style="display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:5px;cursor:pointer" onclick="rDayView(\''+bk.date+'\')">';
+          h += '<div style="font-size:12px;font-weight:700;color:var(--muted);width:38px;flex-shrink:0">' + (bk.time||'') + '</div>';
+          h += '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--ink)">' + e(bk.patientName) + '</div>';
           if (bk.serviceName) h += '<div style="font-size:11px;color:var(--muted)">' + e(bk.serviceName) + '</div>';
           h += '</div>';
           h += '<div style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(13,155,138,.1);color:var(--teal)">' + bk.duration + ' min</div>';
@@ -24707,42 +25132,54 @@ function _renderDayView() {
       h += '</div>';
     }
 
-    var wl = getWaitlist();
+    var wl = getWaitlist ? getWaitlist() : [];
     if (wl.length) {
-      h += '<div style="margin-top:12px;font-size:12px;color:var(--muted)">Väntelista: <span style="color:var(--teal);font-weight:700;cursor:pointer" onclick="openWaitlistDialog()">' + wl[0].patName + ' väntar (#1 av ' + wl.length + ')</span></div>';
+      h += '<div style="margin-top:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px">';
+      h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Väntelista</div>';
+      wl.slice(0,3).forEach(function(w) {
+        h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">';
+        h += '<div style="font-size:12px;font-weight:600;color:var(--ink)">' + e(w.patName) + '</div>';
+        h += '<button onclick="openCommandPalette()" style="font-size:11px;font-weight:700;color:var(--teal);background:none;border:none;cursor:pointer;font-family:var(--font)">Boka</button>';
+        h += '</div>';
+      });
+      h += '</div>';
     }
     h += '</div>';
-  } else {
-    // Build time slots with gaps
-    var workStart = 8, workEnd = 17;
-    var slots = _buildDaySlots(bks, workStart, workEnd, today, todayStr);
-
-    slots.forEach(function(slot) {
-      if (slot.type === 'gap') {
-        h += _renderGapSlot(slot);
-      } else {
-        h += _renderBookingSlot(slot, todayStr);
-      }
-    });
   }
 
-  // Alerts section
+  // ── RETENTION ALERTS ─────────────────────────────────────────────────────
   if (dropouts.length && isToday) {
-    h += '<div style="margin:12px 16px 0;padding:12px 14px;background:rgba(224,85,85,.05);border:1px solid rgba(224,85,85,.15);border-radius:12px">';
-    h += '<div style="font-size:10px;font-weight:700;color:#e05555;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Avhoppsrisk att agera på</div>';
-    dropouts.slice(0,3).forEach(function(d) {
-      h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(224,85,85,.1)">';
-      h += '<div style="font-size:12px;color:var(--text)">' + e(d.patName) + ' <span style="color:#e05555">' + d.score + 'p risk</span></div>';
-      h += '<button onclick="openCommandPalette();setTimeout(function(){_cmdSelectPat(\''+d.patId+'\')},100)" style="font-size:10px;font-weight:700;color:var(--teal);background:none;border:none;cursor:pointer;font-family:var(--font)">Boka →</button>';
+    // Get pending (unsent) items from retention queue for these patients
+    var retQ = getRetentionQueue ? getRetentionQueue() : [];
+    h += '<div class="dv-alerts">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+    h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#f87171">Avhoppsrisk</div>';
+    h += '<button onclick="go(\'retention\')" style="font-size:11px;font-weight:700;color:var(--teal);background:none;border:none;cursor:pointer;font-family:var(--font)">Se alla</button>';
+    h += '</div>';
+    dropouts.forEach(function(d) {
+      var p = (S.patients||[]).find(function(x){ return x.id===d.patId; });
+      if (!p) return;
+      var pending = retQ.filter(function(q){ return q.patId===d.patId && !q.sentAt && !q.approved; });
+      var queued  = retQ.filter(function(q){ return q.patId===d.patId && !q.sentAt && q.approved; });
+      h += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">';
+      h += '<div style="flex:1;min-width:0">';
+      h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">' + e(p.name) + '</div>';
+      h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">' + d.reason + '</div>';
+      h += '</div>';
+      if (queued.length) {
+        h += '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(13,155,138,.1);color:var(--teal)">Meddelande schemalagt</span>';
+      } else {
+        h += '<button onclick="event.stopPropagation();_generateRetentionForPat(\''+d.patId+'\')" style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;background:rgba(224,85,85,.08);border:1px solid rgba(224,85,85,.2);color:#f87171;cursor:pointer;font-family:var(--font)">Skicka meddelande</button>';
+      }
       h += '</div>';
     });
-    h += '</div>';
+    h += '</div>'; // end alerts
   }
 
-  h += '</div>'; // day-view-list
-  h += '</div>'; // day-view-wrap
+  h += '</div>'; // end dv-wrap
   el.innerHTML = h;
 }
+
 
 function _buildDaySlots(bks, workStart, workEnd, today, todayStr) {
   var slots = [];
@@ -26624,6 +27061,8 @@ function getAiProfileContext(userId) {
         initVelaAsk();
         setTimeout(() => rNavLogo(), 100);
         setTimeout(() => syncFromCloud(), 800);
+        setTimeout(() => _dispatchRetentionQueue(), 3000);
+        setInterval(() => _dispatchRetentionQueue(), 15 * 60 * 1000);
         setTimeout(() => sbKeepAlive(), 2000);
         setTimeout(function(){ runNightlyScanIfNeeded().then(function(){ _renderMorningReportCard(); }); }, 3000);
         setTimeout(() => runInboxAgent(S.patients), 3500);

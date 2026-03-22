@@ -7959,20 +7959,32 @@ async function sbSaveInvoice(inv) {
 
 // ── MASTER SYNC — push all local data to Supabase ─────────────────────────────
 async function sbFullSync() {
-  setSyncStatus('syncing', 'Synkroniserar...');
+  var btn = document.querySelector('[onclick="sbFullSync()"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Synkar...'; }
+  showAutoSaveToast('Startar Supabase-synk...');
+
   var success = 0, failed = 0;
+  var log = [];
 
   try {
-    // Bootstrap clinic/org first
-    await sbBootstrapClinic();
+    // Step 1: Bootstrap
+    showAutoSaveToast('Steg 1/4: Skapar klinik i Supabase...');
+    var bootstrapOk = await sbBootstrapClinic();
+    log.push('Bootstrap: ' + (bootstrapOk ? 'OK' : 'FEL'));
 
-    // Sync all patients
+    if (!bootstrapOk) {
+      showAutoSaveToast('Fel: Kunde inte skapa klinik — kontrollera att du är inloggad');
+      if (btn) { btn.disabled = false; btn.textContent = 'Synka all data till Supabase →'; }
+      return;
+    }
+
+    // Step 2: Patients
     var patients = S.patients || [];
+    showAutoSaveToast('Steg 2/4: Synkar ' + patients.length + ' patienter...');
     for (var i = 0; i < patients.length; i++) {
       var pat = patients[i];
       var ok = await sbSavePatient(pat);
       if (ok) {
-        // Also sync visits
         var visits = pat.visits || [];
         for (var j = 0; j < visits.length; j++) {
           await sbSaveVisit(visits[j], pat.id);
@@ -7980,32 +7992,53 @@ async function sbFullSync() {
         success++;
       } else {
         failed++;
+        log.push('Patient fel: ' + pat.name);
       }
-      // Brief pause to avoid rate limiting
-      if (i % 10 === 9) await new Promise(function(r){ setTimeout(r, 100); });
+      if (i % 5 === 4) await new Promise(function(r){ setTimeout(r, 50); });
     }
+    log.push('Patienter: ' + success + ' OK, ' + failed + ' fel');
 
-    // Sync bookings
+    // Step 3: Bookings
     var bookings = getBookings();
+    showAutoSaveToast('Steg 3/4: Synkar ' + bookings.length + ' bokningar...');
+    var bkOk = 0;
     for (var bi = 0; bi < bookings.length; bi++) {
-      await sbSaveBooking(bookings[bi]);
+      var ok2 = await sbSaveBooking(bookings[bi]);
+      if (ok2) bkOk++;
     }
+    log.push('Bokningar: ' + bkOk + '/' + bookings.length + ' OK');
 
-    // Sync invoices
+    // Step 4: Invoices
     var invoices = getInvoices();
+    showAutoSaveToast('Steg 4/4: Synkar ' + invoices.length + ' fakturor...');
+    var invOk = 0;
     for (var ii = 0; ii < invoices.length; ii++) {
-      await sbSaveInvoice(invoices[ii]);
+      var ok3 = await sbSaveInvoice(invoices[ii]);
+      if (ok3) invOk++;
+    }
+    log.push('Fakturor: ' + invOk + '/' + invoices.length + ' OK');
+
+    // Done
+    localStorage.setItem('vela:last-sync', new Date().toISOString());
+    var msg = 'Supabase-synk klar! ' + success + ' pat, ' + bkOk + ' bok, ' + invOk + ' fak';
+    showAutoSaveToast(msg);
+    console.log('sbFullSync log:', log.join(' | '));
+
+    // Show result in UI
+    var panel = document.querySelector('.vela-st-section');
+    if (panel) {
+      var resultDiv = document.createElement('div');
+      resultDiv.style.cssText = 'margin-top:12px;padding:12px 14px;background:rgba(26,122,74,.08);border:1px solid rgba(26,122,74,.2);border-radius:10px;font-size:12px;color:#1a7a4a';
+      resultDiv.innerHTML = '✓ ' + msg + '<br><span style="font-size:11px;color:var(--muted)">' + new Date().toLocaleString('sv-SE') + '</span>';
+      panel.appendChild(resultDiv);
     }
 
-    setSyncStatus('ok', success + ' patienter synkade');
-    setTimeout(function(){ setSyncStatus('idle', ''); }, 3000);
-    showAutoSaveToast('Supabase-sync klar: ' + success + ' patienter ✓');
-    return { success: success, failed: failed };
   } catch(err) {
-    setSyncStatus('error', 'Synkfel');
     console.error('sbFullSync error:', err);
-    return { success: success, failed: failed, error: err.message };
+    showAutoSaveToast('Synkfel: ' + err.message);
   }
+
+  if (btn) { btn.disabled = false; btn.textContent = 'Synka all data till Supabase →'; }
 }
 
 // ── UPDATED syncFromCloud — pull from Supabase first ─────────────────────────

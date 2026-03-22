@@ -2113,7 +2113,11 @@ function savePat(p){
   try{localStorage.setItem('pat:'+u.id, JSON.stringify(u));}catch{}
   try{localStorage.setItem(u.id, JSON.stringify(u));}catch{}
   const i=S.patients.findIndex(x=>x.id===u.id);
-  if(i>=0)S.patients[i]=u;else S.patients.unshift(u);
+  if(i>=0)S.patients[i]=u;
+  // Non-blocking Supabase sync
+  if(typeof sbGetClinicId==='function' && sbGetClinicId()) {
+    sbSavePatient(u).catch(function(e){});
+  }else S.patients.unshift(u);
   S.patients.sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
   markUnsaved();
   // Sync to Supabase in background
@@ -2123,6 +2127,16 @@ function savePat(p){
     setTimeout(()=>setSyncStatus('idle',''),3000);
   });
   return u;
+  // Async Supabase sync
+  if (typeof sbSavePatient === 'function' && typeof sbGetClinicId === 'function' && sbGetClinicId()) {
+    sbSavePatient(u).catch(function(e){ console.warn('sbSavePatient:', e.message); });
+    // Also sync visits if present
+    if (u.visits && u.visits.length) {
+      u.visits.forEach(function(v) {
+        if (v.id) sbSaveVisit(v, u.id).catch(function(e){ console.warn('sbSaveVisit:', e.message); });
+      });
+    }
+  }
 }
 function loadPats(){
   const seen=new Set();
@@ -4574,6 +4588,9 @@ function saveIntakeForm(form) {
     if (pi>=0) pat.intakeForms[pi]=form; else pat.intakeForms.push(form);
     savePat(pat);
   }
+  // Sync to Supabase
+  if (typeof sbSaveIntakeForm === 'function' && sbGetClinicId && sbGetClinicId())
+    sbSaveIntakeForm(form).catch(function(e){ console.warn(e); });
 }
 function getLatestIntakeForPatient(patId) {
   return getIntakeForms().filter(function(f){ return f.patientId===patId; })
@@ -6101,6 +6118,8 @@ function saveHaelMessage(patId, msg) {
     all[patId].push(msg);
     localStorage.setItem(HAEL_MESSAGES_KEY, JSON.stringify(all));
   } catch {}
+  if (typeof sbSaveHaelMessage === 'function' && sbGetClinicId && sbGetClinicId())
+    sbSaveHaelMessage(patId, msg).catch(function(e){ console.warn(e); });
 }
 function sendClinicMessage(patId, text) {
   if (!text.trim()) return;
@@ -6380,7 +6399,7 @@ function generateWebBookingWidget() {
     + '<div style="font-size:13px;color:#1a2a3a;line-height:1.7">📋 Hälsoprofilformulär skickas till din e-post<br>📱 SMS-bekräftelse med tid och adress<br>📅 Lägg till i din kalender</div>'
     + '</div></div></div>'
     + '</div></div></div>'
-    + '<script>'
+    + '<' + 'script>'
     + 'var bwState={svcId:"",svcName:"",price:0,dur:45,date:"",time:"",step:0};'
     + 'function bwSelectSvc(el,id,name,price,dur){'
     + 'document.querySelectorAll(".bw-svc").forEach(function(e){e.classList.remove("selected")});'
@@ -8061,18 +8080,124 @@ function _initSupabaseHooks() {
     if (inv && sbGetClinicId()) sbSaveInvoice(inv).catch(function(e){ console.error(e); });
     return inv;
   };
+  // Hook savePatient to also sync to Supabase
+  var _origSavePat2 = window.savePatient || savePat;
+  window._savePat_withCloud = function(p) {
+    var result = _origSavePat2(p);
+    if (sbGetClinicId()) sbSavePatient(p).catch(function(e){ console.error('sbSavePatient:', e); });
+    return result;
+  };
   console.log('Supabase hooks initialized');
 }
 
 // Extend savePatient (from multi-clinic layer) to sync to Supabase
-var _origSavePatient = savePatient;
-function savePatient(p) {
-  var result = _origSavePatient(p);
-  // Async cloud sync
-  if (sbGetClinicId()) {
-    sbSavePatient(p).catch(function(e){ console.error('sbSavePatient:', e); });
-  }
-  return result;
+
+
+// ── INTAKE FORMS → SUPABASE ──────────────────────────────────────────────────
+async function sbSaveIntakeForm(form) {
+  try {
+    var res = await fetchWithTimeout(
+      SB_URL + '/rest/v1/intake_forms',
+      {
+        method: 'POST',
+        headers: Object.assign(sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+        body: JSON.stringify({
+          id:              form.id,
+          patient_id:      form.patientId || null,
+          clinic_id:       sbGetClinicId(),
+          booking_id:      form.bookingId || null,
+          answers:         form.answers || {},
+          body_map:        form.bodyMap || {},
+          red_flags:       form.redFlags || [],
+          red_flag_count:  form.redFlagCount || 0,
+          nrs_current:     form.nrsCurrent || null,
+          nrs_worst:       form.nrsWorst || null,
+          ai_soap_prefill: form.aiSoapPrefill || null,
+          submitted_at:    new Date().toISOString(),
+        }),
+      },
+      5000
+    );
+    return res.ok;
+  } catch(e) { console.warn('sbSaveIntakeForm:', e.message); return false; }
+}
+
+// ── PASS LOGS → SUPABASE ─────────────────────────────────────────────────────
+async function sbSavePassLog(log, patId, visitId) {
+  try {
+    var res = await fetchWithTimeout(
+      SB_URL + '/rest/v1/pass_logs',
+      {
+        method: 'POST',
+        headers: Object.assign(sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+        body: JSON.stringify({
+          id:         log.id || ('pl_' + Date.now()),
+          patient_id: patId,
+          visit_id:   visitId,
+          clinic_id:  sbGetClinicId(),
+          date:       log.date || new Date().toISOString().slice(0,10),
+          nrs:        log.nrs != null ? log.nrs : null,
+          pain:       log.pain != null ? log.pain : null,
+          move:       log.move || null,
+          done:       log.done || null,
+          note:       log.note || null,
+          duration:   log.duration || null,
+          exercises:  log.exercises || [],
+        }),
+      },
+      5000
+    );
+    return res.ok;
+  } catch(e) { console.warn('sbSavePassLog:', e.message); return false; }
+}
+
+// ── HAEL MESSAGES → SUPABASE ─────────────────────────────────────────────────
+async function sbSaveHaelMessage(patId, msg) {
+  try {
+    var res = await fetchWithTimeout(
+      SB_URL + '/rest/v1/hael_messages',
+      {
+        method: 'POST',
+        headers: Object.assign(sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+        body: JSON.stringify({
+          id:         msg.id || ('msg_' + Date.now()),
+          patient_id: patId,
+          clinic_id:  sbGetClinicId(),
+          sender:     msg.from || 'clinic',
+          text:       msg.text || '',
+          created_at: msg.ts || new Date().toISOString(),
+        }),
+      },
+      5000
+    );
+    return res.ok;
+  } catch(e) { console.warn('sbSaveHaelMessage:', e.message); return false; }
+}
+
+// ── MORNING REPORT → SUPABASE ────────────────────────────────────────────────
+async function sbSaveMorningReport(report) {
+  try {
+    var res = await fetchWithTimeout(
+      SB_URL + '/rest/v1/morning_reports',
+      {
+        method: 'POST',
+        headers: Object.assign(sbHeaders(), {'Prefer': 'resolution=merge-duplicates,return=minimal'}),
+        body: JSON.stringify({
+          id:                 'mr_' + report.date + '_' + sbGetClinicId(),
+          clinic_id:          sbGetClinicId(),
+          date:               report.date,
+          retention_signals:  report.retentionSignals || 0,
+          dropout_risks:      report.dropoutRisks || [],
+          followups_needed:   report.followupsNeeded || [],
+          adjustments_needed: report.planAdjustmentsNeeded || [],
+          summary:            report.summary || null,
+          generated_at:       report.generatedAt || new Date().toISOString(),
+        }),
+      },
+      5000
+    );
+    return res.ok;
+  } catch(e) { console.warn('sbSaveMorningReport:', e.message); return false; }
 }
 
 function toggleSidebarCollapse() {
@@ -16817,6 +16942,9 @@ async function submitCheckIn(patId, visitId) {
 
   const entry = { visitId, ts, pain, energy, move, done, note };
   savePassLog(patId, entry);
+  // Sync pass log to Supabase
+  if (typeof sbSavePassLog === 'function' && sbGetClinicId && sbGetClinicId() && visitId)
+    sbSavePassLog(entry, patId, visitId).catch(function(e){ console.warn(e); });
 
   // Auto-adjustment check (non-blocking)
   setTimeout(function(){ _checkAutoAdjustOnNRS(patId, visitId, pain); }, 1500);
@@ -21335,6 +21463,8 @@ function getMorningReport() {
 }
 function saveMorningReport(report) {
   try { localStorage.setItem(MORNING_REPORT_KEY, JSON.stringify(report)); } catch {}
+  if (typeof sbSaveMorningReport === 'function' && sbGetClinicId && sbGetClinicId())
+    sbSaveMorningReport(report).catch(function(e){ console.warn(e); });
 }
 
 // Runs on app boot — skips if already run today

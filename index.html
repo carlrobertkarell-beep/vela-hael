@@ -255,6 +255,116 @@ button, input, textarea, select { font-family: inherit; }
 .hael-tab-icon { font-size:20px;line-height:1; }
 .hael-tab-label { font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.25);transition:color .15s; }
 .hael-tab.active .hael-tab-label { color:var(--teal); }
+
+/* ══ AMBIENT AI SESSION ══════════════════════════════════════════════════════ */
+@keyframes ambient-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.15);opacity:.7} }
+@keyframes ambient-wave { 0%{transform:scaleY(1)} 25%{transform:scaleY(2.2)} 50%{transform:scaleY(0.6)} 75%{transform:scaleY(1.8)} 100%{transform:scaleY(1)} }
+@keyframes signal-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+@keyframes fade-flash { 0%{background:rgba(13,155,138,.3)} 100%{background:transparent} }
+.ambient-wrap { display:flex;flex-direction:column;height:100%;background:var(--bg);overflow:hidden; }
+.ambient-header { padding:20px 24px 16px;background:var(--navy);flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06); }
+.ambient-title { font-size:18px;font-weight:800;color:white;letter-spacing:-.02em; }
+.ambient-patient { font-size:12px;color:rgba(255,255,255,.4);margin-top:3px; }
+.ambient-body { flex:1;display:flex;gap:0;overflow:hidden; }
+.ambient-left { flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border); }
+.ambient-right { width:320px;flex-shrink:0;overflow-y:auto;background:var(--surface); }
+/* Mic / status area */
+.ambient-status-bar { padding:12px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);flex-shrink:0; }
+.ambient-mic-btn { width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0; }
+.ambient-mic-btn.idle { background:rgba(13,155,138,.1);color:var(--teal); }
+.ambient-mic-btn.listening { background:var(--teal);color:white;animation:ambient-pulse 2s ease infinite; }
+.ambient-mic-btn.paused { background:rgba(255,255,255,.08);color:var(--muted); }
+.ambient-waveform { display:flex;align-items:center;gap:3px;height:24px; }
+.ambient-wave-bar { width:3px;height:6px;background:var(--teal);border-radius:2px;opacity:.4; }
+.ambient-wave-bar.active { animation:ambient-wave 0.8s ease infinite; }
+.ambient-wave-bar:nth-child(2).active { animation-delay:.1s; }
+.ambient-wave-bar:nth-child(3).active { animation-delay:.2s; }
+.ambient-wave-bar:nth-child(4).active { animation-delay:.15s; }
+.ambient-wave-bar:nth-child(5).active { animation-delay:.05s; }
+.ambient-status-text { font-size:12px;font-weight:600;color:var(--muted);flex:1; }
+.ambient-timer { font-size:13px;font-weight:700;color:var(--ink);font-family:var(--font-mono,monospace); }
+/* Transcript */
+.ambient-transcript { flex:1;overflow-y:auto;padding:16px 20px; }
+.transcript-entry { margin-bottom:8px;animation:signal-in .25s ease; }
+.transcript-entry.new { animation:fade-flash .5s ease; }
+.te-time { font-size:10px;font-weight:700;color:rgba(255,255,255,.2);margin-bottom:2px; }
+.te-text { font-size:13px;color:var(--text);line-height:1.6; }
+.te-text.interim { color:rgba(255,255,255,.3);font-style:italic; }
+/* AI signals panel (right) */
+.ambient-signals { padding:14px 16px; }
+.ambient-signals-title { font-size:10px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px; }
+.signal-card { background:var(--bg);border-radius:12px;padding:12px;margin-bottom:8px;border-left:3px solid var(--teal);animation:signal-in .3s ease; }
+.signal-card.red { border-color:#e05555;background:rgba(224,85,85,.04); }
+.signal-card.amber { border-color:#c8a030;background:rgba(200,160,48,.04); }
+.signal-card.blue { border-color:#4a7aee;background:rgba(74,122,238,.04); }
+.signal-card.green { border-color:#1a7a4a;background:rgba(26,122,74,.04); }
+.signal-type { font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px; }
+.signal-text { font-size:12px;color:var(--text);line-height:1.5; }
+.signal-action { margin-top:6px;font-size:11px;font-weight:700;color:var(--teal);cursor:pointer;background:none;border:none;padding:0;font-family:var(--font);text-align:left; }
+/* Session complete */
+.session-complete { padding:20px; }
+.session-complete-title { font-size:20px;font-weight:800;color:var(--ink);margin-bottom:4px; }
+.session-summary-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px; }
+.ss-card { background:var(--bg);border-radius:11px;padding:11px;text-align:center; }
+.ss-val { font-size:20px;font-weight:800;color:var(--teal); }
+.ss-lbl { font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em; }
+.ambient-finish-btn { width:100%;padding:15px;background:var(--teal);color:white;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em;box-shadow:0 6px 20px rgba(13,155,138,.3); }
+.ambient-finish-btn:hover { opacity:.92; }
+
+/* ══ AMBIENT AI SESSION ══════════════════════════════════════════════════════ */
+@keyframes ambient-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.15);opacity:.7} }
+@keyframes ambient-wave { 0%{transform:scaleY(1)} 25%{transform:scaleY(2.2)} 50%{transform:scaleY(0.6)} 75%{transform:scaleY(1.8)} 100%{transform:scaleY(1)} }
+@keyframes signal-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+@keyframes fade-flash { 0%{background:rgba(13,155,138,.3)} 100%{background:transparent} }
+.ambient-wrap { display:flex;flex-direction:column;height:100%;background:var(--bg);overflow:hidden; }
+.ambient-header { padding:20px 24px 16px;background:var(--navy);flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06); }
+.ambient-title { font-size:18px;font-weight:800;color:white;letter-spacing:-.02em; }
+.ambient-patient { font-size:12px;color:rgba(255,255,255,.4);margin-top:3px; }
+.ambient-body { flex:1;display:flex;gap:0;overflow:hidden; }
+.ambient-left { flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border); }
+.ambient-right { width:320px;flex-shrink:0;overflow-y:auto;background:var(--surface); }
+/* Mic / status area */
+.ambient-status-bar { padding:12px 20px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);flex-shrink:0; }
+.ambient-mic-btn { width:44px;height:44px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0; }
+.ambient-mic-btn.idle { background:rgba(13,155,138,.1);color:var(--teal); }
+.ambient-mic-btn.listening { background:var(--teal);color:white;animation:ambient-pulse 2s ease infinite; }
+.ambient-mic-btn.paused { background:rgba(255,255,255,.08);color:var(--muted); }
+.ambient-waveform { display:flex;align-items:center;gap:3px;height:24px; }
+.ambient-wave-bar { width:3px;height:6px;background:var(--teal);border-radius:2px;opacity:.4; }
+.ambient-wave-bar.active { animation:ambient-wave 0.8s ease infinite; }
+.ambient-wave-bar:nth-child(2).active { animation-delay:.1s; }
+.ambient-wave-bar:nth-child(3).active { animation-delay:.2s; }
+.ambient-wave-bar:nth-child(4).active { animation-delay:.15s; }
+.ambient-wave-bar:nth-child(5).active { animation-delay:.05s; }
+.ambient-status-text { font-size:12px;font-weight:600;color:var(--muted);flex:1; }
+.ambient-timer { font-size:13px;font-weight:700;color:var(--ink);font-family:var(--font-mono,monospace); }
+/* Transcript */
+.ambient-transcript { flex:1;overflow-y:auto;padding:16px 20px; }
+.transcript-entry { margin-bottom:8px;animation:signal-in .25s ease; }
+.transcript-entry.new { animation:fade-flash .5s ease; }
+.te-time { font-size:10px;font-weight:700;color:rgba(255,255,255,.2);margin-bottom:2px; }
+.te-text { font-size:13px;color:var(--text);line-height:1.6; }
+.te-text.interim { color:rgba(255,255,255,.3);font-style:italic; }
+/* AI signals panel (right) */
+.ambient-signals { padding:14px 16px; }
+.ambient-signals-title { font-size:10px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px; }
+.signal-card { background:var(--bg);border-radius:12px;padding:12px;margin-bottom:8px;border-left:3px solid var(--teal);animation:signal-in .3s ease; }
+.signal-card.red { border-color:#e05555;background:rgba(224,85,85,.04); }
+.signal-card.amber { border-color:#c8a030;background:rgba(200,160,48,.04); }
+.signal-card.blue { border-color:#4a7aee;background:rgba(74,122,238,.04); }
+.signal-card.green { border-color:#1a7a4a;background:rgba(26,122,74,.04); }
+.signal-type { font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px; }
+.signal-text { font-size:12px;color:var(--text);line-height:1.5; }
+.signal-action { margin-top:6px;font-size:11px;font-weight:700;color:var(--teal);cursor:pointer;background:none;border:none;padding:0;font-family:var(--font);text-align:left; }
+/* Session complete */
+.session-complete { padding:20px; }
+.session-complete-title { font-size:20px;font-weight:800;color:var(--ink);margin-bottom:4px; }
+.session-summary-grid { display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px; }
+.ss-card { background:var(--bg);border-radius:11px;padding:11px;text-align:center; }
+.ss-val { font-size:20px;font-weight:800;color:var(--teal); }
+.ss-lbl { font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em; }
+.ambient-finish-btn { width:100%;padding:15px;background:var(--teal);color:white;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em;box-shadow:0 6px 20px rgba(13,155,138,.3); }
+.ambient-finish-btn:hover { opacity:.92; }
 .org-add-clinic-card { background:var(--bg);border:1.5px dashed var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:120px;transition:border-color .15s; }
 .org-add-clinic-card:hover { border-color:var(--teal); }
 
@@ -1387,6 +1497,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
   .cmd-box { border-radius:18px 18px 0 0; }
 }
 </style>
+
 </head><body>
 <div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0e1825;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
   <div style="width:36px;height:36px;border:2.5px solid rgba(13,155,138,.2);border-top-color:#0d9b8a;border-radius:50%;animation:spin .7s linear infinite"></div>
@@ -1448,7 +1559,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
     <div id="s-sbs-soap" class="screen"></div>
     <div id="s-patjournal" class="screen"></div>
     <div id="s-intelligence" class="screen"></div>
-    <div id="s-calendar" class="screen"></div>
+        <div id="s-calendar" class="screen"></div>
     <div id="s-intake" class="screen"></div>
     <div id="s-economy" class="screen"></div>
     <div id="s-invoices" class="screen"></div>
@@ -4017,7 +4128,7 @@ function go(scr){
     if(tb) tb.style.display = '';
   }
   rTopbar();
-  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:rMeeting,soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
+  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
 }
@@ -5136,6 +5247,741 @@ function _upgradePublicPlanHook(plan, pat) {
   _haelExDone = {};
   rHaelPatient(plan, pat);
   return true;
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// AMBIENT AI SESSION — Klinisk AI-assistent som lyssnar under hela besöket
+// Fångar: NRS, röda flaggor, sömnproblem, schemaläggningsförslag, diagnoshints
+// ══════════════════════════════════════════════════════════════════════════════
+
+var _ambientState = {
+  listening: false,
+  paused: false,
+  seconds: 0,
+  transcript: [],     // [{time, text, isFinal}]
+  signals: [],        // [{type, text, action, color, ts}]
+  recognition: null,
+  timer: null,
+  analysisTimer: null,
+  lastAnalyzed: '',
+  nrsDetected: null,
+  sessionId: null,
+  note: '',
+  consented: false,
+};
+
+var _ambientAnalysisDebounce = null;
+
+// ── CLINICAL SIGNAL DETECTORS (real-time, no API needed) ─────────────────────
+var AMBIENT_DETECTORS = [
+  {
+    id: 'nrs',
+    color: 'blue',
+    type: 'NRS',
+    test: function(text) {
+      var m = text.match(/(?:smärta|ont|gör ont|nrs|smärtnivå|poäng)[^\d]{0,10}(\d{1,2})/i) ||
+              text.match(/(\d{1,2})\s*(?:av|\/|på)\s*10/i) ||
+              text.match(/(?:ungefär|kanske|typ|runt)\s*(?:en|ett|två|tre|fyra|fem|sex|sju|åtta|nio|tio)\s*(?:a|an)?/i);
+      if (!m) return null;
+      var numWords = {'en':1,'ett':1,'två':2,'tre':3,'fyra':4,'fem':5,'sex':6,'sju':7,'åtta':8,'nio':9,'tio':10};
+      var n = parseInt(m[1]) || numWords[m[1]] || null;
+      if (n === null || n < 0 || n > 10) return null;
+      return { text: 'NRS ' + n + '/10 noterat', value: n, action: 'Uppdatera NRS → ' + n };
+    }
+  },
+  {
+    id: 'sleep',
+    color: 'amber',
+    type: 'SÖMN',
+    test: function(text) {
+      if (/sover\s*(dåligt|illa|inte|lite|bra)/i.test(text) ||
+          /sömnproblem|sömnstörning|sover\s*inte|vaknar\s*(på|av|om)/i.test(text) ||
+          /sömnlöshet|insomni/i.test(text)) {
+        return { text: 'Sömnstörning nämnd — kan påverka smärtupplevelse och läkning', action: 'Flagga i journal' };
+      }
+      return null;
+    }
+  },
+  {
+    id: 'neuro',
+    color: 'red',
+    type: '⚠ RÖDA FLAGGAN',
+    test: function(text) {
+      var signals = [];
+      if (/domn(ar|ing|ade)|stickn(ing|ar)|känsellöshet/i.test(text)) signals.push('Domning/stickningar');
+      if (/stram(ar|ade|ning)|spänning\s*(i|längs)\s*ben|nervsmärta/i.test(text)) signals.push('Utstrålning/stramar');
+      if (/svaghet|kraft(lös|nedsättning)|lyfta\s*inte/i.test(text)) signals.push('Kraftnedsättning');
+      if (/blåsa|tarm|inkontinen|läckage/i.test(text)) signals.push('Blås-/tarmstörning ‼');
+      if (/sadel|underlivet\s*(domnar|känsellös)/i.test(text)) signals.push('Sadelbedövning ‼');
+      if (signals.length === 0) return null;
+      return { text: signals.join(' · '), action: 'Lägg till röd flagga' };
+    }
+  },
+  {
+    id: 'scheduling',
+    color: 'green',
+    type: 'SCHEMALÄGGNING',
+    test: function(text) {
+      var m = text.match(/(?:åker|reser|semester|bort|resa)\s*(?:om|i|på|till|nästa|den)?\s*(?:(\d+)\s*(?:veckor?|veckors?|dagar?|dagars?))/i);
+      if (m) {
+        var n = parseInt(m[1]);
+        var unit = m[0].includes('dag') ? 'dagar' : 'veckor';
+        return { text: 'Patient nämner resa/bortavaro om ' + n + ' ' + unit, 
+                 action: 'Föreslå återbesök innan dess' };
+      }
+      if (/nästa\s*(tisdag|onsdag|torsdag|måndag|fredag|vecka|gång)/i.test(text)) {
+        return { text: 'Patienten nämner nästa besök/tid', action: 'Öppna bokning' };
+      }
+      return null;
+    }
+  },
+  {
+    id: 'medication',
+    color: 'amber',
+    type: 'MEDICINERING',
+    test: function(text) {
+      var meds = [];
+      var medPatterns = /(?:tar|tagit|äter|tog)\s+([A-Za-zÅÄÖåäö]+(?:\s+[A-Za-zÅÄÖåäö]+)?)\s*(?:mot|för|piller|tablett|\d+\s*mg)/gi;
+      var m;
+      while ((m = medPatterns.exec(text)) !== null) {
+        meds.push(m[1]);
+      }
+      // Also catch ibuprofen, paracetamol etc directly mentioned
+      ['ibuprofen','voltaren','naproxen','paracetamol','alvedon','citodon','tramadol',
+       'kortison','prednisolon','lyrica','gabapentin'].forEach(function(med) {
+        if (new RegExp(med, 'i').test(text) && !meds.includes(med)) meds.push(med);
+      });
+      if (!meds.length) return null;
+      return { text: 'Medicinering nämnd: ' + meds.join(', '), action: 'Lägg till i journal' };
+    }
+  },
+  {
+    id: 'previous_treatment',
+    color: 'blue',
+    type: 'TIDIGARE BEHANDLING',
+    test: function(text) {
+      if (/(?:var\s*hos|träffat|behandlad\s*av|opererad|op(?:eration)?|röntgen|MR|MRI|CT|ultraljud)/i.test(text)) {
+        var m = text.match(/(?:var\s*hos|träffat|behandlad\s*av)\s+([A-Za-zÅÄÖåäö]+(?:\s+[A-Za-zÅÄÖåäö]+)?)/i);
+        return { text: 'Tidigare behandling/undersökning nämnd' + (m ? ': ' + m[1] : ''), action: 'Flagga i anamnes' };
+      }
+      return null;
+    }
+  },
+  {
+    id: 'goals',
+    color: 'green',
+    type: 'PATIENTMÅL',
+    test: function(text) {
+      var goals = [];
+      if (/(?:vill|kunna|börja|återgå|tillbaka\s*till)\s*(?:spring|springa|träna|jogga|spela|golf|tennis|fotboll|padel|yoga|gym|arbeta|jobba)/i.test(text)) {
+        var m = text.match(/(?:vill|kunna|börja|återgå|tillbaka\s*till)\s*([a-zåäö]+(?:\s+[a-zåäö]+)?)/i);
+        if (m) goals.push(m[1]);
+      }
+      if (/målet\s*(?:är|med)|hoppas\s*(på|att)|drömmer\s*om/i.test(text)) {
+        goals.push('mål nämnt');
+      }
+      if (!goals.length) return null;
+      return { text: 'Patientens mål: ' + goals.join(', '), action: 'Lägg till i plan' };
+    }
+  },
+];
+
+// ── RUN ALL DETECTORS on new transcript text ──────────────────────────────────
+function _ambientRunDetectors(newText) {
+  if (!newText || newText.length < 10) return;
+  var existingIds = _ambientState.signals.map(function(s){ return s.id + s.text; });
+
+  AMBIENT_DETECTORS.forEach(function(detector) {
+    var result = detector.test(newText);
+    if (!result) return;
+    var key = detector.id + result.text;
+    if (existingIds.indexOf(key) >= 0) return; // already shown
+
+    // NRS: update state
+    if (detector.id === 'nrs' && result.value !== undefined) {
+      _ambientState.nrsDetected = result.value;
+    }
+
+    var signal = {
+      id: detector.id,
+      type: detector.type,
+      color: detector.color,
+      text: result.text,
+      action: result.action,
+      ts: new Date().toLocaleTimeString('sv-SE', {hour:'2-digit',minute:'2-digit'}),
+    };
+    _ambientState.signals.unshift(signal); // newest first
+    _renderAmbientSignals();
+
+    // Flash the signal panel to draw attention
+    var panel = document.getElementById('ambient-signals-panel');
+    if (panel) panel.style.animation = 'none';
+    setTimeout(function(){
+      if (panel) panel.style.animation = '';
+    }, 10);
+  });
+}
+
+// ── RENDER SIGNALS PANEL ──────────────────────────────────────────────────────
+function _renderAmbientSignals() {
+  var el = document.getElementById('ambient-signals-panel');
+  if (!el) return;
+  var signals = _ambientState.signals;
+
+  if (!signals.length) {
+    el.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,.2);text-align:center;padding:20px 10px;font-style:italic">AI lyssnar...<br>Kliniska signaler visas här</div>';
+    return;
+  }
+
+  var h = '';
+  signals.forEach(function(s) {
+    var borderColors = {red:'#e05555',amber:'#c8a030',blue:'#4a7aee',green:'#1a7a4a'};
+    var typeColors = {red:'#e05555',amber:'#c8a030',blue:'#4a7aee',green:'#1a7a4a'};
+    var bc = borderColors[s.color] || 'var(--teal)';
+    var tc = typeColors[s.color] || 'var(--teal)';
+    h += '<div class="signal-card ' + s.color + '">';
+    h += '<div class="signal-type" style="color:' + tc + '">' + s.type + ' · ' + s.ts + '</div>';
+    h += '<div class="signal-text">' + e(s.text) + '</div>';
+    if (s.action) {
+      h += '<button class="signal-action" onclick="_ambientSignalAction(\'' + s.id + '\')">' + e(s.action) + ' →</button>';
+    }
+    h += '</div>';
+  });
+  el.innerHTML = h;
+}
+
+function _ambientSignalAction(signalId) {
+  var signal = _ambientState.signals.find(function(s){ return s.id === signalId; });
+  if (!signal) return;
+
+  if (signalId === 'nrs' && _ambientState.nrsDetected !== null) {
+    showAutoSaveToast('NRS ' + _ambientState.nrsDetected + ' noterat — sparas vid avslut');
+  } else if (signalId === 'scheduling') {
+    closeAmbientSession();
+    setTimeout(function(){ openCommandPalette(); }, 300);
+  } else {
+    showAutoSaveToast(signal.action + ' — sparas i journal vid avslut');
+  }
+}
+
+// ── SPEECH RECOGNITION ────────────────────────────────────────────────────────
+function _ambientStartListening() {
+  if (_ambientState.listening) return;
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    alert('Röstinspelning kräver Chrome på desktop eller Safari på iPhone.');
+    return;
+  }
+
+  var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var rec = new SpeechRecognition();
+  rec.continuous = true;
+  rec.interimResults = true;
+  rec.lang = 'sv-SE';
+  rec.maxAlternatives = 1;
+
+  rec.onstart = function() {
+    _ambientState.listening = true;
+    _ambientState.paused = false;
+    _updateAmbientStatusBar();
+  };
+
+  rec.onresult = function(event) {
+    var interim = '';
+    for (var i = event.resultIndex; i < event.results.length; i++) {
+      var result = event.results[i];
+      var text = result[0].transcript;
+      if (result.isFinal) {
+        var entry = {
+          time: new Date().toLocaleTimeString('sv-SE', {hour:'2-digit', minute:'2-digit', second:'2-digit'}),
+          text: text.trim(),
+          isFinal: true,
+        };
+        _ambientState.transcript.push(entry);
+        _appendTranscriptEntry(entry);
+        // Run local detectors immediately on final text
+        _ambientRunDetectors(text);
+        // Schedule AI deep analysis
+        _scheduleAmbientAI();
+      } else {
+        interim += text;
+      }
+    }
+    // Update interim display
+    var interimEl = document.getElementById('ambient-interim');
+    if (interimEl) interimEl.textContent = interim;
+  };
+
+  rec.onerror = function(event) {
+    if (event.error === 'no-speech') return;
+    console.error('Speech recognition error:', event.error);
+    if (event.error === 'not-allowed') {
+      alert('Mikrofonåtkomst nekad. Tillåt mikrofon i webbläsaren.');
+    }
+  };
+
+  rec.onend = function() {
+    if (_ambientState.listening && !_ambientState.paused) {
+      // Auto-restart if still active
+      try { rec.start(); } catch(e) {}
+    } else {
+      _ambientState.listening = false;
+      _updateAmbientStatusBar();
+    }
+  };
+
+  _ambientState.recognition = rec;
+  try {
+    rec.start();
+  } catch(e) {
+    alert('Kunde inte starta mikrofon: ' + e.message);
+  }
+}
+
+function _ambientPauseListening() {
+  _ambientState.paused = true;
+  _ambientState.listening = false;
+  if (_ambientState.recognition) {
+    try { _ambientState.recognition.stop(); } catch(e) {}
+    _ambientState.recognition = null;
+  }
+  _updateAmbientStatusBar();
+}
+
+function _updateAmbientStatusBar() {
+  var micBtn = document.getElementById('ambient-mic-btn');
+  var statusText = document.getElementById('ambient-status-text');
+  var waveBars = document.querySelectorAll('.ambient-wave-bar');
+
+  if (!micBtn) return;
+
+  if (_ambientState.listening) {
+    micBtn.className = 'ambient-mic-btn listening';
+    micBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    micBtn.onclick = function(){ _ambientPauseListening(); };
+    if (statusText) statusText.textContent = 'Lyssnar aktivt — tala normalt';
+    waveBars.forEach(function(b){ b.classList.add('active'); });
+  } else {
+    micBtn.className = 'ambient-mic-btn ' + (_ambientState.transcript.length ? 'paused' : 'idle');
+    micBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    micBtn.onclick = function(){ _ambientStartListening(); };
+    if (statusText) statusText.textContent = _ambientState.transcript.length ? 'Pausad — tryck för att fortsätta' : 'Tryck för att börja lyssna';
+    waveBars.forEach(function(b){ b.classList.remove('active'); });
+  }
+}
+
+function _appendTranscriptEntry(entry) {
+  var box = document.getElementById('ambient-transcript-box');
+  if (!box) return;
+  var div = document.createElement('div');
+  div.className = 'transcript-entry new';
+  div.innerHTML = '<div class="te-time">' + entry.time + '</div><div class="te-text">' + e(entry.text) + '</div>';
+  // Remove interim placeholder
+  var interimDiv = document.getElementById('ambient-interim-line');
+  if (interimDiv) box.insertBefore(div, interimDiv);
+  else box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  // Remove flash after animation
+  setTimeout(function(){ div.classList.remove('new'); }, 600);
+}
+
+// ── AI DEEP ANALYSIS (every 15s during session) ───────────────────────────────
+function _scheduleAmbientAI() {
+  clearTimeout(_ambientAnalysisDebounce);
+  _ambientAnalysisDebounce = setTimeout(function(){
+    _runAmbientAIAnalysis();
+  }, 15000); // 15 seconds after last speech
+}
+
+async function _runAmbientAIAnalysis() {
+  var key = getKey();
+  if (!key) return;
+  var fullText = _ambientState.transcript.map(function(t){ return t.text; }).join(' ');
+  if (fullText.length < 50 || fullText === _ambientState.lastAnalyzed) return;
+  _ambientState.lastAnalyzed = fullText;
+
+  var pat = S.pat;
+  var patContext = pat ? ('Patient: ' + pat.name + (pat.diagnosis ? ', ' + pat.diagnosis : '')) : '';
+
+  var prompt = 'Naprapatisk klinisk AI. Analysera konversation under besök.\n\n'
+    + patContext + '\n\nKonversation:\n' + fullText.slice(-3000) + '\n\n'
+    + 'Svara med JSON (inga backticks):\n'
+    + '{"diagnosis_hints":["möjlig diagnos baserat på vad som sades"],'
+    + '"red_flags":["kritiska signaler som kräver åtgärd"],'
+    + '"missing_questions":["viktiga frågor klinikern inte ställt än"],'
+    + '"nrs":null,"patient_goals":["mål patienten nämnt"],'
+    + '"suggested_next":["förslag på nästa steg"]}'
+    + '\nNRS ska vara ett tal 0-10 om det nämnts, annars null.';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','x-api-key':key,
+                'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body: JSON.stringify({model:MODEL_HAIKU, max_tokens:600,
+        messages:[{role:'user',content:prompt}]})
+    });
+    var data = await res.json();
+    var txt = (data.content||[]).map(function(b){return b.text||'';}).join('').trim();
+    var result;
+    try { result = JSON.parse(txt.replace(/```json|```/g,'').trim()); } catch { return; }
+
+    // Process AI results → add signals
+    if (result.nrs !== null && result.nrs !== undefined) {
+      _ambientState.nrsDetected = result.nrs;
+    }
+
+    if (result.red_flags && result.red_flags.length) {
+      result.red_flags.forEach(function(rf) {
+        var sig = { id:'ai_red_'+Date.now(), type:'⚠ AI RÖDA FLAGGAN', color:'red',
+                    text:rf, action:'Lägg till i journal', ts:new Date().toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'}) };
+        if (!_ambientState.signals.find(function(s){ return s.text===rf; })) {
+          _ambientState.signals.unshift(sig);
+        }
+      });
+    }
+
+    if (result.missing_questions && result.missing_questions.length) {
+      var q = result.missing_questions[0];
+      var sig = { id:'ai_q_'+Date.now(), type:'FRÅGA ATT STÄLLA', color:'blue',
+                  text:q, action:null, ts:new Date().toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'}) };
+      if (!_ambientState.signals.find(function(s){ return s.text===q; })) {
+        _ambientState.signals.unshift(sig);
+      }
+    }
+
+    if (result.diagnosis_hints && result.diagnosis_hints.length) {
+      var d = result.diagnosis_hints[0];
+      var dsig = { id:'ai_diag', type:'DIAGNOSINDIKATION', color:'amber',
+                   text:d, action:'Föreslå i A-fältet',
+                   ts:new Date().toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'}) };
+      var existing = _ambientState.signals.findIndex(function(s){ return s.id==='ai_diag'; });
+      if (existing >= 0) _ambientState.signals[existing] = dsig;
+      else _ambientState.signals.unshift(dsig);
+    }
+
+    _renderAmbientSignals();
+  } catch(e) {
+    console.error('Ambient AI analysis error:', e);
+  }
+}
+
+// ── SESSION SCREEN RENDER ─────────────────────────────────────────────────────
+function openAmbientSession(patId, bkId) {
+  var pat = (S.patients||[]).find(function(p){ return p.id===patId; });
+  if (!pat) return;
+  S.pat = pat;
+
+  // Reset state for new session
+  _ambientState = {
+    listening: false, paused: false, seconds: 0,
+    transcript: [], signals: [], recognition: null,
+    timer: null, analysisTimer: null,
+    lastAnalyzed: '', nrsDetected: null,
+    sessionId: 'ses_' + Date.now(),
+    note: '', consented: false,
+    patId: patId, bkId: bkId || null,
+  };
+
+  // Show consent screen first
+  _renderAmbientConsent(pat);
+}
+
+function _renderAmbientConsent(pat) {
+  var el = document.getElementById('s-meeting');
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  el.classList.add('active');
+  S.screen = 'meeting';
+
+  el.innerHTML = '<div class="ambient-wrap">'
+    + '<div class="ambient-header">'
+    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'
+    + '<button onclick="closeAmbientSession()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:13px;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Tillbaka</button>'
+    + '</div>'
+    + '<div class="ambient-title">AI-session med ' + e(pat.name.split(' ')[0]) + '</div>'
+    + '<div class="ambient-patient">' + e(pat.name)
+    + (pat.diagnosis ? ' · ' + e(pat.diagnosis) : '') + '</div>'
+    + '</div>'
+    + '<div style="max-width:480px;margin:40px auto;padding:0 24px">'
+    + '<div style="background:var(--surface);border-radius:20px;padding:28px;border:1px solid var(--border)">'
+    + '<div style="font-size:32px;margin-bottom:16px">🎙️</div>'
+    + '<div style="font-size:20px;font-weight:800;color:var(--ink);margin-bottom:8px">Starta AI-session</div>'
+    + '<div style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">'
+    + 'AI lyssnar under hela besöket och fångar automatiskt kliniska signaler, smärtnivåer, röda flaggor och patientens mål. '
+    + 'En komplett journal-utkast skapas när besöket avslutas.<br><br>'
+    + '<strong style="color:var(--ink)">Patienten behöver ge sitt samtycke</strong> till att besöket bearbetas av AI.'
+    + '</div>'
+    + '<div style="background:rgba(13,155,138,.06);border:1px solid rgba(13,155,138,.15);border-radius:12px;padding:14px 16px;margin-bottom:20px;font-size:12px;color:var(--muted);line-height:1.7">'
+    + '📋 Allt bearbetas av Anthropics Claude AI · Ingen data lagras på externa servrar · Klinikern granskar och godkänner all dokumentation'
+    + '</div>'
+    + '<button onclick="_ambientGrantConsent()" style="width:100%;padding:14px;background:var(--teal);color:white;border:none;border-radius:13px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:10px">Patienten har samtyckt — Starta session →</button>'
+    + '<button onclick="closeAmbientSession()" style="width:100%;padding:11px;background:none;border:1px solid var(--border);border-radius:13px;font-size:14px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>'
+    + '</div></div></div>';
+}
+
+function _ambientGrantConsent() {
+  _ambientState.consented = true;
+  // Start timer
+  _ambientState.timer = setInterval(function(){
+    _ambientState.seconds++;
+    var el = document.getElementById('ambient-timer');
+    if (el) {
+      var m = Math.floor(_ambientState.seconds/60);
+      var s = _ambientState.seconds%60;
+      el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+    }
+  }, 1000);
+  _renderAmbientSession();
+}
+
+function _renderAmbientSession() {
+  var pat = (S.patients||[]).find(function(p){ return p.id===_ambientState.patId; }) || S.pat;
+  if (!pat) return;
+  var el = document.getElementById('s-meeting');
+  if (!el) return;
+
+  el.innerHTML = '<div class="ambient-wrap">'
+    + '<div class="ambient-header">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between">'
+    + '<div>'
+    + '<div class="ambient-title">Session · ' + e(pat.name.split(' ')[0]) + '</div>'
+    + '<div class="ambient-patient">' + e(pat.name) + '</div>'
+    + '</div>'
+    + '<button onclick="_ambientEndSession()" style="padding:8px 16px;background:rgba(224,85,85,.1);border:1.5px solid rgba(224,85,85,.3);border-radius:10px;font-size:12px;font-weight:700;color:#e05555;cursor:pointer;font-family:var(--font)">Avsluta besök →</button>'
+    + '</div>'
+    + '</div>'
+
+    // Status bar
+    + '<div class="ambient-status-bar">'
+    + '<button id="ambient-mic-btn" class="ambient-mic-btn idle" onclick="_ambientStartListening()">'
+    + '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
+    + '</button>'
+    + '<div class="ambient-waveform">'
+    + [1,2,3,4,5].map(function(){ return '<div class="ambient-wave-bar"></div>'; }).join('')
+    + '</div>'
+    + '<div class="ambient-status-text" id="ambient-status-text">Tryck för att börja lyssna</div>'
+    + '<div class="ambient-timer" id="ambient-timer">00:00</div>'
+    + '</div>'
+
+    // Body: transcript + signals
+    + '<div class="ambient-body">'
+    + '<div class="ambient-left">'
+    + '<div class="ambient-transcript" id="ambient-transcript-box">'
+    + '<div style="font-size:12px;color:rgba(255,255,255,.2);font-style:italic;text-align:center;padding:20px">Transkription visas här när du börjar prata...</div>'
+    + '<div id="ambient-interim-line" style="padding:4px 0"><span style="font-size:12px;color:rgba(255,255,255,.2);font-style:italic" id="ambient-interim"></span></div>'
+    + '</div>'
+    // Notes area
+    + '<div style="border-top:1px solid var(--border);padding:12px 16px;flex-shrink:0">'
+    + '<textarea id="ambient-note" placeholder="Egna observationer under besöket (palpation, rörelsetest, etc.)..." style="width:100%;background:none;border:none;color:var(--text);font-size:12px;font-family:var(--font);resize:none;outline:none;height:60px;line-height:1.6" oninput="_ambientState.note=this.value;_ambientRunDetectors(this.value)"></textarea>'
+    + '</div>'
+    + '</div>'
+
+    // Signals panel
+    + '<div class="ambient-right">'
+    + '<div class="ambient-signals">'
+    + '<div class="ambient-signals-title">Kliniska signaler · live</div>'
+    + '<div id="ambient-signals-panel"><div style="font-size:12px;color:rgba(255,255,255,.2);text-align:center;padding:20px 10px;font-style:italic">AI lyssnar...<br>Kliniska signaler visas här</div></div>'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+
+  // Auto-start listening
+  setTimeout(function(){ _ambientStartListening(); }, 500);
+}
+
+async function _ambientEndSession() {
+  // Stop listening
+  _ambientPauseListening();
+  if (_ambientState.timer) { clearInterval(_ambientState.timer); }
+  clearTimeout(_ambientAnalysisDebounce);
+
+  var key = getKey();
+  var pat = (S.patients||[]).find(function(p){ return p.id===_ambientState.patId; }) || S.pat;
+  if (!pat) return;
+
+  var el = document.getElementById('s-meeting');
+  if (!el) return;
+
+  // Show generating state
+  el.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px">'
+    + '<div style="width:48px;height:48px;border:3px solid rgba(13,155,138,.2);border-top-color:var(--teal);border-radius:50%;animation:spin .8s linear infinite"></div>'
+    + '<div style="font-size:16px;font-weight:700;color:var(--ink)">Skapar journal-utkast...</div>'
+    + '<div style="font-size:13px;color:var(--muted)">AI sammanfattar besöket</div>'
+    + '</div>';
+
+  var fullTranscript = _ambientState.transcript.map(function(t){ return '[' + t.time + '] ' + t.text; }).join('\n');
+  var signals = _ambientState.signals.map(function(s){ return s.type + ': ' + s.text; }).join('\n');
+  var note = _ambientState.note;
+  var mins = Math.floor(_ambientState.seconds / 60);
+
+  if (!key || (!fullTranscript && !note)) {
+    // No transcript - open manual SOAP
+    closeAmbientSession();
+    _startSmartVisit(pat.id, _ambientState.bkId);
+    return;
+  }
+
+  var prompt = 'Du är en erfaren naprapatisk kliniker. Skapa en komplett journalanteckning baserat på besöket.\n\n'
+    + 'Patient: ' + pat.name + (pat.diagnosis ? ', ' + pat.diagnosis : '') + '\n'
+    + 'Besökslängd: ' + mins + ' minuter\n\n'
+    + (fullTranscript ? 'TRANSKRIPT:\n' + fullTranscript + '\n\n' : '')
+    + (note ? 'KLINIKERENS OBSERVATIONER:\n' + note + '\n\n' : '')
+    + (signals ? 'AI-DETEKTERADE SIGNALER:\n' + signals + '\n\n' : '')
+    + (_ambientState.nrsDetected !== null ? 'NRS detekterad: ' + _ambientState.nrsDetected + '\n\n' : '')
+    + 'Skapa journalanteckning som JSON (inga backticks):\n'
+    + '{"S":"Subjektivt — patientens berättelse i egen röst, anamnes, symtom",'
+    + '"O":"Objektivt — kliniska fynd, undersökningsresultat, observationer",'
+    + '"A":"Bedömning — diagnos/arbetsdiagnos med ICD-10 om möjligt",'
+    + '"P":"Plan — behandling, övningar, återbesök, patientinstruktioner",'
+    + '"nrs":' + (_ambientState.nrsDetected !== null ? _ambientState.nrsDetected : 'null') + ','
+    + '"red_flags":[],"suggested_rebook_weeks":null,"hael_plan_suggested":false}';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,
+               'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:MODEL_SONNET||'claude-sonnet-4-20250514', max_tokens:2000,
+        messages:[{role:'user',content:prompt}]})
+    });
+    var data = await res.json();
+    var txt = (data.content||[]).map(function(b){return b.text||'';}).join('').trim();
+    var journal;
+    try { journal = JSON.parse(txt.replace(/```json|```/g,'').trim()); } catch(e) {
+      journal = {S: fullTranscript || note, O:'', A:'', P:''};
+    }
+
+    // Store as intake prefill for SOAP
+    window._intakePrefill = { S: journal.S||'', O: journal.O||'', A: journal.A||'', P: journal.P||'' };
+    window._ambientJournalDraft = journal;
+
+    // Show review screen
+    _renderAmbientReview(pat, journal, mins);
+
+  } catch(err) {
+    console.error('Journal generation error:', err);
+    // Fallback to manual
+    closeAmbientSession();
+    _startSmartVisit(pat.id, _ambientState.bkId);
+  }
+}
+
+function _renderAmbientReview(pat, journal, mins) {
+  var el = document.getElementById('s-meeting');
+  if (!el) return;
+
+  var signalCount = _ambientState.signals.length;
+  var redFlagCount = _ambientState.signals.filter(function(s){ return s.color === 'red'; }).length;
+
+  el.innerHTML = '<div class="ambient-wrap">'
+    + '<div class="ambient-header">'
+    + '<div class="ambient-title">Session avslutad ✓</div>'
+    + '<div class="ambient-patient">' + e(pat.name) + ' · ' + mins + ' min · ' + _ambientState.transcript.length + ' transkript-rader · ' + signalCount + ' signaler</div>'
+    + '</div>'
+    + '<div style="flex:1;overflow-y:auto;padding:20px;max-width:700px;margin:0 auto;width:100%">'
+
+    // Stats row
+    + '<div class="session-summary-grid">'
+    + '<div class="ss-card"><div class="ss-val">' + mins + '</div><div class="ss-lbl">Minuter</div></div>'
+    + '<div class="ss-card"><div class="ss-val">' + _ambientState.transcript.length + '</div><div class="ss-lbl">Uttalanden</div></div>'
+    + '<div class="ss-card"><div class="ss-val" style="color:' + (redFlagCount?'#e05555':'#1a7a4a') + '">' + redFlagCount + '</div><div class="ss-lbl">Röda flaggor</div></div>'
+    + '<div class="ss-card"><div class="ss-val">' + (_ambientState.nrsDetected !== null ? _ambientState.nrsDetected : '—') + '</div><div class="ss-lbl">NRS</div></div>'
+    + '</div>'
+
+    // Journal preview
+    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:16px">'
+    + '<div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;color:var(--teal)">Journal-utkast · AI-genererat</div>'
+    + ['S','O','A','P'].map(function(field) {
+        var labels = {S:'Subjektivt',O:'Objektivt',A:'Bedömning',P:'Plan'};
+        var colors = {S:'var(--teal)',O:'#4a7aee',A:'#c8a030',P:'#9b6ee0'};
+        var val = journal[field] || '';
+        if (!val) return '';
+        return '<div style="padding:12px 16px;border-bottom:1px solid var(--border2)">'
+          + '<div style="font-size:10px;font-weight:800;color:' + colors[field] + ';margin-bottom:4px">' + field + ' — ' + labels[field] + '</div>'
+          + '<div style="font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap">' + e(val) + '</div>'
+          + '</div>';
+      }).join('')
+    + '</div>'
+
+    // Signals summary
+    + (_ambientState.signals.length ? '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:16px">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Detekterade signaler</div>'
+    + _ambientState.signals.slice(0,5).map(function(s) {
+        var tc = {red:'#e05555',amber:'#c8a030',blue:'#4a7aee',green:'#1a7a4a'}[s.color]||'var(--teal)';
+        return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">'
+          + '<span style="font-size:9px;font-weight:700;color:' + tc + ';padding:2px 7px;border-radius:20px;background:' + tc + '15;white-space:nowrap;margin-top:1px">' + s.type + '</span>'
+          + '<span style="font-size:12px;color:var(--text)">' + e(s.text) + '</span>'
+          + '</div>';
+      }).join('')
+    + '</div>' : '')
+
+    // Action buttons
+    + '<div style="display:flex;flex-direction:column;gap:10px">'
+    + '<button onclick="_ambientApproveJournal()" class="ambient-finish-btn">Godkänn och öppna i SOAP →</button>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    + '<button onclick="_ambientOpenInSOAP()" style="padding:11px;background:var(--bg);border:1px solid var(--border);border-radius:11px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Redigera i SOAP</button>'
+    + '<button onclick="closeAmbientSession()" style="padding:11px;background:var(--bg);border:1px solid var(--border);border-radius:11px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:var(--font)">Stäng utan att spara</button>'
+    + '</div></div>'
+    + '</div></div>';
+}
+
+function _ambientApproveJournal() {
+  // Mark booking as completed, apply journal, go to SOAP for final review
+  if (_ambientState.bkId) {
+    var bk = getBooking(_ambientState.bkId);
+    if (bk) { bk.status = 'completed'; upsertBooking(bk); }
+  }
+  _ambientOpenInSOAP();
+}
+
+function _ambientOpenInSOAP() {
+  var patId = _ambientState.patId;
+  var bkId = _ambientState.bkId;
+  // window._intakePrefill already set in _ambientEndSession
+  closeAmbientSession();
+  _startSmartVisit(patId, bkId);
+}
+
+function closeAmbientSession() {
+  _ambientPauseListening();
+  if (_ambientState.timer) { clearInterval(_ambientState.timer); }
+  clearTimeout(_ambientAnalysisDebounce);
+  // Go back to patient or dashboard
+  if (S.pat) {
+    openPat(S.pat.id);
+  } else {
+    go('dashboard');
+  }
+}
+
+// ── HOOK: Ta emot → ambient session ──────────────────────────────────────────
+// Override _dayTaEmot to open ambient session instead of direct visit
+var _origDayTaEmot = _dayTaEmot;
+function _dayTaEmot(bkId) {
+  var bk = getBooking(bkId);
+  if (!bk) return;
+  bk.status = 'confirmed';
+  upsertBooking(bk);
+  if (bk.patientId) {
+    openAmbientSession(bk.patientId, bkId);
+  } else {
+    showAutoSaveToast('Tar emot ' + bk.patientName);
+  }
+}
+
+// Also hook _startSmartVisit to offer ambient session
+var _origStartSmartVisit = _startSmartVisit;
+function _startSmartVisit(patId, bkId) {
+  // If window._skipAmbient is set, go directly to SOAP
+  if (window._skipAmbient) {
+    window._skipAmbient = false;
+    _origStartSmartVisit(patId, bkId);
+    return;
+  }
+  // Open ambient session
+  openAmbientSession(patId, bkId);
 }
 
 function toggleSidebarCollapse() {
@@ -24948,6 +25794,109 @@ function _buildAiProfileWizardHTML(profile, step) {
     + '</div></div>';
 }
 
+window._aiProfileDraft = {};
+
+function _aiProfileToggleOption(qId, type, btn, opt) {
+  window._aiProfileDraft = window._aiProfileDraft || {};
+  if (type === 'single') {
+    window._aiProfileDraft[qId] = opt;
+    // Deselect all other buttons in this question
+    btn.closest('[onclick]') && btn.parentNode.querySelectorAll('button').forEach(function(b) {
+      b.style.borderColor = 'var(--border)';
+      b.style.background = 'var(--bg)';
+      b.style.color = 'var(--text)';
+      b.style.fontWeight = '400';
+      b.innerHTML = b.innerHTML.replace(/<svg[^>]*>.*?<\/svg>/s, '');
+    });
+    btn.style.borderColor = 'var(--teal)';
+    btn.style.background = 'rgba(13,155,138,.08)';
+    btn.style.color = 'var(--teal)';
+    btn.style.fontWeight = '600';
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>' + opt;
+  } else {
+    var arr = Array.isArray(window._aiProfileDraft[qId]) ? window._aiProfileDraft[qId] : [];
+    var i = arr.indexOf(opt);
+    if (i >= 0) {
+      arr.splice(i, 1);
+      btn.style.borderColor = 'var(--border)';
+      btn.style.background = 'var(--bg)';
+      btn.style.color = 'var(--text)';
+      btn.style.fontWeight = '400';
+      btn.innerHTML = opt;
+    } else {
+      arr.push(opt);
+      btn.style.borderColor = 'var(--teal)';
+      btn.style.background = 'rgba(13,155,138,.08)';
+      btn.style.color = 'var(--teal)';
+      btn.style.fontWeight = '600';
+      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>' + opt;
+    }
+    window._aiProfileDraft[qId] = arr;
+  }
+}
+
+function _aiProfileNav(nextStep) {
+  window._aiProfileDraft = window._aiProfileDraft || {};
+  // Save any textarea values from current step
+  var total = AI_PROFILE_QUESTIONS.length;
+  var curStep = nextStep > 0 ? nextStep - 1 : 0;
+  var q = AI_PROFILE_QUESTIONS[Math.min(curStep, total-1)];
+  if (q) {
+    var ta = document.getElementById('ai-profile-text-' + q.id);
+    if (ta && ta.value.trim()) {
+      window._aiProfileDraft[q.id + (q.type !== 'text' ? '_text' : '')] = ta.value.trim();
+      if (q.type === 'text') window._aiProfileDraft[q.id] = ta.value.trim();
+    }
+  }
+
+  if (nextStep >= total) {
+    // Save profile
+    var merged = Object.assign(getAiProfile(), window._aiProfileDraft, { completedAt: new Date().toISOString() });
+    saveAiProfile(merged);
+    window._aiProfileDraft = {};
+    document.getElementById('ai-profile-ov')?.remove();
+    // Show completion toast
+    showAutoSaveToast('AI-profil sparad — din AI lär sig nu hur du jobbar ✓');
+    // If in settings, refresh AI tab
+    if (S.screen === 'settings') _renderSettingsContent('ai');
+    return;
+  }
+
+  // Update wizard HTML
+  var ov = document.getElementById('ai-profile-ov');
+  if (!ov) return;
+  var profile = Object.assign(getAiProfile(), window._aiProfileDraft);
+  var inner = ov.querySelector('[onclick="event.stopPropagation()"]');
+  if (inner) inner.outerHTML = _buildAiProfileWizardHTML(profile, nextStep);
+  // Re-attach the stopPropagation to new inner element
+  var newInner = ov.firstElementChild;
+  if (newInner) newInner.onclick = function(ev) { ev.stopPropagation(); };
+}
+
+// Returns a context string for injecting into AI prompts
+function closeAiProfileOv() { document.getElementById('ai-profile-ov')?.remove(); }
+function closeConsentPopup() { document.getElementById('consent-popup')?.remove(); }
+
+
+function getAiProfileContext(userId) {
+  var profile = getAiProfile(userId);
+  if (!Object.keys(profile).length) return '';
+  var parts = [];
+  if (profile.style) {
+    var styles = Array.isArray(profile.style) ? profile.style : [profile.style];
+    if (styles.length) parts.push('Behandlarens personlighet: ' + styles.join(', '));
+  }
+  if (profile.tone) parts.push('Kommunikationston: ' + profile.tone);
+  if (profile.strengths) {
+    var s = Array.isArray(profile.strengths) ? profile.strengths : [profile.strengths];
+    if (s.length) parts.push('Expertområden: ' + s.join(', '));
+  }
+  if (profile.patient_motivation) parts.push('Patientmotivation: ' + profile.patient_motivation);
+  if (profile.avoid) parts.push('VIKTIGT — undvik alltid: ' + profile.avoid);
+  if (profile.voice_sample) parts.push('Behandlarens röst (exempel): "' + profile.voice_sample + '"');
+  if (profile.tone_text) parts.push('Ytterligare om ton: ' + profile.tone_text);
+  return parts.length ? '\n\n--- BEHANDLARPROFIL ---\n' + parts.join('\n') + '\n---' : '';
+}
 window._aiProfileDraft = {};
 
 function _aiProfileToggleOption(qId, type, btn, opt) {

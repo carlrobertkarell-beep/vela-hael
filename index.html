@@ -23,32 +23,39 @@
 /* ── DESIGN TOKENS ─────────────────────────────────────────── */
 :root {
   /* ── Brand ─────────────────────────────────────────────── */
-  --navy:    #0c1f3d;
-  --navy2:   #091629;
-  --teal:    #0d9b8a;
-  --teal-lt: rgba(13,155,138,.12);
-  --teal-dk: #0a7a6e;
-  --accent:  #0d9b8a;
-  --gold:    #d4a843;
-  --gold-lt: rgba(212,168,67,.12);
-  --red:     #e05555;
-  --red-lt:  rgba(224,85,85,.12);
-  --green:   #1fa060;
-  --green-lt:rgba(31,160,96,.12);
+  --teal:    #3ecfbd;
+  --teal-lt: rgba(62,207,189,.1);
+  --teal-dk: #2aad9c;
+  --accent:  #3ecfbd;
+  --gold:    #e3b341;
+  --gold-lt: rgba(227,179,65,.1);
+  --red:     #f85149;
+  --red-lt:  rgba(248,81,73,.1);
+  --green:   #3fb950;
+  --green-lt:rgba(63,185,80,.1);
+  --orange:  #d29922;
 
-  /* ── Dark theme (default) ──────────────────────────────── */
-  --bg:       #0e1825;
-  --bg2:      #111e2d;
-  --surface:  #162030;
-  --surface2: #1c2a3e;
-  --surface3: #223248;
-  --ink:      #e8edf4;
-  --text:     #b8c4d4;
-  --text2:    #8898aa;
-  --text3:    #5a6e84;
-  --muted:    #5a6e84;
-  --border:   rgba(255,255,255,.08);
-  --border2:  rgba(255,255,255,.05);
+  /* ── Dark theme (GitHub-calibrated neutrals) ───────────── */
+  --bg:       #0d1117;
+  --bg2:      #010409;
+  --surface:  #161b22;
+  --surface2: #21262d;
+  --surface3: #30363d;
+
+  /* Text: three explicit tiers, no ambiguity */
+  --ink:      #e6edf3;
+  --text:     #8b949e;
+  --text2:    #6e7681;
+  --text3:    #484f58;
+  --muted:    #6e7681;
+
+  /* Borders: solid, not rgba */
+  --border:   #30363d;
+  --border2:  #21262d;
+
+  /* Legacy aliases */
+  --navy:     #161b22;
+  --navy2:    #0d1117;
 
   /* ── Typography ────────────────────────────────────────── */
   --font:       'Plus Jakarta Sans', system-ui, sans-serif;
@@ -58,44 +65,42 @@
   /* ── Geometry ──────────────────────────────────────────── */
   --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px;
 
-  /* ── Shadows (elevated on dark) ────────────────────────── */
-  --shadow-xs: 0 1px 4px rgba(0,0,0,.3);
-  --shadow-sm: 0 2px 10px rgba(0,0,0,.35);
-  --shadow-md: 0 4px 24px rgba(0,0,0,.4);
-  --shadow-lg: 0 8px 40px rgba(0,0,0,.5);
+  /* ── Shadows ────────────────────────────────────────────── */
+  --shadow-xs: 0 1px 3px rgba(1,4,9,.8);
+  --shadow-sm: 0 2px 8px rgba(1,4,9,.6);
+  --shadow-md: 0 4px 20px rgba(1,4,9,.6);
+  --shadow-lg: 0 8px 36px rgba(1,4,9,.7);
 
   /* ── Sidebar ───────────────────────────────────────────── */
-  --sb-bg:        #0a1628;
-  --sb-border:    rgba(255,255,255,.06);
-  --sb-text:      rgba(255,255,255,.35);
-  --sb-text2:     rgba(255,255,255,.72);
-  --sb-hover:     rgba(255,255,255,.05);
-  --sb-active-bg: rgba(13,155,138,.18);
-  --sb-active-col:#3dcfbd;
+  --sb-bg:        #0d1117;
+  --sb-border:    #21262d;
+  --sb-text:      #6e7681;
+  --sb-text2:     #c9d1d9;
+  --sb-hover:     rgba(177,186,196,.06);
+  --sb-active-bg: rgba(62,207,189,.12);
+  --sb-active-col:#3ecfbd;
 }
 
 /* ── Light mode override (optional, future toggle) ────────── */
 body.light {
-  --bg:       #f4f7fb;
-  --bg2:      #eef1f7;
+  --bg:       #f6f8fa;
+  --bg2:      #eaeef2;
   --surface:  #ffffff;
-  --surface2: #f6f8fc;
-  --surface3: #eef1f7;
-  --ink:      #0c1a2e;
-  --text:     #3a4a5a;
-  --text2:    #5a6a7a;
-  --text3:    #8896a8;
-  --muted:    #8896a8;
-  --border:   #e4e9f0;
-  --border2:  #f0f3f8;
-  --teal-lt:  #e6f7f5;
-  --gold-lt:  #fdf6e3;
-  --red-lt:   #fdf0f0;
-  --green-lt: #f0faf5;
-  --shadow-xs: 0 1px 3px rgba(0,0,0,.06);
-  --shadow-sm: 0 2px 8px rgba(0,0,0,.07);
-  --shadow-md: 0 4px 20px rgba(0,0,0,.09);
-  --shadow-lg: 0 8px 36px rgba(0,0,0,.12);
+  --surface2: #f6f8fa;
+  --surface3: #eaeef2;
+  --ink:      #1f2328;
+  --text:     #636c76;
+  --text2:    #818b98;
+  --text3:    #9198a1;
+  --muted:    #818b98;
+  --border:   #d0d7de;
+  --border2:  #eaeef2;
+  --navy:     #ffffff;
+  --navy2:    #f6f8fa;
+  --sb-bg:    #f6f8fa;
+  --sb-border:#d0d7de;
+  --sb-text:  #818b98;
+  --sb-text2: #1f2328;
 }
 
 /* ── RESET ──────────────────────────────────────────────────── */
@@ -491,10 +496,16 @@ button, input, textarea, select { font-family: inherit; }
 .cal-booking-time { font-size:10px; font-weight:700; opacity:.8; white-space:nowrap; }
 .cal-booking-name { font-size:12px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .cal-booking-svc { font-size:10px; opacity:.7; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.cal-booking.new     { background:rgba(13,155,138,.85); color:white; }
-.cal-booking.returning { background:rgba(26,58,74,.85); color:rgba(255,255,255,.9); border:1px solid rgba(13,155,138,.3); }
-.cal-booking.completed { background:rgba(255,255,255,.08); color:var(--muted); border:1px solid var(--border); }
-.cal-booking.cancelled { background:rgba(192,48,48,.15); color:var(--muted); border:1px dashed rgba(192,48,48,.3); text-decoration:line-through; }
+.cal-booking.new            { background:linear-gradient(135deg,rgba(13,155,138,.26),rgba(7,16,30,.7)); color:rgba(255,255,255,.95); border-left-color:var(--teal); }
+.cal-booking.returning      { background:rgba(18,30,46,.9); color:rgba(255,255,255,.85); border-left-color:rgba(13,155,138,.4); border:1px solid rgba(13,155,138,.1); border-left:3px solid rgba(13,155,138,.4); }
+.cal-booking.confirmed      { background:rgba(20,55,38,.88); color:rgba(255,255,255,.95); border-left-color:#1a9a5a; }
+.cal-booking.completed      { background:rgba(255,255,255,.04); color:rgba(255,255,255,.32); border-left-color:rgba(255,255,255,.08); }
+.cal-booking.cancelled      { background:rgba(192,48,48,.07); color:rgba(192,48,48,.5); border-left-color:rgba(192,48,48,.28); text-decoration:line-through; }
+.cal-booking.risk           { background:rgba(248,113,113,.13); color:rgba(255,255,255,.92); border-left-color:#f87171; border:1px solid rgba(248,113,113,.2); border-left:3px solid #f87171; }
+.cal-booking.intake-pending { background:rgba(200,160,48,.1); color:rgba(255,255,255,.9); border-left-color:#c8a030; border:1px solid rgba(200,160,48,.16); border-left:3px solid #c8a030; }
+.cal-therapist-hdr  { display:flex;align-items:center;gap:6px;padding:0 6px;height:100%; }
+.cal-therapist-dot  { width:7px;height:7px;border-radius:50%;flex-shrink:0; }
+.cal-therapist-name { font-size:10px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
 .cal-now-line { position:absolute; left:0; right:0; height:2px; background:var(--red,#e05555); z-index:8; pointer-events:none; }
 .cal-now-line::before { content:''; position:absolute; left:-4px; top:-4px; width:10px; height:10px; border-radius:50%; background:var(--red,#e05555); }
 /* Booking dialog */
@@ -753,8 +764,8 @@ button, input, textarea, select { font-family: inherit; }
 .field:focus { border-color: var(--teal); }
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: all .15s; }
 .btn:hover { background: var(--surface2); }
-.btn.btn-p { background:var(--navy); color: white; border-color: var(--navy); }
-.btn.btn-p:hover { background: var(--teal); border-color: var(--teal); transform: translateY(-1px); }
+.btn.btn-p { background:var(--teal); color:#0d1117; border-color:var(--teal); font-weight:700; }
+.btn.btn-p:hover { background:var(--teal-dk); border-color:var(--teal-dk); transform:translateY(-1px); }
 .btn.btn-d { background: var(--red-lt); color: var(--red); border-color: rgba(192,80,80,.2); }
 .slabel { display: block; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--teal); margin: 16px 0 8px; }
 .chip { padding: 6px 14px; border: 1.5px solid var(--border); border-radius: 20px; background: var(--surface); font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font); color: var(--text); transition: all .12s; }
@@ -4320,11 +4331,13 @@ function needsIntake(patId) {
 
 // ── STATE ─────────────────────────────────────────────────────────────────────
 window._calState = window._calState || {
-  week:   getMondayOf(new Date()),
-  view:   'week', // 'week' | 'day'
-  hours:  { start: 7, end: 19 },
-  dragDate: null,
-  dragTime: null,
+  week:        getMondayOf(new Date()),
+  view:        'week',
+  hours:       { start: parseInt(localStorage.getItem('vela:work-start')||'8',10), end: parseInt(localStorage.getItem('vela:work-end')||'18',10) },
+  dragDate:    null,
+  dragTime:    null,
+  therapists:  null,   // null = all visible
+  multiMode:   false,  // show multiple therapist columns
 };
 
 // ── MAIN RENDER ───────────────────────────────────────────────────────────────
@@ -4334,44 +4347,81 @@ function rCalendar() {
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
   el.classList.add('active');
 
-  var st   = window._calState;
-  var mon  = st.week;
+  var st       = window._calState;
+  var mon      = st.week;
+  var now      = new Date();
+  var todayStr = now.toISOString().slice(0,10);
+  var SLOT_H   = 60;
+
+  // Days array (Mon–Sun)
   var days = [];
   for (var i = 0; i < 7; i++) {
     var d = new Date(mon); d.setDate(mon.getDate() + i);
     days.push(d);
   }
 
-  var bks = getBookingsForWeek(mon);
-  var now = new Date();
-  var todayStr = dateStr(now);
+  // All therapists
+  var allTherapists = getTherapists();
+  var visibleThIds  = st.therapists || allTherapists.map(function(t){ return t.id; });
+  var visibleThers  = allTherapists.filter(function(t){ return visibleThIds.indexOf(t.id) !== -1; });
+  var multiMode     = st.multiMode && allTherapists.length > 1;
+
+  // Bookings for the week
+  var bks     = getBookingsForWeek(mon);
+  var todayBks = bks.filter(function(b){ return b.date === todayStr && b.status !== 'cancelled'; });
 
   // Week label
-  var monFmt = mon.toLocaleDateString('sv-SE', { day:'numeric', month:'short' });
-  var sunDate = new Date(mon); sunDate.setDate(mon.getDate() + 6);
-  var sunFmt  = sunDate.toLocaleDateString('sv-SE', { day:'numeric', month:'short' });
+  var monFmt  = mon.toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
+  var sunDate = new Date(mon); sunDate.setDate(mon.getDate()+6);
+  var sunFmt  = sunDate.toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
   var weekLabel = monFmt + ' – ' + sunFmt + ' ' + mon.getFullYear();
 
   var h = '<div class="cal-wrap">';
 
   // ── HEADER ────────────────────────────────────────────────────────────────
   h += '<div class="cal-header">';
+
+  // Nav
   h += '<div class="cal-nav">';
   h += '<button class="cal-nav-btn" onclick="_calPrev()">‹</button>';
   h += '<span class="cal-week-label">' + weekLabel + '</span>';
   h += '<button class="cal-nav-btn" onclick="_calNext()">›</button>';
   h += '<button class="cal-nav-btn today" onclick="_calToday()">Idag</button>';
   h += '</div>';
-  h += '<div style="display:flex;gap:10px;align-items:center">';
-  // Booking count badge
-  var todayBks = bks.filter(function(b){ return b.date === todayStr && b.status !== 'cancelled'; });
+
+  // Right controls
+  h += '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">';
+
+  // Today count
   if (todayBks.length) {
     h += '<div style="font-size:11px;font-weight:700;color:var(--teal)">' + todayBks.length + ' besök idag</div>';
   }
-  h += '<button onclick="openBookingDialog(null, null)" class="btn btn-p" style="font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap">';
+
+  // Therapist filter (only if >1 therapist)
+  if (allTherapists.length > 1) {
+    h += '<div style="display:flex;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:3px">';
+    // All button
+    var allSel = !st.therapists || st.therapists.length === allTherapists.length;
+    h += '<button onclick="_calSetTherapists(null)" style="padding:4px 10px;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);background:' + (allSel?'var(--surface)':'transparent') + ';color:' + (allSel?'var(--teal)':'var(--muted)') + '">Alla</button>';
+    allTherapists.forEach(function(t) {
+      var sel = visibleThIds.indexOf(t.id) !== -1;
+      h += '<button onclick="_calToggleTherapist(\'' + t.id + '\')" style="display:flex;align-items:center;gap:5px;padding:4px 10px;border:none;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);background:' + (sel?'var(--surface)':'transparent') + ';color:' + (sel?'var(--ink)':'var(--muted)') + '">';
+      h += '<span style="width:7px;height:7px;border-radius:50%;background:' + (t.color||'var(--teal)') + ';flex-shrink:0;opacity:' + (sel?'1':'.4') + '"></span>';
+      h += e(t.name.split(' ')[0]) + '</button>';
+    });
+    h += '</div>';
+
+    // Multi-col toggle
+    h += '<button onclick="_calToggleMulti()" style="padding:5px 11px;border:1px solid ' + (multiMode?'var(--teal)':'var(--border)') + ';border-radius:8px;font-size:11px;font-weight:600;color:' + (multiMode?'var(--teal)':'var(--muted)') + ';background:none;cursor:pointer;font-family:var(--font)">';
+    h += multiMode ? 'Samlad vy' : 'Parallellelvy';
+    h += '</button>';
+  }
+
+  h += '<button onclick="openBookingDialog(null,null)" class="btn btn-p" style="font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap">';
   h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
-  h += 'Sök & boka</button>';
-  h += '</div></div>';
+  h += 'Boka</button>';
+  h += '</div>';
+  h += '</div>'; // header
 
   // ── GRID ──────────────────────────────────────────────────────────────────
   h += '<div class="cal-grid-wrap">';
@@ -4380,87 +4430,215 @@ function rCalendar() {
   h += '<div class="cal-time-col">';
   for (var hour = st.hours.start; hour < st.hours.end; hour++) {
     h += '<div class="cal-time-slot"><span class="cal-time-label">' + String(hour).padStart(2,'0') + ':00</span></div>';
-    h += '<div class="cal-time-slot"></div>'; // :30
+    h += '<div class="cal-time-slot"></div>';
   }
   h += '</div>';
 
-  // Day columns
+  // Day columns (or therapist × day columns in multi mode)
   h += '<div class="cal-days" id="cal-days-scroll">';
-  var SLOT_H = 60; // px per hour, half = 30px
 
-  days.forEach(function(day, di) {
-    var dayStr  = dateStr(day);
-    var isToday = dayStr === todayStr;
-    var isWeekend = day.getDay() === 0 || day.getDay() === 6;
-    var dayName = day.toLocaleDateString('sv-SE', { weekday:'short' });
-    dayName = dayName.charAt(0).toUpperCase() + dayName.slice(1);
-    var dayNum  = day.getDate();
+  if (multiMode && visibleThers.length > 1) {
+    // ── MULTI-THERAPIST: one column per (therapist × day visible)
+    // For space, show only today + rest of week when in multi mode
+    days.forEach(function(day) {
+      var dayStr  = day.toISOString().slice(0,10);
+      var isToday = dayStr === todayStr;
+      var isWknd  = day.getDay() === 0 || day.getDay() === 6;
+      var dayName = day.toLocaleDateString('sv-SE',{weekday:'short'});
+      dayName = dayName.charAt(0).toUpperCase() + dayName.slice(1);
 
-    h += '<div class="cal-day-col" style="' + (isWeekend?'background:rgba(255,255,255,.015)':'') + '">';
-    h += '<div class="cal-day-header' + (isToday?' today':'') + '">';
-    h += '<div class="cal-day-name">' + dayName + '</div>';
-    h += '<div class="cal-day-num">' + dayNum + '</div>';
-    h += '</div>';
+      // Wrapper for this day (flex column containing per-therapist sub-cols)
+      h += '<div style="display:flex;flex-direction:column;border-left:1px solid var(--border2);min-width:' + (visibleThers.length * 90) + 'px">';
 
-    h += '<div class="cal-slots" style="position:relative;height:' + ((st.hours.end - st.hours.start) * SLOT_H) + 'px">';
-
-    // Slot lines
-    for (var hr = st.hours.start; hr < st.hours.end; hr++) {
-      var top = (hr - st.hours.start) * SLOT_H;
-      var tStr = String(hr).padStart(2,'0') + ':00';
-      h += '<div class="cal-slot" style="position:absolute;top:' + top + 'px;left:0;right:0;height:' + SLOT_H + 'px" onclick="_calSlotClick(\'' + dayStr + '\',\'' + tStr + '\')">';
-      h += '<div style="position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(255,255,255,.04)"></div>';
+      // Day header spanning all therapist cols
+      h += '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:40px;position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);z-index:10;' + (isToday?'border-bottom:2px solid var(--teal)':'') + '">';
+      h += '<div class="cal-day-name">' + dayName + '</div>';
+      h += '<div class="cal-day-num' + (isToday?' " style="color:var(--teal)':'"') + '">' + day.getDate() + '</div>';
       h += '</div>';
-    }
 
-    // Now line
-    if (isToday) {
-      var nowMins = now.getHours() * 60 + now.getMinutes();
-      var startMins = st.hours.start * 60;
-      var nowTop = ((nowMins - startMins) / 60) * SLOT_H;
-      if (nowTop >= 0 && nowTop <= (st.hours.end - st.hours.start) * SLOT_H) {
-        h += '<div class="cal-now-line" style="top:' + nowTop + 'px"></div>';
-      }
-    }
+      // Therapist sub-columns for this day
+      h += '<div style="display:flex;flex:1">';
+      visibleThers.forEach(function(ther, ti) {
+        var thColor = ther.color || 'var(--teal)';
+        var dayBks  = bks.filter(function(b){
+          return b.date === dayStr && b.therapistId === ther.id;
+        });
 
-    // Bookings
-    var dayBks = bks.filter(function(b){ return b.date === dayStr; });
-    dayBks.forEach(function(bk) {
-      var bTime  = bk.time || '08:00';
-      var bHour  = parseInt(bTime.split(':')[0], 10);
-      var bMin   = parseInt(bTime.split(':')[1] || '0', 10);
-      var bMins  = bHour * 60 + bMin;
-      var startM = st.hours.start * 60;
-      var top2   = ((bMins - startM) / 60) * SLOT_H;
-      var dur    = bk.duration || 45;
-      var height = (dur / 60) * SLOT_H - 3;
-      if (top2 < 0 || top2 > (st.hours.end - st.hours.start) * SLOT_H) return;
-      var typeClass = bk.type === 'new' ? 'new' : (bk.status === 'completed' ? 'completed' : bk.status === 'cancelled' ? 'cancelled' : 'returning');
-      h += '<div class="cal-booking ' + typeClass + '" style="top:' + top2 + 'px;height:' + height + 'px" onclick="event.stopPropagation();openBookingDetail(\'' + bk.id + '\')">';
-      h += '<div class="cal-booking-time">' + bTime + ' · ' + dur + 'min</div>';
-      h += '<div class="cal-booking-name">' + e(bk.patientName || 'Okänd') + '</div>';
-      if (bk.serviceName && height > 36) h += '<div class="cal-booking-svc">' + e(bk.serviceName) + '</div>';
-      if (height > 44) {
-        var _sigs = [];
-        if (bk.intakeCompleted) _sigs.push('<span class="cal-signal-dot" style="background:#4ade80" title="Intake klart"></span>');
-        else if (bk.intakeSent)  _sigs.push('<span class="cal-signal-dot" style="background:#c8a030" title="Intake inväntar svar"></span>');
-        if (_sigs.length) h += '<div class="cal-booking-signals">' + _sigs.join('') + '</div>';
-      }
-      h += '</div>';
+        h += '<div style="flex:1;min-width:88px;border-left:' + (ti>0?'1px solid var(--border2)':'none') + ';position:relative">';
+
+        // Therapist indicator strip at top of column
+        h += '<div style="height:18px;background:' + thColor + '14;border-bottom:1px solid ' + thColor + '30;display:flex;align-items:center;padding:0 5px">';
+        h += '<span style="width:5px;height:5px;border-radius:50%;background:' + thColor + ';flex-shrink:0;margin-right:4px"></span>';
+        h += '<span style="font-size:9px;font-weight:700;color:' + thColor + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + e(ther.name.split(' ')[0]) + '</span>';
+        h += '</div>';
+
+        // Slots
+        h += '<div style="position:relative;height:' + ((st.hours.end-st.hours.start)*SLOT_H) + 'px">';
+        for (var hr = st.hours.start; hr < st.hours.end; hr++) {
+          var top = (hr-st.hours.start)*SLOT_H;
+          var tStr = String(hr).padStart(2,'0')+':00';
+          h += '<div class="cal-slot" style="position:absolute;top:'+top+'px;left:0;right:0;height:'+SLOT_H+'px" onclick="_calSlotClick(\''+dayStr+'\',\''+tStr+'\',\''+ther.id+'\')">';
+          h += '<div style="position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(255,255,255,.04)"></div>';
+          h += '</div>';
+        }
+        // Now line
+        if (isToday) {
+          var nowMins2 = now.getHours()*60+now.getMinutes();
+          var nowTop2  = ((nowMins2 - st.hours.start*60)/60)*SLOT_H;
+          if (nowTop2 >= 0 && nowTop2 <= (st.hours.end-st.hours.start)*SLOT_H) {
+            h += '<div class="cal-now-line" style="top:'+nowTop2+'px"></div>';
+          }
+        }
+        // Bookings for this therapist on this day
+        dayBks.forEach(function(bk) {
+          h += _calRenderChip(bk, st);
+        });
+        h += '</div></div>'; // slots + therapist col
+      });
+      h += '</div></div>'; // flex + day wrapper
     });
 
-    h += '</div></div>';
-  });
+  } else {
+    // ── SINGLE / FILTERED: normal one-column-per-day
+    days.forEach(function(day) {
+      var dayStr  = day.toISOString().slice(0,10);
+      var isToday = dayStr === todayStr;
+      var isWknd  = day.getDay() === 0 || day.getDay() === 6;
+      var dayName = day.toLocaleDateString('sv-SE',{weekday:'short'});
+      dayName = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+      var dayNum  = day.getDate();
 
-  h += '</div></div></div>';
+      // Filter by selected therapists
+      var dayBks = bks.filter(function(b){
+        return b.date === dayStr &&
+          (!st.therapists || st.therapists.indexOf(b.therapistId || 'therapist_me') !== -1 ||
+           !b.therapistId); // bookings without therapistId show under first therapist
+      });
+
+      h += '<div class="cal-day-col" style="'+(isWknd?'background:rgba(255,255,255,.012)':'') + '">';
+      h += '<div class="cal-day-header'+(isToday?' today':'')+'">';
+
+      // In single mode with multi therapists, show colored dot for each ther with bookings
+      if (allTherapists.length > 1) {
+        var therInDay = {};
+        dayBks.forEach(function(b){ if(b.therapistId) therInDay[b.therapistId]=true; });
+        var therDots = allTherapists.filter(function(t){ return therInDay[t.id]; });
+        if (therDots.length) {
+          h += '<div style="display:flex;gap:2px;margin-bottom:2px">';
+          therDots.forEach(function(t){ h += '<span style="width:5px;height:5px;border-radius:50%;background:'+(t.color||'var(--teal)')+'"></span>'; });
+          h += '</div>';
+        }
+      }
+
+      h += '<div class="cal-day-name">'+dayName+'</div>';
+      h += '<div class="cal-day-num">'+dayNum+'</div>';
+      h += '</div>';
+
+      h += '<div class="cal-slots" style="position:relative;height:'+((st.hours.end-st.hours.start)*SLOT_H)+'px">';
+
+      // Slot click lines
+      for (var hr = st.hours.start; hr < st.hours.end; hr++) {
+        var top = (hr-st.hours.start)*SLOT_H;
+        var tStr = String(hr).padStart(2,'0')+':00';
+        h += '<div class="cal-slot" style="position:absolute;top:'+top+'px;left:0;right:0;height:'+SLOT_H+'px" onclick="_calSlotClick(\''+dayStr+'\',\''+tStr+'\')">';
+        h += '<div style="position:absolute;top:50%;left:0;right:0;height:1px;background:rgba(255,255,255,.04)"></div>';
+        h += '</div>';
+      }
+
+      // Now line
+      if (isToday) {
+        var nowMins = now.getHours()*60+now.getMinutes();
+        var nowTop  = ((nowMins-st.hours.start*60)/60)*SLOT_H;
+        if (nowTop >= 0 && nowTop <= (st.hours.end-st.hours.start)*SLOT_H) {
+          h += '<div class="cal-now-line" style="top:'+nowTop+'px"><div style="position:absolute;left:-4px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--red,#e05555)"></div></div>';
+        }
+      }
+
+      // Booking chips
+      dayBks.forEach(function(bk) {
+        h += _calRenderChip(bk, st);
+      });
+
+      h += '</div></div>'; // slots + day col
+    });
+  }
+
+  h += '</div></div></div>'; // days + grid + wrap
   el.innerHTML = h;
 
   // Scroll to working hours
   setTimeout(function(){
     var scroll = document.getElementById('cal-days-scroll');
-    if (scroll) scroll.scrollTop = (8 - window._calState.hours.start) * SLOT_H;
+    if (scroll) scroll.scrollTop = (8-st.hours.start)*SLOT_H;
   }, 50);
 }
+
+// ── Chip renderer (extracted for reuse in single + multi mode) ────────────────
+function _calRenderChip(bk, st) {
+  var bTime  = bk.time || '08:00';
+  var bHour  = parseInt(bTime.split(':')[0], 10);
+  var bMin   = parseInt(bTime.split(':')[1]||'0', 10);
+  var bMins  = bHour*60 + bMin;
+  var startM = st.hours.start*60;
+  var top2   = ((bMins-startM)/60)*60;
+  var dur    = bk.duration || 45;
+  var height = (dur/60)*60 - 3;
+  if (top2 < 0 || top2 > (st.hours.end-st.hours.start)*60) return '';
+
+  // Therapist accent (multi mode: override left border with therapist color)
+  var ther = bk.therapistId ? getTherapists().find(function(t){ return t.id===bk.therapistId; }) : null;
+  var therColor = ther ? ther.color : null;
+
+  var pat    = (S.patients||[]).find(function(p){ return p.id===bk.patientId; });
+  var ns     = pat ? _predictNoShow(pat) : null;
+  var intakePending = bk.intakeSent && !bk.intakeCompleted;
+
+  var typeClass;
+  if      (bk.status === 'cancelled')          typeClass = 'cancelled';
+  else if (bk.status === 'completed')          typeClass = 'completed';
+  else if (bk.status === 'no-show')            typeClass = 'cancelled';
+  else if (ns && ns.risk === 'high')           typeClass = 'risk';
+  else if (intakePending)                       typeClass = 'intake-pending';
+  else if (bk.type === 'new')                  typeClass = 'new';
+  else if (bk.status === 'confirmed')          typeClass = 'confirmed';
+  else                                          typeClass = 'returning';
+
+  var extraStyle = therColor ? ';border-left-color:'+therColor : '';
+
+  var h = '<div class="cal-booking ' + typeClass + '" style="top:'+top2+'px;height:'+height+'px'+extraStyle+'" onclick="event.stopPropagation();openBookingDetail(\''+bk.id+'\')">';
+  h += '<div class="cal-booking-time">'+bTime+' · '+dur+'min</div>';
+  h += '<div class="cal-booking-name">'+e(bk.patientName||'Okänd')+'</div>';
+  if (bk.serviceName && height > 36) h += '<div class="cal-booking-svc">'+e(bk.serviceName)+'</div>';
+  if (height > 44) {
+    var sigs = [];
+    if (bk.intakeCompleted) sigs.push('<span class="cal-signal-dot" style="background:#4ade80"></span>');
+    else if (bk.intakeSent) sigs.push('<span class="cal-signal-dot" style="background:#c8a030"></span>');
+    if (ns && ns.risk === 'high') sigs.push('<span class="cal-signal-dot" style="background:#f87171"></span>');
+    if (sigs.length) h += '<div class="cal-booking-signals">'+sigs.join('')+'</div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+// ── Therapist filter helpers ──────────────────────────────────────────────────
+function _calSetTherapists(ids) {
+  window._calState.therapists = ids;
+  rCalendar();
+}
+function _calToggleTherapist(id) {
+  var st  = window._calState;
+  var all = getTherapists().map(function(t){ return t.id; });
+  var cur = st.therapists ? st.therapists.slice() : all.slice();
+  var idx = cur.indexOf(id);
+  if (idx !== -1) { cur.splice(idx,1); } else { cur.push(id); }
+  st.therapists = cur.length === all.length ? null : cur;
+  rCalendar();
+}
+function _calToggleMulti() {
+  window._calState.multiMode = !window._calState.multiMode;
+  rCalendar();
+}
+
 
 // ── NAVIGATION ────────────────────────────────────────────────────────────────
 function _calPrev() {
@@ -4479,8 +4657,53 @@ function _calToday() {
   window._calState.week = getMondayOf(new Date());
   rCalendar();
 }
-function _calSlotClick(dateStr, timeStr) {
-  openBookingDialog(dateStr, timeStr);
+function _calSlotClick(dateStr, timeStr, therapistId) {
+  // Check if slot is already occupied
+  var existing = getBookings().filter(function(b){
+    if (b.status === 'cancelled') return false;
+    if (b.date !== dateStr) return false;
+    if (therapistId && b.therapistId && b.therapistId !== therapistId) return false;
+    var bMins  = parseInt((b.time||'0:0').split(':')[0])*60 + parseInt((b.time||'0:0').split(':')[1]||'0');
+    var clickM = parseInt(timeStr.split(':')[0])*60 + parseInt(timeStr.split(':')[1]||'0');
+    return clickM >= bMins && clickM < bMins + (b.duration||45);
+  });
+  if (existing.length) {
+    openBookingDetail(existing[0].id);
+    return;
+  }
+
+  // Check waitlist — show suggestion
+  var wl = getWaitlist ? getWaitlist() : [];
+  if (wl.length) {
+    var ov = document.createElement('div');
+    ov.id = 'cal-slot-ov';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.6);backdrop-filter:blur(4px)';
+    ov.onclick = function(e){ if(e.target===ov) ov.remove(); };
+    var d = new Date(dateStr+'T12:00');
+    var dLabel = d.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'short'});
+    dLabel = dLabel.charAt(0).toUpperCase() + dLabel.slice(1);
+    var h = '<div style="background:var(--surface);border-radius:16px;width:100%;max-width:380px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.4)" onclick="event.stopPropagation()">';
+    h += '<div style="padding:18px 20px 14px;border-bottom:1px solid var(--border)">';
+    h += '<div style="font-size:15px;font-weight:800;color:var(--ink)">' + dLabel + ' · ' + timeStr + '</div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-top:3px">Ledig tid — vem ska bokas?</div>';
+    h += '</div>';
+    h += '<div style="padding:12px 14px">';
+    h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Väntelista</div>';
+    wl.slice(0,3).forEach(function(w) {
+      var wOnclick = 'document.getElementById(&quot;cal-slot-ov&quot;).remove();openBookingDialog(&quot;'+dateStr+'&quot;,&quot;'+timeStr+'&quot;,&quot;'+w.patId+'&quot;)';
+      h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 10px;background:var(--bg);border-radius:9px;margin-bottom:6px;cursor:pointer" onclick="' + wOnclick + '">';
+      h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">' + e(w.patName) + '</div>';
+      h += '<div style="font-size:11px;color:var(--teal);font-weight:600">Boka</div>';
+      h += '</div>';
+    });
+    h += '<button onclick="document.getElementById(&quot;cal-slot-ov&quot;).remove();openBookingDialog(&quot;'+dateStr+'&quot;,&quot;'+timeStr+'&quot;)" style="width:100%;padding:10px;background:var(--teal);border:none;border-radius:9px;font-size:13px;font-weight:700;color:white;cursor:pointer;font-family:var(--font);margin-top:4px">Sök annan patient</button>';
+    h += '<button onclick="document.getElementById(&quot;cal-slot-ov&quot;).remove()" style="width:100%;padding:9px;background:none;border:none;font-size:12px;color:var(--muted);cursor:pointer;font-family:var(--font);margin-top:4px">Avbryt</button>';
+    h += '</div></div>';
+    ov.innerHTML = h;
+    document.body.appendChild(ov);
+  } else {
+    openBookingDialog(dateStr, timeStr);
+  }
 }
 
 // ── BOOKING DIALOG ────────────────────────────────────────────────────────────
@@ -4557,6 +4780,17 @@ function openBookingDialog(date, time, existingPatId) {
   // Notes
   h += '<div><div class="bk-label">Anteckning (visas ej för patient)</div>';
   h += '<textarea id="bk-notes" class="field" style="margin-bottom:0;height:60px;resize:none" placeholder="Kort info om besöket..."></textarea></div>';
+
+  // Therapist selector (only shown if >1 therapist)
+  var _thers = getTherapists();
+  if (_thers.length > 1) {
+    h += '<div><div class="bk-label">Behandlare</div>';
+    h += '<select id="bk-therapist" class="field" style="margin-bottom:0">';
+    _thers.forEach(function(t) {
+      h += '<option value="' + t.id + '">' + e(t.name) + '</option>';
+    });
+    h += '</select></div>';
+  }
 
   h += '</div>'; // end bk-body
 
@@ -4693,6 +4927,14 @@ function _saveBooking() {
     _queueIntakeSend(patId, patName, intakeLink, bkDate, bkTime);
   }
 
+  // Assign therapist (default = first therapist / current user)
+  var _therForBk = (function(){
+    var bkTherEl = document.getElementById('bk-therapist');
+    if (bkTherEl && bkTherEl.value) return bkTherEl.value;
+    var thers = getTherapists();
+    return thers.length ? thers[0].id : 'therapist_me';
+  })();
+
   var bk = {
     id:              'bk_' + Date.now(),
     patientId:       patId,
@@ -4706,6 +4948,7 @@ function _saveBooking() {
     serviceId:       svcId,
     serviceName:     svcName,
     notes:           notes,
+    therapistId:     _therForBk,
     intakeSent:      intakeSent,
     intakeSentAt:    intakeSent ? new Date().toISOString() : null,
     intakeLink:      intakeLink,
@@ -8796,42 +9039,72 @@ function prepVisitForm(patId) {
 }
 function newPat(){S.pat=null;S.visitId=null;S.form=dform();S.plan=null;S.locked={};go("form");}
 function newVisit(){
-  const p=S.pat;if(!p)return;
-  const prevWithSoap = (p.visits||[]).find(v => v.soap && (v.soap.S||v.soap.O||v.soap.A||v.soap.P));
+  var p = S.pat; if(!p) return;
+  var prevWithSoap = (p.visits||[]).slice().reverse().find(function(v){
+    return v.soap && (v.soap.S||v.soap.O||v.soap.A||v.soap.P);
+  });
   window._sbsPrevVisit = prevWithSoap || null;
-  const ov=document.createElement('div');
-  ov.id='new-visit-overlay';
-  ov.style.cssText='position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,20,35,.72);backdrop-filter:blur(5px);animation:fadeInOv .15s ease';
-  ov.onclick=function(e){if(e.target===ov)ov.remove();};
-  ov.innerHTML=`
-  <div style="position:relative;z-index:1;background:var(--surface);border-radius:16px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto;padding:24px 20px 20px;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
-    <div style="font-size:18px;font-weight:600;color:var(--navy);margin-bottom:4px">Nytt besök</div>
-    <div style="font-size:13px;color:var(--text3);margin-bottom:20px">${e(p.name)} -- ${e(p.diagnosis||'')}</div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <button onclick="document.getElementById('new-visit-overlay').remove();startMeeting()" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit;width:100%">
-        <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:2px">Spela in möte</div>
-        <div style="font-size:12px;color:var(--text3)">Transkribera samtal automatiskt och skapa journal</div>
-      </button>
-      ${prevWithSoap
-        ? `<button onclick="document.getElementById('new-visit-overlay').remove();startSBSsoap(window._sbsPrevVisit)" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit;width:100%">
-            <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:2px">Skriv journal</div>
-            <div style="font-size:12px;color:var(--text3)">Jämför med förra besöket (${prevWithSoap.date||''})</div>
-           </button>`
-        : `<button onclick="document.getElementById('new-visit-overlay').remove();startManualSOAP()" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit;width:100%">
-            <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:2px">Skriv journal manuellt</div>
-            <div style="font-size:12px;color:var(--text3)">Fyll i SOAP-anteckning direkt</div>
-           </button>`
-      }
-      <button onclick="document.getElementById('new-visit-overlay').remove();prepVisitForm(S.pat?.id);go('form')" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:left;cursor:pointer;font-family:inherit;width:100%">
-        <div style="font-size:14px;font-weight:600;color:var(--navy);margin-bottom:2px">Skapa Hael-plan</div>
-        <div style="font-size:12px;color:var(--text3)">Generera ny träningsplan utan journal</div>
-      </button>
-    </div>
-    <button onclick="document.getElementById('new-visit-overlay').remove()" style="width:100%;margin-top:12px;padding:10px;background:none;border:1px solid #dde6ee;border-radius:8px;color:var(--muted);font-size:13px;cursor:pointer;font-family:inherit">Stäng</button>
-  </div>`;
+  var prevDate = prevWithSoap ? (' · Förra: ' + (prevWithSoap.date||'')) : '';
+
+  var ov = document.createElement('div');
+  ov.id = 'new-visit-overlay';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.75);backdrop-filter:blur(6px)';
+  ov.onclick = function(e){ if(e.target===ov) ov.remove(); };
+
+  var h = '<div style="background:var(--surface);border-radius:18px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.4)" onclick="event.stopPropagation()">';
+
+  // Header
+  h += '<div style="padding:20px 22px 14px;border-bottom:1px solid var(--border)">';
+  h += '<div style="font-size:17px;font-weight:800;color:var(--ink);letter-spacing:-.02em">' + e(p.name) + '</div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin-top:3px">Välj hur du vill dokumentera besöket' + prevDate + '</div>';
+  h += '</div>';
+
+  // Options
+  h += '<div style="padding:14px;display:flex;flex-direction:column;gap:8px">';
+
+  // Option 1: Record
+  h += '<button onclick="document.getElementById(&quot;new-visit-overlay&quot;).remove();startMeeting()" style="background:var(--bg);border:1px solid rgba(13,155,138,.25);border-radius:12px;padding:14px 16px;text-align:left;cursor:pointer;font-family:var(--font);width:100%;transition:border-color .12s,background .12s">';
+  h += '<div style="display:flex;align-items:center;gap:12px">';
+  h += '<div style="width:36px;height:36px;border-radius:10px;background:rgba(13,155,138,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+  h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>';
+  h += '</div><div>';
+  h += '<div style="font-size:14px;font-weight:700;color:var(--ink)">AI-inspelning</div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin-top:1px">Spela in samtalet — AI skapar SOAP automatiskt</div>';
+  h += '</div></div></button>';
+
+  // Option 2: Write manually
+  h += '<button onclick="document.getElementById(&quot;new-visit-overlay&quot;).remove();startManualSOAP()" style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px;text-align:left;cursor:pointer;font-family:var(--font);width:100%;transition:border-color .12s">';
+  h += '<div style="display:flex;align-items:center;gap:12px">';
+  h += '<div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+  h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+  h += '</div><div>';
+  h += '<div style="font-size:14px;font-weight:700;color:var(--ink)">Skriv manuellt</div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin-top:1px">Fyll i SOAP direkt' + (prevWithSoap ? ' · AI-jämförelse med förra besöket' : ' · Med AI-assistans') + '</div>';
+  h += '</div></div></button>';
+
+  // Option 3: Hael plan
+  h += '<button onclick="document.getElementById(&quot;new-visit-overlay&quot;).remove();prepVisitForm(S.pat&&amp;S.pat.id);go(&quot;form&quot;)" style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px;text-align:left;cursor:pointer;font-family:var(--font);width:100%;transition:border-color .12s">';
+  h += '<div style="display:flex;align-items:center;gap:12px">';
+  h += '<div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+  h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+  h += '</div><div>';
+  h += '<div style="font-size:14px;font-weight:700;color:var(--ink)">Skapa Hael-plan</div>';
+  h += '<div style="font-size:12px;color:var(--muted);margin-top:1px">Generera träningsplan utan journalanteckning</div>';
+  h += '</div></div></button>';
+
+  h += '</div>';
+
+  // Footer
+  h += '<div style="padding:0 14px 14px">';
+  h += '<button onclick="document.getElementById(&quot;new-visit-overlay&quot;).remove()" style="width:100%;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>';
+  h += '</div>';
+
+  h += '</div>';
+  ov.innerHTML = h;
   document.body.appendChild(ov);
   addOverlayEsc('new-visit-overlay');
 }
+
 
 // -- PATIENTFLÖDEN -------------------------------------------------------------
 function newPatientFlow() {
@@ -9016,7 +9289,7 @@ function renderPatientSearchResults() {
     const lastDate = p.visits&&p.visits[0]&&p.visits[0].date||'';
     const initials = (p.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const age = (p.birthdate||p.birthYear) ? new Date().getFullYear()-birthdateToYear(p.birthdate||p.birthYear||'') : '';
-    return `<button onclick="selectReturningPatient('${p.id}')" style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid #e8ecf0;border-radius:10px;padding:12px 14px;text-align:left;cursor:pointer;font-family:inherit;width:100%;transition:all .12s" onmouseover="this.style.borderColor='var(--teal)';this.style.background='var(--teal-lt)'" onmouseout="this.style.borderColor='#e8ecf0';this.style.background='white'">
+    return `<button onclick="selectReturningPatient('${p.id}')" style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid #e8ecf0;border-radius:10px;padding:12px 14px;text-align:left;cursor:pointer;font-family:inherit;width:100%;transition:all .12s">
       <div style="width:38px;height:38px;border-radius:50%;background:var(--navy);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0">${initials}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:14px;font-weight:600;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e(p.name)}</div>
@@ -9052,11 +9325,11 @@ function showVisitActionChooser() {
   const svcOptions = SERVICES.map(s => `<option value="${e(s.name)}" data-price="${s.price}">${e(s.name)}${s.price?' -- '+s.price+' kr':''}</option>`).join('');
 
   const actions = [
-    {label:'Spela in möte', sub:'Transkribera samtal och skapa journal automatiskt', fn:`document.getElementById('new-visit-overlay').remove();_applySelectedService();startMeeting()`},
+    {label:'Spela in möte', sub:'Transkribera samtal och skapa journal automatiskt', fn:`document.getElementById(&quot;new-visit-overlay&quot;).remove();_applySelectedService();startMeeting()`},
     prevWithSoap
-      ? {label:'Skriv journal', sub:`Jämför med förra besöket (${prevWithSoap.date||''})`, fn:`document.getElementById('new-visit-overlay').remove();_applySelectedService();startSBSsoap(window._sbsPrevVisit)`}
-      : {label:'Skriv journal', sub:'SOAP-anteckning', fn:`document.getElementById('new-visit-overlay').remove();_applySelectedService();startManualSOAP()`},
-    {label:'Skapa rehabplan', sub:'Generera träningsplan utan journal', fn:`document.getElementById('new-visit-overlay').remove();_applySelectedService();prepVisitForm('${p.id}');go('form')`},
+      ? {label:'Skriv journal', sub:`Jämför med förra besöket (${prevWithSoap.date||''})`, fn:`document.getElementById(&quot;new-visit-overlay&quot;).remove();_applySelectedService();startSBSsoap(window._sbsPrevVisit)`}
+      : {label:'Skriv journal', sub:'SOAP-anteckning', fn:`document.getElementById(&quot;new-visit-overlay&quot;).remove();_applySelectedService();startManualSOAP()`},
+    {label:'Skapa rehabplan', sub:'Generera träningsplan utan journal', fn:`document.getElementById(&quot;new-visit-overlay&quot;).remove();_applySelectedService();prepVisitForm('${p.id}');go('form')`},
   ];
 
   const initials = (p.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
@@ -9070,7 +9343,7 @@ function showVisitActionChooser() {
         <div class="npf-title" style="font-size:20px">${e(p.name)}</div>
         <div class="npf-sub">${p.birthdate||''}${totalRevenue?' · '+totalRevenue.toLocaleString('sv-SE')+' kr totalt':''}</div>
       </div>
-      <button onclick="document.getElementById('new-visit-overlay').remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:rgba(255,255,255,.5);line-height:1;padding:0">×</button>
+      <button onclick="document.getElementById(&quot;new-visit-overlay&quot;).remove()" style="background:none;border:none;font-size:22px;cursor:pointer;color:rgba(255,255,255,.5);line-height:1;padding:0">×</button>
     </div>
     <div class="npf-body">
       <!-- Service -->
@@ -9086,7 +9359,7 @@ function showVisitActionChooser() {
       <div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--navy);margin-bottom:10px">Åtgärd</div>
       <div style="display:flex;flex-direction:column;gap:6px">
         ${actions.map(a=>`
-        <button onclick="${a.fn}" style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid #e8ecf0;padding:12px 14px;text-align:left;cursor:pointer;font-family:inherit;width:100%;transition:all .12s" onmouseover="this.style.borderColor='var(--teal)';this.style.background='var(--teal-lt)'" onmouseout="this.style.borderColor='#e8ecf0';this.style.background='white'">
+        <button onclick="${a.fn}" style="display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid #e8ecf0;padding:12px 14px;text-align:left;cursor:pointer;font-family:inherit;width:100%;transition:all .12s">
           <div style="width:6px;height:6px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:1px"></div>
           <div>
             <div style="font-size:13px;font-weight:600;color:var(--navy)">${a.label}</div>
@@ -9096,8 +9369,8 @@ function showVisitActionChooser() {
       </div>
     </div>
     <div style="padding:8px 24px 28px;display:flex;gap:8px">
-      <button onclick="document.getElementById('new-visit-overlay').remove();go('detail')" class="npf-btn-ghost" style="flex:1">Öppna kundkort</button>
-      <button onclick="document.getElementById('new-visit-overlay').remove()" class="npf-btn-ghost" style="flex:1">Stäng</button>
+      <button onclick="document.getElementById(&quot;new-visit-overlay&quot;).remove();go('detail')" class="npf-btn-ghost" style="flex:1">Öppna kundkort</button>
+      <button onclick="document.getElementById(&quot;new-visit-overlay&quot;).remove()" class="npf-btn-ghost" style="flex:1">Stäng</button>
     </div>
   </div>`;
   document.body.appendChild(ov);
@@ -9721,11 +9994,10 @@ async function finishMeeting() {
   const fullTranscript = meetTranscript.map(t => `[${t.time}] ${t.text}`).join('\n');
   const extra = meetNote ? `\n\nEgna noteringar: ${meetNote}` : '';
 
-  // If nothing captured at all, open manual SOAP instead
+  // If nothing captured: go to manual SOAP gracefully, no alert
   if (!fullTranscript && !meetNote) {
-    alert('Ingen transkription eller noteringar. Fyller i journalen manuellt.');
-    go(S.pat ? 'detail' : 'list');
-    startManualSOAP();
+    showAutoSaveToast('Ingen inspelning — öppnar manuell journal');
+    setTimeout(function(){ startManualSOAP(); }, 200);
     return;
   }
 
@@ -9792,63 +10064,131 @@ Filtrera bort allt som INTE är medicinskt relevant -- vardagsprat, hälsningar,
     currentSOAP = { ...result, transcript: meetTranscript, date: new Date().toISOString().slice(0,10), note: meetNote };
     go('soap');
   } catch(err) {
-    alert('Fel vid journalanalys: ' + err.message);
-    go('meeting');
+    // Don't return to meeting screen — go to manual SOAP with transcript preserved
+    showAutoSaveToast('AI-analys misslyckades — öppnar manuell journal');
+    if (meetTranscript.length) {
+      // Pre-fill S field with raw transcript so nothing is lost
+      currentSOAP = currentSOAP || {};
+      currentSOAP.soap = currentSOAP.soap || {S:'',O:'',A:'',P:''};
+      if (!currentSOAP.soap.S) {
+        currentSOAP.soap.S = meetTranscript.slice(-20).map(function(t){ return t.text; }).join(' ');
+      }
+      currentSOAP.transcript = meetTranscript;
+      currentSOAP.date = new Date().toISOString().slice(0,10);
+    }
+    setTimeout(function(){ startManualSOAP(); }, 200);
+    console.error('finishMeeting error:', err);
   }
 }
 
 function rSOAP() {
   if (!currentSOAP) { go('detail'); return; }
-  // Check for red flags in transcript + soap text
-  const allText = [
-    currentSOAP.transcript ? currentSOAP.transcript.map(t=>t.text||'').join(' ') : '',
+
+  var allText = [
+    currentSOAP.transcript ? currentSOAP.transcript.map(function(t){return t.text||'';}).join(' ') : '',
     Object.values(currentSOAP.soap||{}).join(' ')
   ].join(' ');
-  const flags = checkRedFlags(allText);
-  const flagBanner = renderRedFlagBanner(flags);
-  const soap = currentSOAP.soap || {};
-  const el = document.getElementById('s-soap');
-  el.innerHTML = `<div class="soap-wrap">${flagBanner}
-    <div class="soap-title">Journalanteckning</div>
-    <div class="soap-sub">${e(S.pat&&S.pat.name||'')} · ${currentSOAP.date}</div>
-    ${['S','O','A','P'].map(letter => {
-      const labels = {S:'Subjektivt -- Patientens berättelse',O:'Objektivt -- Undersökningsfynd',A:'Bedömning -- Diagnos & funktionsnivå',P:'Plan -- Åtgärder & uppföljning'};
-      return `<div class="soap-section">
-        <div class="soap-hdr">
-          <div class="soap-letter ${letter}">${letter}</div>
-          <div class="soap-hdr-title">${labels[letter]}</div>
-        </div>
-        <div class="soap-body">
-          <textarea class="soap-edit" id="soap-${letter}" oninput="currentSOAP.soap['${letter}']=this.value">${e(soap[letter]||'')}</textarea>
-        </div>
-      </div>`;
-    }).join('')}
-    <div style="margin-top:18px">
-      <div class="soap-diag-lbl">Diagnos från samtalet</div>
-      <div class="soap-diag-row">
-        <input class="soap-diag-field" value="${e(currentSOAP.diagnosis||'')}" placeholder="Diagnos..." oninput="currentSOAP.diagnosis=this.value">
-      </div>
-    </div>
-    <div style="margin-top:6px">
-      <div class="soap-diag-lbl">ICD-10</div>
-      <div class="soap-diag-row">
-        <input class="soap-diag-field" style="max-width:120px;font-family:'DM Mono',monospace;font-weight:600;color:#4a9aaa" value="${e(currentSOAP.icd10||'')}" placeholder="M54.5" oninput="currentSOAP.icd10=this.value">
-        <input class="soap-diag-field" value="${e(currentSOAP.icd10desc||'')}" placeholder="ICD-10 beskrivning..." oninput="currentSOAP.icd10desc=this.value">
-      </div>
-    </div>
-    <div style="margin-top:18px;margin-bottom:6px">
-      <button class="btn" style="width:100%;padding:10px;text-align:center;letter-spacing:.02em" onclick="copySOAP()" id="copy-btn">
-        Kopiera journal för inklistring i journalsystem
-      </button>
-    </div>
-    <div class="soap-actions">
-      <button class="btn btn-p" style="flex:2;padding:13px;border-radius:8px;font-family:'Cormorant Garamond',serif;font-size:16px;letter-spacing:.03em" onclick="saveSOAPAndPlan()">
-        Spara journal & skapa rehabplan ->
-      </button>
-      <button class="btn" style="flex:1;padding:13px" onclick="saveSOAPOnly()">Spara journal</button>
-    </div>
-  </div>`;
+  var flags       = checkRedFlags(allText);
+  var flagBanner  = renderRedFlagBanner(flags);
+  var soap        = currentSOAP.soap || {};
+  var hasTranscript = currentSOAP.transcript && currentSOAP.transcript.length > 0;
+  var el          = document.getElementById('s-soap');
+
+  var h = '<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">';
+
+  // ── Sticky header ────────────────────────────────────────────────────────
+  h += '<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;gap:16px;flex-shrink:0;position:sticky;top:0;z-index:50">';
+  h += '<button onclick="go(\'detail\')" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;color:var(--muted);padding:0;font-family:var(--font)">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Tillbaka</button>';
+  h += '<span style="color:var(--border)">|</span>';
+  h += '<span style="font-size:13px;font-weight:700;color:var(--ink)">' + e((S.pat&&S.pat.name)||'') + '</span>';
+  h += '<span style="font-size:11px;color:var(--muted)">' + (currentSOAP.date||'') + '</span>';
+  if (flags && flags.length) {
+    h += '<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(224,85,85,.15);color:#f87171">' + flags.length + ' röd' + (flags.length>1?'a':'') + ' flagg' + (flags.length>1?'or':'a') + '</span>';
+  }
+  h += '<div style="margin-left:auto;display:flex;gap:8px">';
+  h += '<button onclick="copySOAP()" style="padding:7px 14px;background:none;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:var(--font)">Kopiera</button>';
+  h += '<button onclick="saveSOAPOnly()" style="padding:7px 14px;background:none;border:1px solid var(--border);border-radius:8px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Spara journal</button>';
+  h += '<button onclick="saveSOAPAndPlan()" style="padding:7px 18px;background:var(--teal);border:none;border-radius:8px;font-size:12px;font-weight:700;color:white;cursor:pointer;font-family:var(--font)">Godkänn &amp; skapa Hael-plan</button>';
+  h += '</div></div>';
+
+  // ── Red flag banner ───────────────────────────────────────────────────────
+  if (flagBanner) h += flagBanner;
+
+  // ── Two-column body ───────────────────────────────────────────────────────
+  h += '<div style="display:flex;flex:1;overflow:hidden;gap:0">';
+
+  // Left: Transcript (only if exists)
+  if (hasTranscript) {
+    h += '<div style="width:300px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden">';
+    h += '<div style="padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0">';
+    h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Transkription</div>';
+    h += '</div>';
+    h += '<div style="flex:1;overflow-y:auto;padding:14px 16px">';
+    currentSOAP.transcript.forEach(function(t) {
+      h += '<div style="margin-bottom:8px">';
+      h += '<div style="font-size:10px;color:var(--muted);margin-bottom:2px">' + e(t.time||'') + '</div>';
+      h += '<div style="font-size:12px;color:var(--text);line-height:1.6">' + e(t.text||'') + '</div>';
+      h += '</div>';
+    });
+    h += '</div></div>';
+  }
+
+  // Right: Editable SOAP + meta
+  h += '<div style="flex:1;overflow-y:auto;padding:20px 24px">';
+
+  // SOAP sections
+  var soapLabels = {S:'Subjektivt',O:'Objektivt',A:'Bedömning',P:'Plan'};
+  var soapSubs   = {S:'Patientens berättelse, symtom, debut, aggravation',O:'Undersökningsfynd, tester, rörelseomfång',A:'Diagnos, funktionsnivå, prognos',P:'Åtgärder, hemprogram, uppföljning'};
+  ['S','O','A','P'].forEach(function(letter) {
+    h += '<div style="margin-bottom:18px">';
+    h += '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:6px">';
+    h += '<div style="font-size:14px;font-weight:900;color:var(--teal);font-family:var(--mono,monospace)">' + letter + '</div>';
+    h += '<div style="font-size:11px;font-weight:700;color:var(--ink)">' + soapLabels[letter] + '</div>';
+    h += '<div style="font-size:10px;color:var(--muted)">' + soapSubs[letter] + '</div>';
+    h += '</div>';
+    h += '<textarea style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px;color:var(--text);font-family:var(--font);line-height:1.65;resize:vertical;min-height:80px;box-sizing:border-box;transition:border-color .12s" ';
+    h += 'id="soap-' + letter + '" ';
+    h += 'oninput="currentSOAP.soap[\'' + letter + '\']=this.value" ';
+    h += 'onfocus="this.style.borderColor=\'var(--teal)\'" ';
+    h += 'onblur="this.style.borderColor=\'var(--border)\'">' + e(soap[letter]||'') + '</textarea>';
+    h += '</div>';
+  });
+
+  // Diagnosis + ICD-10
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px">';
+  h += '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Diagnos</div>';
+  h += '<input style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:var(--font);box-sizing:border-box" value="' + e(currentSOAP.diagnosis||'') + '" placeholder="Diagnos..." oninput="currentSOAP.diagnosis=this.value"></div>';
+  h += '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">ICD-10</div>';
+  h += '<div style="display:flex;gap:6px">';
+  h += '<input style="width:90px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--teal);font-family:monospace;font-weight:700;box-sizing:border-box" value="' + e(currentSOAP.icd10||'') + '" placeholder="M54.5" oninput="currentSOAP.icd10=this.value">';
+  h += '<input style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--text);font-family:var(--font);box-sizing:border-box" value="' + e(currentSOAP.icd10desc||'') + '" placeholder="Beskrivning..." oninput="currentSOAP.icd10desc=this.value">';
+  h += '</div></div></div>';
+
+  // ── Visit status setter ─────────────────────────────────────────────────
+  h += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:20px">';
+  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Besöksstatus — krävs för att markera som klar</div>';
+  h += '<div style="display:flex;gap:8px">';
+  var statuses = [{v:'completed',l:'Patient kom',c:'#4ade80'},{v:'no-show',l:'Uteblev',c:'#f87171'},{v:'cancelled',l:'Avbokat',c:'var(--muted)'}];
+  statuses.forEach(function(st) {
+    var isSel = (window._soapVisitStatus === st.v);
+    h += '<button onclick="window._soapVisitStatus=\'' + st.v + '\';rSOAP()" style="flex:1;padding:10px 8px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font);border:1.5px solid ' + (isSel?st.c:'var(--border)') + ';background:' + (isSel?st.c+'18':'none') + ';color:' + (isSel?st.c:'var(--muted)') + '">' + st.l + '</button>';
+  });
+  h += '</div></div>';
+
+  // Actions
+  h += '<div style="display:flex;gap:10px;padding-bottom:24px">';
+  h += '<button onclick="saveSOAPOnly()" style="flex:1;padding:13px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Spara journal</button>';
+  h += '<button onclick="saveSOAPAndPlan()" style="flex:2;padding:13px;background:var(--teal);border:none;border-radius:10px;font-size:14px;font-weight:800;color:white;cursor:pointer;font-family:var(--font);letter-spacing:-.01em">Godkänn journal &amp; skapa Hael-plan</button>';
+  h += '</div>';
+
+  h += '</div>'; // right col
+  h += '</div>'; // two-col
+  h += '</div>'; // wrap
+
+  el.innerHTML = h;
 }
+
 
 async function saveSOAPOnly() {
   await saveSOAPToVisit(false);
@@ -9890,7 +10230,7 @@ async function saveSOAPToVisit(goToPlan) {
     const newVisit = {
       id: vid,
       date: currentSOAP.date,
-      form: null, plan: null, status: 'Aktiv',
+      form: null, plan: null, status: window._soapVisitStatus || 'completed',
       note: soapText,
       soap: mergedSoap,
       transcript: currentSOAP.transcript,
@@ -9898,6 +10238,17 @@ async function saveSOAPToVisit(goToPlan) {
       service: svc.name || '',
       servicePrice: svc.price || 0,
     };
+    // Sync booking status if a booking exists for today
+    var _todayBks = getBookings().filter(function(b){
+      return b.patientId === (p&&p.id) && b.date === (currentSOAP.date||new Date().toISOString().slice(0,10));
+    });
+    if (_todayBks.length) {
+      _todayBks.forEach(function(b){
+        b.status = window._soapVisitStatus || 'completed';
+        upsertBooking(b);
+      });
+    }
+    window._soapVisitStatus = null;
     window._pendingService = null;
     updVisits = [newVisit, ...(p.visits||[])];
   }
@@ -18289,29 +18640,75 @@ function _toggleDropoutDetail(patId) {
 
 // Trigger retention message generation for a specific patient from the detail card
 async function _generateRetentionForPat(patId) {
-  var pat = S.patients.find(function(p){return p.id===patId;});
+  var pat = (S.patients||[]).find(function(p){ return p.id===patId; });
   if (!pat) return;
-  var signals = computeRetentionSignals().filter(function(s){return s.patId===patId;});
-  var sig = signals[0];
-  if (!sig) {
-    // Create a generic dropout signal
-    sig = {
-      patId:patId, patName:pat.name,
-      triggerId:'hael_dropout', priority:3,
-      label:'Avhoppsrisk detekterad', sub:'Manuellt triggrad från patientkortet',
-      icon:'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
-      channel:'mail', urgency:'medium',
-      context:{type:'hael_dropout',daysSince:null}
-    };
+
+  var sig = {
+    patId:patId, patName:pat.name, triggerId:'hael_dropout',
+    label:'Uppföljning', channel: (pat.phone && localStorage.getItem('vela:sms-enabled')!=='off') ? 'sms' : 'mail',
+    urgency:'medium'
+  };
+
+  showAutoSaveToast('Genererar meddelande...');
+  var aiText = await _velaAiRetentionMsg(pat, sig.label, sig.channel);
+
+  if (!aiText) {
+    showAutoSaveToast('API-nyckel saknas — gå till Inställningar > AI');
+    return;
   }
-  showAutoSaveToast('Genererar retention-meddelande...');
-  var msg = await generateRetentionMessage(sig, pat);
-  if (msg) {
-    queueRetentionAction(sig, msg);
-    showAutoSaveToast('Meddelande genererat och köat i AI Retention ✓');
+
+  var mode = getRetentionMode();
+  var chanLabel = sig.channel === 'sms' ? 'SMS' : 'Mail';
+
+  // Show preview modal
+  var ov = document.createElement('div');
+  ov.id = 'ret-preview-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(1,4,9,.82);backdrop-filter:blur(6px)';
+  ov.onclick = function(e){ if(e.target===ov) ov.remove(); };
+
+  var h = '<div style="background:var(--surface);border-radius:16px;width:100%;max-width:520px;overflow:hidden;box-shadow:0 16px 48px rgba(1,4,9,.8);border:1px solid var(--border)" onclick="event.stopPropagation()">';
+  h += '<div style="padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
+  h += '<div><div style="font-size:15px;font-weight:800;color:var(--ink)">' + e(pat.name) + '</div>';
+  h += '<div style="font-size:11px;color:var(--text2);margin-top:3px">' + chanLabel + ' · AI-genererat · Granska innan du skickar</div></div>';
+  h += '<button onclick="document.getElementById(&quot;ret-preview-ov&quot;).remove()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer">×</button>';
+  h += '</div>';
+  h += '<div style="padding:18px 22px">';
+  h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:8px">Meddelande — redigera om du vill</div>';
+  h += '<textarea id="ret-msg-text" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px;color:var(--ink);font-family:var(--font);line-height:1.7;resize:vertical;min-height:130px;box-sizing:border-box">' + e(aiText) + '</textarea>';
+  h += '<div style="font-size:11px;color:var(--text2);margin-top:8px">';
+  h += mode==='manual' ? 'Manuell mode — godkänner du nedan köas meddelandet, du ser det under AI Retention.'
+     : mode==='semi'   ? 'Semi-auto — skickas om 24h om du inte avvisar det i AI Retention.'
+     :                   'Autopilot — skickas direkt.';
+  h += '</div>';
+  h += '<div style="display:flex;gap:10px;margin-top:16px">';
+  h += '<button onclick="document.getElementById(&quot;ret-preview-ov&quot;).remove()" style="flex:1;padding:11px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text2);cursor:pointer;font-family:var(--font)">Avbryt</button>';
+  h += '<button onclick="_retQueueFromModal()" style="flex:2;padding:11px;background:var(--teal);border:none;border-radius:10px;font-size:13px;font-weight:700;color:#0d1117;cursor:pointer;font-family:var(--font)">' + (mode==='auto'?'Skicka nu':'Godkänn &amp; schemalägg') + '</button>';
+  h += '</div></div></div>';
+
+  ov.innerHTML = h;
+  document.body.appendChild(ov);
+
+  // Store context for the modal button
+  window._retQueueCtx = { pat:pat, sig:sig, mode:mode };
+}
+
+function _retQueueFromModal() {
+  var ctx = window._retQueueCtx;
+  if (!ctx) return;
+  var text = document.getElementById('ret-msg-text')?.value?.trim();
+  if (!text) return;
+
+  var msg = { subject: ctx.sig.label || 'Hälsning från kliniken', body: text, channel: ctx.sig.channel };
+  queueRetentionAction(ctx.sig, msg);
+  document.getElementById('ret-preview-ov')?.remove();
+
+  if (ctx.mode === 'auto') {
+    _dispatchRetentionQueue();
+    showAutoSaveToast('Skickar till ' + ctx.pat.name.split(' ')[0] + '...');
   } else {
-    showAutoSaveToast('Lägg till API-nyckel för att generera meddelanden');
+    showAutoSaveToast('Köat — se Inställningar → AI Retention ✓');
   }
+  if (S.screen === 'dashboard') _renderDayView();
 }
 
 function _renderSettingsNav() {
@@ -18326,6 +18723,7 @@ function _renderSettingsNav() {
     { id:'apikey',    label:'API-nyckel',      icon:'<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>' },
     { id:'billing',   label:'Abonnemang',      icon:'<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>' },
     { id:'sync',      label:'Synk & Data',     icon:'<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>' },
+    { id:'workflow',  label:'Arbetsflöde',    icon:'<path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>' },
   ];
   const cur = window._settingsActiveTab;
   nav.innerHTML = tabs.map(t =>
@@ -18348,6 +18746,72 @@ function _renderSettingsContent(tab) {
   else if (tab === 'apikey')   el.innerHTML = _stApiKey(key);
   else if (tab === 'billing')  el.innerHTML = _stBilling();
   else if (tab === 'sync')     el.innerHTML = _stSync();
+  else if (tab === 'workflow')  el.innerHTML = _stWorkflow();
+}
+
+
+// ── ARBETSFLÖDE TAB ───────────────────────────────────────────────────────────
+function _stWorkflow() {
+  function getN(key, def) { return parseInt(localStorage.getItem(key)||String(def),10); }
+  var bufferMins  = getN('vela:buffer-mins',10);
+  var intakeWeeks = getN('vela:intake-threshold',12);
+  var intakeNewD  = getN('vela:intake-new-days',2);
+  var reminderH   = getN('vela:reminder-hours',24);
+  var slotMins    = getN('vela:slot-minutes',60);
+  var workStart   = getN('vela:work-start',8);
+  var workEnd     = getN('vela:work-end',18);
+  var isDark      = !document.body.classList.contains('light');
+
+  function card(title, rows) {
+    var h = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px">';
+    h += '<div style="padding:11px 18px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2)">' + title + '</div>';
+    h += '<div style="padding:0 18px">' + rows + '</div></div>';
+    return h;
+  }
+  function row(label, desc, input) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border2)">'
+      + '<div style="flex:1;min-width:0;margin-right:16px"><div style="font-size:13px;font-weight:600;color:var(--ink)">' + label + '</div>'
+      + (desc ? '<div style="font-size:11px;color:var(--text2);margin-top:1px">' + desc + '</div>' : '')
+      + '</div>' + input + '</div>';
+  }
+  function numIn(key, val, mn, mx, st, suf) {
+    return '<div style="display:flex;align-items:center;gap:8px">'
+      + '<input type="number" min="'+mn+'" max="'+mx+'" step="'+(st||1)+'" value="'+val+'"'
+      + ' onchange="localStorage.setItem(\'' + key + '\',this.value)"'
+      + ' style="width:68px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;font-weight:700;color:var(--ink);font-family:var(--font);text-align:center">'
+      + (suf?'<span style="font-size:11px;color:var(--text2)">'+suf+'</span>':'')+'</div>';
+  }
+  function selIn(key, val, opts) {
+    var s = '<select onchange="localStorage.setItem(\'' + key + '\',this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--ink);font-family:var(--font)">';
+    opts.forEach(function(o){ s += '<option value="'+o[0]+'"'+(String(val)===String(o[0])?' selected':'')+'>'+o[1]+'</option>'; });
+    return s + '</select>';
+  }
+
+  var h = '<div class="vela-st-section" style="max-width:620px">';
+  h += '<div class="vela-st-title">Arbetsflöde</div>';
+  h += '<div class="vela-st-desc">Anpassa hur Vela beter sig i din vardag. Ändringar sparas direkt.</div>';
+
+  h += card('Utseende', row('Tema', null,
+    '<div style="display:flex;gap:3px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:3px">'
+    + '<button onclick="document.body.classList.remove(&quot;light&quot;);localStorage.setItem(&quot;vela:theme&quot;,&quot;dark&quot;)" style="padding:5px 14px;border:none;border-radius:6px;font-size:12px;font-weight:'+(isDark?700:500)+';cursor:pointer;font-family:var(--font);background:'+(isDark?'var(--surface)':'transparent')+';color:'+(isDark?'var(--ink)':'var(--text2)')+'">Mörkt</button>'
+    + '<button onclick="document.body.classList.add(&quot;light&quot;);localStorage.setItem(&quot;vela:theme&quot;,&quot;light&quot;)" style="padding:5px 14px;border:none;border-radius:6px;font-size:12px;font-weight:'+(!isDark?700:500)+';cursor:pointer;font-family:var(--font);background:'+(!isDark?'var(--surface)':'transparent')+';color:'+(!isDark?'var(--ink)':'var(--text2)')+'">Ljust</button>'
+    + '</div>'));
+
+  h += card('Kalender',
+    row('Bufferttid', 'Varning om bokningar är för tätt schemalagda', numIn('vela:buffer-mins', bufferMins, 0, 60, 5, 'min'))
+    + row('Standardlängd bokning', null, numIn('vela:slot-minutes', slotMins, 15, 120, 15, 'min'))
+    + row('Arbetsdag börjar', null, numIn('vela:work-start', workStart, 6, 12, 1, ':00'))
+    + row('Arbetsdag slutar', null, numIn('vela:work-end', workEnd, 12, 22, 1, ':00')));
+
+  h += card('Intake-formulär',
+    row('Intake-tröskel', 'Veckor utan besök som triggar nytt intake vid återbesök', numIn('vela:intake-threshold', intakeWeeks, 4, 52, 1, 'veckor'))
+    + row('Ny patient', 'Dagar innan besöket formuläret skickas', numIn('vela:intake-new-days', intakeNewD, 0, 14, 1, 'dagar')));
+
+  h += card('Påminnelser',
+    row('Bokningspåminnelse', 'Skickas automatiskt till patient via mail/SMS', selIn('vela:reminder-hours', reminderH, [[24,'24 h innan'],[48,'48 h innan'],[2,'2 h innan'],[0,'Av']])));
+
+  h += '</div>';
+  return h;
 }
 
 

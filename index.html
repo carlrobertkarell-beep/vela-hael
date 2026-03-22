@@ -1565,15 +1565,6 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 }
 </style>
 
-</head><body>
-<div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0e1825;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
-  <div style="width:36px;height:36px;border:2.5px solid rgba(13,155,138,.2);border-top-color:#0d9b8a;border-radius:50%;animation:spin .7s linear infinite"></div>
-  <div style="font-size:12px;color:rgba(255,255,255,.3);font-family:system-ui,sans-serif;letter-spacing:.06em">VELA</div>
-</div>
-
-<!-- Mobile sidebar overlay -->
-<div id="sb-overlay" onclick="togSidebar()" style="display:none;position:fixed;inset:0;z-index:149;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);cursor:pointer"></div>
-
 <div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0e1825;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
   <div style="width:36px;height:36px;border:2.5px solid rgba(13,155,138,.2);border-top-color:#0d9b8a;border-radius:50%;animation:spin .7s linear infinite"></div>
   <div style="font-size:12px;color:rgba(255,255,255,.3);font-family:system-ui,sans-serif;letter-spacing:.06em">VELA</div>
@@ -25296,73 +25287,6 @@ function _saveQuickNote(patId) {
   showAutoSaveToast('Anteckning sparad ✓');
 }
 
-// -- STARTUP ROUTING -----------------------------------------------------------
-(function() {
-  try {
-    const _hashParams  = new URLSearchParams(window.location.hash.replace('#',''));
-    const _hashPatId   = _hashParams.get('plan');
-    const _hashVisitId = _hashParams.get('visit');
-    const _hashIntakeId = _hashParams.get('intake');
-
-    if (_hashIntakeId) {
-      window._isPublicPlan = true;
-      document.querySelector('.topbar')?.style.setProperty('display','none');
-      document.getElementById('autosave-toast')?.style.setProperty('display','none');
-      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-      document.getElementById('s-public-plan').classList.add('active');
-      const _ld = document.getElementById('page-loader');
-      if (_ld) { _ld.style.opacity='0'; setTimeout(()=>_ld.remove(),200); }
-      renderPublicIntakeForm(_hashIntakeId, _hashParams.get('visit')||'');
-    } else if (_hashPatId && _hashVisitId) {
-      window._isPublicPlan = true;
-      document.querySelector('.topbar')?.style.setProperty('display','none');
-      document.getElementById('autosave-toast')?.style.setProperty('display','none');
-      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
-      document.getElementById('s-public-plan').classList.add('active');
-      document.getElementById('s-public-plan').innerHTML = '<div class="pub-loading">Hamtar din Hael-plan...</div>';
-      const _ld = document.getElementById('page-loader');
-      if (_ld) { _ld.style.opacity='0'; setTimeout(()=>_ld.remove(),200); }
-      loadPublicPlan(_hashPatId, _hashVisitId);
-    } else {
-      const _storedAuth = getStoredAuth();
-      if (_storedAuth) {
-        _authUser = _storedAuth.user;
-        // Show app-shell + topbar (rLogin() normally does this — must do it here too on refresh)
-        var _shell = document.getElementById('app-shell');
-        var _tb    = document.getElementById('mobile-topbar');
-        var _topbar = document.querySelector('.topbar');
-        if (_shell)  _shell.style.display  = '';
-        if (_tb)     _tb.style.display     = '';
-        if (_topbar) _topbar.style.display = '';
-        loadPats();
-        S.apiKey = getKey();
-        startAutoSave();
-        initTheme();
-        const _ld = document.getElementById('page-loader');
-        if (_ld) { _ld.style.opacity='0'; _ld.style.transition='opacity .2s'; setTimeout(()=>{ try{_ld.remove();}catch(e){} },250); }
-        go('dashboard');
-        initVelaAsk();
-        setTimeout(() => rNavLogo(), 100);
-        setTimeout(() => syncFromCloud(), 800);
-        setTimeout(() => sbKeepAlive(), 2000);
-        setTimeout(function(){ runNightlyScanIfNeeded().then(function(){ _renderMorningReportCard(); }); }, 3000);
-        setTimeout(() => runInboxAgent(S.patients), 3500);
-      } else {
-        const _ld = document.getElementById('page-loader');
-        if (_ld) { _ld.style.opacity='0'; _ld.style.transition='opacity .2s'; setTimeout(()=>{ try{_ld.remove();}catch(e){} },250); }
-        rLogin();
-      }
-    }
-  } catch(startupErr) {
-    console.error('[Vela startup error]', startupErr);
-    const _ld = document.getElementById('page-loader');
-    if (_ld) _ld.remove();
-    const diagDiv = document.createElement('div');
-    diagDiv.style.cssText = 'position:fixed;top:20px;left:20px;right:20px;z-index:99999;background:#fff;border:2px solid red;border-radius:8px;padding:16px;font-family:monospace;font-size:11px;white-space:pre-wrap;word-break:break-all;max-height:60vh;overflow-y:auto';
-    diagDiv.textContent = 'STARTUP ERROR:\n' + (startupErr?.stack || String(startupErr));
-    document.body.appendChild(diagDiv);
-  }
-})();
 
 // ── HAEL — REHABPLAN OVERVIEW ────────────────────────────────────────────────
 
@@ -26533,274 +26457,103 @@ function getAiProfileContext(userId) {
   if (profile.tone_text) parts.push('Ytterligare om ton: ' + profile.tone_text);
   return parts.length ? '\n\n--- BEHANDLARPROFIL ---\n' + parts.join('\n') + '\n---' : '';
 }
-window._aiProfileDraft = {};
 
-function _aiProfileToggleOption(qId, type, btn, opt) {
-  window._aiProfileDraft = window._aiProfileDraft || {};
-  if (type === 'single') {
-    window._aiProfileDraft[qId] = opt;
-    // Deselect all other buttons in this question
-    btn.closest('[onclick]') && btn.parentNode.querySelectorAll('button').forEach(function(b) {
-      b.style.borderColor = 'var(--border)';
-      b.style.background = 'var(--bg)';
-      b.style.color = 'var(--text)';
-      b.style.fontWeight = '400';
-      b.innerHTML = b.innerHTML.replace(/<svg[^>]*>.*?<\/svg>/s, '');
-    });
-    btn.style.borderColor = 'var(--teal)';
-    btn.style.background = 'rgba(13,155,138,.08)';
-    btn.style.color = 'var(--teal)';
-    btn.style.fontWeight = '600';
-    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>' + opt;
-  } else {
-    var arr = Array.isArray(window._aiProfileDraft[qId]) ? window._aiProfileDraft[qId] : [];
-    var i = arr.indexOf(opt);
-    if (i >= 0) {
-      arr.splice(i, 1);
-      btn.style.borderColor = 'var(--border)';
-      btn.style.background = 'var(--bg)';
-      btn.style.color = 'var(--text)';
-      btn.style.fontWeight = '400';
-      btn.innerHTML = opt;
+
+
+
+
+// Returns a context string for injecting into AI prompts
+
+
+
+
+
+
+
+
+
+
+// Returns a context string for injecting into AI prompts
+
+
+
+
+
+
+
+// Returns a context string for injecting into AI prompts
+
+
+
+
+
+
+// -- STARTUP ROUTING -----------------------------------------------------------
+(function() {
+  try {
+    const _hashParams  = new URLSearchParams(window.location.hash.replace('#',''));
+    const _hashPatId   = _hashParams.get('plan');
+    const _hashVisitId = _hashParams.get('visit');
+    const _hashIntakeId = _hashParams.get('intake');
+
+    if (_hashIntakeId) {
+      window._isPublicPlan = true;
+      document.querySelector('.topbar')?.style.setProperty('display','none');
+      document.getElementById('autosave-toast')?.style.setProperty('display','none');
+      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+      document.getElementById('s-public-plan').classList.add('active');
+      const _ld = document.getElementById('page-loader');
+      if (_ld) { _ld.style.opacity='0'; setTimeout(()=>_ld.remove(),200); }
+      renderPublicIntakeForm(_hashIntakeId, _hashParams.get('visit')||'');
+    } else if (_hashPatId && _hashVisitId) {
+      window._isPublicPlan = true;
+      document.querySelector('.topbar')?.style.setProperty('display','none');
+      document.getElementById('autosave-toast')?.style.setProperty('display','none');
+      document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+      document.getElementById('s-public-plan').classList.add('active');
+      document.getElementById('s-public-plan').innerHTML = '<div class="pub-loading">Hamtar din Hael-plan...</div>';
+      const _ld = document.getElementById('page-loader');
+      if (_ld) { _ld.style.opacity='0'; setTimeout(()=>_ld.remove(),200); }
+      loadPublicPlan(_hashPatId, _hashVisitId);
     } else {
-      arr.push(opt);
-      btn.style.borderColor = 'var(--teal)';
-      btn.style.background = 'rgba(13,155,138,.08)';
-      btn.style.color = 'var(--teal)';
-      btn.style.fontWeight = '600';
-      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>' + opt;
+      const _storedAuth = getStoredAuth();
+      if (_storedAuth) {
+        _authUser = _storedAuth.user;
+        // Show app-shell + topbar (rLogin() normally does this — must do it here too on refresh)
+        var _shell = document.getElementById('app-shell');
+        var _tb    = document.getElementById('mobile-topbar');
+        var _topbar = document.querySelector('.topbar');
+        if (_shell)  _shell.style.display  = '';
+        if (_tb)     _tb.style.display     = '';
+        if (_topbar) _topbar.style.display = '';
+        loadPats();
+        S.apiKey = getKey();
+        startAutoSave();
+        initTheme();
+        const _ld = document.getElementById('page-loader');
+        if (_ld) { _ld.style.opacity='0'; _ld.style.transition='opacity .2s'; setTimeout(()=>{ try{_ld.remove();}catch(e){} },250); }
+        go('dashboard');
+        initVelaAsk();
+        setTimeout(() => rNavLogo(), 100);
+        setTimeout(() => syncFromCloud(), 800);
+        setTimeout(() => sbKeepAlive(), 2000);
+        setTimeout(function(){ runNightlyScanIfNeeded().then(function(){ _renderMorningReportCard(); }); }, 3000);
+        setTimeout(() => runInboxAgent(S.patients), 3500);
+      } else {
+        const _ld = document.getElementById('page-loader');
+        if (_ld) { _ld.style.opacity='0'; _ld.style.transition='opacity .2s'; setTimeout(()=>{ try{_ld.remove();}catch(e){} },250); }
+        rLogin();
+      }
     }
-    window._aiProfileDraft[qId] = arr;
+  } catch(startupErr) {
+    console.error('[Vela startup error]', startupErr);
+    const _ld = document.getElementById('page-loader');
+    if (_ld) _ld.remove();
+    const diagDiv = document.createElement('div');
+    diagDiv.style.cssText = 'position:fixed;top:20px;left:20px;right:20px;z-index:99999;background:#fff;border:2px solid red;border-radius:8px;padding:16px;font-family:monospace;font-size:11px;white-space:pre-wrap;word-break:break-all;max-height:60vh;overflow-y:auto';
+    diagDiv.textContent = 'STARTUP ERROR:\n' + (startupErr?.stack || String(startupErr));
+    document.body.appendChild(diagDiv);
   }
-}
-
-function _aiProfileNav(nextStep) {
-  window._aiProfileDraft = window._aiProfileDraft || {};
-  // Save any textarea values from current step
-  var total = AI_PROFILE_QUESTIONS.length;
-  var curStep = nextStep > 0 ? nextStep - 1 : 0;
-  var q = AI_PROFILE_QUESTIONS[Math.min(curStep, total-1)];
-  if (q) {
-    var ta = document.getElementById('ai-profile-text-' + q.id);
-    if (ta && ta.value.trim()) {
-      window._aiProfileDraft[q.id + (q.type !== 'text' ? '_text' : '')] = ta.value.trim();
-      if (q.type === 'text') window._aiProfileDraft[q.id] = ta.value.trim();
-    }
-  }
-
-  if (nextStep >= total) {
-    // Save profile
-    var merged = Object.assign(getAiProfile(), window._aiProfileDraft, { completedAt: new Date().toISOString() });
-    saveAiProfile(merged);
-    window._aiProfileDraft = {};
-    document.getElementById('ai-profile-ov')?.remove();
-    // Show completion toast
-    showAutoSaveToast('AI-profil sparad — din AI lär sig nu hur du jobbar ✓');
-    // If in settings, refresh AI tab
-    if (S.screen === 'settings') _renderSettingsContent('ai');
-    return;
-  }
-
-  // Update wizard HTML
-  var ov = document.getElementById('ai-profile-ov');
-  if (!ov) return;
-  var profile = Object.assign(getAiProfile(), window._aiProfileDraft);
-  var inner = ov.querySelector('[onclick="event.stopPropagation()"]');
-  if (inner) inner.outerHTML = _buildAiProfileWizardHTML(profile, nextStep);
-  // Re-attach the stopPropagation to new inner element
-  var newInner = ov.firstElementChild;
-  if (newInner) newInner.onclick = function(ev) { ev.stopPropagation(); };
-}
-
-// Returns a context string for injecting into AI prompts
-function closeAiProfileOv() { document.getElementById('ai-profile-ov')?.remove(); }
-function closeConsentPopup() { document.getElementById('consent-popup')?.remove(); }
-
-
-function getAiProfileContext(userId) {
-  var profile = getAiProfile(userId);
-  if (!Object.keys(profile).length) return '';
-  var parts = [];
-  if (profile.style) {
-    var styles = Array.isArray(profile.style) ? profile.style : [profile.style];
-    if (styles.length) parts.push('Behandlarens personlighet: ' + styles.join(', '));
-  }
-  if (profile.tone) parts.push('Kommunikationston: ' + profile.tone);
-  if (profile.strengths) {
-    var s = Array.isArray(profile.strengths) ? profile.strengths : [profile.strengths];
-    if (s.length) parts.push('Expertområden: ' + s.join(', '));
-  }
-  if (profile.patient_motivation) parts.push('Patientmotivation: ' + profile.patient_motivation);
-  if (profile.avoid) parts.push('VIKTIGT — undvik alltid: ' + profile.avoid);
-  if (profile.voice_sample) parts.push('Behandlarens röst (exempel): "' + profile.voice_sample + '"');
-  if (profile.tone_text) parts.push('Ytterligare om ton: ' + profile.tone_text);
-  return parts.length ? '\n\n--- BEHANDLARPROFIL ---\n' + parts.join('\n') + '\n---' : '';
-}
-window._aiProfileDraft = {};
-
-function _aiProfileToggleOption(qId, type, btn, opt) {
-  window._aiProfileDraft = window._aiProfileDraft || {};
-  if (type === 'single') {
-    window._aiProfileDraft[qId] = opt;
-    // Deselect all other buttons in this question
-    btn.closest('[onclick]') && btn.parentNode.querySelectorAll('button').forEach(function(b) {
-      b.style.borderColor = 'var(--border)';
-      b.style.background = 'var(--bg)';
-      b.style.color = 'var(--text)';
-      b.style.fontWeight = '400';
-      b.innerHTML = b.innerHTML.replace(/<svg[^>]*>.*?<\/svg>/s, '');
-    });
-    btn.style.borderColor = 'var(--teal)';
-    btn.style.background = 'rgba(13,155,138,.08)';
-    btn.style.color = 'var(--teal)';
-    btn.style.fontWeight = '600';
-    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>' + opt;
-  } else {
-    var arr = Array.isArray(window._aiProfileDraft[qId]) ? window._aiProfileDraft[qId] : [];
-    var i = arr.indexOf(opt);
-    if (i >= 0) {
-      arr.splice(i, 1);
-      btn.style.borderColor = 'var(--border)';
-      btn.style.background = 'var(--bg)';
-      btn.style.color = 'var(--text)';
-      btn.style.fontWeight = '400';
-      btn.innerHTML = opt;
-    } else {
-      arr.push(opt);
-      btn.style.borderColor = 'var(--teal)';
-      btn.style.background = 'rgba(13,155,138,.08)';
-      btn.style.color = 'var(--teal)';
-      btn.style.fontWeight = '600';
-      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>' + opt;
-    }
-    window._aiProfileDraft[qId] = arr;
-  }
-}
-
-function _aiProfileNav(nextStep) {
-  window._aiProfileDraft = window._aiProfileDraft || {};
-  // Save any textarea values from current step
-  var total = AI_PROFILE_QUESTIONS.length;
-  var curStep = nextStep > 0 ? nextStep - 1 : 0;
-  var q = AI_PROFILE_QUESTIONS[Math.min(curStep, total-1)];
-  if (q) {
-    var ta = document.getElementById('ai-profile-text-' + q.id);
-    if (ta && ta.value.trim()) {
-      window._aiProfileDraft[q.id + (q.type !== 'text' ? '_text' : '')] = ta.value.trim();
-      if (q.type === 'text') window._aiProfileDraft[q.id] = ta.value.trim();
-    }
-  }
-
-  if (nextStep >= total) {
-    // Save profile
-    var merged = Object.assign(getAiProfile(), window._aiProfileDraft, { completedAt: new Date().toISOString() });
-    saveAiProfile(merged);
-    window._aiProfileDraft = {};
-    document.getElementById('ai-profile-ov')?.remove();
-    // Show completion toast
-    showAutoSaveToast('AI-profil sparad — din AI lär sig nu hur du jobbar ✓');
-    // If in settings, refresh AI tab
-    if (S.screen === 'settings') _renderSettingsContent('ai');
-    return;
-  }
-
-  // Update wizard HTML
-  var ov = document.getElementById('ai-profile-ov');
-  if (!ov) return;
-  var profile = Object.assign(getAiProfile(), window._aiProfileDraft);
-  var inner = ov.querySelector('[onclick="event.stopPropagation()"]');
-  if (inner) inner.outerHTML = _buildAiProfileWizardHTML(profile, nextStep);
-  // Re-attach the stopPropagation to new inner element
-  var newInner = ov.firstElementChild;
-  if (newInner) newInner.onclick = function(ev) { ev.stopPropagation(); };
-}
-
-// Returns a context string for injecting into AI prompts
-function closeAiProfileOv() { document.getElementById('ai-profile-ov')?.remove(); }
-function closeConsentPopup() { document.getElementById('consent-popup')?.remove(); }
-
-
-function getAiProfileContext(userId) {
-  var profile = getAiProfile(userId);
-  if (!Object.keys(profile).length) return '';
-  var parts = [];
-  if (profile.style) {
-    var styles = Array.isArray(profile.style) ? profile.style : [profile.style];
-    if (styles.length) parts.push('Behandlarens personlighet: ' + styles.join(', '));
-  }
-  if (profile.tone) parts.push('Kommunikationston: ' + profile.tone);
-  if (profile.strengths) {
-    var s = Array.isArray(profile.strengths) ? profile.strengths : [profile.strengths];
-    if (s.length) parts.push('Expertområden: ' + s.join(', '));
-  }
-  if (profile.patient_motivation) parts.push('Patientmotivation: ' + profile.patient_motivation);
-  if (profile.avoid) parts.push('VIKTIGT — undvik alltid: ' + profile.avoid);
-  if (profile.voice_sample) parts.push('Behandlarens röst (exempel): "' + profile.voice_sample + '"');
-  if (profile.tone_text) parts.push('Ytterligare om ton: ' + profile.tone_text);
-  return parts.length ? '\n\n--- BEHANDLARPROFIL ---\n' + parts.join('\n') + '\n---' : '';
-}
-function _aiProfileNav(nextStep) {
-  window._aiProfileDraft = window._aiProfileDraft || {};
-  // Save any textarea values from current step
-  var total = AI_PROFILE_QUESTIONS.length;
-  var curStep = nextStep > 0 ? nextStep - 1 : 0;
-  var q = AI_PROFILE_QUESTIONS[Math.min(curStep, total-1)];
-  if (q) {
-    var ta = document.getElementById('ai-profile-text-' + q.id);
-    if (ta && ta.value.trim()) {
-      window._aiProfileDraft[q.id + (q.type !== 'text' ? '_text' : '')] = ta.value.trim();
-      if (q.type === 'text') window._aiProfileDraft[q.id] = ta.value.trim();
-    }
-  }
-
-  if (nextStep >= total) {
-    // Save profile
-    var merged = Object.assign(getAiProfile(), window._aiProfileDraft, { completedAt: new Date().toISOString() });
-    saveAiProfile(merged);
-    window._aiProfileDraft = {};
-    document.getElementById('ai-profile-ov')?.remove();
-    // Show completion toast
-    showAutoSaveToast('AI-profil sparad — din AI lär sig nu hur du jobbar ✓');
-    // If in settings, refresh AI tab
-    if (S.screen === 'settings') _renderSettingsContent('ai');
-    return;
-  }
-
-  // Update wizard HTML
-  var ov = document.getElementById('ai-profile-ov');
-  if (!ov) return;
-  var profile = Object.assign(getAiProfile(), window._aiProfileDraft);
-  var inner = ov.querySelector('[onclick="event.stopPropagation()"]');
-  if (inner) inner.outerHTML = _buildAiProfileWizardHTML(profile, nextStep);
-  // Re-attach the stopPropagation to new inner element
-  var newInner = ov.firstElementChild;
-  if (newInner) newInner.onclick = function(ev) { ev.stopPropagation(); };
-}
-
-// Returns a context string for injecting into AI prompts
-function closeAiProfileOv() { document.getElementById('ai-profile-ov')?.remove(); }
-function closeConsentPopup() { document.getElementById('consent-popup')?.remove(); }
-
-
-function getAiProfileContext(userId) {
-  var profile = getAiProfile(userId);
-  if (!Object.keys(profile).length) return '';
-  var parts = [];
-  if (profile.style) {
-    var styles = Array.isArray(profile.style) ? profile.style : [profile.style];
-    if (styles.length) parts.push('Behandlarens personlighet: ' + styles.join(', '));
-  }
-  if (profile.tone) parts.push('Kommunikationston: ' + profile.tone);
-  if (profile.strengths) {
-    var s = Array.isArray(profile.strengths) ? profile.strengths : [profile.strengths];
-    if (s.length) parts.push('Expertområden: ' + s.join(', '));
-  }
-  if (profile.patient_motivation) parts.push('Patientmotivation: ' + profile.patient_motivation);
-  if (profile.avoid) parts.push('VIKTIGT — undvik alltid: ' + profile.avoid);
-  if (profile.voice_sample) parts.push('Behandlarens röst (exempel): "' + profile.voice_sample + '"');
-  if (profile.tone_text) parts.push('Ytterligare om ton: ' + profile.tone_text);
-  return parts.length ? '\n\n--- BEHANDLARPROFIL ---\n' + parts.join('\n') + '\n---' : '';
-}
-</script>
+})();</script>
 </body>
 </html>

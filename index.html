@@ -944,6 +944,120 @@ button, input, textarea, select { font-family: inherit; }
 .ldtitle      { font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px; }
 </style>
 <style id="vela-ux-css">
+/* ════════════════════════════════════════════════════════════════════════
+   VELA GLOBAL TOPBAR — GitHub-style persistent top navigation
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Global topbar: always visible on desktop */
+.vela-global-topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 300;
+  height: 52px; background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0;
+  font-family: var(--font);
+}
+.vela-gtb-left {
+  display: flex; align-items: center; gap: 12px;
+  padding: 0 16px; flex-shrink: 0;
+  border-right: 1px solid var(--border); height: 100%;
+}
+.vela-gtb-logo {
+  display: flex; align-items: center; gap: 8px;
+  text-decoration: none; cursor: pointer;
+}
+.vela-gtb-logo-mark {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: var(--teal-lt); border: 1px solid rgba(45,212,191,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800; color: var(--teal);
+  font-family: var(--font-mono); flex-shrink: 0;
+}
+.vela-gtb-breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 14px; font-weight: 500; color: var(--text);
+}
+.vela-gtb-breadcrumb .sep { color: var(--text2); }
+.vela-gtb-breadcrumb .current { color: var(--ink); font-weight: 700; }
+
+/* Section tabs */
+.vela-gtb-tabs {
+  display: flex; align-items: stretch; height: 100%;
+  padding: 0 8px; flex: 1; overflow-x: auto; overflow-y: hidden;
+}
+.vela-gtb-tab {
+  display: flex; align-items: center; gap: 7px;
+  padding: 0 12px; border: none; background: none;
+  font-size: 13px; font-weight: 400; color: var(--text);
+  cursor: pointer; font-family: var(--font); white-space: nowrap;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color .12s, border-color .12s;
+  position: relative;
+}
+.vela-gtb-tab:hover { color: var(--ink); }
+.vela-gtb-tab.active {
+  color: var(--ink); font-weight: 600;
+  border-bottom-color: var(--teal);
+}
+.vela-gtb-tab svg { opacity: .7; flex-shrink: 0; }
+.vela-gtb-tab.active svg { opacity: 1; }
+.vela-gtb-tab-badge {
+  background: rgba(177,186,196,.12); color: var(--text2);
+  font-size: 10px; font-weight: 600; padding: 1px 6px;
+  border-radius: 20px; min-width: 18px; text-align: center;
+  font-family: var(--font);
+}
+.vela-gtb-tab.active .vela-gtb-tab-badge {
+  background: rgba(45,212,191,.12); color: var(--teal);
+}
+
+/* Right side: search + inbox + avatar */
+.vela-gtb-right {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 12px; flex-shrink: 0;
+  border-left: 1px solid var(--border); height: 100%;
+}
+.vela-gtb-search {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 7px; padding: 5px 10px; cursor: pointer;
+  transition: border-color .12s; min-width: 180px;
+}
+.vela-gtb-search:hover { border-color: rgba(177,186,196,.3); }
+.vela-gtb-search span { font-size: 12px; color: var(--text2); flex: 1; }
+.vela-gtb-search kbd {
+  font-size: 10px; color: var(--text2); background: var(--surface3);
+  padding: 1px 5px; border-radius: 4px; font-family: var(--font-mono);
+}
+.vela-gtb-icon-btn {
+  width: 32px; height: 32px; border-radius: 7px;
+  background: none; border: 1px solid transparent;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text); transition: all .12s;
+  position: relative;
+}
+.vela-gtb-icon-btn:hover { background: var(--surface2); border-color: var(--border); }
+.vela-gtb-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--teal-lt); border: 1px solid rgba(45,212,191,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; color: var(--teal);
+  cursor: pointer; font-family: var(--font-mono);
+}
+.vela-gtb-notif-dot {
+  position: absolute; top: 4px; right: 4px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--teal); border: 1.5px solid var(--bg);
+}
+
+/* Push content down when topbar is visible */
+.app-shell-with-topbar {
+  padding-top: 52px;
+}
+@media (max-width: 768px) {
+  .vela-global-topbar { display: none; }
+  .app-shell-with-topbar { padding-top: 0; }
+}
+
 /* ════════════════════════════════════════════════════════════════════════════
    VELA DESIGN SYSTEM — GitHub-calibrated components
    All pages use these primitives. Never patch inline when a class exists.
@@ -1871,6 +1985,8 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 <!-- Mobile sidebar overlay -->
 <div id="sb-overlay" onclick="togSidebar()" style="display:none;position:fixed;inset:0;z-index:149;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);cursor:pointer"></div>
 <div class="topbar" id="mobile-topbar" style="display:none"></div>
+
+<div id="vela-global-topbar-wrap"></div>
 
 <div class="app-shell" id="app-shell" style="display:none">
   <nav class="nav-sidebar" id="nav-sidebar">
@@ -4486,10 +4602,19 @@ function go(scr){
   S.screen=scr;
   document.querySelectorAll(".screen").forEach(el=>el.classList.remove("active"));
   const el=document.getElementById("s-"+scr);if(el)el.classList.add("active");
-  // Restore topbar on mobile when navigating to any authenticated screen
-  if(scr !== 'login') {
-    const tb = document.querySelector('.topbar');
-    if(tb) tb.style.display = '';
+  // Show/hide global topbar + mobile topbar based on screen
+  var _gtbWrap = document.getElementById('vela-global-topbar-wrap');
+  var _appShell = document.getElementById('app-shell');
+  if (scr === 'login') {
+    if (_gtbWrap) _gtbWrap.style.display = 'none';
+    if (_appShell) _appShell.style.paddingTop = '0';
+    var tb = document.querySelector('.topbar');
+    if (tb) tb.style.display = 'none';
+  } else {
+    if (_gtbWrap) _gtbWrap.style.display = '';
+    if (_appShell) _appShell.style.paddingTop = '52px';
+    var tb2 = document.querySelector('.topbar');
+    if (tb2) tb2.style.display = '';
   }
   rTopbar();
   const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
@@ -7194,7 +7319,120 @@ function _navItemGhost(label, svg) {
     +'</button>';
 }
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VELA GLOBAL TOPBAR — renders once, updates on navigation
+// ══════════════════════════════════════════════════════════════════════════════
+
+function _renderGlobalTopbar() {
+  var wrap = document.getElementById('vela-global-topbar-wrap');
+  if (!wrap) return;
+
+  var scr = S.screen || 'dashboard';
+  var cfg = getClinicConfig ? getClinicConfig() : {};
+  var clinicName = cfg.name || 'Vela';
+  var email = (typeof _authUser !== 'undefined' && _authUser && _authUser.email) ? _authUser.email : '';
+  var initials = email.slice(0,2).toUpperCase() || 'VA';
+
+  var tabMap = {
+    dashboard:'home', list:'home', detail:'home',
+    calendar:'calendar',
+    intelligence:'intelligence', retention:'intelligence',
+    hael:'hael', form:'hael', doc:'hael',
+    settings:'settings',
+    meeting:'journal', soap:'journal', manualsoap:'journal',
+  };
+  var activeTab = tabMap[scr] || 'home';
+
+  var retQ = getRetentionQueue ? getRetentionQueue() : [];
+  var alerts = retQ.filter(function(q){ return !q.sentAt && !q.approved; }).length;
+  var unread = typeof getUnreadCount === 'function' ? getUnreadCount() : 0;
+  var totalNotif = alerts + unread;
+
+  var tabs = [
+    { id:'home',         label:'Klinik',        dest:'dashboard', icon:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
+    { id:'calendar',     label:'Kalender',       dest:'calendar',  icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
+    { id:'journal',      label:'Journal',        dest:'manualsoap',icon:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
+    { id:'hael',         label:'Hael',           dest:'hael',      icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
+    { id:'intelligence', label:'Intelligence',   dest:'intelligence', icon:'<path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>', badge: alerts||null },
+    { id:'settings',     label:'Inställningar',  dest:'settings',  icon:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>' },
+  ];
+
+  var h = '<div class="vela-global-topbar">';
+  h += '<div class="vela-gtb-left">';
+  h += '<div class="vela-gtb-logo" id="vela-gtb-home-btn">';
+  h += '<div class="vela-gtb-logo-mark">V</div>';
+  h += '</div>';
+  h += '<div class="vela-gtb-breadcrumb">';
+  h += '<span style="color:var(--text2);font-size:13px">Vela</span>';
+  h += '<span class="sep">/</span>';
+  h += '<span class="current">' + e(clinicName) + '</span>';
+  h += '</div></div>';
+
+  h += '<div class="vela-gtb-tabs">';
+  tabs.forEach(function(tab) {
+    var isActive = activeTab === tab.id;
+    h += '<button class="vela-gtb-tab' + (isActive ? ' active' : '') + '" data-dest="' + tab.dest + '">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' + tab.icon + '</svg>';
+    h += tab.label;
+    if (tab.badge) {
+      h += '<span class="vela-gtb-tab-badge" style="background:var(--red-lt);color:var(--red)">' + tab.badge + '</span>';
+    }
+    h += '</button>';
+  });
+  h += '</div>';
+
+  h += '<div class="vela-gtb-right">';
+  h += '<div class="vela-gtb-search" id="vela-gtb-search-btn">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += '<span>S\u00f6k patient...</span>';
+  h += '<kbd>\u2318K</kbd>';
+  h += '</div>';
+  h += '<button class="vela-gtb-icon-btn" id="vela-gtb-inbox-btn" title="Inkorg">';
+  h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>';
+  if (totalNotif > 0) h += '<div class="vela-gtb-notif-dot"></div>';
+  h += '</button>';
+  h += '<div class="vela-gtb-avatar" id="vela-gtb-avatar-btn" title="' + e(email) + '">' + initials + '</div>';
+  h += '</div>';
+  h += '</div>';
+
+  wrap.innerHTML = h;
+
+  // Wire events via addEventListener — no inline onclick needed
+  var homeBtn = document.getElementById('vela-gtb-home-btn');
+  if (homeBtn) homeBtn.onclick = function() { go('dashboard'); };
+
+  var searchBtn = document.getElementById('vela-gtb-search-btn');
+  if (searchBtn) searchBtn.onclick = function() { openCommandPalette && openCommandPalette(); };
+
+  var inboxBtn = document.getElementById('vela-gtb-inbox-btn');
+  if (inboxBtn) inboxBtn.onclick = function() { openInbox && openInbox(); };
+
+  var avatarBtn = document.getElementById('vela-gtb-avatar-btn');
+  if (avatarBtn) avatarBtn.onclick = function() { go('settings'); };
+
+  // Wire tab buttons
+  wrap.querySelectorAll('.vela-gtb-tab').forEach(function(btn) {
+    var dest = btn.getAttribute('data-dest');
+    if (dest) btn.onclick = function() { go(dest); };
+  });
+}
+
+
+function _gtbNav(screen) {
+  go(screen);
+}
+
+// Hide sidebar nav items that are now in topbar, keep sidebar for contextual sub-nav
+function _syncSidebarToTopbar() {
+  var sb = document.getElementById('nav-sidebar');
+  if (!sb) return;
+  // On desktop: sidebar becomes contextual only — narrow it and hide section labels
+  // The sidebar now shows context-specific sub-navigation
+}
+
 function rTopbar() {
+  _renderGlobalTopbar();
   const scr = S.screen;
 
   // -- SIDEBAR NAV LINKS ------------------------------------------------------
@@ -10770,6 +11008,50 @@ function startManualSOAP() {
   if (draft) restoreJournalDraft(draft);
 }
 
+
+// ── smartIntakeHTML — shows intake banner in journal screens ─────────────────
+function smartIntakeHTML() {
+  var p = S.pat;
+  if (!p) return '';
+  var intake = getLatestIntakeForPatient && getLatestIntakeForPatient(p.id);
+  if (!intake) return '';
+
+  var nrs = intake.nrsCurrent ?? intake.nrs ?? null;
+  var flags = intake.redFlagCount || 0;
+  var date = intake.ts || intake.createdAt || '';
+  var dateStr = date ? new Date(date).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : '';
+
+  var color = flags > 0 ? 'var(--red)' : 'var(--teal)';
+  var bg    = flags > 0 ? 'var(--red-lt)' : 'var(--teal-lt)';
+  var bord  = flags > 0 ? 'rgba(248,81,73,.2)' : 'rgba(45,212,191,.2)';
+
+  var h = '<div style="background:'+bg+';border:1px solid '+bord+';border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:flex-start;gap:12px">';
+  h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2"/></svg>';
+  h += '<div style="flex:1;min-width:0">';
+  h += '<div style="font-size:12px;font-weight:700;color:'+color+';margin-bottom:3px">Intake-formulär mottaget' + (dateStr ? ' &middot; ' + dateStr : '') + '</div>';
+  h += '<div style="font-size:12px;color:var(--text);line-height:1.55">';
+  if (nrs !== null) h += 'NRS <strong>' + nrs + '</strong> &nbsp;';
+  if (intake.mainComplaint) h += '&middot;&nbsp;' + e(String(intake.mainComplaint).slice(0,80)) + ' &nbsp;';
+  if (flags > 0) h += '<span style="color:var(--red);font-weight:700">&middot; '+flags+' röd'+(flags>1?'a':'')+'a flagg'+(flags>1?'or':'a')+'</span>';
+  h += '</div>';
+  if (intake.mainComplaint || intake.painLocation || intake.previousTreatment) {
+    h += '<details style="margin-top:6px"><summary style="font-size:11px;color:var(--text2);cursor:pointer">Visa alla svar</summary>';
+    h += '<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">';
+    var fields = [
+      ['Huvudbesvär','mainComplaint'],['Smärtlokal','painLocation'],
+      ['Duration','painDuration'],['Tidigare behandling','previousTreatment'],
+    ];
+    fields.forEach(function(f) {
+      if (intake[f[1]]) {
+        h += '<div style="font-size:12px"><span style="color:var(--text2)">' + f[0] + ':</span> ' + e(String(intake[f[1]]).slice(0,100)) + '</div>';
+      }
+    });
+    h += '</div></details>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
 function rManualSOAP() {
   const p = S.pat;
   if (!p) { go('list'); return; }
@@ -12825,317 +13107,144 @@ function getStoredAuth() {
 }
 
 function rLogin() {
-  var _shell=document.getElementById('app-shell'),_tb=document.getElementById('mobile-topbar'),_ld=document.getElementById('page-loader');
+  var _shell=document.getElementById('app-shell');
+  var _tb=document.getElementById('mobile-topbar');
+  var _ld=document.getElementById('page-loader');
+  var _gtb=document.getElementById('vela-global-topbar-wrap');
   if(_shell)_shell.style.display='';
-  if(_tb)_tb.style.display='';
+  if(_tb)_tb.style.display='none';
+  if(_gtb)_gtb.style.display='none';
   if(_ld){_ld.style.opacity='0';_ld.style.transition='opacity .15s';setTimeout(function(){try{_ld.parentNode.removeChild(_ld);}catch(e){}},200);}
-  document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(function(el){el.classList.remove('active');});
   document.getElementById('s-login').classList.add('active');
-  // Hide topbar + fixed elements on login
-  const tb = document.querySelector('.topbar');
-  if (tb) tb.style.display = 'none';
-  const cb = document.getElementById('crash-banner');
-  if (cb) cb.style.display = 'none';
-  const at = document.getElementById('autosave-toast');
-  if (at) at.style.display = 'none';
-  _unsavedChanges = false; // suppress unsaved warning
-  document.getElementById('s-login').innerHTML = `
-<style>
-@keyframes ln-fade { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-@keyframes ln-float { 0%,100%{transform:translateY(0) rotate(0deg)} 50%{transform:translateY(-10px) rotate(1deg)} }
-@keyframes ln-pulse { 0%,100%{opacity:.12} 50%{opacity:.28} }
-@keyframes ln-shimmer { 0%{opacity:0;transform:translateX(-100%)} 50%{opacity:.06} 100%{opacity:0;transform:translateX(100%)} }
-.ln-wrap {
-  position:fixed; inset:0; z-index:200;
-  background:#080e18; display:flex; overflow:hidden;
-  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
-}
-.ln-bg {
-  position:absolute; inset:0; overflow:hidden; pointer-events:none;
-  background:
-    radial-gradient(ellipse 70% 55% at 62% 35%, rgba(45,212,191,.13) 0%, transparent 70%),
-    radial-gradient(ellipse 45% 70% at 15% 85%, rgba(45,212,191,.04) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 80%, rgba(26,143,196,.07) 0%, transparent 60%);
-}
-.ln-noise {
-  position:absolute; inset:0; opacity:.025;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size:200px 200px;
-}
-.ln-grid {
-  position:absolute; inset:0;
-  background-image: linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
-  background-size: 52px 52px;
-  mask-image: radial-gradient(ellipse 75% 90% at 55% 25%, black 10%, transparent 75%);
-}
-.ln-orb1 {
-  position:absolute; width:700px; height:700px; border-radius:50%;
-  background:radial-gradient(circle, rgba(45,212,191,.09) 0%, transparent 65%);
-  top:-280px; right:-180px; animation:ln-float 11s ease-in-out infinite;
-}
-.ln-orb2 {
-  position:absolute; width:500px; height:500px; border-radius:50%;
-  background:radial-gradient(circle, rgba(26,143,196,.07) 0%, transparent 65%);
-  bottom:-160px; left:20%; animation:ln-float 14s ease-in-out infinite reverse;
-}
-.ln-orb3 {
-  position:absolute; width:300px; height:300px; border-radius:50%;
-  background:radial-gradient(circle, rgba(45,212,191,.04) 0%, transparent 65%);
-  top:60%; left:-80px; animation:ln-float 9s ease-in-out infinite;
-  animation-delay:-4s;
+  var cb=document.getElementById('crash-banner');if(cb)cb.style.display='none';
+  var at=document.getElementById('autosave-toast');if(at)at.style.display='none';
+  _unsavedChanges=false;
+
+  var el=document.getElementById('s-login');
+  el.innerHTML='';
+
+  // Inject login screen styles
+  var style=document.createElement('style');
+  style.textContent=[
+    '@keyframes ln-fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}',
+    '@keyframes ln-pulse{0%,100%{opacity:.1}50%{opacity:.22}}',
+    '.ln-wrap{position:fixed;inset:0;z-index:200;background:#080e18;display:flex;overflow:hidden;font-family:"Plus Jakarta Sans",system-ui,sans-serif}',
+    '.ln-bg{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 50% at 60% 30%,rgba(45,212,191,.12) 0%,transparent 65%),radial-gradient(ellipse 40% 60% at 10% 90%,rgba(45,212,191,.04) 0%,transparent 55%)}',
+    '.ln-left{width:420px;flex-shrink:0;background:#0d1117;border-right:1px solid #21262d;display:flex;flex-direction:column;justify-content:center;padding:48px;position:relative;z-index:1;animation:ln-fade .4s ease}',
+    '.ln-right{flex:1;display:flex;align-items:center;justify-content:center;position:relative;z-index:1}',
+    '.ln-logo{display:flex;align-items:center;gap:12px;margin-bottom:40px}',
+    '.ln-logo-mark{width:36px;height:36px;border-radius:10px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.25);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#2dd4bf;font-family:"JetBrains Mono",monospace}',
+    '.ln-logo-name{font-size:18px;font-weight:700;color:#e6edf3;letter-spacing:-.02em}',
+    '.ln-heading{font-size:26px;font-weight:700;color:#e6edf3;letter-spacing:-.03em;line-height:1.2;margin-bottom:8px}',
+    '.ln-sub{font-size:14px;color:#6e7681;line-height:1.6;margin-bottom:32px}',
+    '.ln-field{width:100%;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:11px 14px;font-size:14px;color:#e6edf3;font-family:"Plus Jakarta Sans",system-ui,sans-serif;outline:none;box-sizing:border-box;transition:border-color .12s;margin-bottom:10px}',
+    '.ln-field:focus{border-color:#2dd4bf}',
+    '.ln-field::placeholder{color:#484f58}',
+    '.ln-btn{width:100%;padding:12px;background:#2dd4bf;border:none;border-radius:8px;font-size:14px;font-weight:700;color:#0d1117;cursor:pointer;font-family:"Plus Jakarta Sans",system-ui,sans-serif;margin-top:4px;transition:background .12s}',
+    '.ln-btn:hover{background:#14b8a6}',
+    '.ln-btn:disabled{opacity:.5;cursor:not-allowed}',
+    '.ln-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:#484f58;font-size:12px}',
+    '.ln-divider::before,.ln-divider::after{content:"";flex:1;height:1px;background:#21262d}',
+    '.ln-err{font-size:12px;color:#f85149;margin-top:4px;display:none}',
+    '.ln-link{font-size:13px;color:#2dd4bf;background:none;border:none;cursor:pointer;font-family:"Plus Jakarta Sans",system-ui,sans-serif;padding:0}',
+    '.ln-mode-toggle{display:flex;gap:4px;background:#161b22;border:1px solid #21262d;border-radius:8px;padding:3px;margin-bottom:24px}',
+    '.ln-mode-btn{flex:1;padding:7px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:"Plus Jakarta Sans",system-ui,sans-serif;transition:all .12s}',
+    '.ln-mode-btn.active{background:#21262d;color:#e6edf3}',
+    '.ln-mode-btn:not(.active){background:transparent;color:#6e7681}',
+    '.ln-features{display:flex;flex-direction:column;gap:16px}',
+    '.ln-feature{display:flex;align-items:flex-start;gap:14px}',
+    '.ln-feature-icon{width:36px;height:36px;border-radius:9px;background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0}',
+    '.ln-feature-title{font-size:14px;font-weight:600;color:#e6edf3;margin-bottom:3px}',
+    '.ln-feature-desc{font-size:12px;color:#6e7681;line-height:1.5}',
+  ].join('\n');
+  el.appendChild(style);
+
+  var wrap=document.createElement('div');
+  wrap.className='ln-wrap';
+  wrap.innerHTML='<div class="ln-bg"></div>'
+    +'<div class="ln-left">'
+      +'<div class="ln-logo">'
+        +'<div class="ln-logo-mark">V</div>'
+        +'<div class="ln-logo-name">Vela</div>'
+      +'</div>'
+      +'<div id="ln-mode-toggle" class="ln-mode-toggle">'
+        +'<button class="ln-mode-btn active" data-mode="login">Logga in</button>'
+        +'<button class="ln-mode-btn" data-mode="signup">Skapa konto</button>'
+      +'</div>'
+      +'<div id="ln-heading" class="ln-heading">V\u00e4lkommen tillbaka</div>'
+      +'<div id="ln-sub" class="ln-sub">Logga in p\u00e5 ditt Vela-konto f\u00f6r att forts\u00e4tta.</div>'
+      +'<input class="ln-field" id="ln-email" type="email" placeholder="E-postadress" autocomplete="email">'
+      +'<input class="ln-field" id="ln-pw" type="password" placeholder="L\u00f6senord" autocomplete="current-password">'
+      +'<div class="ln-err" id="ln-err"></div>'
+      +'<button class="ln-btn" id="ln-submit">Logga in</button>'
+      +'<div class="ln-divider">eller</div>'
+      +'<button class="ln-link" id="ln-magic">Skicka magic link</button>'
+    +'</div>'
+    +'<div class="ln-right">'
+      +'<div style="max-width:360px;padding:40px">'
+        +'<div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#2dd4bf;margin-bottom:20px">Vela f\u00f6r kliniker</div>'
+        +'<div class="ln-features">'
+          +'<div class="ln-feature"><div class="ln-feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div><div><div class="ln-feature-title">AI-driven journalf\u00f6ring</div><div class="ln-feature-desc">Spela in besöket — AI skapar SOAP-journalen automatiskt.</div></div></div>'
+          +'<div class="ln-feature"><div class="ln-feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></div><div><div class="ln-feature-title">Smart retention</div><div class="ln-feature-desc">AI identifierar avhoppsrisk och skickar personliga \u00e5terbesöksmeddelanden.</div></div></div>'
+          +'<div class="ln-feature"><div class="ln-feature-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div><div class="ln-feature-title">Intelligent kalender</div><div class="ln-feature-desc">AI-föreslagna tider, v\u00e4ntelista och automatiska p\u00e5minnelser.</div></div></div>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  el.appendChild(wrap);
+
+  // Mode toggle
+  var isSignup=false;
+  wrap.querySelectorAll('.ln-mode-btn').forEach(function(btn){
+    btn.onclick=function(){
+      isSignup=btn.getAttribute('data-mode')==='signup';
+      wrap.querySelectorAll('.ln-mode-btn').forEach(function(b){
+        b.classList.toggle('active',b===btn);
+      });
+      document.getElementById('ln-heading').textContent=isSignup?'Skapa ditt konto':'V\u00e4lkommen tillbaka';
+      document.getElementById('ln-sub').textContent=isSignup?'Kom ig\u00e5ng med Vela — gratis f\u00f6r sm\u00e5 kliniker.':'Logga in p\u00e5 ditt Vela-konto f\u00f6r att forts\u00e4tta.';
+      document.getElementById('ln-submit').textContent=isSignup?'Skapa konto':'Logga in';
+    };
+  });
+
+  // Submit
+  document.getElementById('ln-submit').onclick=function(){
+    var em=document.getElementById('ln-email').value.trim();
+    var pw=document.getElementById('ln-pw').value;
+    var err=document.getElementById('ln-err');
+    if(!em||!pw){err.style.display='block';err.textContent='Fyll i e-post och l\u00f6senord.';return;}
+    err.style.display='none';
+    var btn=document.getElementById('ln-submit');
+    btn.disabled=true;btn.textContent='Arbetar...';
+    if(isSignup){
+      sbSignUp(em,pw).then(function(r){
+        if(r.error){err.style.display='block';err.textContent=r.error.message||'Fel vid registrering.';}
+        else{showAutoSaveToast('Konto skapat! Bekr\u00e4fta din e-post.');}
+        btn.disabled=false;btn.textContent='Skapa konto';
+      });
+    } else {
+      sbSignIn(em,pw).then(function(r){
+        if(r.error){err.style.display='block';err.textContent=r.error.message||'Fel vid inloggning.';}
+        btn.disabled=false;btn.textContent='Logga in';
+      });
+    }
+  };
+
+  // Magic link
+  document.getElementById('ln-magic').onclick=function(){
+    var em=document.getElementById('ln-email').value.trim();
+    if(!em){document.getElementById('ln-err').style.display='block';document.getElementById('ln-err').textContent='Ange din e-postadress f\u00f6rst.';return;}
+    sbMagicLink&&sbMagicLink(em);
+    showAutoSaveToast('Magic link skickat till '+em);
+  };
+
+  // Enter key
+  document.getElementById('ln-pw').onkeydown=function(e){
+    if(e.key==='Enter') document.getElementById('ln-submit').click();
+  };
 }
 
-.ln-left {
-  flex:1; display:flex; flex-direction:column; justify-content:space-between;
-  padding:52px 60px; position:relative; z-index:1;
-  animation: ln-fade .9s ease both;
-}
-.ln-right {
-  width:420px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
-  padding:36px 40px 36px 20px; position:relative; z-index:1;
-  animation: ln-fade 1s .1s ease both;
-}
 
-.ln-tagline {
-  font-family:'Fraunces',Georgia,serif;
-  font-size:clamp(34px,3.6vw,56px);
-  font-weight:300; line-height:1.18;
-  color:white; letter-spacing:-.02em;
-  max-width:480px;
-}
-.ln-tagline em {
-  color:#2dd4bf; font-style:italic; font-weight:300;
-  background:linear-gradient(90deg,#2dd4bf,#5ae3d6);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.ln-sub {
-  font-size:14.5px; color:rgba(255,255,255,.4); line-height:1.75;
-  max-width:400px; margin-top:22px; font-weight:300;
-}
-.ln-divider {
-  width:36px; height:1px; background:rgba(45,212,191,.5);
-  margin:32px 0; 
-}
-.ln-features { display:flex; flex-direction:column; gap:16px; }
-.ln-feat {
-  display:flex; align-items:flex-start; gap:15px;
-  opacity:0; animation: ln-fade .6s ease forwards;
-}
-.ln-feat:nth-child(1){animation-delay:.35s}
-.ln-feat:nth-child(2){animation-delay:.5s}
-.ln-feat:nth-child(3){animation-delay:.65s}
-.ln-feat:nth-child(4){animation-delay:.8s}
-.ln-feat:nth-child(5){animation-delay:.95s}
-.ln-feat-icon {
-  width:34px; height:34px; border-radius:9px; flex-shrink:0; margin-top:1px;
-  background:rgba(45,212,191,.06); border:1px solid rgba(45,212,191,.1);
-  display:flex; align-items:center; justify-content:center;
-  transition:background .2s;
-}
-.ln-feat:hover .ln-feat-icon { background:rgba(45,212,191,.1); }
-.ln-feat-icon svg { width:15px; height:15px; stroke:#2dd4bf; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
-.ln-feat-txt { font-size:12.5px; color:rgba(255,255,255,.5); line-height:1.65; }
-.ln-feat-txt strong { color:rgba(255,255,255,.85); font-weight:600; display:block; font-size:13px; margin-bottom:2px; }
-
-.ln-footer { display:flex; align-items:center; justify-content:space-between; }
-.ln-footer-brand { font-size:11px; color:rgba(255,255,255,.18); letter-spacing:.08em; text-transform:uppercase; }
-.ln-dots { display:flex; gap:7px; }
-.ln-dot { width:5px; height:5px; border-radius:50%; background:rgba(255,255,255,.1); animation:ln-pulse 2.8s ease-in-out infinite; }
-.ln-dot:nth-child(2){animation-delay:.5s} .ln-dot:nth-child(3){animation-delay:1s}
-
-/* LOGIN CARD */
-.ln-card {
-  background:rgba(255,255,255,.035);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:24px;
-  padding:40px 36px;
-  width:100%;
-  backdrop-filter:blur(24px) saturate(140%);
-  box-shadow:
-    0 0 0 1px rgba(45,212,191,.04),
-    0 40px 80px rgba(0,0,0,.5),
-    inset 0 1px 0 rgba(255,255,255,.06);
-  position:relative;
-  overflow:hidden;
-}
-.ln-card::before {
-  content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.03),transparent);
-  animation:ln-shimmer 6s ease-in-out infinite 2s;
-}
-.ln-card-eyebrow {
-  font-size:9.5px; font-weight:700; letter-spacing:.16em; text-transform:uppercase;
-  color:rgba(45,212,191,.8); margin-bottom:16px;
-  display:flex; align-items:center; gap:7px;
-}
-.ln-card-eyebrow::before {
-  content:''; width:16px; height:1px; background:rgba(45,212,191,.5); display:block;
-}
-.ln-card-title {
-  font-family:'Fraunces',Georgia,serif;
-  font-size:24px; font-weight:300; color:white;
-  margin-bottom:5px; letter-spacing:-.02em; line-height:1.2;
-}
-.ln-card-sub { font-size:12px; color:rgba(255,255,255,.3); margin-bottom:32px; font-weight:300; }
-.ln-label {
-  font-size:9.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
-  color:rgba(255,255,255,.3); margin-bottom:7px; display:block;
-}
-.ln-input {
-  width:100%; background:rgba(255,255,255,.05); border:1.5px solid rgba(255,255,255,.08);
-  border-radius:11px; padding:13px 15px; font-size:14px; color:white;
-  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
-  outline:none; margin-bottom:16px; box-sizing:border-box;
-  transition:border-color .2s, background .2s, box-shadow .2s;
-}
-.ln-input::placeholder { color:rgba(255,255,255,.2); }
-.ln-input:focus {
-  border-color:rgba(45,212,191,.5);
-  background:rgba(45,212,191,.04);
-  box-shadow:0 0 0 3px rgba(45,212,191,.06);
-}
-.ln-btn {
-  width:100%;
-  background:linear-gradient(135deg, #2dd4bf 0%, #0aab7c 100%);
-  border:none; border-radius:11px; padding:14px; font-size:14px; font-weight:700;
-  color:white; cursor:pointer; font-family:'Plus Jakarta Sans',system-ui,sans-serif;
-  box-shadow:0 4px 24px rgba(45,212,191,.3), inset 0 1px 0 rgba(255,255,255,.15);
-  transition:transform .15s, box-shadow .15s;
-  letter-spacing:-.01em;
-  margin-top:4px;
-}
-.ln-btn:hover { transform:translateY(-1px); box-shadow:0 8px 32px rgba(45,212,191,.45), inset 0 1px 0 rgba(255,255,255,.2); }
-.ln-btn:active { transform:translateY(0); }
-.ln-btn:disabled { opacity:.45; cursor:default; transform:none; }
-.ln-err { font-size:12px; color:#ff8a80; margin-top:10px; min-height:16px; text-align:center; font-weight:500; }
-.ln-trust { display:flex; align-items:center; justify-content:center; gap:16px; margin-top:22px; padding-top:20px; border-top:1px solid rgba(255,255,255,.06); }
-.ln-trust-item { display:flex; align-items:center; gap:5px; font-size:10px; color:rgba(255,255,255,.22); font-weight:500; }
-.ln-trust-item svg { width:11px; height:11px; stroke:rgba(255,255,255,.28); fill:none; stroke-width:2; }
-
-@media(max-width:860px){
-  .ln-left{display:none}
-  .ln-right{width:100%;padding:24px 20px;align-items:flex-start;padding-top:10vh;min-height:100vh;}
-  .ln-wrap{justify-content:center}
-}
-</style>
-<div class="ln-wrap">
-  <div class="ln-bg"></div>
-  <div class="ln-noise"></div>
-  <div class="ln-grid"></div>
-  <div class="ln-orb1"></div>
-  <div class="ln-orb2"></div>
-  <div class="ln-orb3"></div>
-
-  <!-- LEFT: HERO COPY -->
-  <div class="ln-left">
-    <div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:52px">
-        <div style="width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,rgba(45,212,191,.4),rgba(45,212,191,.07));border:1px solid rgba(45,212,191,.3);display:flex;align-items:center;justify-content:center">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-        </div>
-        <span style="font-size:17px;font-weight:800;color:white;letter-spacing:-.02em">Vela</span>
-      </div>
-      <div class="ln-tagline">
-        Klinikverktyget<br>som tänker ett steg<br><em>före dig.</em>
-      </div>
-      <div class="ln-sub">
-        AI-driven plattform för alla som journalför, rehabiliterar och följer upp patienter -- från besök till Hael-plan på under två minuter.
-      </div>
-      <div class="ln-divider"></div>
-      <div class="ln-features">
-        <div class="ln-feat">
-          <div class="ln-feat-icon"><svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div>
-          <div class="ln-feat-txt"><strong>Journal på sekunder</strong>Spela in besöket -- AI strukturerar och skriver journalen åt dig.</div>
-        </div>
-        <div class="ln-feat">
-          <div class="ln-feat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-          <div class="ln-feat-txt"><strong>Kliniskt stöd i realtid</strong>Differentialdiagnoser och röda flaggor direkt under samtalet.</div>
-        </div>
-        <div class="ln-feat">
-          <div class="ln-feat-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
-          <div class="ln-feat-txt"><strong>Planer som anpassar sig</strong>Haelen justeras automatiskt efter patientens hemrapporter.</div>
-        </div>
-        <div class="ln-feat">
-          <div class="ln-feat-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
-          <div class="ln-feat-txt"><strong>Ingen app för patienten</strong>En länk -- patienten öppnar sin plan direkt i mobilen.</div>
-        </div>
-      </div>
-    </div>
-    <div class="ln-footer">
-      <div class="ln-footer-brand">en produkt av Vela</div>
-      <div class="ln-dots"><div class="ln-dot"></div><div class="ln-dot"></div><div class="ln-dot"></div></div>
-    </div>
-  </div>
-
-  <!-- RIGHT: LOGIN CARD -->
-  <div class="ln-right">
-    <div class="ln-card">
-      <div class="ln-card-eyebrow">Vela</div>
-      <div class="ln-card-title">Välkommen tillbaka</div>
-      <div class="ln-card-sub">Logga in på ditt klinikkonto</div>
-
-      <label class="ln-label" for="l-email">E-post</label>
-      <input class="ln-input" id="l-email" type="email" placeholder="din@klinik.se" autocomplete="email">
-
-      <label class="ln-label" for="l-pass">Lösenord</label>
-      <input class="ln-input" id="l-pass" type="password" placeholder="********" autocomplete="current-password"
-        onkeydown="if(event.key==='Enter')doLogin()">
-
-      <button class="ln-btn" id="ln-submit" onclick="doLogin()">Logga in -></button>
-      <div class="ln-err" id="l-err"></div>
-      <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--muted)">
-        Ny kund? <a href="vela_setup.html" style="color:var(--teal);text-decoration:none;font-weight:600">Kom igång här →</a>
-      </div>
-
-      <div class="ln-trust">
-        <div class="ln-trust-item">
-          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          GDPR
-        </div>
-        <div class="ln-trust-item">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          EU-servrar
-        </div>
-        <div class="ln-trust-item">
-          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Krypterad
-        </div>
-      </div>
-    </div>
-  </div>
-</div>`;
-  setTimeout(() => document.getElementById('l-email')?.focus(), 100);
-}
-
-async function doLogin() {
-  const email = document.getElementById('l-email')?.value?.trim();
-  const pass = document.getElementById('l-pass')?.value;
-  const errEl = document.getElementById('l-err');
-  if (!email || !pass) { if(errEl) errEl.textContent = 'Fyll i e-post och lösenord.'; return; }
-  const btn = document.getElementById('ln-submit') || document.querySelector('.ln-btn');
-  if (btn) { btn.textContent = 'Loggar in...'; btn.disabled = true; }
-  const result = await sbSignIn(email, pass);
-  if (btn) { btn.textContent = 'Logga in'; btn.disabled = false; }
-  if (result.ok) {
-    const tb = document.querySelector('.topbar');
-    if (tb) tb.style.display = '';
-    const cb = document.getElementById('crash-banner');
-    if (cb) cb.style.display = 'none'; // keep hidden unless crash occurs
-    const at = document.getElementById('autosave-toast');
-    if (at) at.style.display = '';
-    loadPats(); S.apiKey = getKey(); startAutoSave(); var _l=document.getElementById('page-loader'); if(_l){_l.style.opacity='0';_l.style.transition='opacity .2s';setTimeout(function(){_l.remove();},250);} go('dashboard'); initVelaAsk(); initTheme(); setTimeout(rNavLogo, 100);
-    setTimeout(() => syncFromCloud(), 800);
-    setTimeout(() => sbKeepAlive(), 2000);
-    setTimeout(() => runInboxAgent(S.patients), 3500);
-    setTimeout(function(){ runNightlyScanIfNeeded().then(function(){ _renderMorningReportCard(); }); }, 4500);
-  } else {
-    if (errEl) errEl.textContent = result.msg;
-  }
-}
-
-// -- STARTUP -------------------------------------------------------------------
-// -- EXERCISE SWAP WITH REASON -------------------------------------------------
 function showSwapDialog(idx) {
   document.getElementById('swap-dialog')?.remove();
   const ex = S.plan?.exercises?.[idx];

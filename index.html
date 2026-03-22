@@ -127,9 +127,9 @@ button, input, textarea, select { font-family: inherit; }
 
 /* ── SIDEBAR ────────────────────────────────────────────────── */
 .nav-sidebar {
-  width: 230px; flex-shrink: 0; background: var(--sb-bg);
+  width: 260px; flex-shrink: 0; background: var(--sb-bg);
   display: flex; flex-direction: column;
-  border-right: 1px solid rgba(255,255,255,.04);
+  border-right: 1px solid var(--sb-border);
   z-index: 150; overflow: hidden; position: relative;
   transition: width .22s cubic-bezier(.4,0,.2,1), transform .25s ease;
 }
@@ -146,27 +146,27 @@ button, input, textarea, select { font-family: inherit; }
 .nav-tooltip { display:none; position:absolute; left:calc(100% + 10px); top:50%; transform:translateY(-50%); background:rgba(10,20,35,.96); color:rgba(255,255,255,.9); font-size:11px; font-weight:600; white-space:nowrap; padding:5px 10px; border-radius:7px; pointer-events:none; z-index:500; border:1px solid rgba(255,255,255,.08); box-shadow:0 4px 14px rgba(0,0,0,.4); }
 .nav-sidebar.collapsed .nav-item:hover .nav-tooltip { display:block; }
 .nav-logo {
-  padding:20px 16px 18px; border-bottom:1px solid var(--sb-border);
+  padding:16px 14px; border-bottom:1px solid var(--border);
   display:flex; align-items:center; gap:10px; overflow:hidden; flex-shrink:0;
 }
 .nav-logo-wordmark { overflow:hidden; white-space:nowrap; }
 .nav-section { flex:1; padding:8px 8px 4px; overflow-y:auto; overflow-x:hidden; }
 .nav-section-label {
-  font-size: 9px; font-weight: 700; letter-spacing: .12em;
-  text-transform: uppercase; color: rgba(255,255,255,.22);
-  padding:12px 8px 6px; display:block;
-  white-space:nowrap; overflow:hidden;
+  font-size: 11px; font-weight: 400; letter-spacing: 0;
+  text-transform: none; color: var(--text2);
+  padding: 18px 10px 5px; display: block;
+  white-space: nowrap; overflow: hidden; cursor: default;
 }
 .nav-item {
-  display: flex; align-items: center; gap: 10px; width: 100%;
-  padding: 9px 10px; border: none; border-radius: var(--r-md);
-  background: transparent; color: var(--sb-text); font-size: 13px;
-  font-weight: 500; cursor: pointer; text-align: left;
-  transition:background .15s, color .15s;
-  white-space:nowrap; font-family:var(--font);
+  display: flex; align-items: center; gap: 9px; width: 100%;
+  padding: 7px 10px; border: none; border-radius: 6px;
+  background: transparent; color: var(--text); font-size: 13px;
+  font-weight: 400; cursor: pointer; text-align: left;
+  transition: background .1s, color .1s;
+  white-space: nowrap; font-family: var(--font);
 }
-.nav-item:hover { background: var(--sb-hover); color: var(--sb-text2); }
-.nav-item.active { background: var(--sb-active-bg); color: var(--sb-active-col); font-weight: 600; box-shadow: inset 0 0 0 1px rgba(45,212,191,.1); }
+.nav-item:hover { background: rgba(177,186,196,.06); color: var(--ink); }
+.nav-item.active { background: rgba(177,186,196,.06); color: var(--sb-text2); font-weight: 600; box-shadow: inset 3px 0 0 var(--teal); }
 .nav-item-icon { width:16px; height:16px; flex-shrink:0; opacity:.7; }
 .nav-item.active .nav-item-icon { opacity:1; }
 .nav-item-label { overflow:hidden; flex-shrink:0; }
@@ -177,7 +177,7 @@ button, input, textarea, select { font-family: inherit; }
   font-weight: 700; padding: 1px 6px; border-radius: 10px;
   margin-left:auto; font-family:var(--font-mono); flex-shrink:0;
 }
-.nav-footer { padding:8px 10px 4px; border-top:1px solid var(--sb-border); overflow:hidden; flex-shrink:0; }
+.nav-footer { padding:8px 10px 4px; border-top:1px solid var(--border); overflow:hidden; flex-shrink:0; }
 .nav-collapse-btn { width:100%; padding:7px 8px 10px; background:none; border:none; display:flex; align-items:center; justify-content:flex-end; gap:6px; cursor:pointer; color:rgba(255,255,255,.2); font-family:var(--font); transition:color .15s; margin-top:4px; }
 .nav-collapse-btn:hover { color:rgba(255,255,255,.55); }
 .nav-collapse-arrow { transition:transform .22s; flex-shrink:0; }
@@ -453,12 +453,12 @@ button, input, textarea, select { font-family: inherit; }
 
 /* ── BOOKING CALENDAR ─────────────────────────────────────────────────────── */
 .cal-wrap { display:flex; flex-direction:column; height:calc(100vh - 52px); overflow:hidden; background:var(--bg); }
-.cal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 24px 12px; background:var(--surface); border-bottom:1px solid var(--border); flex-shrink:0; gap:12px; flex-wrap:wrap; }
+.cal-header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:var(--bg); border-bottom:1px solid var(--border); flex-shrink:0; gap:12px; flex-wrap:wrap; }
 .cal-nav { display:flex; align-items:center; gap:8px; }
 .cal-nav-btn { background:none; border:1px solid var(--border); border-radius:8px; padding:6px 12px; font-size:12px; font-weight:600; color:var(--text); cursor:pointer; font-family:var(--font); transition:background .12s; }
 .cal-nav-btn:hover { background:var(--surface2); }
 .cal-nav-btn.today { background:var(--teal); color:white; border-color:var(--teal); }
-.cal-week-label { font-size:14px; font-weight:700; color:var(--ink); min-width:180px; text-align:center; }
+.cal-week-label { font-size:14px; font-weight:600; color:var(--ink); min-width:160px; text-align:center; }
 .cal-view-toggle { display:flex; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:2px; }
 .cal-view-btn { padding:5px 12px; border:none; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; font-family:var(--font); background:none; color:var(--muted); transition:all .12s; }
 .cal-view-btn.active { background:var(--surface); color:var(--teal); }
@@ -472,7 +472,7 @@ button, input, textarea, select { font-family: inherit; }
 .cal-day-name { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
 .cal-day-num { font-size:16px; font-weight:800; color:var(--ink); line-height:1; }
 .cal-day-header.today .cal-day-num { color:var(--teal); }
-.cal-day-header.today::after { content:''; position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:24px; height:2px; background:var(--teal); border-radius:1px; }
+.cal-day-header.today::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--teal); }
 .cal-slots { position:relative; }
 .cal-slot { height:60px; border-bottom:1px solid var(--border2); cursor:pointer; transition:background .1s; position:relative; }
 .cal-slot:hover { background:rgba(45,212,191,.04); }
@@ -521,7 +521,7 @@ button, input, textarea, select { font-family: inherit; }
 .cal-now-line::before { content:''; position:absolute; left:-4px; top:-4px; width:10px; height:10px; border-radius:50%; background:var(--red,#f85149); }
 /* Booking dialog */
 .bk-dialog { background:var(--surface); border-radius:20px; width:100%; max-width:480px; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,.3); max-height:90vh; display:flex; flex-direction:column; }
-.bk-header { background:var(--navy); padding:18px 22px 14px; flex-shrink:0; }
+.bk-header { background:var(--surface2); border-bottom:1px solid var(--border); padding:18px 22px 14px; flex-shrink:0; }
 .bk-body { padding:20px 22px; overflow-y:auto; flex:1; display:flex; flex-direction:column; gap:14px; }
 .bk-footer { padding:0 22px 18px; display:flex; gap:10px; flex-shrink:0; }
 .bk-label { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text2); margin-bottom:7px; }
@@ -1261,8 +1261,8 @@ button, input, textarea, select { font-family: inherit; }
   margin: 0 auto; padding: 0;
 }
 .vela-settings-nav {
-  width: 200px; flex-shrink: 0; padding: 28px 12px;
-  border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px;
+  width: 220px; flex-shrink: 0; padding: 24px 12px;
+  border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 1px;
 }
 .vela-stab {
   display: flex; align-items: center; gap: 9px;
@@ -1270,11 +1270,11 @@ button, input, textarea, select { font-family: inherit; }
   font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer;
   font-family: var(--font); text-align: left; width: 100%; transition: all .12s;
 }
-.vela-stab:hover { background: var(--surface2); color: var(--text); }
-.vela-stab.active { background: rgba(45,212,191,.06); color: var(--teal); font-weight: 700; }
+.vela-stab:hover { background: rgba(177,186,196,.06); color: var(--ink); }
+.vela-stab.active { background: rgba(177,186,196,.06); color: var(--ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--teal); }
 .vela-settings-content { flex: 1; padding: 32px 36px; min-width: 0; }
 .vela-st-section { max-width: 640px; }
-.vela-st-title { font-family: var(--font-serif, Georgia, serif); font-size: 22px; font-weight: 400; color: var(--navy); margin-bottom: 6px; letter-spacing: -.02em; }
+.vela-st-title { font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 6px; letter-spacing: -.02em; }
 .vela-st-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
 .vela-st-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--text2); }
 @media (max-width: 768px) {
@@ -1836,7 +1836,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .cal-nrs-pill { font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;display:inline-block; }
 .tx-panel { position:fixed;right:0;top:0;bottom:0;width:400px;background:var(--surface);border-left:1px solid rgba(255,255,255,.06);z-index:400;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:-12px 0 48px rgba(0,0,0,.45); }
 .tx-panel.open { transform:translateX(0); }
-.tx-panel-header { background:linear-gradient(180deg,var(--navy) 0%,rgba(7,16,30,.97) 100%);padding:22px 22px 16px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.05); }
+.tx-panel-header { background:var(--surface2);padding:22px 22px 16px;flex-shrink:0;border-bottom:1px solid var(--border); }
 .tx-panel-body { flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:0; }
 .tx-card { background:var(--bg);border-radius:12px;padding:14px;margin-bottom:12px; }
 .tx-card-label { font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:10px; }
@@ -7200,60 +7200,102 @@ function rTopbar() {
   // -- SIDEBAR NAV LINKS ------------------------------------------------------
   const nav = document.getElementById('nav-links');
   if (nav) {
-    // CTA: Boka/ta emot — opens command palette (smart search)
-    var nh = '<button id="nav-cta-btn" class="nav-item" onclick="openCommandPalette();_closeSidebar()" style="background:rgba(45,212,191,.07);color:#2dd4bf;font-weight:700;border:1px solid rgba(45,212,191,.08);margin-bottom:10px">'
-      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Sök patient</button>';
+        // ── Nav items — GitHub-style grouped, no section label shouting ──────────
+    var retQ = getRetentionQueue ? getRetentionQueue() : [];
+    var alertCount = retQ.filter(function(q){ return !q.sentAt && !q.approved; }).length;
+    var dropoutCount = _scanDropoutRisks ? _scanDropoutRisks().filter(function(d){
+      var p = (S.patients||[]).find(function(x){ return x.id===d.patId; });
+      return p && (p.visits||[]).length > 0;
+    }).length : 0;
 
-    // Clinic context switcher (visible to org owners with >1 clinic)
+    var nh = '';
+
+    // ── Primary CTA — search/book ─────────────────────────────────────────────
+    nh += '<button onclick="openCommandPalette();_closeSidebar()" style="'
+      + 'display:flex;align-items:center;gap:8px;width:100%;padding:7px 10px;'
+      + 'margin-bottom:4px;border:1px solid var(--border);border-radius:8px;'
+      + 'background:var(--surface2);color:var(--text);font-size:13px;'
+      + 'cursor:pointer;font-family:var(--font);text-align:left;transition:background .1s">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;opacity:.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
+      + '<span style="color:var(--text2);font-size:12px">Sök patient...</span>'
+      + '<span style="margin-left:auto;font-size:10px;color:var(--text2);background:var(--surface3);padding:2px 6px;border-radius:4px;font-family:var(--font-mono)">⌘K</span>'
+      + '</button>';
+
+    // ── Clinic switcher (multi-clinic) ────────────────────────────────────────
     var _clinics = getClinics();
-    var _activeClinic = getActiveClinic();
     if (_clinics.length > 1) {
-      nh += '<div style="margin-bottom:8px">';
-      nh += '<div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--sb-text);padding:0 8px;margin-bottom:4px">Klinik</div>';
-      nh += '<select onchange="var v=this.value;setActiveClinicId(v);loadPats();rTopbar();if(v===\'__all__\'){go(\'dashboard\');rOrgOverview();}else{go(\'dashboard\');}" '
-        + 'style="width:100%;padding:7px 10px;background:var(--surface2);border:1px solid var(--sb-border);border-radius:8px;font-size:12px;font-weight:600;color:var(--sb-text2);cursor:pointer;font-family:var(--font);outline:none">';
-      if (_clinics.length > 1) nh += '<option value="__all__" '+(getActiveClinicId()==='__all__'?'selected':'')+'>-- Alla kliniker --</option>';
+      var _activeClinic = getActiveClinic();
+      nh += '<select onchange="var v=this.value;setActiveClinicId(v);loadPats();rTopbar();go(&quot;dashboard&quot;)" '
+        + 'style="width:100%;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);'
+        + 'border-radius:8px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;'
+        + 'font-family:var(--font);outline:none;margin-bottom:8px">';
+      if (_clinics.length > 1) nh += '<option value="__all__" ' + (getActiveClinicId()==='__all__'?'selected':'') + '>Alla kliniker</option>';
       _clinics.forEach(function(cl) {
-        nh += '<option value="'+cl.id+'" '+(getActiveClinicId()===cl.id?'selected':'')+'>'+e(cl.name||'Klinik')+'</option>';
+        nh += '<option value="' + cl.id + '" ' + (getActiveClinicId()===cl.id?'selected':'') + '>' + e(cl.name||'Klinik') + '</option>';
       });
-      nh += '</select></div>';
+      nh += '</select>';
     }
 
-    // Klinik
+    // ── Group 1: Klinik ───────────────────────────────────────────────────────
     nh += '<div class="nav-section-label">Klinik</div>';
-    [{s:'dashboard',label:'Hem',svg:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'},
-     {s:'list',label:'Patienter',badge:S.patients.length||null,svg:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'},
-     {s:'calendar',label:'Kalender',badge:null,svg:'<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'},
-    ].forEach(function(it) {
-      nh += '<button class="nav-item '+(scr===it.s?'active':'')+'" onclick="go(\''+it.s+'\');_closeSidebar()">'
-        +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+it.svg+'</svg>'+'<span class="nav-item-label">'+it.label+'</span>'+'<span class="nav-tooltip">'+it.label+'</span>'+'</button>';
-    });
 
-    // Vela Intelligence
-    nh += '<div class="nav-section-label" style="margin-top:8px">Vela Intelligence</div>';
-    nh += '<button class="nav-item '+(scr==='intelligence'?'active':'')+'" onclick="go(\'intelligence\');_closeSidebar()">'
-      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
-      +'Analys &amp; insikter</button>';
+    function _navBtn(s, label, iconPath, badge, badgeType) {
+      var active = scr === s;
+      var b = '<button class="nav-item' + (active?' active':'') + '" onclick="go(&quot;' + s + '&quot;);_closeSidebar()">';
+      b += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="nav-item-icon">' + iconPath + '</svg>';
+      b += '<span class="nav-item-label">' + label + '</span>';
+      if (badge) {
+        if (badgeType === 'alert') b += '<span class="nav-badge-alert">' + badge + '</span>';
+        else b += '<span class="nav-badge-count">' + badge + '</span>';
+      }
+      b += '<span class="nav-tooltip">' + label + '</span>';
+      b += '</button>';
+      return b;
+    }
+
+    nh += _navBtn('dashboard', 'Hem',
+      '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>');
+    nh += _navBtn('list', 'Patienter',
+      '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+      S.patients.length || null, 'count');
+    nh += _navBtn('calendar', 'Kalender',
+      '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
+
+    // ── Group 2: Vela ─────────────────────────────────────────────────────────
+    nh += '<div class="nav-section-label">Vela Intelligence</div>';
+    nh += _navBtn('intelligence', 'Analys & insikter',
+      '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>');
+    nh += _navBtn('hael', 'Rehabplaner',
+      '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>');
+
+    // AI Retention alert
+    var retBtn = '<button class="nav-item' + (scr==='retention'?' active':'') + '" onclick="go(&quot;retention&quot;);_closeSidebar()">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l.82-.82a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 1 2.81.7A2 2 0 0 1 22 16.92z"/></svg>'
+      + '<span class="nav-item-label">AI Retention</span>';
+    if (alertCount > 0) retBtn += '<span class="nav-badge-alert">' + alertCount + '</span>';
+    else if (dropoutCount > 0) retBtn += '<span class="nav-badge-count">' + dropoutCount + '</span>';
+    retBtn += '<span class="nav-tooltip">AI Retention</span></button>';
+    nh += retBtn;
+
     nh += '<button class="nav-item" onclick="toggleVelaAsk();_closeSidebar()">'
-      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
-      +'Vela Ask <span style="font-size:9px;background:rgba(45,212,191,.1);color:#2dd4bf;padding:1px 6px;border-radius:6px;margin-left:auto;font-weight:700">AI</span></button>';
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      + '<span class="nav-item-label">Vela Ask</span>'
+      + '<span style="font-size:9px;background:var(--teal-lt);color:var(--teal);padding:1px 6px;border-radius:4px;margin-left:auto;font-weight:700;flex-shrink:0">AI</span>'
+      + '<span class="nav-tooltip">Vela Ask</span></button>';
 
-        // Hael
-    nh += '<div class="nav-section-label" style="margin-top:8px">Hael</div>';
-    nh += '<button class="nav-item '+(scr==='hael'?'active':'') + '" onclick="go(\'hael\');_closeSidebar()" style="">'
-      + '<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
-      + 'Rehabplaner</button>';
-
-    // Inställningar
-    nh += '<div class="nav-section-label" style="margin-top:8px">Konto</div>';
-    nh += '<button class="nav-item '+(scr==='settings'?'active':'')+'" onclick="go(\'settings\');_closeSidebar()">'
-      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
-      +'Inställningar</button>';
-    nh += '<button class="nav-item" onclick="openHelpCenter();_closeSidebar()">'
-      +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
-      +'Hjälpcenter</button>';
+    // ── Group 3: Konto ────────────────────────────────────────────────────────
+    nh += '<div class="nav-section-label">Konto</div>';
+    nh += _navBtn('settings', 'Inställningar',
+      '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>');
+    nh += '<button class="nav-item" onclick="openHelpCenter && openHelpCenter();_closeSidebar()">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      + '<span class="nav-item-label">Hjälp</span>'
+      + '<span class="nav-tooltip">Hjälpcenter</span></button>';
 
     nav.innerHTML = nh;
+    updateInboxBadge();
+    rNavLogo();
+
   }
 
   // -- SIDEBAR FOOTER ---------------------------------------------------------
@@ -25728,288 +25770,244 @@ function _renderDayView() {
   var el = document.getElementById('s-dashboard');
   if (!el) return;
 
-  var today     = _dayViewDate ? new Date(_dayViewDate + 'T12:00') : new Date();
-  var todayStr  = today.toISOString().slice(0,10);
-  var isToday   = todayStr === new Date().toISOString().slice(0,10);
-  var hour      = new Date().getHours();
-  var now       = new Date();
+  var today    = _dayViewDate ? new Date(_dayViewDate+'T12:00') : new Date();
+  var todayStr = today.toISOString().slice(0,10);
+  var isToday  = todayStr === new Date().toISOString().slice(0,10);
+  var hour     = new Date().getHours();
+  var now      = new Date();
 
-  // All today's bookings, sorted
   var bks = getBookings().filter(function(b){
     return b.date === todayStr && b.status !== 'cancelled';
   }).sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
 
-  // Determine "next up" patient — first unfinished booking whose time is closest to now
   var nextBk = null;
   if (isToday) {
-    var upcoming = bks.filter(function(b){
+    nextBk = bks.filter(function(b){
       return b.status !== 'completed' && b.status !== 'no-show';
-    });
-    nextBk = upcoming[0] || null;
+    })[0] || null;
   }
 
-  // Retention alerts (dropout risk) — only real patients with visits
   var dropouts = _scanDropoutRisks ? _scanDropoutRisks().filter(function(d){
     var p = (S.patients||[]).find(function(x){ return x.id===d.patId; });
     return p && (p.visits||[]).length > 0;
-  }).slice(0,4) : [];
+  }).slice(0,5) : [];
 
-  // Upcoming (if no bookings today)
   var upcomingDays = [];
   if (!bks.length) {
     var allBks = getBookings().filter(function(b){ return b.status !== 'cancelled'; });
     for (var di = 1; di <= 14; di++) {
-      var d = new Date(today); d.setDate(d.getDate() + di);
-      var ds = d.toISOString().slice(0,10);
-      var dayBks = allBks.filter(function(b){ return b.date === ds; });
-      if (dayBks.length) upcomingDays.push({ date:ds, dateObj:d, bookings:dayBks });
+      var dd = new Date(today); dd.setDate(dd.getDate()+di);
+      var ds = dd.toISOString().slice(0,10);
+      var db = allBks.filter(function(b){ return b.date === ds; });
+      if (db.length) upcomingDays.push({ date:ds, dateObj:dd, bookings:db });
       if (upcomingDays.length >= 3) break;
     }
   }
 
-  // Morning report
   var report = null;
-  try { report = JSON.parse(localStorage.getItem('vela:morning-report')||'null'); } catch {}
+  try { report = JSON.parse(localStorage.getItem('vela:morning-report')||'null'); } catch(e){}
   var reportIsToday = report && report.generatedAt &&
     new Date(report.generatedAt).toISOString().slice(0,10) === todayStr;
 
-  // Nav prev/next
   var prev = new Date(today); prev.setDate(prev.getDate()-1);
-  var next = new Date(today); next.setDate(next.getDate()+1);
+  var nxt  = new Date(today); nxt.setDate(nxt.getDate()+1);
   var prevStr = prev.toISOString().slice(0,10);
-  var nextStr = next.toISOString().slice(0,10);
+  var nxtStr  = nxt.toISOString().slice(0,10);
 
-  var h = '<div class="dv-wrap">';
+  var h = '<div class="page-shell" style="max-width:900px">';
 
-  // ── TOPBAR ────────────────────────────────────────────────────────────────
-  h += '<div class="dv-topbar">';
-  h += '<div style="display:flex;align-items:center;gap:10px">';
-  // Date nav
-  h += '<button onclick="rDayView(\''+prevStr+'\')" class="dv-nav-btn">‹</button>';
-  h += '<div>';
+  // PAGE HEADER
+  h += '<div class="page-header">';
+  h += '<div class="page-header-left">';
   if (isToday) {
-    h += '<div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)">';
-    h += hour<5?'God natt':hour<12?'God morgon':hour<17?'God eftermiddag':'God kväll';
-    h += '</div>';
+    h += '<div style="font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--teal);margin-bottom:4px">'
+       + (hour<12?'God morgon':'God eftermiddag') + '</div>';
   }
-  h += '<div class="dv-date">' + (isToday ? 'Idag' : today.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})) + '</div>';
-  if (bks.length) h += '<div class="dv-sub">' + bks.length + ' patient' + (bks.length!==1?'er':'') + ' bokad' + (bks.length!==1?'e':'') + '</div>';
+  h += '<div class="page-title">' + (isToday?'Idag':today.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})) + '</div>';
+  h += '<div class="page-subtitle">' + today.toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'});
+  if (bks.length) h += ' &nbsp;&middot;&nbsp; <strong style="color:var(--ink)">' + bks.length + '</strong> patient' + (bks.length!==1?'er':'') + ' bokad' + (bks.length!==1?'e':'');
+  else h += ' &nbsp;&middot;&nbsp; Inga bokningar';
+  h += '</div></div>';
+  h += '<div class="page-actions">';
+  h += '<div style="display:flex;gap:6px">';
+  h += '<button onclick="rDayView(\''+prevStr+'\')" class="act-btn" style="padding:6px 10px">&#8249;</button>';
+  if (!isToday) h += '<button onclick="rDayView(null)" class="act-btn" style="color:var(--teal);border-color:rgba(45,212,191,.3)">Idag</button>';
+  h += '<button onclick="rDayView(\''+nxtStr+'\')" class="act-btn" style="padding:6px 10px">&#8250;</button>';
+  h += '<button onclick="go(\'calendar\')" class="act-btn">Vecka</button>';
   h += '</div>';
-  h += '</div>';
-  h += '<div style="display:flex;align-items:center;gap:8px">';
-  if (!isToday) h += '<button onclick="rDayView(null)" class="dv-nav-btn" style="font-size:11px;font-weight:700;color:var(--teal);padding:0 12px">Idag</button>';
-  h += '<button onclick="rDayView(\''+nextStr+'\')" class="dv-nav-btn">›</button>';
-  h += '<button onclick="go(\'calendar\')" style="padding:0 14px;height:34px;border-radius:9px;border:1px solid var(--border);background:none;color:var(--muted);cursor:pointer;font-size:11px;font-weight:600;font-family:var(--font)">Vecka</button>';
-  h += '</div>';
-  h += '</div>'; // end topbar
+  h += '<button onclick="openCommandPalette()" class="act-btn act-btn-primary">+ Boka</button>';
+  h += '</div></div>';
 
-  // ── HERO: Näste patient ───────────────────────────────────────────────────
-  if (nextBk) {
-    var np = (S.patients||[]).find(function(p){ return p.id===nextBk.patientId; });
-    var npVisits = np ? (np.visits||[]).sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; }) : [];
-    var npLast   = npVisits[0];
-    var npNrs    = npLast ? ((npLast.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;}).slice(-1)[0] ?? npLast.form?.pain ?? null) : null;
-    var npDiag   = npLast ? (npLast.form?.diagnosis||npLast.plan?.form?.diagnosis||'') : '';
-    var npIsNew  = npVisits.length === 0;
-    var npIntake = np ? getLatestIntakeForPatient(np.id) : null;
-    var npNsRisk = np ? _predictNoShow(np) : null;
-
-    // Minutes until appointment
-    var apptMins = null;
-    if (isToday && nextBk.time) {
-      var apptH = parseInt(nextBk.time.split(':')[0]);
-      var apptM = parseInt(nextBk.time.split(':')[1]||'0');
-      apptMins  = (apptH*60 + apptM) - (now.getHours()*60 + now.getMinutes());
-    }
-
-    var nrsCol = npNrs==null?'var(--muted)':npNrs>=7?'#f87171':npNrs>=4?'#d29922':'#4ade80';
-
-    h += '<div class="dv-hero" onclick="openTreatmentPanel(\''+nextBk.id+'\')">';
-
-    // Left: patient info
-    h += '<div style="flex:1;min-width:0">';
-    h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px">';
-    if (apptMins !== null) {
-      h += apptMins <= 0 ? 'Pågår nu' : apptMins <= 10 ? 'Om ' + apptMins + ' min' : nextBk.time;
-    } else {
-      h += nextBk.time || 'Näst upp';
-    }
-    h += ' · ' + nextBk.duration + ' min';
-    if (nextBk.serviceName) h += ' · ' + e(nextBk.serviceName);
-    h += '</div>';
-    h += '<div style="font-size:24px;font-weight:900;color:white;letter-spacing:-.03em;line-height:1.1;margin-bottom:4px">' + e(nextBk.patientName) + '</div>';
-
-    // Clinical signals row
-    h += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px">';
-    if (npIsNew) {
-      h += '<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(45,212,191,.12);color:var(--teal)">Ny patient</span>';
-    } else {
-      h += '<span style="font-size:11px;color:rgba(255,255,255,.5)">' + npVisits.length + ' besök</span>';
-    }
-    if (npNrs !== null) {
-      h += '<span style="font-size:11px;font-weight:700;color:' + nrsCol + '">NRS ' + npNrs + '</span>';
-    }
-    if (npDiag) {
-      h += '<span style="font-size:11px;color:rgba(255,255,255,.4)">' + e(npDiag.split('(')[0].trim().slice(0,36)) + '</span>';
-    }
-    if (npIntake && !npIntake._reviewedAt) {
-      h += '<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(45,212,191,.1);color:var(--teal)">Intake mottaget</span>';
-    }
-    if (npNsRisk && npNsRisk.risk === 'high') {
-      h += '<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(248,81,73,.2);color:#f87171">Uteblivanderisk</span>';
-    }
-    h += '</div>';
-    h += '</div>';
-
-    // Right: CTA
-    h += '<div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0">';
-    h += '<button onclick="event.stopPropagation();_startVisitFromBk(\''+nextBk.id+'\')" style="padding:12px 20px;background:var(--teal);border:none;border-radius:11px;font-size:14px;font-weight:800;color:white;cursor:pointer;font-family:var(--font);white-space:nowrap;letter-spacing:-.01em">Ta emot</button>';
-    h += '<button onclick="event.stopPropagation();openTreatmentPanel(\''+nextBk.id+'\')" style="padding:8px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:9px;font-size:11px;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer;font-family:var(--font)">Detaljer</button>';
-    h += '</div>';
-
-    h += '</div>'; // end hero
-  }
-
-  // ── MORNING BRIEF ─────────────────────────────────────────────────────────
+  // AI BRIEFING
   if (reportIsToday && report.summary && isToday) {
-    h += '<div style="margin:0 16px 12px;padding:12px 14px;background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.06);border-radius:11px">';
-    h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:5px">Dagsbriefing</div>';
-    h += '<div style="font-size:12px;color:var(--text);line-height:1.65">' + report.summary + '</div>';
-    h += '</div>';
+    h += '<div class="callout teal" style="margin-bottom:0">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+    h += '<div><div style="font-size:10px;font-weight:700;color:var(--teal);margin-bottom:3px;letter-spacing:.06em">VELA AI</div>';
+    h += '<div style="font-size:13px;color:var(--text);line-height:1.65">' + report.summary + '</div></div></div>';
   }
 
-  // ── PATIENT TIMELINE ──────────────────────────────────────────────────────
+  // HERO: next patient
+  if (nextBk) {
+    var np    = (S.patients||[]).find(function(p){ return p.id===nextBk.patientId; });
+    var npV   = np ? (np.visits||[]).sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;}) : [];
+    var npL   = npV[0];
+    var npNrs = npL ? ((npL.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;}).slice(-1)[0] ?? npL.form?.pain ?? null) : null;
+    var npDiag= npL ? (npL.form?.diagnosis||npL.plan?.form?.diagnosis||'') : '';
+    var npNew = npV.length === 0;
+    var npInt = np && getLatestIntakeForPatient ? getLatestIntakeForPatient(np.id) : null;
+    var apptM = null;
+    if (isToday && nextBk.time) {
+      var aH = parseInt(nextBk.time.split(':')[0]);
+      var aM = parseInt(nextBk.time.split(':')[1]||'0');
+      apptM = (aH*60+aM) - (now.getHours()*60+now.getMinutes());
+    }
+    var ini = (nextBk.patientName||'?').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+    var nrsC = npNrs==null?'muted':npNrs>=7?'red':npNrs>=4?'amber':'green';
+
+    h += '<div style="margin-top:20px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface)">';
+    h += '<div style="padding:10px 16px;background:rgba(45,212,191,.05);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">';
+    h += '<div style="width:6px;height:6px;border-radius:50%;background:var(--teal)"></div>';
+    h += '<div style="font-size:11px;font-weight:700;color:var(--teal);letter-spacing:.06em">';
+    if (apptM !== null && apptM <= 0) h += 'P\u00C5G\u00C5R NU';
+    else if (apptM !== null && apptM <= 15) h += 'OM ' + apptM + ' MIN';
+    else h += 'N\u00C4STE PATIENT &middot; ' + (nextBk.time||'');
+    h += '</div>';
+    if (nextBk.duration) h += '<span style="font-size:11px;color:var(--text2);margin-left:4px">' + nextBk.duration + ' min</span>';
+    if (nextBk.serviceName) h += '<span style="font-size:11px;color:var(--text2)"> &middot; ' + e(nextBk.serviceName) + '</span>';
+    h += '<button onclick="openTreatmentPanel(\''+nextBk.id+'\')" style="margin-left:auto;background:none;border:none;font-size:12px;color:var(--teal);cursor:pointer;font-family:var(--font);font-weight:600">Detaljer</button>';
+    h += '</div>';
+    h += '<div style="padding:16px;display:flex;align-items:center;gap:14px">';
+    h += '<div style="width:44px;height:44px;border-radius:50%;background:rgba(177,186,196,.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;font-weight:700;color:var(--text);font-family:var(--font-mono)">' + ini + '</div>';
+    h += '<div style="flex:1;min-width:0">';
+    h += '<div style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.02em;display:flex;align-items:center;gap:10px;flex-wrap:wrap">' + e(nextBk.patientName);
+    if (npNew) h += '<span class="status-pill blue" style="font-size:11px">Ny patient</span>';
+    else if (npNrs !== null) h += '<span class="status-pill ' + nrsC + '" style="font-size:11px">NRS ' + npNrs + '</span>';
+    if (npInt && !npInt._reviewedAt) h += '<span class="status-pill teal" style="font-size:10px">Intake</span>';
+    h += '</div>';
+    h += '<div class="meta-row" style="margin-top:4px">';
+    if (npDiag) h += '<span class="meta-item"><span class="meta-value" style="font-weight:400;color:var(--text)">' + e(npDiag.split('(')[0].trim().slice(0,45)) + '</span></span><span class="meta-sep">&middot;</span>';
+    h += '<span class="meta-item"><span class="meta-label">Besök</span><span class="meta-value">' + npV.length + '</span></span>';
+    h += '</div></div>';
+    h += '<button onclick="_startVisitFromBk(\''+nextBk.id+'\')" class="act-btn act-btn-primary" style="padding:10px 20px;font-size:14px">Ta emot</button>';
+    h += '</div></div>';
+  }
+
+  // SCHEDULE
   if (bks.length) {
-    h += '<div class="dv-list">';
-    bks.forEach(function(bk, i) {
-      var isDone     = bk.status === 'completed' || bk.status === 'no-show';
-      var isNext     = nextBk && bk.id === nextBk.id;
-      var isInProgress = isToday && !isDone && bk.time && (function(){
-        var bMins = parseInt(bk.time.split(':')[0])*60 + parseInt(bk.time.split(':')[1]||'0');
-        var nowMins = now.getHours()*60 + now.getMinutes();
-        return nowMins >= bMins && nowMins < bMins + (bk.duration||45);
-      })();
+    h += '<div style="margin-top:24px">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+    h += '<div class="section-title-sm">Dagens schema</div>';
+    h += '<button onclick="go(\'calendar\')" style="font-size:12px;color:var(--teal);background:none;border:none;cursor:pointer;font-family:var(--font);font-weight:600">Kalendervy</button>';
+    h += '</div><div class="item-list">';
 
-      var pat = (S.patients||[]).find(function(p){ return p.id===bk.patientId; });
-      var patLast = pat ? (pat.visits||[]).sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0] : null;
-      var nrs = patLast ? ((patLast.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;}).slice(-1)[0] ?? patLast.form?.pain ?? null) : null;
-      var nrsC = nrs==null?'var(--muted)':nrs>=7?'#f87171':nrs>=4?'#d29922':'#4ade80';
-      var hasIntake = pat && getLatestIntakeForPatient(pat.id) && !getLatestIntakeForPatient(pat.id)._reviewedAt;
+    bks.forEach(function(bk) {
+      var isDone = bk.status==='completed'||bk.status==='no-show';
+      var isNxt  = nextBk && bk.id===nextBk.id;
+      var pat    = (S.patients||[]).find(function(p){ return p.id===bk.patientId; });
+      var lv     = pat ? (pat.visits||[]).sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0] : null;
+      var nrs2   = lv ? ((lv.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;}).slice(-1)[0] ?? lv.form?.pain ?? null) : null;
+      var hasI   = pat && getLatestIntakeForPatient && getLatestIntakeForPatient(pat.id) && !getLatestIntakeForPatient(pat.id)._reviewedAt;
+      var ini2   = (bk.patientName||'?').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+      var nrsC2  = nrs2==null?'muted':nrs2>=7?'red':nrs2>=4?'amber':'green';
 
-      h += '<div class="dv-row' + (isNext?' dv-row-next':'') + (isDone?' dv-row-done':'') + '" onclick="openTreatmentPanel(\''+bk.id+'\')">';
-
-      // Time column
-      h += '<div class="dv-row-time">';
-      h += '<div style="font-size:13px;font-weight:700;color:' + (isDone?'var(--muted)':isInProgress?'var(--teal)':'var(--ink)') + '">' + (bk.time||'') + '</div>';
-      h += '<div style="font-size:10px;color:var(--muted);margin-top:1px">' + bk.duration + 'm</div>';
+      h += '<div class="item-row clickable" onclick="openTreatmentPanel(\''+bk.id+'\')" style="'
+         + (isDone?'opacity:.45':'')
+         + (isNxt?';box-shadow:inset 3px 0 0 var(--teal)':'')
+         + '">';
+      h += '<div style="width:50px;flex-shrink:0;text-align:right;padding-right:10px">';
+      h += '<div style="font-size:13px;font-weight:700;color:'+(isNxt?'var(--teal)':isDone?'var(--text2)':'var(--ink)')+'">'+(bk.time||'')+'</div>';
+      h += '<div style="font-size:10px;color:var(--text2)">'+bk.duration+'m</div></div>';
+      h += '<div style="width:32px;height:32px;border-radius:50%;background:rgba(177,186,196,.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:var(--text);font-family:var(--font-mono)">'+ini2+'</div>';
+      h += '<div class="item-row-body">';
+      h += '<div class="item-row-title">'+e(bk.patientName);
+      if (nrs2!==null&&!isDone) h += '<span class="status-pill '+nrsC2+'" style="font-size:10px">NRS '+nrs2+'</span>';
+      if (hasI) h += '<span class="status-pill teal" style="font-size:10px">Intake</span>';
       h += '</div>';
-
-      // Status line
-      h += '<div class="dv-row-line">';
-      h += '<div class="dv-row-dot' + (isDone?' done':isInProgress?' active':'') + '"></div>';
-      if (i < bks.length-1) h += '<div class="dv-row-connector"></div>';
+      if (bk.serviceName) h += '<div class="item-row-meta">'+e(bk.serviceName)+'</div>';
       h += '</div>';
-
-      // Content
-      h += '<div class="dv-row-content">';
-      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">';
-      h += '<div style="font-size:14px;font-weight:800;color:' + (isDone?'var(--muted)':'var(--ink)') + ';letter-spacing:-.02em">' + e(bk.patientName) + '</div>';
-      if (nrs !== null && !isDone) h += '<span style="font-size:10px;font-weight:700;color:'+nrsC+'">NRS '+nrs+'</span>';
-      if (hasIntake) h += '<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(45,212,191,.06);color:var(--teal)">Intake</span>';
-      if (isDone && bk.status==='completed') h += '<span style="font-size:10px;font-weight:700;color:var(--muted)">Genomförd</span>';
-      if (bk.status==='no-show') h += '<span style="font-size:10px;font-weight:700;color:#f87171">Uteblev</span>';
-      h += '</div>';
-      if (bk.serviceName || (pat && !isDone)) {
-        h += '<div style="font-size:11px;color:var(--muted)">';
-        if (bk.serviceName) h += e(bk.serviceName);
-        if (pat && !isDone && (pat.visits||[]).length === 0) h += (bk.serviceName?' · ':'') + 'Ny patient';
-        h += '</div>';
-      }
-      h += '</div>';
-
-      // Action — only for upcoming/in-progress
       if (!isDone) {
-        h += '<button onclick="event.stopPropagation();_startVisitFromBk(\''+bk.id+'\')" class="dv-row-action">Ta emot</button>';
+        h += '<div class="item-row-action"><button onclick="event.stopPropagation();_startVisitFromBk(\''+bk.id+'\')" class="act-btn" style="font-size:12px">Ta emot</button></div>';
+      } else {
+        h += '<div class="item-row-action"><span class="status-pill '+(bk.status==='completed'?'green':'red')+'" style="font-size:10px">'+(bk.status==='completed'?'Klar':'Uteblev')+'</span></div>';
       }
-
-      h += '</div>'; // end row
+      h += '</div>';
     });
-    h += '</div>'; // end list
+    h += '</div></div>';
 
   } else {
-    // ── NO BOOKINGS ─────────────────────────────────────────────────────────
-    h += '<div style="padding:28px 20px 20px">';
-    h += '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px">Inga bokningar ' + (isToday?'idag':'denna dag') + '</div>';
-    h += '<div style="font-size:13px;color:var(--muted);margin-bottom:18px">Tryck ⌘K för att söka och boka</div>';
-    h += '<button onclick="openCommandPalette()" class="btn btn-p" style="padding:10px 20px">Boka patient</button>';
-
+    // NO BOOKINGS
+    h += '<div style="margin-top:24px">';
     if (upcomingDays.length) {
-      h += '<div style="margin-top:28px">';
-      h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px">Kommande</div>';
+      h += '<div class="section-title-sm" style="margin-bottom:12px">Kommande bokningar</div>';
+      h += '<div class="item-list">';
       upcomingDays.forEach(function(day) {
         var lbl = day.dateObj.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'short'});
-        lbl = lbl.charAt(0).toUpperCase() + lbl.slice(1);
-        h += '<div style="margin-bottom:14px">';
-        h += '<div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:7px">' + lbl + '</div>';
-        day.bookings.slice(0,4).forEach(function(bk) {
-          h += '<div style="display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:5px;cursor:pointer" onclick="rDayView(\''+bk.date+'\')">';
-          h += '<div style="font-size:12px;font-weight:700;color:var(--muted);width:38px;flex-shrink:0">' + (bk.time||'') + '</div>';
-          h += '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--ink)">' + e(bk.patientName) + '</div>';
-          if (bk.serviceName) h += '<div style="font-size:11px;color:var(--muted)">' + e(bk.serviceName) + '</div>';
+        lbl = lbl.charAt(0).toUpperCase()+lbl.slice(1);
+        h += '<div style="padding:8px 16px;background:rgba(177,186,196,.03);border-bottom:1px solid var(--border2)">';
+        h += '<div style="font-size:11px;font-weight:700;color:var(--teal)">'+lbl+' &middot; '+day.bookings.length+' patient'+(day.bookings.length!==1?'er':'')+'</div></div>';
+        day.bookings.forEach(function(bk) {
+          var ini3 = (bk.patientName||'?').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+          h += '<div class="item-row clickable" onclick="rDayView(\''+bk.date+'\')">';
+          h += '<div style="width:50px;flex-shrink:0;text-align:right;padding-right:10px"><div style="font-size:13px;font-weight:700;color:var(--ink)">'+(bk.time||'')+'</div></div>';
+          h += '<div style="width:32px;height:32px;border-radius:50%;background:rgba(177,186,196,.1);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;color:var(--text);font-family:var(--font-mono)">'+ini3+'</div>';
+          h += '<div class="item-row-body"><div class="item-row-title">'+e(bk.patientName)+'</div>';
+          if (bk.serviceName) h += '<div class="item-row-meta">'+e(bk.serviceName)+'</div>';
           h += '</div>';
-          h += '<div style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(45,212,191,.06);color:var(--teal)">' + bk.duration + ' min</div>';
+          h += '<div class="item-row-action"><span class="status-pill muted">'+bk.duration+' min</span></div>';
           h += '</div>';
         });
-        h += '</div>';
       });
       h += '</div>';
+    } else {
+      h += '<div class="item-list"><div class="empty-state">';
+      h += '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+      h += '<div class="empty-state-title">Inga bokningar '+(isToday?'idag':'denna dag')+'</div>';
+      h += '<div class="empty-state-sub">Tryck &#8984;K f&#246;r att s&#246;ka och boka.</div>';
+      h += '<button onclick="openCommandPalette()" class="act-btn act-btn-primary">Boka patient</button>';
+      h += '</div></div>';
     }
-
     var wl = getWaitlist ? getWaitlist() : [];
     if (wl.length) {
-      h += '<div style="margin-top:12px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px">';
-      h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Väntelista</div>';
-      wl.slice(0,3).forEach(function(w) {
-        h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">';
-        h += '<div style="font-size:12px;font-weight:600;color:var(--ink)">' + e(w.patName) + '</div>';
-        h += '<button onclick="openCommandPalette()" style="font-size:11px;font-weight:700;color:var(--teal);background:none;border:none;cursor:pointer;font-family:var(--font)">Boka</button>';
+      h += '<div style="margin-top:20px"><div class="section-title-sm" style="margin-bottom:10px">V&#228;ntelista</div><div class="item-list">';
+      wl.slice(0,4).forEach(function(w) {
+        h += '<div class="item-row">';
+        h += '<div class="item-row-icon"><div class="status-dot amber"></div></div>';
+        h += '<div class="item-row-body"><div class="item-row-title">'+e(w.patName)+'</div>';
+        if (w.note) h += '<div class="item-row-meta">'+e(w.note.slice(0,60))+'</div>';
+        h += '</div>';
+        h += '<div class="item-row-action"><button onclick="openCommandPalette()" class="act-btn act-btn-primary" style="font-size:12px">Boka</button></div>';
         h += '</div>';
       });
-      h += '</div>';
+      h += '</div></div>';
     }
     h += '</div>';
   }
 
-  // ── RETENTION ALERTS ─────────────────────────────────────────────────────
+  // RETENTION ALERTS
   if (dropouts.length && isToday) {
-    // Get pending (unsent) items from retention queue for these patients
     var retQ = getRetentionQueue ? getRetentionQueue() : [];
-    h += '<div class="dv-alerts">';
+    h += '<div style="margin-top:24px">';
     h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
-    h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#f87171">Avhoppsrisk</div>';
-    h += '<button onclick="go(\'retention\')" style="font-size:11px;font-weight:700;color:var(--teal);background:none;border:none;cursor:pointer;font-family:var(--font)">Se alla</button>';
-    h += '</div>';
+    h += '<div class="section-title-sm">Avhoppsrisk</div>';
+    h += '<button onclick="go(\'retention\')" style="font-size:12px;color:var(--teal);background:none;border:none;cursor:pointer;font-family:var(--font);font-weight:600">AI Retention</button>';
+    h += '</div><div class="item-list">';
     dropouts.forEach(function(d) {
       var p = (S.patients||[]).find(function(x){ return x.id===d.patId; });
       if (!p) return;
-      var pending = retQ.filter(function(q){ return q.patId===d.patId && !q.sentAt && !q.approved; });
-      var queued  = retQ.filter(function(q){ return q.patId===d.patId && !q.sentAt && q.approved; });
-      h += '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">';
-      h += '<div style="flex:1;min-width:0">';
-      h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">' + e(p.name) + '</div>';
-      h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">' + d.reason + '</div>';
-      h += '</div>';
-      if (queued.length) {
-        h += '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(45,212,191,.06);color:var(--teal)">Meddelande schemalagt</span>';
-      } else {
-        h += '<button onclick="event.stopPropagation();_generateRetentionForPat(\''+d.patId+'\')" style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);color:#f87171;cursor:pointer;font-family:var(--font)">Skicka meddelande</button>';
-      }
-      h += '</div>';
+      var q = retQ.filter(function(x){ return x.patId===d.patId && !x.sentAt; });
+      h += '<div class="item-row">';
+      h += '<div class="item-row-icon"><div class="status-dot '+(d.score>=70?'red':'amber')+'"></div></div>';
+      h += '<div class="item-row-body"><div class="item-row-title">'+e(p.name)+'</div>';
+      h += '<div class="item-row-meta">'+e(d.reason||'')+'</div></div>';
+      h += '<div class="item-row-action">';
+      if (q.length) h += '<span class="status-pill teal" style="font-size:10px">Schemalagt</span>';
+      else h += '<button onclick="_generateRetentionForPat(\''+d.patId+'\')" class="act-btn" style="font-size:12px">Skicka</button>';
+      h += '</div></div>';
     });
-    h += '</div>'; // end alerts
+    h += '</div></div>';
   }
 
-  h += '</div>'; // end dv-wrap
+  h += '</div>';
   el.innerHTML = h;
 }
 

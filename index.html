@@ -255,6 +255,72 @@ button, input, textarea, select { font-family: inherit; }
 .schedule-cell.blocked { background:rgba(255,255,255,.03); border-color:var(--border2); cursor:default; }
 .therapist-filter-btn { padding:6px 12px; border:1.5px solid var(--border); border-radius:20px; background:none; color:var(--muted); font-size:11px; font-weight:600; cursor:pointer; font-family:var(--font); transition:all .12s; white-space:nowrap; display:flex; align-items:center; gap:6px; }
 .therapist-filter-btn.active { border-color:var(--teal); background:rgba(13,155,138,.08); color:var(--teal); }
+
+/* ── COMMAND PALETTE ─────────────────────────────────────────────────────── */
+.cmd-overlay { position:fixed;inset:0;z-index:800;background:rgba(7,16,30,.75);backdrop-filter:blur(8px);display:flex;align-items:flex-start;justify-content:center;padding-top:80px;animation:cmd-fade-in .1s ease; }
+@keyframes cmd-fade-in { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:none} }
+.cmd-box { background:var(--surface);border:1px solid rgba(255,255,255,.1);border-radius:18px;width:100%;max-width:580px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.5); }
+.cmd-input-row { display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border); }
+.cmd-icon { color:var(--teal);flex-shrink:0; }
+.cmd-input { flex:1;background:none;border:none;font-size:17px;color:var(--ink);outline:none;font-family:var(--font); }
+.cmd-input::placeholder { color:rgba(255,255,255,.2); }
+.cmd-kbd { font-size:10px;color:var(--muted);background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:2px 6px;flex-shrink:0; }
+.cmd-results { max-height:420px;overflow-y:auto; }
+.cmd-section-label { font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:10px 20px 4px; }
+.cmd-item { display:flex;align-items:center;gap:14px;padding:10px 20px;cursor:pointer;transition:background .1s; }
+.cmd-item:hover,.cmd-item.selected { background:rgba(13,155,138,.08); }
+.cmd-item-icon { width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.cmd-item-main { flex:1;min-width:0; }
+.cmd-item-title { font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.cmd-item-sub { font-size:11px;color:var(--muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.cmd-item-badge { font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;flex-shrink:0; }
+.cmd-ai-panel { border-top:1px solid var(--border);padding:16px 20px;background:rgba(13,155,138,.03); }
+.cmd-ai-title { font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:10px; }
+.cmd-slot-row { display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px; }
+.cmd-slot { padding:7px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;color:var(--text);transition:all .12s;font-family:var(--font);background:none; }
+.cmd-slot:hover { border-color:var(--teal);color:var(--teal); }
+.cmd-slot.recommended { border-color:var(--teal);background:rgba(13,155,138,.1);color:var(--teal); }
+.cmd-slot.recommended::before { content:'★ ';font-size:10px; }
+
+/* ── CALENDAR ENHANCEMENTS ──────────────────────────────────────────────────*/
+.cal-today-brief { background:var(--navy);border-bottom:1px solid rgba(255,255,255,.06);padding:10px 20px;display:flex;gap:16px;overflow-x:auto;flex-shrink:0; }
+.cal-brief-card { background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:9px 14px;flex-shrink:0;min-width:160px;cursor:pointer;transition:background .12s; }
+.cal-brief-card:hover { background:rgba(255,255,255,.09); }
+.cal-brief-card.urgent { border-color:rgba(224,85,85,.4);background:rgba(224,85,85,.06); }
+.cal-brief-card.suggestion { border-color:rgba(13,155,138,.3);background:rgba(13,155,138,.06); }
+.cal-brief-time { font-size:10px;font-weight:700;color:var(--teal);margin-bottom:2px; }
+.cal-brief-name { font-size:12px;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.cal-brief-sub { font-size:10px;color:rgba(255,255,255,.4);margin-top:1px; }
+.cal-slot.free-suggestion { background:rgba(13,155,138,.04);border-bottom-color:rgba(13,155,138,.1); }
+.cal-slot.free-suggestion::after { content:'+ Boka';position:absolute;right:4px;top:50%;transform:translateY(-50%);font-size:9px;font-weight:700;color:rgba(13,155,138,.5);opacity:0;transition:opacity .15s; }
+.cal-slot.free-suggestion:hover::after { opacity:1; }
+.cal-nrs-pill { font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;display:inline-block; }
+
+/* ── TREATMENT PANEL ────────────────────────────────────────────────────────*/
+.tx-panel { position:fixed;right:0;top:0;bottom:0;width:380px;background:var(--surface);border-left:1px solid var(--border);z-index:400;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);box-shadow:-8px 0 32px rgba(0,0,0,.3); }
+.tx-panel.open { transform:translateX(0); }
+.tx-panel-header { background:var(--navy);padding:18px 20px 14px;flex-shrink:0; }
+.tx-panel-body { flex:1;overflow-y:auto;padding:16px; }
+.tx-nrs-sparkline { display:flex;align-items:flex-end;gap:3px;height:32px;margin-top:6px; }
+.tx-nrs-bar { flex:1;border-radius:2px 2px 0 0;min-height:3px;transition:height .4s ease; }
+.tx-action-btn { width:100%;padding:13px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s; }
+.tx-action-btn:hover { opacity:.88; }
+
+/* ── WAITLIST ────────────────────────────────────────────────────────────────*/
+.waitlist-badge { position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;border-radius:8px;background:#c8a030;color:white;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px; }
+
+/* ── NO-SHOW PREDICTOR ──────────────────────────────────────────────────────*/
+.noshow-risk { font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px; }
+.noshow-risk.high { background:rgba(224,85,85,.15);color:#e05555; }
+.noshow-risk.medium { background:rgba(200,160,48,.12);color:#c8a030; }
+.noshow-risk.low { background:rgba(26,122,74,.1);color:#1a7a4a; }
+
+@media (max-width:768px) {
+  .tx-panel { width:100%;border-left:none;border-top:1px solid var(--border); top:auto; height:85vh; transform:translateY(100%); }
+  .tx-panel.open { transform:translateY(0); }
+  .cmd-overlay { padding-top:20px;align-items:flex-end; }
+  .cmd-box { border-radius:18px 18px 0 0; }
+}
 .org-add-clinic-card { background:var(--bg);border:1.5px dashed var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:120px;transition:border-color .15s; }
 .org-add-clinic-card:hover { border-color:var(--teal); }
 
@@ -719,6 +785,7 @@ button, input, textarea, select { font-family: inherit; }
 .ldstep.active{ color:rgba(255,255,255,.9);font-weight:600; }
 .ldtitle      { font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px; }
 </style>
+<style id="vela-ux-css">
 <style id="vela-ux-css">
 /* ── MODAL ───────────────────────────────────────────────── */
 .modal-ov {
@@ -1186,32 +1253,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 
 /* ── INSIGHT / BRIEFING PANEL ────────────────────────────── */
 .briefing-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg,14px); padding:16px 18px; margin-bottom:16px; }
-.briefing-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg,14px); margin-bottom:16px; overflow:hidden; }
-.briefing-ready {}
-.briefing-hdr { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; cursor:pointer; border-bottom:1px solid var(--border2); }
-.briefing-hdr-left { display:flex; align-items:center; gap:8px; }
-.briefing-hdr-title { font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
-.briefing-hdr-time { font-size:10px; color:var(--muted); }
-.briefing-regen-btn { background:none; border:none; cursor:pointer; color:var(--muted); font-size:11px; font-family:var(--font); padding:3px 8px; border-radius:5px; }
-.briefing-regen-btn:hover { background:var(--surface2); color:var(--ink); }
-.briefing-body { padding:12px 16px 14px; }
-.briefing-points { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
-.briefing-point { display:flex; align-items:flex-start; gap:8px; font-size:12px; color:var(--text); line-height:1.55; }
-.briefing-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; margin-top:4px; }
-.briefing-dot.green { background:var(--green); }
-.briefing-dot.amber { background:var(--gold); }
-.briefing-dot.red { background:var(--red); }
-.briefing-dot.teal { background:var(--teal); }
-.briefing-dot.blue { background:#4a9eff; }
-.briefing-qs { display:flex; flex-direction:column; gap:4px; padding-top:8px; border-top:1px solid var(--border2); }
-.briefing-q { font-size:11px; color:var(--text3); padding:4px 0; }
-.briefing-q::before { content:'→ '; color:var(--teal); font-weight:700; }
-.briefing-text { font-size:13px; color:var(--text); line-height:1.75; }
-.briefing-loading { padding:16px; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); }
-.briefing-error { padding:12px 16px; display:flex; align-items:center; gap:8px; font-size:12px; color:var(--text3); }
-.briefing-regen { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:3px 10px; font-size:11px; cursor:pointer; color:var(--ink); font-family:var(--font); }
 </style>
-
 </head><body>
 <div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0e1825;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
   <div style="width:36px;height:36px;border:2.5px solid rgba(13,155,138,.2);border-top-color:#0d9b8a;border-radius:50%;animation:spin .7s linear infinite"></div>
@@ -1266,6 +1308,33 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
     <div id="s-hael" class="screen"></div>
     <div id="s-hael" class="screen"></div>
     <div id="s-meeting" class="screen"></div>
+    <div id="s-soap" class="screen"></div>
+    <div id="s-editpat" class="screen"></div>
+    <div id="s-journaldoc" class="screen"></div>
+    <div id="s-manualsoap" class="screen"></div>
+    <div id="s-sbs-soap" class="screen"></div>
+    <div id="s-patjournal" class="screen"></div>
+    <div id="s-intelligence" class="screen"></div>
+    <div id="s-calendar" class="screen"></div>
+    <div id="s-intake" class="screen"></div>
+    <div id="s-economy" class="screen"></div>
+    <div id="s-invoices" class="screen"></div>
+  </div>
+</div>
+
+<div id="autosave-toast" style="display:none;position:fixed;bottom:80px;right:24px;background:var(--navy);color:white;padding:10px 18px;border-radius:20px;font-size:12px;font-weight:600;z-index:998;opacity:0;transition:opacity .3s;box-shadow:0 4px 16px rgba(0,0,0,.2)">Autosparad</div>
+<div class="modal-ov" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="mtitle"></div>
+    <div class="modal-text" id="mtext"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Avbryt</button>
+      <button class="btn btn-d" id="mconfirm">Radera</button>
+    </div>
+  </div>
+</div>
+
+<div id="r" style="display:none"></div>
 <script>
 // Register service worker for PWA
 // Clear old service worker + caches (prevents stale code serving)
@@ -3963,6 +4032,7 @@ function rCalendar() {
   var weekLabel = monFmt + ' – ' + sunFmt + ' ' + mon.getFullYear();
 
   var h = '<div class="cal-wrap">';
+  h += _buildTodaysBrief(bks);
 
   // ── HEADER ────────────────────────────────────────────────────────────────
   h += '<div class="cal-header">';
@@ -3980,7 +4050,7 @@ function rCalendar() {
   }
   h += '<button onclick="openBookingDialog(null, null)" class="btn btn-p" style="font-size:12px;display:flex;align-items:center;gap:6px;white-space:nowrap">';
   h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
-  h += 'Ta emot</button>';
+  h += 'Ta emot <span style="font-size:9px;opacity:.4;font-weight:400">⌘K</span></button>';
   h += '<button onclick="showWebBookingSetup()" style="padding:7px 14px;border:1px solid var(--border);border-radius:9px;font-size:11px;font-weight:600;color:var(--muted);cursor:pointer;font-family:var(--font);background:none">Webb-bokning ↗</button>';
   h += '<div style="margin-top:8px;display:flex;gap:8px;align-items:center">'
   h += _calRenderTherapistFilter();
@@ -4332,6 +4402,8 @@ function _saveBooking() {
 
   // Refresh calendar if open
   if (S.screen === 'calendar') rCalendar();
+  // Queue smart reminder chain
+  setTimeout(function(){ _queueReminderChain(bk); }, 500);
 }
 
 function _generateIntakeLink(patId) {
@@ -4440,6 +4512,8 @@ function _sendIntakeNow(bkId) {
 // ── BOOKING DETAIL ────────────────────────────────────────────────────────────
 function openBookingDetail(bkId) {
   if (bkId && typeof bkId === "object") bkId = bkId.dataset.bkid;
+  // Use contextual treatment panel if on calendar
+  if (S.screen === "calendar") { openTreatmentPanel(bkId); return; }
   var bk = getBooking(bkId);
   if (!bk) return;
 
@@ -4526,6 +4600,7 @@ function _deleteBk(bkId) {
   if (!bk || !confirm('Avboka ' + bk.patientName + '?')) return;
   bk.status = 'cancelled';
   upsertBooking(bk);
+  _notifyWaitlistOnCancellation(bk);
   document.getElementById('bk-detail-ov')?.remove();
   showAutoSaveToast('Bokning avbokad');
   if (S.screen === 'calendar') rCalendar();
@@ -8234,6 +8309,995 @@ async function sbSaveMorningReport(report) {
   } catch(e) { console.warn('sbSaveMorningReport:', e.message); return false; }
 }
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+// COMMAND PALETTE — ⌘K anywhere, AI-powered booking
+// ══════════════════════════════════════════════════════════════════════════════
+
+var _cmdState = { open:false, query:'', selectedIdx:0, selectedPat:null, aiSlots:[], loading:false };
+var WAITLIST_KEY = 'vela:waitlist';
+
+// ── KEYBOARD SHORTCUT ─────────────────────────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    toggleCommandPalette();
+  }
+  if (e.key === 'Escape') closeCommandPalette();
+});
+
+function toggleCommandPalette() {
+  if (_cmdState.open) closeCommandPalette();
+  else openCommandPalette();
+}
+
+function openCommandPalette() {
+  _cmdState = { open:true, query:'', selectedIdx:0, selectedPat:null, aiSlots:[], loading:false };
+  _renderCommandPalette();
+  setTimeout(function(){ document.getElementById('cmd-input')?.focus(); }, 50);
+}
+
+function closeCommandPalette() {
+  _cmdState.open = false;
+  document.getElementById('cmd-overlay')?.remove();
+}
+
+function _renderCommandPalette() {
+  document.getElementById('cmd-overlay')?.remove();
+  var ov = document.createElement('div');
+  ov.id = 'cmd-overlay';
+  ov.className = 'cmd-overlay';
+  ov.onclick = function(ev){ if(ev.target===ov) closeCommandPalette(); };
+
+  var q = _cmdState.query;
+  var patients = S.patients || [];
+  var matchedPats = q.length >= 1
+    ? patients.filter(function(p){ return p.name && p.name.toLowerCase().includes(q.toLowerCase()); }).slice(0,6)
+    : patients.slice(0,4);
+
+  var h = '<div class="cmd-box" onclick="event.stopPropagation()">';
+
+  // Input
+  h += '<div class="cmd-input-row">';
+  h += '<svg class="cmd-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += '<input id="cmd-input" class="cmd-input" placeholder="Sök patient, åtgärd..." value="' + e(q) + '" oninput="_cmdInput(this.value)" onkeydown="_cmdKey(event)">';
+  h += '<span class="cmd-kbd">ESC</span>';
+  h += '</div>';
+
+  h += '<div class="cmd-results" id="cmd-results">';
+
+  // AI booking panel (shown when patient selected)
+  if (_cmdState.selectedPat) {
+    h += _buildCmdAiPanel(_cmdState.selectedPat);
+  }
+
+  // Patient results
+  if (matchedPats.length) {
+    h += '<div class="cmd-section-label">' + (q ? 'Patienter' : 'Senaste patienter') + '</div>';
+    matchedPats.forEach(function(p, i) {
+      var lastVisit = (p.visits||[]).slice(-1)[0];
+      var nrs = null;
+      if (lastVisit) {
+        var nrsVals = (lastVisit.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; });
+        nrs = nrsVals.length ? nrsVals[nrsVals.length-1] : (lastVisit.form?.pain ?? null);
+      }
+      var lastDate = lastVisit?.date ? _relativeDate(lastVisit.date) : 'Inga besök';
+      var diag = lastVisit?.form?.diagnosis || lastVisit?.plan?.form?.diagnosis || '';
+      var noshow = _predictNoShow(p);
+      var dropout = _scanDropoutRisks().find(function(r){ return r.patId===p.id; });
+      var initials = p.name.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+      var nrsColor = nrs==null?'var(--muted)':nrs>=7?'#e05555':nrs>=4?'#c8a030':'#1a7a4a';
+      var isSelected = _cmdState.selectedPat?.id === p.id;
+
+      h += '<div class="cmd-item' + (isSelected?' selected':'') + '" onclick="_cmdSelectPat(\'' + p.id + '\')" data-idx="' + i + '">';
+      h += '<div class="cmd-item-icon" style="background:rgba(13,155,138,.1);color:var(--teal);font-size:11px;font-weight:800">' + initials + '</div>';
+      h += '<div class="cmd-item-main">';
+      h += '<div class="cmd-item-title">' + e(p.name);
+      if (nrs!=null) h += ' <span class="cal-nrs-pill" style="background:' + nrsColor + '22;color:' + nrsColor + '">NRS ' + nrs + '</span>';
+      if (dropout && dropout.score >= 60) h += ' <span style="font-size:9px;color:#e05555">⚠ avhoppsrisk</span>';
+      h += '</div>';
+      h += '<div class="cmd-item-sub">' + lastDate + (diag?' · '+e(diag.split('(')[0].trim()):'') + '</div>';
+      h += '</div>';
+      if (noshow.risk === 'high') h += '<span class="noshow-risk high">No-show ' + noshow.pct + '%</span>';
+      else if (noshow.risk === 'medium') h += '<span class="noshow-risk medium">No-show ' + noshow.pct + '%</span>';
+      h += '</div>';
+    });
+  }
+
+  // Quick actions
+  if (!q) {
+    h += '<div class="cmd-section-label">Snabbåtgärder</div>';
+    var actions = [
+      {icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+       title:'Öppna kalender', sub:'Se dagens bokningar', fn:"closeCommandPalette();go('calendar')"},
+      {icon:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+       title:'Ny patient', sub:'Lägg till ny patientprofil', fn:"closeCommandPalette();_openNewPatientDialog()"},
+      {icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+       title:'Ekonomiöversikt', sub:'Intäkter och fakturor', fn:"closeCommandPalette();go('economy')"},
+      {icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>',
+       title:'Väntelista', sub:_getWaitlist().length + ' patienter väntar', fn:"closeCommandPalette();openWaitlistDialog()"},
+    ];
+    actions.forEach(function(a) {
+      h += '<div class="cmd-item" onclick="' + a.fn + '">';
+      h += '<div class="cmd-item-icon" style="background:rgba(255,255,255,.05);color:var(--muted)">';
+      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' + a.icon + '</svg></div>';
+      h += '<div class="cmd-item-main"><div class="cmd-item-title">' + a.title + '</div><div class="cmd-item-sub">' + a.sub + '</div></div>';
+      h += '</div>';
+    });
+  }
+
+  h += '</div></div>';
+  ov.innerHTML = h;
+  document.body.appendChild(ov);
+}
+
+function _buildCmdAiPanel(pat) {
+  var slots = _cmdState.aiSlots;
+  var loading = _cmdState.loading;
+  var intake = needsIntake(pat.id);
+  var lastVisit = (pat.visits||[]).slice(-1)[0];
+  var diag = lastVisit?.form?.diagnosis || lastVisit?.plan?.form?.diagnosis || '';
+  var nrsVals = lastVisit ? (lastVisit.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }) : [];
+  var nrs = nrsVals.length ? nrsVals[nrsVals.length-1] : null;
+  var weeksSince = lastVisit?.date ? Math.round((Date.now()-new Date(lastVisit.date))/604800000) : null;
+
+  var h = '<div class="cmd-ai-panel">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h += '<div>';
+  h += '<div style="font-size:14px;font-weight:800;color:var(--ink)">' + e(pat.name) + '</div>';
+  h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">';
+  if (weeksSince!==null) h += weeksSince + ' veckor sedan';
+  if (diag) h += ' · ' + e(diag.split('(')[0].trim());
+  if (nrs!==null) {
+    var nc = nrs>=7?'#e05555':nrs>=4?'#c8a030':'#1a7a4a';
+    h += ' · <span style="color:'+nc+';font-weight:700">NRS '+nrs+'</span>';
+  }
+  h += '</div></div>';
+  h += '<button onclick="_cmdClearPat()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:0">×</button>';
+  h += '</div>';
+
+  if (intake.needed) {
+    h += '<div style="font-size:11px;background:rgba(200,160,48,.08);border:1px solid rgba(200,160,48,.2);border-radius:7px;padding:7px 10px;color:#c8a030;margin-bottom:10px">⚠ ' +
+      (intake.reason==='long_gap' ? intake.weeks+' veckor sedan — intake-formulär rekommenderas' : 'Intake-formulär rekommenderas') + '</div>';
+  }
+
+  h += '<div class="cmd-ai-title">AI-föreslagna tider</div>';
+  if (loading) {
+    h += '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)"><div style="width:12px;height:12px;border:2px solid var(--teal);border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite"></div>Hittar bästa tider...</div>';
+  } else if (slots.length) {
+    h += '<div class="cmd-slot-row">';
+    slots.forEach(function(slot, i) {
+      h += '<button class="cmd-slot' + (i===0?' recommended':'') + '" onclick="_cmdBookSlot(\'' + pat.id + '\',\'' + slot.date + '\',\'' + slot.time + '\')">';
+      h += slot.label;
+      h += '</button>';
+    });
+    h += '</div>';
+    h += '<div style="display:flex;gap:8px">';
+    h += '<button onclick="closeCommandPalette();openPat(\'' + pat.id + '\')" style="flex:1;padding:8px;background:none;border:1px solid var(--border);border-radius:9px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:var(--font)">Öppna patient</button>';
+    h += '<button onclick="_cmdTaEmotNu(\'' + pat.id + '\')" style="flex:1;padding:8px;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.25);border-radius:9px;font-size:12px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)">Ta emot nu →</button>';
+    h += '</div>';
+  } else {
+    h += '<div style="font-size:12px;color:var(--muted)">Inga lediga tider hittades denna vecka.</div>';
+    h += '<button onclick="closeCommandPalette();openBookingDialog(null,null)" style="margin-top:8px;padding:8px 14px;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.2);border-radius:8px;font-size:12px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)">Välj tid manuellt</button>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function _cmdInput(val) {
+  _cmdState.query = val;
+  _cmdState.selectedPat = null;
+  _cmdState.aiSlots = [];
+  _renderCommandPalette();
+  setTimeout(function(){ document.getElementById('cmd-input')?.focus(); }, 10);
+}
+
+function _cmdKey(ev) {
+  if (ev.key === 'Enter' && _cmdState.selectedPat) {
+    _cmdTaEmotNu(_cmdState.selectedPat.id);
+  }
+}
+
+function _cmdSelectPat(patId) {
+  var pat = (S.patients||[]).find(function(p){ return p.id===patId; });
+  if (!pat) return;
+  _cmdState.selectedPat = pat;
+  _cmdState.aiSlots = [];
+  _cmdState.loading = true;
+  _renderCommandPalette();
+  // Load AI slots
+  _getAiBookingSlots(pat).then(function(slots) {
+    _cmdState.aiSlots = slots;
+    _cmdState.loading = false;
+    _renderCommandPalette();
+    setTimeout(function(){ document.getElementById('cmd-input')?.focus(); }, 10);
+  });
+}
+
+function _cmdClearPat() {
+  _cmdState.selectedPat = null;
+  _cmdState.aiSlots = [];
+  _renderCommandPalette();
+  setTimeout(function(){ document.getElementById('cmd-input')?.focus(); }, 10);
+}
+
+function _cmdBookSlot(patId, date, time) {
+  closeCommandPalette();
+  openBookingDialog(date, time, patId);
+}
+
+function _cmdTaEmotNu(patId) {
+  closeCommandPalette();
+  openPat(patId);
+}
+
+// ── AI SLOT ENGINE ────────────────────────────────────────────────────────────
+async function _getAiBookingSlots(pat) {
+  var slots = [];
+  var now = new Date();
+  var therapists = getTherapists();
+  var therapistId = therapists[0]?.id || 'therapist_me';
+
+  // Analyze patient's visit pattern
+  var visits = (pat.visits||[]).filter(function(v){ return v.date; })
+    .sort(function(a,b){ return new Date(b.date)-new Date(a.date); });
+  var prefDays = {};  // day-of-week preference
+  var prefHours = {}; // hour preference
+  visits.slice(0,10).forEach(function(v) {
+    var d = new Date(v.date);
+    prefDays[d.getDay()] = (prefDays[d.getDay()]||0) + 1;
+    if (v.time) { var h = parseInt(v.time.split(':')[0]); prefHours[h] = (prefHours[h]||0) + 1; }
+  });
+  var preferredDay = Object.entries(prefDays).sort(function(a,b){ return b[1]-a[1]; })[0];
+  var preferredHour = Object.entries(prefHours).sort(function(a,b){ return b[1]-a[1]; })[0];
+
+  // Get urgency factor
+  var urgency = needsIntake(pat.id);
+  var dropout = _scanDropoutRisks ? _scanDropoutRisks().find(function(r){ return r.patId===pat.id; }) : null;
+  var isUrgent = (dropout && dropout.score >= 60) || (urgency.needed && urgency.reason === 'long_gap');
+
+  // Find available slots for next 14 days
+  for (var d = 0; d < 14 && slots.length < 6; d++) {
+    var day = new Date(now);
+    day.setDate(now.getDate() + d + 1);
+    var dayStr = dateStr(day);
+    var daySlots = getAvailableSlots(therapistId, dayStr, 45);
+    var available = daySlots.filter(function(s){ return s.available; });
+    if (!available.length) continue;
+
+    available.forEach(function(slot) {
+      if (slots.length >= 6) return;
+      var slotHour = parseInt(slot.time.split(':')[0]);
+      var dayOfWeek = day.getDay();
+      var isPreferredDay = preferredDay && parseInt(preferredDay[0]) === dayOfWeek;
+      var isPreferredHour = preferredHour && Math.abs(parseInt(preferredHour[0]) - slotHour) <= 1;
+      var score = 0;
+      if (isPreferredDay) score += 3;
+      if (isPreferredHour) score += 2;
+      if (d === 0) score += 1; // today bonus
+      if (isUrgent && d <= 3) score += 4; // urgent = sooner
+      slots.push({
+        date: dayStr,
+        time: slot.time,
+        score: score,
+        label: _fmtSlotLabel(day, slot.time, score >= 4),
+      });
+    });
+  }
+
+  // Sort by score, take top 4
+  slots.sort(function(a,b){ return b.score-a.score; });
+  return slots.slice(0,4);
+}
+
+function _fmtSlotLabel(date, time, isTop) {
+  var now = new Date();
+  var diff = Math.floor((date-now)/86400000);
+  var dayLabel = diff === 0 ? 'Idag' : diff === 1 ? 'Imorgon' : date.toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short'});
+  return dayLabel + ' ' + time;
+}
+
+function _relativeDate(dateStr) {
+  if (!dateStr) return '';
+  var d = new Date(dateStr);
+  var diff = Math.floor((Date.now()-d)/86400000);
+  if (diff === 0) return 'Idag';
+  if (diff === 1) return 'Igår';
+  if (diff < 7) return diff + ' dagar sedan';
+  if (diff < 30) return Math.floor(diff/7) + ' veckor sedan';
+  if (diff < 365) return Math.floor(diff/30) + ' månader sedan';
+  return Math.floor(diff/365) + ' år sedan';
+}
+
+// ── NEW PATIENT DIALOG ────────────────────────────────────────────────────────
+function _openNewPatientDialog() {
+  document.getElementById('new-pat-ov')?.remove();
+  var ov = document.createElement('div');
+  ov.id = 'new-pat-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
+  ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
+
+  ov.innerHTML = '<div style="background:var(--surface);border-radius:20px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">'
+    + '<div style="background:var(--navy);padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between">'
+    + '<div><div style="font-size:17px;font-weight:700;color:white">Ny patient</div>'
+    + '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">Grundprofil — boka separat</div></div>'
+    + '<button onclick="document.getElementById(\'new-pat-ov\').remove()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1">×</button>'
+    + '</div>'
+    + '<div style="padding:20px 22px;display:grid;gap:12px">'
+    + '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:7px">Fullständigt namn *</div>'
+    + '<input id="np-name" type="text" class="field" placeholder="Förnamn Efternamn" style="margin-bottom:0" oninput="_npCheckBooking()"></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    + '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:7px">Telefon</div>'
+    + '<input id="np-phone" type="tel" class="field" placeholder="070-000 00 00" style="margin-bottom:0"></div>'
+    + '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:7px">E-post</div>'
+    + '<input id="np-email" type="email" class="field" placeholder="du@exempel.se" style="margin-bottom:0"></div>'
+    + '</div>'
+    + '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px;color:var(--text)">'
+    + '<input type="checkbox" id="np-book-also" style="accent-color:var(--teal);width:15px;height:15px" checked>'
+    + 'Boka tid direkt efter</label>'
+    + '</div>'
+    + '<div style="padding:0 22px 18px;display:flex;gap:10px">'
+    + '<button onclick="document.getElementById(\'new-pat-ov\').remove()" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>'
+    + '<button onclick="_saveNewPatientAndBook()" class="btn btn-p" style="flex:1;padding:10px" id="np-btn">Skapa patient →</button>'
+    + '</div></div>';
+  document.body.appendChild(ov);
+  setTimeout(function(){ document.getElementById('np-name')?.focus(); }, 100);
+}
+
+function _saveNewPatientAndBook() {
+  var name  = document.getElementById('np-name')?.value?.trim();
+  var phone = document.getElementById('np-phone')?.value?.trim() || '';
+  var email = document.getElementById('np-email')?.value?.trim() || '';
+  var bookAlso = document.getElementById('np-book-also')?.checked;
+  if (!name) { showAutoSaveToast('Ange namn'); return; }
+
+  var newPat = {
+    id: 'pat_' + Date.now(),
+    name: name, phone: phone, email: email,
+    visits: [], status: 'Aktiv', source: 'manual',
+    clinicId: getCurrentClinicId(),
+    createdAt: new Date().toISOString(),
+  };
+  savePat(newPat);
+  S.patients.push(newPat);
+  document.getElementById('new-pat-ov')?.remove();
+  showAutoSaveToast(name + ' skapad ✓');
+
+  if (bookAlso) {
+    setTimeout(function(){ openBookingDialog(null, null, newPat.id); }, 200);
+  } else {
+    openPat(newPat.id);
+  }
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// NO-SHOW PREDICTOR
+// Beräknar risk baserat på historik, svarsbeteende, tid på dagen
+// ══════════════════════════════════════════════════════════════════════════════
+
+function _predictNoShow(pat) {
+  var visits = pat.visits || [];
+  var bookings = getBookings().filter(function(b){ return b.patientId===pat.id; });
+  var total = bookings.length;
+  if (total < 2) return { risk:'low', pct:10, score:10 };
+
+  var noShows = bookings.filter(function(b){ return b.status==='no-show'; }).length;
+  var noShowRate = Math.round(noShows/total*100);
+
+  var score = noShowRate;
+
+  // Recency: recent no-show = higher risk
+  var recentBks = bookings.slice(-3);
+  var recentNoShows = recentBks.filter(function(b){ return b.status==='no-show'; }).length;
+  if (recentNoShows >= 2) score += 25;
+  else if (recentNoShows === 1) score += 10;
+
+  // Comms opt-out = higher risk
+  if (pat.commsPrefs?.mail===false && pat.commsPrefs?.sms===false) score += 15;
+
+  // Time since last visit (long gap = higher risk)
+  var lastVisit = visits.slice(-1)[0];
+  if (lastVisit?.date) {
+    var weeksSince = (Date.now()-new Date(lastVisit.date))/604800000;
+    if (weeksSince > 12) score += 10;
+  }
+
+  score = Math.min(score, 95);
+  var risk = score >= 40 ? 'high' : score >= 20 ? 'medium' : 'low';
+  return { risk:risk, pct:score, noShows:noShows, total:total };
+}
+
+function _renderNoShowBadge(pat) {
+  var ns = _predictNoShow(pat);
+  if (ns.risk === 'low') return '';
+  return '<span class="noshow-risk ' + ns.risk + '" title="No-show risk">Uteblivanderisk ' + ns.pct + '%</span>';
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// WAITLIST — Patienter som väntar på en tid
+// AI matchar lediga slots mot rätt patient automatiskt
+// ══════════════════════════════════════════════════════════════════════════════
+
+function getWaitlist() {
+  try { return JSON.parse(localStorage.getItem(WAITLIST_KEY)||'[]'); } catch { return []; }
+}
+function _getWaitlist() { return getWaitlist(); }
+function saveWaitlist(wl) { try { localStorage.setItem(WAITLIST_KEY, JSON.stringify(wl)); } catch {} }
+
+function addToWaitlist(patId, notes) {
+  var pat = (S.patients||[]).find(function(p){ return p.id===patId; });
+  if (!pat) return;
+  var wl = getWaitlist();
+  if (wl.find(function(w){ return w.patId===patId; })) {
+    showAutoSaveToast(pat.name + ' finns redan på väntelistan');
+    return;
+  }
+  var ns = _predictNoShow(pat);
+  var dropout = _scanDropoutRisks ? _scanDropoutRisks().find(function(r){ return r.patId===patId; }) : null;
+  var urgency = dropout ? dropout.score : 0;
+  wl.push({
+    id: 'wl_' + Date.now(),
+    patId: patId,
+    patName: pat.name,
+    notes: notes || '',
+    urgency: urgency,
+    noShowRisk: ns.risk,
+    addedAt: new Date().toISOString(),
+  });
+  // Sort by urgency
+  wl.sort(function(a,b){ return b.urgency-a.urgency; });
+  saveWaitlist(wl);
+  showAutoSaveToast(pat.name + ' tillagd på väntelistan ✓');
+}
+
+function removeFromWaitlist(wlId) {
+  saveWaitlist(getWaitlist().filter(function(w){ return w.id!==wlId; }));
+}
+
+function openWaitlistDialog() {
+  document.getElementById('waitlist-ov')?.remove();
+  var wl = getWaitlist();
+  var ov = document.createElement('div');
+  ov.id = 'waitlist-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
+  ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
+
+  var h = '<div style="background:var(--surface);border-radius:20px;width:100%;max-width:500px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">';
+  h += '<div style="background:var(--navy);padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between">';
+  h += '<div><div style="font-size:17px;font-weight:700;color:white">Väntelista</div>';
+  h += '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">' + wl.length + ' patient' + (wl.length!==1?'er':'') + ' väntar · sorterat efter angelägenhet</div></div>';
+  h += '<button onclick="document.getElementById(\'waitlist-ov\').remove()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1">×</button>';
+  h += '</div>';
+  h += '<div style="flex:1;overflow-y:auto">';
+
+  if (!wl.length) {
+    h += '<div style="padding:32px;text-align:center;color:var(--muted);font-size:13px">Väntelistan är tom</div>';
+  } else {
+    wl.forEach(function(item, i) {
+      var urgencyColor = item.urgency>=60?'#e05555':item.urgency>=30?'#c8a030':'var(--teal)';
+      h += '<div style="padding:13px 20px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:12px">';
+      h += '<div style="width:32px;height:32px;border-radius:50%;background:' + urgencyColor + '18;border:1.5px solid ' + urgencyColor + '33;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:' + urgencyColor + ';flex-shrink:0">' + (i+1) + '</div>';
+      h += '<div style="flex:1;min-width:0">';
+      h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">' + e(item.patName) + '</div>';
+      h += '<div style="font-size:11px;color:var(--muted)">Tillagd ' + _relativeDate(item.addedAt);
+      if (item.notes) h += ' · ' + e(item.notes);
+      h += '</div></div>';
+      h += '<div style="display:flex;gap:6px">';
+      h += '<button onclick="document.getElementById(\'waitlist-ov\').remove();_cmdSelectPat(\'' + item.patId + '\');openCommandPalette()" style="padding:5px 10px;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.2);border-radius:7px;font-size:11px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)">Boka</button>';
+      h += '<button onclick="removeFromWaitlist(\'' + item.id + '\');openWaitlistDialog()" style="padding:5px 8px;background:none;border:1px solid var(--border);border-radius:7px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--font)">×</button>';
+      h += '</div></div>';
+    });
+  }
+
+  h += '</div>';
+  h += '<div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px">';
+  h += '<input id="wl-search" type="text" class="field" placeholder="Lägg till patient på väntelistan..." style="flex:1;margin-bottom:0;font-size:12px" oninput="_wlSearch(this.value)">';
+  h += '<button onclick="_wlAddFromSearch()" class="btn btn-p" style="font-size:12px;padding:0 16px">+ Lägg till</button>';
+  h += '</div>';
+  h += '<div id="wl-suggestions" style="max-height:120px;overflow-y:auto;border-top:1px solid var(--border2)"></div>';
+  h += '</div>';
+
+  ov.innerHTML = h;
+  document.body.appendChild(ov);
+}
+
+function _wlSearch(val) {
+  var el = document.getElementById('wl-suggestions');
+  if (!el || val.length < 2) { if(el) el.innerHTML=''; return; }
+  var matches = (S.patients||[]).filter(function(p){ return p.name?.toLowerCase().includes(val.toLowerCase()); }).slice(0,5);
+  el.innerHTML = matches.map(function(p) {
+    return '<div onclick="_wlAddPat(\'' + p.id + '\')" style="padding:9px 20px;cursor:pointer;font-size:13px;font-weight:600;color:var(--ink);border-bottom:1px solid var(--border2)" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'\'">' + e(p.name) + '</div>';
+  }).join('');
+}
+
+function _wlAddPat(patId) {
+  var notes = document.getElementById('wl-search')?.value || '';
+  addToWaitlist(patId, '');
+  document.getElementById('wl-suggestions').innerHTML = '';
+  document.getElementById('wl-search').value = '';
+  openWaitlistDialog();
+}
+
+function _wlAddFromSearch() {
+  var val = document.getElementById('wl-search')?.value?.trim();
+  if (!val) return;
+  var pat = (S.patients||[]).find(function(p){ return p.name?.toLowerCase()===val.toLowerCase(); });
+  if (pat) _wlAddPat(pat.id);
+  else showAutoSaveToast('Patient ej hittad — sök exakt namn');
+}
+
+// Auto-notify waitlist when a booking is cancelled
+function _notifyWaitlistOnCancellation(cancelledBk) {
+  var wl = getWaitlist();
+  if (!wl.length) return;
+  var topWaiter = wl[0];
+  var pat = (S.patients||[]).find(function(p){ return p.id===topWaiter.patId; });
+  if (!pat) return;
+  // Queue a retention message
+  var sig = {
+    patId: topWaiter.patId, patName: topWaiter.patName,
+    triggerId: 'waitlist_slot', priority: 1,
+    label: 'Ledig tid för väntelisteplats',
+    sub: cancelledBk.date + ' kl ' + cancelledBk.time,
+    icon: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
+    channel: 'sms', urgency: 'high',
+    context: { type:'waitlist', date:cancelledBk.date, time:cancelledBk.time }
+  };
+  var body = 'Hej ' + topWaiter.patName.split(' ')[0] + '! En tid har blivit ledig: ' +
+    _fmtBookingDate(cancelledBk.date) + ' kl ' + cancelledBk.time +
+    '. Svara JA för att boka eller ring oss.';
+  queueRetentionAction(sig, { body:body, channel:'sms', subject:'Ledig tid' });
+  showAutoSaveToast('Väntelistepatienten ' + topWaiter.patName + ' meddelas automatiskt');
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RECURRING BOOKINGS — Serie-bokning med ett klick
+// ══════════════════════════════════════════════════════════════════════════════
+
+function openRecurringBookingDialog(patId, startDate, startTime) {
+  var pat = (S.patients||[]).find(function(p){ return p.id===patId; });
+  if (!pat) return;
+  document.getElementById('recurring-bk-ov')?.remove();
+  var ov = document.createElement('div');
+  ov.id = 'recurring-bk-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:750;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
+  ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
+
+  var svcs = getServices().filter(function(s){ return s.price>0; });
+
+  var h = '<div style="background:var(--surface);border-radius:20px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">';
+  h += '<div style="background:var(--navy);padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between">';
+  h += '<div><div style="font-size:17px;font-weight:700;color:white">Återkommande bokning</div>';
+  h += '<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:2px">' + e(pat.name) + '</div></div>';
+  h += '<button onclick="document.getElementById(\'recurring-bk-ov\').remove()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1">×</button>';
+  h += '</div>';
+  h += '<div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px">';
+
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+  h += '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:7px">Startdatum</div>';
+  h += '<input type="date" id="rec-start" class="field" style="margin-bottom:0" value="' + (startDate||dateStr(new Date())) + '"></div>';
+  h += '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:7px">Tid</div>';
+  h += '<input type="time" id="rec-time" class="field" style="margin-bottom:0" value="' + (startTime||'09:00') + '" step="900"></div>';
+  h += '</div>';
+
+  h += '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:7px">Frekvens</div>';
+  h += '<div style="display:flex;gap:6px">';
+  [['weekly','Varje vecka'],['biweekly','Varannan vecka'],['monthly','En gång/mån']].forEach(function(f, i) {
+    h += '<button onclick="_recSetFreq(\'' + f[0] + '\')" id="rec-freq-' + f[0] + '" style="flex:1;padding:8px;border:1.5px solid ' + (i===0?'var(--teal)':'var(--border)') + ';border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);background:' + (i===0?'rgba(13,155,138,.1)':'none') + ';color:' + (i===0?'var(--teal)':'var(--muted)') + '">' + f[1] + '</button>';
+  });
+  h += '</div></div>';
+
+  h += '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:7px">Antal tillfällen</div>';
+  h += '<div style="display:flex;gap:6px">';
+  [4,6,8,12].forEach(function(n, i) {
+    h += '<button onclick="_recSetCount(' + n + ')" id="rec-count-' + n + '" style="flex:1;padding:8px;border:1.5px solid ' + (i===0?'var(--teal)':'var(--border)') + ';border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);background:' + (i===0?'rgba(13,155,138,.1)':'none') + ';color:' + (i===0?'var(--teal)':'var(--muted)') + '">' + n + '</button>';
+  });
+  h += '</div></div>';
+
+  if (svcs.length) {
+    h += '<div><div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:7px">Tjänst</div>';
+    h += '<select id="rec-svc" class="field" style="margin-bottom:0"><option value="">Välj tjänst...</option>';
+    svcs.forEach(function(s){ h += '<option value="' + s.id + '">' + e(s.name) + ' · ' + s.price + ' kr</option>'; });
+    h += '</select></div>';
+  }
+
+  h += '<div id="rec-preview" style="background:var(--bg);border-radius:10px;padding:12px;font-size:12px;color:var(--muted)">Väljer du ovan visas en förhandsgranskning här...</div>';
+
+  h += '</div>';
+  h += '<div style="padding:0 22px 18px;display:flex;gap:10px">';
+  h += '<button onclick="document.getElementById(\'recurring-bk-ov\').remove()" style="flex:1;padding:11px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>';
+  h += '<button onclick="_saveRecurringBookings(\'' + patId + '\')" class="btn btn-p" style="flex:2;padding:11px">Skapa serie →</button>';
+  h += '</div></div>';
+
+  ov.innerHTML = h;
+  document.body.appendChild(ov);
+  window._recFreq = 'weekly';
+  window._recCount = 4;
+  _recUpdatePreview();
+}
+
+function _recSetFreq(freq) {
+  window._recFreq = freq;
+  ['weekly','biweekly','monthly'].forEach(function(f) {
+    var btn = document.getElementById('rec-freq-' + f);
+    if (!btn) return;
+    btn.style.borderColor = f===freq?'var(--teal)':'var(--border)';
+    btn.style.background  = f===freq?'rgba(13,155,138,.1)':'none';
+    btn.style.color       = f===freq?'var(--teal)':'var(--muted)';
+  });
+  _recUpdatePreview();
+}
+
+function _recSetCount(n) {
+  window._recCount = n;
+  [4,6,8,12].forEach(function(c) {
+    var btn = document.getElementById('rec-count-' + c);
+    if (!btn) return;
+    btn.style.borderColor = c===n?'var(--teal)':'var(--border)';
+    btn.style.background  = c===n?'rgba(13,155,138,.1)':'none';
+    btn.style.color       = c===n?'var(--teal)':'var(--muted)';
+  });
+  _recUpdatePreview();
+}
+
+function _recUpdatePreview() {
+  var el = document.getElementById('rec-preview');
+  if (!el) return;
+  var startVal = document.getElementById('rec-start')?.value;
+  var time     = document.getElementById('rec-time')?.value || '09:00';
+  if (!startVal) return;
+  var freqDays = { weekly:7, biweekly:14, monthly:30 };
+  var days = freqDays[window._recFreq||'weekly'];
+  var count = window._recCount || 4;
+  var dates = [];
+  var d = new Date(startVal + 'T12:00');
+  for (var i=0; i<count; i++) {
+    dates.push(new Date(d).toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short'}) + ' kl ' + time);
+    d.setDate(d.getDate()+days);
+  }
+  el.innerHTML = '<div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:6px">' + count + ' bokningar skapas:</div>' +
+    dates.map(function(dt){ return '<div style="color:var(--text);margin-bottom:2px">· ' + dt + '</div>'; }).join('');
+}
+
+function _saveRecurringBookings(patId) {
+  var pat = (S.patients||[]).find(function(p){ return p.id===patId; });
+  if (!pat) return;
+  var startVal = document.getElementById('rec-start')?.value;
+  var time     = document.getElementById('rec-time')?.value || '09:00';
+  var svcEl    = document.getElementById('rec-svc');
+  var svcId    = svcEl ? svcEl.value : '';
+  var svcName  = svcEl ? (svcEl.options[svcEl.selectedIndex]?.text?.split(' · ')[0]||'') : '';
+  if (!startVal) { showAutoSaveToast('Välj startdatum'); return; }
+
+  var freqDays = { weekly:7, biweekly:14, monthly:30 };
+  var days  = freqDays[window._recFreq||'weekly'];
+  var count = window._recCount || 4;
+  var created = 0;
+  var d = new Date(startVal + 'T12:00');
+
+  for (var i=0; i<count; i++) {
+    var bk = {
+      id:            'bk_' + Date.now() + '_' + i,
+      patientId:     patId,
+      patientName:   pat.name,
+      date:          dateStr(d),
+      time:          time,
+      duration:      45,
+      type:          'returning',
+      status:        'scheduled',
+      source:        'manual',
+      serviceId:     svcId,
+      serviceName:   svcName,
+      intakeSent:    false,
+      intakeCompleted: false,
+      clinicId:      getCurrentClinicId(),
+      createdAt:     new Date().toISOString(),
+      seriesId:      'series_' + Date.now(),
+    };
+    upsertBooking(bk);
+    created++;
+    d.setDate(d.getDate()+days);
+  }
+
+  document.getElementById('recurring-bk-ov')?.remove();
+  showAutoSaveToast(created + ' återkommande bokningar skapade ✓');
+  if (S.screen === 'calendar') rCalendar();
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// KONTEXTUELL BEHANDLINGSPANEL — Sidopanel vid klick på bokning
+// ══════════════════════════════════════════════════════════════════════════════
+
+var _txPanelOpen = false;
+
+function openTreatmentPanel(bkId) {
+  var bk = getBooking(bkId);
+  if (!bk) return;
+  var pat = (S.patients||[]).find(function(p){ return p.id===bk.patientId; });
+
+  // Create panel if not exists
+  var panel = document.getElementById('tx-side-panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'tx-side-panel';
+    panel.className = 'tx-panel';
+    document.body.appendChild(panel);
+  }
+
+  var visits = pat ? (pat.visits||[]).sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; }) : [];
+  var lastVisit = visits[0];
+  var nrsVals = lastVisit ? (lastVisit.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }) : [];
+  var nrsFirst = nrsVals[0] ?? (lastVisit?.form?.pain ?? null);
+  var nrsLast  = nrsVals.length ? nrsVals[nrsVals.length-1] : null;
+  var diag = lastVisit?.form?.diagnosis || lastVisit?.plan?.form?.diagnosis || '';
+  var intake = pat ? getLatestIntakeForPatient(pat.id) : null;
+  var hasNewIntake = intake && !intake._reviewedAt;
+  var ns = pat ? _predictNoShow(pat) : null;
+  var haelVisit = pat ? (pat.visits||[]).find(function(v){
+    if (!v.plan) return false;
+    var tw = v.plan.totalWeeks||v.plan.form?.followup||4;
+    var sd = v.date?new Date(v.date):null;
+    return sd && new Date(sd.getTime()+tw*7*86400000)>new Date();
+  }) : null;
+
+  var h = '';
+
+  // Header
+  h += '<div class="tx-panel-header">';
+  h += '<div style="display:flex;align-items:flex-start;justify-content:space-between">';
+  h += '<div>';
+  h += '<div style="font-size:18px;font-weight:800;color:white;letter-spacing:-.02em">' + e(bk.patientName) + '</div>';
+  h += '<div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:3px">';
+  h += _fmtBookingDate(bk.date) + ' · ' + bk.time;
+  if (bk.serviceName) h += ' · ' + e(bk.serviceName);
+  h += '</div>';
+  if (diag) h += '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">' + e(diag.split('(')[0].trim()) + '</div>';
+  h += '</div>';
+  h += '<button onclick="closeTreatmentPanel()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:22px;cursor:pointer;line-height:1;padding:0;margin-top:-4px">×</button>';
+  h += '</div>';
+  // Status + no-show risk
+  h += '<div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">';
+  var statusColors = {scheduled:'rgba(13,155,138,.3)',confirmed:'rgba(26,122,74,.4)',completed:'rgba(255,255,255,.15)',cancelled:'rgba(192,48,48,.3)'};
+  var statusLabels = {scheduled:'Bokad',confirmed:'Bekräftad',completed:'Genomförd',cancelled:'Avbokad'};
+  h += '<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:' + (statusColors[bk.status]||'rgba(255,255,255,.1)') + ';color:white">' + (statusLabels[bk.status]||bk.status) + '</span>';
+  if (ns && ns.risk !== 'low') h += '<span class="noshow-risk ' + ns.risk + '">Uteblivanderisk ' + ns.pct + '%</span>';
+  if (hasNewIntake) h += '<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(13,155,138,.25);color:var(--teal)">📋 Nytt intake</span>';
+  h += '</div>';
+  h += '</div>'; // end header
+
+  // Body
+  h += '<div class="tx-panel-body">';
+
+  // NRS sparkline
+  if (nrsVals.length >= 2) {
+    h += '<div style="margin-bottom:16px;background:var(--bg);border-radius:12px;padding:12px">';
+    h += '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">NRS-trend</div>';
+    h += '<div class="tx-nrs-sparkline">';
+    var maxNrs = Math.max.apply(null, nrsVals) || 1;
+    nrsVals.slice(-10).forEach(function(v, i) {
+      var h2 = Math.max(4, Math.round(v/10*28));
+      var col = v>=7?'#e05555':v>=4?'#c8a030':'#1a7a4a';
+      var isLast = i === Math.min(nrsVals.length, 10)-1;
+      h += '<div class="tx-nrs-bar" style="height:'+h2+'px;background:'+(isLast?col:col+'66')+'"></div>';
+    });
+    h += '</div>';
+    if (nrsFirst!==null && nrsLast!==null) {
+      var diff = Math.round((nrsFirst-nrsLast)*10)/10;
+      h += '<div style="font-size:12px;color:' + (diff>0?'#1a7a4a':diff<0?'#e05555':'var(--muted)') + ';font-weight:700;margin-top:6px">';
+      h += diff>0?'↓ Förbättrad '+diff+' NRS-enheter':diff<0?'↑ Försämrad '+Math.abs(diff)+' NRS-enheter':'Oförändrad';
+      h += '</div>';
+    }
+    h += '</div>';
+  }
+
+  // Last SOAP note
+  if (lastVisit?.soap?.S || lastVisit?.soap?.A) {
+    h += '<div style="margin-bottom:16px;background:var(--bg);border-radius:12px;padding:12px">';
+    h += '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Senaste anteckning</div>';
+    if (lastVisit.soap.S) {
+      h += '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">S</div>';
+      h += '<div style="font-size:12px;color:var(--text);line-height:1.6;margin-bottom:8px">' + e((lastVisit.soap.S||'').slice(0,200)) + ((lastVisit.soap.S||'').length>200?'...':'') + '</div>';
+    }
+    if (lastVisit.soap.A) {
+      h += '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">A</div>';
+      h += '<div style="font-size:12px;color:var(--ink);font-weight:600">' + e(lastVisit.soap.A) + '</div>';
+    }
+    h += '</div>';
+  }
+
+  // New intake alert
+  if (hasNewIntake) {
+    h += '<div style="margin-bottom:16px;background:rgba(13,155,138,.06);border:1px solid rgba(13,155,138,.2);border-radius:12px;padding:12px">';
+    h += '<div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:6px">📋 Nytt intake-formulär</div>';
+    h += '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">NRS ' + (intake.nrsCurrent??'?') + ' · Skickat ' + new Date(intake.ts||intake.createdAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) + '</div>';
+    if (intake.redFlagCount > 0) h += '<div style="font-size:11px;color:#e05555;font-weight:700;margin-bottom:8px">⚠ ' + intake.redFlagCount + ' röda flaggor</div>';
+    h += '<button onclick="closeTreatmentPanel();openPat(\'' + (pat?.id||'') + '\');" style="font-size:12px;font-weight:700;color:var(--teal);background:none;border:1px solid rgba(13,155,138,.2);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--font)">Granska intake →</button>';
+    h += '</div>';
+  }
+
+  // Hael plan status
+  if (haelVisit) {
+    var logs = haelVisit.logs||[];
+    var tw = haelVisit.plan.totalWeeks||4;
+    var pct = Math.min(100,Math.round((Date.now()-new Date(haelVisit.date))/604800000/tw*100));
+    h += '<div style="margin-bottom:16px;background:var(--bg);border-radius:12px;padding:12px">';
+    h += '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Aktiv Hael-plan</div>';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">' + logs.length + ' pass loggade</div>';
+    h += '<div style="font-size:12px;color:var(--muted)">' + pct + '% av planen</div>';
+    h += '</div>';
+    h += '<div style="height:4px;background:var(--border);border-radius:2px"><div style="width:'+pct+'%;height:100%;background:var(--teal);border-radius:2px"></div></div>';
+    h += '</div>';
+  }
+
+  // Visit count
+  h += '<div style="margin-bottom:16px;display:flex;gap:10px">';
+  h += '<div style="flex:1;background:var(--bg);border-radius:10px;padding:10px;text-align:center">';
+  h += '<div style="font-size:22px;font-weight:800;color:var(--teal)">' + visits.length + '</div>';
+  h += '<div style="font-size:10px;color:var(--muted)">BESÖK TOTALT</div>';
+  h += '</div>';
+  var lastSoap = visits.find(function(v){ return v.soap?.S; });
+  h += '<div style="flex:1;background:var(--bg);border-radius:10px;padding:10px;text-align:center">';
+  h += '<div style="font-size:22px;font-weight:800;color:var(--ink)">' + (nrsLast??'–') + '</div>';
+  h += '<div style="font-size:10px;color:var(--muted)">NRS SENAST</div>';
+  h += '</div>';
+  h += '</div>';
+
+  // Actions
+  h += '<div style="display:flex;flex-direction:column;gap:8px">';
+  h += '<button onclick="closeTreatmentPanel();_startVisitFromBk(\'' + bkId + '\')" class="tx-action-btn" style="background:var(--teal);color:white">';
+  h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 3l14 9-14 9V3z"/></svg>';
+  h += 'Ta emot ' + e(bk.patientName.split(' ')[0]) + ' nu →</button>';
+
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  h += '<button onclick="closeTreatmentPanel();openPat(\'' + (pat?.id||'') + '\')" class="tx-action-btn" style="background:var(--bg);color:var(--text);border:1px solid var(--border);font-size:13px">Öppna patient</button>';
+  h += '<button onclick="openRecurringBookingDialog(\'' + (pat?.id||'') + '\',\'' + bk.date + '\',\'' + bk.time + '\')" class="tx-action-btn" style="background:var(--bg);color:var(--text);border:1px solid var(--border);font-size:12px">Boka serie</button>';
+  h += '</div>';
+
+  if (pat && !getWaitlist().find(function(w){ return w.patId===pat.id; })) {
+    h += '<button onclick="addToWaitlist(\'' + (pat?.id||'') + '\',\'\')" class="tx-action-btn" style="background:var(--bg);color:var(--muted);border:1px solid var(--border);font-size:12px">+ Lägg till väntelista</button>';
+  }
+  h += '</div>';
+
+  h += '</div>'; // end body
+  panel.innerHTML = h;
+
+  // Open panel
+  requestAnimationFrame(function(){
+    panel.classList.add('open');
+    _txPanelOpen = true;
+  });
+}
+
+function closeTreatmentPanel() {
+  var panel = document.getElementById('tx-side-panel');
+  if (panel) panel.classList.remove('open');
+  _txPanelOpen = false;
+}
+
+// Close panel when pressing Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && _txPanelOpen) closeTreatmentPanel();
+});
+
+
+// ── TODAY'S BRIEF (top of calendar) ──────────────────────────────────────────
+function _buildTodaysBrief(bks) {
+  var now = new Date();
+  var todayStr = dateStr(now);
+  var todayBks = bks.filter(function(b){ return b.date===todayStr && b.status!=='cancelled'; })
+    .sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
+
+  if (!todayBks.length) return '';
+
+  var h = '<div class="cal-today-brief">';
+
+  todayBks.forEach(function(bk) {
+    var pat = (S.patients||[]).find(function(p){ return p.id===bk.patientId; });
+    var ns  = pat ? _predictNoShow(pat) : null;
+    var hasIntake = pat && (pat.intakeForms||[]).some(function(f){ return !f._reviewedAt; });
+    var isUrgent  = ns && ns.risk === 'high';
+
+    h += '<div class="cal-brief-card' + (isUrgent?' urgent':hasIntake?' suggestion':'') + '" onclick="openTreatmentPanel(\'' + bk.id + '\')">';
+    h += '<div class="cal-brief-time">' + bk.time;
+    if (bk.duration) h += ' · ' + bk.duration + 'min';
+    h += '</div>';
+    h += '<div class="cal-brief-name">' + e(bk.patientName) + '</div>';
+    h += '<div class="cal-brief-sub">';
+    if (isUrgent) h += '⚠ ' + ns.pct + '% uteblivanderisk';
+    else if (hasIntake) h += '📋 Nytt intake';
+    else if (bk.serviceName) h += e(bk.serviceName);
+    h += '</div></div>';
+  });
+
+  // Waitlist indicator
+  var wl = getWaitlist();
+  if (wl.length) {
+    h += '<div class="cal-brief-card" onclick="openWaitlistDialog()" style="border-color:rgba(200,160,48,.3);background:rgba(200,160,48,.06)">';
+    h += '<div class="cal-brief-time">Väntelista</div>';
+    h += '<div class="cal-brief-name">' + wl.length + ' väntar</div>';
+    h += '<div class="cal-brief-sub">' + e(wl[0].patName) + ' är #1</div>';
+    h += '</div>';
+  }
+
+  h += '</div>';
+  return h;
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SMART PÅMINNELSEKEDJA — Automatisk sekvens per bokning
+// Bekräftelse → intake 48h → påminnelse 24h → SMS 2h om ej bekräftat
+// ══════════════════════════════════════════════════════════════════════════════
+
+function _queueReminderChain(bk) {
+  var pat = (S.patients||[]).find(function(p){ return p.id===bk.patientId; });
+  if (!pat) return;
+  var apptTime = new Date(bk.date + 'T' + bk.time);
+  var now = new Date();
+
+  // 1. Booking confirmation — send now
+  _queueSingleReminder(bk, pat, 'booking_confirmation', now, 'mail',
+    'Bokningsbekräftelse — ' + _fmtBookingDate(bk.date),
+    'Hej ' + pat.name.split(' ')[0] + '! Din tid är bokad: ' + _fmtBookingDate(bk.date) + ' kl ' + bk.time + (bk.serviceName ? ' (' + bk.serviceName + ')' : '') + '.');
+
+  // 2. Intake form — 48h before
+  if (bk.intakeSent || needsIntake(pat.id).needed) {
+    var intakeTime = new Date(apptTime.getTime() - 48*3600000);
+    if (intakeTime > now && bk.intakeLink) {
+      _queueSingleReminder(bk, pat, 'intake_48h', intakeTime, 'mail',
+        'Hälsoprofilformulär inför ditt besök ' + _fmtBookingDate(bk.date),
+        'Hej ' + pat.name.split(' ')[0] + '! Inför ditt besök imorgon ber vi dig fylla i ett kort formulär:\n→ ' + bk.intakeLink);
+    }
+  }
+
+  // 3. Reminder — 24h before
+  var reminder24 = new Date(apptTime.getTime() - 24*3600000);
+  if (reminder24 > now) {
+    _queueSingleReminder(bk, pat, 'reminder_24h', reminder24, 'mail',
+      'Påminnelse: ditt besök imorgon',
+      'Hej ' + pat.name.split(' ')[0] + '! Påminnelse om ditt besök ' + _fmtBookingDate(bk.date) + ' kl ' + bk.time + '. Svara på detta mail för att avboka.');
+  }
+
+  // 4. SMS — 2h before (only if high no-show risk or no email)
+  var ns = _predictNoShow(pat);
+  var reminder2h = new Date(apptTime.getTime() - 2*3600000);
+  if (reminder2h > now && (ns.risk === 'high' || !pat.email)) {
+    _queueSingleReminder(bk, pat, 'reminder_2h_sms', reminder2h, 'sms',
+      '',
+      'Påminnelse: besök kl ' + bk.time + ' idag. Svara NEJ för att avboka.');
+  }
+}
+
+function _queueSingleReminder(bk, pat, triggerId, sendAt, channel, subject, body) {
+  // Check not already queued
+  var existing = getRetentionQueue ? getRetentionQueue().find(function(q){
+    return q.patId===pat.id && q.triggerId===triggerId && q.bookingId===bk.id;
+  }) : null;
+  if (existing) return;
+
+  var sig = {
+    patId: pat.id, patName: pat.name,
+    triggerId: triggerId, priority: 1,
+    label: subject || 'Påminnelse',
+    sub: sendAt.toLocaleString('sv-SE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}),
+    icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6.002 6.002 0 0 0-4-5.659V5a2 2 0 1 0-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9',
+    channel: channel,
+    urgency: 'medium',
+    context: { bookingId: bk.id, type: triggerId }
+  };
+  var msg = { subject: subject, body: body, channel: channel, generated: true };
+  if (typeof queueRetentionAction === 'function') queueRetentionAction(sig, msg);
+}
+
+function getRetentionQueue() {
+  try { return JSON.parse(localStorage.getItem('vela:retention-queue')||'[]'); } catch { return []; }
+}
+
 function toggleSidebarCollapse() {
   var sb = document.getElementById('nav-sidebar');
   if (!sb) return;
@@ -8288,7 +9352,7 @@ function rTopbar() {
   const nav = document.getElementById('nav-links');
   if (nav) {
     // CTA: Ta emot
-    var nh = '<button class="nav-item" onclick="openBookingDialog(null,null);_closeSidebar()" style="background:rgba(13,155,138,.18);color:#3dcfbd;font-weight:700;border:1px solid rgba(13,155,138,.2);margin-bottom:10px">'
+    var nh = '<button class="nav-item" onclick="closeCommandPalette();openCommandPalette();_closeSidebar()" style="background:rgba(13,155,138,.18);color:#3dcfbd;font-weight:700;border:1px solid rgba(13,155,138,.2);margin-bottom:10px">'
       +'<svg class="nav-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ta emot</button>';
 
     // Clinic context switcher (visible to org owners with >1 clinic)
@@ -23434,6 +24498,32 @@ function _aiProfileNav(nextStep) {
   var newInner = ov.firstElementChild;
   if (newInner) newInner.onclick = function(ev) { ev.stopPropagation(); };
 }
+
+// Returns a context string for injecting into AI prompts
+function closeAiProfileOv() { document.getElementById('ai-profile-ov')?.remove(); }
+function closeConsentPopup() { document.getElementById('consent-popup')?.remove(); }
+
+
+function getAiProfileContext(userId) {
+  var profile = getAiProfile(userId);
+  if (!Object.keys(profile).length) return '';
+  var parts = [];
+  if (profile.style) {
+    var styles = Array.isArray(profile.style) ? profile.style : [profile.style];
+    if (styles.length) parts.push('Behandlarens personlighet: ' + styles.join(', '));
+  }
+  if (profile.tone) parts.push('Kommunikationston: ' + profile.tone);
+  if (profile.strengths) {
+    var s = Array.isArray(profile.strengths) ? profile.strengths : [profile.strengths];
+    if (s.length) parts.push('Expertområden: ' + s.join(', '));
+  }
+  if (profile.patient_motivation) parts.push('Patientmotivation: ' + profile.patient_motivation);
+  if (profile.avoid) parts.push('VIKTIGT — undvik alltid: ' + profile.avoid);
+  if (profile.voice_sample) parts.push('Behandlarens röst (exempel): "' + profile.voice_sample + '"');
+  if (profile.tone_text) parts.push('Ytterligare om ton: ' + profile.tone_text);
+  return parts.length ? '\n\n--- BEHANDLARPROFIL ---\n' + parts.join('\n') + '\n---' : '';
+}
+
 
 // Returns a context string for injecting into AI prompts
 function closeAiProfileOv() { document.getElementById('ai-profile-ov')?.remove(); }

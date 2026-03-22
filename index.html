@@ -1544,10 +1544,18 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .cal-brief-name { font-size:12px;font-weight:700;color:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
 .cal-brief-sub { font-size:10px;color:rgba(255,255,255,.4);margin-top:1px; }
 .cal-nrs-pill { font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;display:inline-block; }
-.tx-panel { position:fixed;right:0;top:0;bottom:0;width:380px;background:var(--surface);border-left:1px solid var(--border);z-index:400;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);box-shadow:-8px 0 32px rgba(0,0,0,.3); }
+.tx-panel { position:fixed;right:0;top:0;bottom:0;width:400px;background:var(--surface);border-left:1px solid rgba(255,255,255,.06);z-index:400;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);box-shadow:-12px 0 48px rgba(0,0,0,.45); }
 .tx-panel.open { transform:translateX(0); }
-.tx-panel-header { background:var(--navy);padding:18px 20px 14px;flex-shrink:0; }
-.tx-panel-body { flex:1;overflow-y:auto;padding:16px; }
+.tx-panel-header { background:linear-gradient(180deg,var(--navy) 0%,rgba(7,16,30,.97) 100%);padding:22px 22px 16px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.05); }
+.tx-panel-body { flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:0; }
+.tx-card { background:var(--bg);border-radius:12px;padding:14px;margin-bottom:12px; }
+.tx-card-label { font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px; }
+.tx-hero-btn { width:100%;padding:15px;border:none;border-radius:12px;font-size:15px;font-weight:800;letter-spacing:-.01em;cursor:pointer;font-family:var(--font);background:var(--teal);color:white;display:flex;align-items:center;justify-content:center;gap:10px;transition:opacity .15s,transform .1s;margin-bottom:10px; }
+.tx-hero-btn:hover { opacity:.9;transform:translateY(-1px); }
+.tx-sec-btn { flex:1;padding:11px;border:1px solid var(--border);border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);background:none;color:var(--muted);transition:border-color .15s,color .15s; }
+.tx-sec-btn:hover { border-color:rgba(255,255,255,.2);color:var(--text); }
+.tx-nrs-val { font-size:30px;font-weight:900;letter-spacing:-.03em;line-height:1; }
+.tx-nrs-trend { font-size:11px;font-weight:700;margin-top:2px; }
 .tx-nrs-sparkline { display:flex;align-items:flex-end;gap:3px;height:32px;margin-top:6px; }
 .tx-nrs-bar { flex:1;border-radius:2px 2px 0 0;min-height:3px;transition:height .4s ease; }
 .tx-action-btn { width:100%;padding:13px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s; }
@@ -4406,9 +4414,13 @@ function rCalendar() {
       h += '<div class="cal-booking ' + typeClass + '" style="top:' + top2 + 'px;height:' + height + 'px" onclick="event.stopPropagation();openBookingDetail(\'' + bk.id + '\')">';
       h += '<div class="cal-booking-time">' + bTime + ' · ' + dur + 'min</div>';
       h += '<div class="cal-booking-name">' + e(bk.patientName || 'Okänd') + '</div>';
-      if (bk.serviceName) h += '<div class="cal-booking-svc">' + e(bk.serviceName) + '</div>';
-      if (bk.intakeSent && !bk.intakeCompleted) h += '<div style="font-size:9px;opacity:.7">📋 Intake skickat</div>';
-      if (bk.intakeCompleted) h += '<div style="font-size:9px;opacity:.7">✓ Intake klart</div>';
+      if (bk.serviceName && height > 36) h += '<div class="cal-booking-svc">' + e(bk.serviceName) + '</div>';
+      if (height > 44) {
+        var _sigs = [];
+        if (bk.intakeCompleted) _sigs.push('<span class="cal-signal-dot" style="background:#4ade80" title="Intake klart"></span>');
+        else if (bk.intakeSent)  _sigs.push('<span class="cal-signal-dot" style="background:#c8a030" title="Intake inväntar svar"></span>');
+        if (_sigs.length) h += '<div class="cal-booking-signals">' + _sigs.join('') + '</div>';
+      }
       h += '</div>';
     });
 
@@ -7581,7 +7593,7 @@ function rDetail(){
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Ta emot
           </button>
-          <button class="det-action-btn" onclick="startManualSOAP()">
+          <button class="det-action-btn" onclick="newVisit()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             Ny journal
           </button>
@@ -23639,11 +23651,22 @@ function _renderCommandPalette() {
   var h = '<div class="cmd-box" onclick="event.stopPropagation()">';
 
   // Input
-  h += '<div class="cmd-input-row">';
-  h += '<svg class="cmd-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-  h += '<input id="cmd-input" class="cmd-input" placeholder="Sök patient, åtgärd..." value="' + e(q) + '" oninput="_cmdInput(this.value)" onkeydown="_cmdKey(event)">';
-  h += '<span class="cmd-kbd">ESC</span>';
-  h += '</div>';
+  if (_cmdState.selectedPat) {
+    // Patient vald — visa patientrad istället för sökfält
+    h += '<div class="cmd-input-row" style="cursor:default">';
+    h += '<div style="width:32px;height:32px;border-radius:50%;background:rgba(13,155,138,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+    var _ini = (_cmdState.selectedPat.name||'?').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+    h += '<span style="font-size:11px;font-weight:800;color:var(--teal)">' + _ini + '</span></div>';
+    h += '<span style="font-size:14px;font-weight:700;color:var(--ink);flex:1">' + e(_cmdState.selectedPat.name) + '</span>';
+    h += '<button onclick="_cmdClearPat()" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;padding:4px 10px;font-family:var(--font)">Byt patient</button>';
+    h += '</div>';
+  } else {
+    h += '<div class="cmd-input-row">';
+    h += '<svg class="cmd-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+    h += '<input id="cmd-input" class="cmd-input" placeholder="Sök patient..." value="' + e(q) + '" oninput="_cmdInput(this.value)" onkeydown="_cmdKey(event)">';
+    h += '<span class="cmd-kbd">ESC</span>';
+    h += '</div>';
+  }
 
   h += '<div class="cmd-results" id="cmd-results">';
 
@@ -23713,54 +23736,76 @@ function _renderCommandPalette() {
 }
 
 function _buildCmdAiPanel(pat) {
-  var slots = _cmdState.aiSlots;
-  var loading = _cmdState.loading;
-  var intake = needsIntake(pat.id);
-  var lastVisit = (pat.visits||[]).slice(-1)[0];
-  var diag = lastVisit?.form?.diagnosis || lastVisit?.plan?.form?.diagnosis || '';
-  var nrsVals = lastVisit ? (lastVisit.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }) : [];
-  var nrs = nrsVals.length ? nrsVals[nrsVals.length-1] : null;
+  var slots     = _cmdState.aiSlots;
+  var loading   = _cmdState.loading;
+  var visits    = (pat.visits||[]).filter(function(v){ return v.date; });
+  var isNewPat  = visits.length === 0;
+  var lastVisit = visits.slice(-1)[0];
+  var diag      = lastVisit ? (lastVisit.form?.diagnosis || lastVisit.plan?.form?.diagnosis || '') : '';
+  var nrsVals   = lastVisit ? (lastVisit.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }) : [];
+  var nrs       = nrsVals.length ? nrsVals[nrsVals.length-1] : null;
   var weeksSince = lastVisit?.date ? Math.round((Date.now()-new Date(lastVisit.date))/604800000) : null;
+  var nc        = nrs==null?'var(--muted)':nrs>=7?'#e05555':nrs>=4?'#c8a030':'#1a7a4a';
 
   var h = '<div class="cmd-ai-panel">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
-  h += '<div>';
-  h += '<div style="font-size:14px;font-weight:800;color:var(--ink)">' + e(pat.name) + '</div>';
-  h += '<div style="font-size:11px;color:var(--muted);margin-top:2px">';
-  if (weeksSince!==null) h += weeksSince + ' veckor sedan';
-  if (diag) h += ' · ' + e(diag.split('(')[0].trim());
-  if (nrs!==null) {
-    var nc = nrs>=7?'#e05555':nrs>=4?'#c8a030':'#1a7a4a';
-    h += ' · <span style="color:'+nc+';font-weight:700">NRS '+nrs+'</span>';
+
+  // ── Patienthuvud ──
+  h += '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">';
+  h += '<div style="flex:1;min-width:0">';
+  h += '<div style="font-size:15px;font-weight:800;color:var(--ink);letter-spacing:-.02em">' + e(pat.name) + '</div>';
+  h += '<div style="font-size:11px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">';
+  if (isNewPat) {
+    h += '<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(13,155,138,.12);color:var(--teal)">Ny patient</span>';
+  } else {
+    if (weeksSince!==null) h += '<span>' + weeksSince + ' veckor sedan</span>';
+    if (nrs!==null) h += '<span style="color:'+nc+';font-weight:700">NRS '+nrs+'</span>';
+    if (diag) h += '<span style="color:var(--muted)">' + e(diag.split('(')[0].trim().slice(0,40)) + '</span>';
+    h += '<span style="color:var(--muted)">' + visits.length + ' besök totalt</span>';
   }
   h += '</div></div>';
-  h += '<button onclick="_cmdClearPat()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:0">×</button>';
+  h += '<button onclick="_cmdClearPat()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:2px 4px;margin-top:-2px">×</button>';
   h += '</div>';
 
-  if (intake.needed) {
-    h += '<div style="font-size:11px;background:rgba(200,160,48,.08);border:1px solid rgba(200,160,48,.2);border-radius:7px;padding:7px 10px;color:#c8a030;margin-bottom:10px">⚠ ' +
-      (intake.reason==='long_gap' ? intake.weeks+' veckor sedan — intake-formulär rekommenderas' : 'Intake-formulär rekommenderas') + '</div>';
+  if (isNewPat) {
+    // ── NY PATIENT: enkelt, direkt flöde ──
+    h += '<div style="background:rgba(13,155,138,.06);border:1px solid rgba(13,155,138,.18);border-radius:10px;padding:12px 14px;margin-bottom:12px">';
+    h += '<div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:3px">Första besöket</div>';
+    h += '<div style="font-size:11px;color:var(--muted)">Intake-formulär skickas automatiskt vid bokning.</div>';
+    h += '</div>';
+    h += '<div style="display:flex;flex-direction:column;gap:8px">';
+    h += '<button onclick="_cmdTaEmotNu(\'' + pat.id + '\')" style="width:100%;padding:12px;background:var(--teal);border:none;border-radius:10px;font-size:13px;font-weight:800;color:white;cursor:pointer;font-family:var(--font);letter-spacing:-.01em">Ta emot ' + e(pat.name.split(' ')[0]) + ' nu</button>';
+    h += '<div style="display:flex;gap:8px">';
+    h += '<button onclick="_cmdBookSlot(\'' + pat.id + '\',null,null)" style="flex:1;padding:9px;background:none;border:1px solid rgba(13,155,138,.3);border-radius:9px;font-size:12px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)" onclick="closeCommandPalette();openBookingDialog(null,null,\'' + pat.id + '\')">Boka tid</button>';
+    h += '<button onclick="closeCommandPalette();openPat(\'' + pat.id + '\')" style="flex:1;padding:9px;background:none;border:1px solid var(--border);border-radius:9px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:var(--font)">Patientkort</button>';
+    h += '</div></div>';
+  } else {
+    // ── ÅTERBESÖK: visa AI-tider ──
+    if (weeksSince >= 12) {
+      h += '<div style="font-size:11px;background:rgba(200,160,48,.07);border:1px solid rgba(200,160,48,.18);border-radius:8px;padding:8px 10px;color:#c8a030;margin-bottom:10px">';
+      h += weeksSince + ' veckor sedan senaste besöket — intake-formulär rekommenderas';
+      h += '</div>';
+    }
+    h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Lediga tider denna vecka</div>';
+    if (loading) {
+      h += '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)">';
+      h += '<div style="width:12px;height:12px;border:2px solid var(--teal);border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite"></div>';
+      h += 'Hittar bästa tider...</div>';
+    } else if (slots.length) {
+      h += '<div class="cmd-slot-row">';
+      slots.forEach(function(slot, i) {
+        h += '<button class="cmd-slot' + (i===0?' recommended':'') + '" onclick="_cmdBookSlot(\'' + pat.id + '\',\'' + slot.date + '\',\'' + slot.time + '\')">';
+        h += slot.label + '</button>';
+      });
+      h += '</div>';
+    } else {
+      h += '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Inga lediga tider denna vecka.</div>';
+    }
+    h += '<div style="display:flex;gap:8px;margin-top:8px">';
+    h += '<button onclick="closeCommandPalette();openBookingDialog(null,null,\'' + pat.id + '\')" style="flex:1;padding:9px;background:none;border:1px solid rgba(13,155,138,.3);border-radius:9px;font-size:12px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)">Välj tid</button>';
+    h += '<button onclick="_cmdTaEmotNu(\'' + pat.id + '\')" style="flex:1;padding:9px;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.25);border-radius:9px;font-size:12px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)">Ta emot nu</button>';
+    h += '</div>';
   }
 
-  h += '<div class="cmd-ai-title">AI-föreslagna tider</div>';
-  if (loading) {
-    h += '<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)"><div style="width:12px;height:12px;border:2px solid var(--teal);border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite"></div>Hittar bästa tider...</div>';
-  } else if (slots.length) {
-    h += '<div class="cmd-slot-row">';
-    slots.forEach(function(slot, i) {
-      h += '<button class="cmd-slot' + (i===0?' recommended':'') + '" onclick="_cmdBookSlot(\'' + pat.id + '\',\'' + slot.date + '\',\'' + slot.time + '\')">';
-      h += slot.label;
-      h += '</button>';
-    });
-    h += '</div>';
-    h += '<div style="display:flex;gap:8px">';
-    h += '<button onclick="closeCommandPalette();openPat(\'' + pat.id + '\')" style="flex:1;padding:8px;background:none;border:1px solid var(--border);border-radius:9px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;font-family:var(--font)">Öppna patient</button>';
-    h += '<button onclick="_cmdTaEmotNu(\'' + pat.id + '\')" style="flex:1;padding:8px;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.25);border-radius:9px;font-size:12px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)">Ta emot nu →</button>';
-    h += '</div>';
-  } else {
-    h += '<div style="font-size:12px;color:var(--muted)">Inga lediga tider hittades denna vecka.</div>';
-    h += '<button onclick="closeCommandPalette();openBookingDialog(null,null)" style="margin-top:8px;padding:8px 14px;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.2);border-radius:8px;font-size:12px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)">Välj tid manuellt</button>';
-  }
   h += '</div>';
   return h;
 }
@@ -23810,6 +23855,8 @@ function _cmdBookSlot(patId, date, time) {
 function _cmdTaEmotNu(patId) {
   closeCommandPalette();
   openPat(patId);
+  // Starta besöksflöde direkt utan fördröjning
+  setTimeout(function(){ newVisit(); }, 250);
 }
 
 async function _getAiBookingSlots(pat) {
@@ -24275,7 +24322,6 @@ function openTreatmentPanel(bkId) {
   if (!bk) return;
   var pat = (S.patients||[]).find(function(p){ return p.id===bk.patientId; });
 
-  // Create panel if not exists
   var panel = document.getElementById('tx-side-panel');
   if (!panel) {
     panel = document.createElement('div');
@@ -24286,148 +24332,157 @@ function openTreatmentPanel(bkId) {
 
   var visits = pat ? (pat.visits||[]).sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; }) : [];
   var lastVisit = visits[0];
-  var nrsVals = lastVisit ? (lastVisit.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }) : [];
-  var nrsFirst = nrsVals[0] ?? (lastVisit?.form?.pain ?? null);
-  var nrsLast  = nrsVals.length ? nrsVals[nrsVals.length-1] : null;
+  var nrsVals = visits.reduce(function(acc,v){
+    return acc.concat((v.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;}));
+  },[]);
+  var nrsCurrent = lastVisit ? ((lastVisit.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;}).slice(-1)[0] ?? lastVisit.form?.pain ?? null) : null;
+  var nrsFirst   = nrsVals[0] ?? null;
   var diag = lastVisit?.form?.diagnosis || lastVisit?.plan?.form?.diagnosis || '';
   var intake = pat ? getLatestIntakeForPatient(pat.id) : null;
   var hasNewIntake = intake && !intake._reviewedAt;
   var ns = pat ? _predictNoShow(pat) : null;
-  var haelVisit = pat ? (pat.visits||[]).find(function(v){
-    if (!v.plan) return false;
-    var tw = v.plan.totalWeeks||v.plan.form?.followup||4;
-    var sd = v.date?new Date(v.date):null;
-    return sd && new Date(sd.getTime()+tw*7*86400000)>new Date();
-  }) : null;
+  var isNew = visits.length === 0;
+
+  // Status colours
+  var stColors = {scheduled:'rgba(13,155,138,.25)',confirmed:'rgba(26,122,74,.35)',completed:'rgba(255,255,255,.1)',cancelled:'rgba(192,48,48,.25)','no-show':'rgba(200,160,48,.25)'};
+  var stLabels = {scheduled:'Bokad',confirmed:'Bekräftad',completed:'Genomförd',cancelled:'Avbokad','no-show':'Uteblev'};
+  var stTextC  = {scheduled:'var(--teal)',confirmed:'#4ade80',completed:'var(--muted)',cancelled:'#f87171','no-show':'#c8a030'};
 
   var h = '';
 
-  // Header
+  // ── HEADER ────────────────────────────────────────────────────────────────
   h += '<div class="tx-panel-header">';
-  h += '<div style="display:flex;align-items:flex-start;justify-content:space-between">';
-  h += '<div>';
-  h += '<div style="font-size:18px;font-weight:800;color:white;letter-spacing:-.02em">' + e(bk.patientName) + '</div>';
-  h += '<div style="font-size:12px;color:rgba(255,255,255,.45);margin-top:3px">';
-  h += _fmtBookingDate(bk.date) + ' · ' + bk.time;
-  if (bk.serviceName) h += ' · ' + e(bk.serviceName);
+  h += '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">';
+  h += '<div style="flex:1;min-width:0">';
+  h += '<div style="font-size:20px;font-weight:900;color:white;letter-spacing:-.03em;line-height:1.1">' + e(bk.patientName) + '</div>';
+  if (diag) h += '<div style="font-size:11px;color:rgba(255,255,255,.38);margin-top:4px;font-style:italic">' + e(diag.split('(')[0].trim()) + '</div>';
   h += '</div>';
-  if (diag) h += '<div style="font-size:11px;color:rgba(255,255,255,.35);margin-top:2px">' + e(diag.split('(')[0].trim()) + '</div>';
+  h += '<button onclick="closeTreatmentPanel()" style="background:rgba(255,255,255,.06);border:none;color:rgba(255,255,255,.5);font-size:18px;cursor:pointer;line-height:1;padding:6px 9px;border-radius:8px;margin-top:-2px">×</button>';
   h += '</div>';
-  h += '<button onclick="closeTreatmentPanel()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:22px;cursor:pointer;line-height:1;padding:0;margin-top:-4px">×</button>';
-  h += '</div>';
-  // Status + no-show risk
-  h += '<div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">';
-  var statusColors = {scheduled:'rgba(13,155,138,.3)',confirmed:'rgba(26,122,74,.4)',completed:'rgba(255,255,255,.15)',cancelled:'rgba(192,48,48,.3)'};
-  var statusLabels = {scheduled:'Bokad',confirmed:'Bekräftad',completed:'Genomförd',cancelled:'Avbokad'};
-  h += '<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:' + (statusColors[bk.status]||'rgba(255,255,255,.1)') + ';color:white">' + (statusLabels[bk.status]||bk.status) + '</span>';
-  if (ns && ns.risk !== 'low') h += '<span class="noshow-risk ' + ns.risk + '">Uteblivanderisk ' + ns.pct + '%</span>';
-  if (hasNewIntake) h += '<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;background:rgba(13,155,138,.25);color:var(--teal)">📋 Nytt intake</span>';
+
+  // Meta row: tid + tjänst + status
+  h += '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">';
+  h += '<span style="font-size:12px;color:rgba(255,255,255,.55);font-weight:600">' + bk.time + '</span>';
+  h += '<span style="font-size:12px;color:rgba(255,255,255,.2)">·</span>';
+  h += '<span style="font-size:12px;color:rgba(255,255,255,.55)">' + bk.duration + ' min</span>';
+  if (bk.serviceName) {
+    h += '<span style="font-size:12px;color:rgba(255,255,255,.2)">·</span>';
+    h += '<span style="font-size:12px;color:rgba(255,255,255,.55)">' + e(bk.serviceName) + '</span>';
+  }
+  h += '<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:' + (stColors[bk.status]||'rgba(255,255,255,.1)') + ';color:' + (stTextC[bk.status]||'white') + '">' + (stLabels[bk.status]||bk.status) + '</span>';
+  if (ns && ns.risk !== 'low') h += '<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(200,160,48,.2);color:#c8a030">Uteblivanderisk ' + ns.pct + '%</span>';
   h += '</div>';
   h += '</div>'; // end header
 
-  // Body
+  // ── BODY ─────────────────────────────────────────────────────────────────
   h += '<div class="tx-panel-body">';
 
-  // NRS sparkline
-  if (nrsVals.length >= 2) {
-    h += '<div style="margin-bottom:16px;background:var(--bg);border-radius:12px;padding:12px">';
-    h += '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">NRS-trend</div>';
-    h += '<div class="tx-nrs-sparkline">';
-    var maxNrs = Math.max.apply(null, nrsVals) || 1;
-    nrsVals.slice(-10).forEach(function(v, i) {
-      var h2 = Math.max(4, Math.round(v/10*28));
-      var col = v>=7?'#e05555':v>=4?'#c8a030':'#1a7a4a';
-      var isLast = i === Math.min(nrsVals.length, 10)-1;
-      h += '<div class="tx-nrs-bar" style="height:'+h2+'px;background:'+(isLast?col:col+'66')+'"></div>';
-    });
-    h += '</div>';
-    if (nrsFirst!==null && nrsLast!==null) {
-      var diff = Math.round((nrsFirst-nrsLast)*10)/10;
-      h += '<div style="font-size:12px;color:' + (diff>0?'#1a7a4a':diff<0?'#e05555':'var(--muted)') + ';font-weight:700;margin-top:6px">';
-      h += diff>0?'↓ Förbättrad '+diff+' NRS-enheter':diff<0?'↑ Försämrad '+Math.abs(diff)+' NRS-enheter':'Oförändrad';
+  // ── CTA: Ta emot (hero) ────────────────────────────────────────────────
+  if (bk.status !== 'completed' && bk.status !== 'cancelled') {
+    h += '<button class="tx-hero-btn" onclick="closeTreatmentPanel();_startVisitFromBk(\''+bkId+'\')">';
+    h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 3l14 9-14 9V3z"/></svg>';
+    h += 'Ta emot ' + e(bk.patientName.split(' ')[0]);
+    h += '</button>';
+  }
+
+  // ── Klinisk kontext ────────────────────────────────────────────────────
+  if (!isNew && (nrsCurrent !== null || diag || lastVisit)) {
+    h += '<div class="tx-card">';
+    h += '<div class="tx-card-label">Klinisk kontext</div>';
+
+    // NRS + trend inline
+    if (nrsCurrent !== null) {
+      var nrsCol = nrsCurrent>=7?'#f87171':nrsCurrent>=4?'#c8a030':'#4ade80';
+      var nrsDiff = (nrsFirst !== null && nrsCurrent !== null && visits.length > 1) ? Math.round((nrsFirst - nrsCurrent)*10)/10 : null;
+      h += '<div style="display:flex;align-items:flex-end;gap:14px;margin-bottom:10px">';
+      h += '<div>';
+      h += '<div style="font-size:10px;color:var(--muted);margin-bottom:2px">NRS nu</div>';
+      h += '<div class="tx-nrs-val" style="color:' + nrsCol + '">' + nrsCurrent + '</div>';
+      h += '</div>';
+      if (nrsDiff !== null) {
+        h += '<div>';
+        h += '<div class="tx-nrs-trend" style="color:' + (nrsDiff>0?'#4ade80':nrsDiff<0?'#f87171':'var(--muted)') + '">';
+        h += nrsDiff>0 ? '↓ ' + nrsDiff + ' sedan start' : nrsDiff<0 ? '↑ +' + Math.abs(nrsDiff) + ' sedan start' : 'Oförändrad';
+        h += '</div>';
+        h += '<div style="font-size:11px;color:var(--muted)">Startade på ' + nrsFirst + '</div>';
+        h += '</div>';
+      }
       h += '</div>';
     }
+
+    // Last SOAP snippet
+    if (lastVisit?.soap?.S) {
+      h += '<div style="border-top:1px solid var(--border);padding-top:10px">';
+      h += '<div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Senaste S</div>';
+      h += '<div style="font-size:12px;color:var(--text);line-height:1.6">' + e((lastVisit.soap.S).slice(0,160)) + ((lastVisit.soap.S).length>160?'…':'') + '</div>';
+      h += '</div>';
+    } else if (lastVisit?.soap?.A) {
+      h += '<div style="border-top:1px solid var(--border);padding-top:10px">';
+      h += '<div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Bedömning</div>';
+      h += '<div style="font-size:12px;color:var(--text);font-weight:600">' + e(lastVisit.soap.A) + '</div>';
+      h += '</div>';
+    }
+
+    // Visits count
+    h += '<div style="margin-top:10px;font-size:11px;color:var(--muted)">' + visits.length + ' besök totalt</div>';
+    h += '</div>'; // end tx-card
+  }
+
+  if (isNew) {
+    h += '<div class="tx-card" style="background:rgba(13,155,138,.06);border:1px solid rgba(13,155,138,.15)">';
+    h += '<div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:3px">Ny patient</div>';
+    h += '<div style="font-size:11px;color:var(--muted)">Inga tidigare besök registrerade.</div>';
     h += '</div>';
   }
 
-  // Last SOAP note
-  if (lastVisit?.soap?.S || lastVisit?.soap?.A) {
-    h += '<div style="margin-bottom:16px;background:var(--bg);border-radius:12px;padding:12px">';
-    h += '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Senaste anteckning</div>';
-    if (lastVisit.soap.S) {
-      h += '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">S</div>';
-      h += '<div style="font-size:12px;color:var(--text);line-height:1.6;margin-bottom:8px">' + e((lastVisit.soap.S||'').slice(0,200)) + ((lastVisit.soap.S||'').length>200?'...':'') + '</div>';
-    }
-    if (lastVisit.soap.A) {
-      h += '<div style="font-size:11px;color:var(--muted);margin-bottom:2px">A</div>';
-      h += '<div style="font-size:12px;color:var(--ink);font-weight:600">' + e(lastVisit.soap.A) + '</div>';
-    }
-    h += '</div>';
-  }
-
-  // New intake alert
+  // ── Intake ─────────────────────────────────────────────────────────────
   if (hasNewIntake) {
-    h += '<div style="margin-bottom:16px;background:rgba(13,155,138,.06);border:1px solid rgba(13,155,138,.2);border-radius:12px;padding:12px">';
-    h += '<div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:6px">📋 Nytt intake-formulär</div>';
-    h += '<div style="font-size:12px;color:var(--muted);margin-bottom:8px">NRS ' + (intake.nrsCurrent??'?') + ' · Skickat ' + new Date(intake.ts||intake.createdAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) + '</div>';
-    if (intake.redFlagCount > 0) h += '<div style="font-size:11px;color:#e05555;font-weight:700;margin-bottom:8px">⚠ ' + intake.redFlagCount + ' röda flaggor</div>';
-    h += '<button onclick="closeTreatmentPanel();openPat(\'' + (pat?.id||'') + '\');" style="font-size:12px;font-weight:700;color:var(--teal);background:none;border:1px solid rgba(13,155,138,.2);border-radius:8px;padding:6px 12px;cursor:pointer;font-family:var(--font)">Granska intake →</button>';
+    h += '<div class="tx-card" style="background:rgba(13,155,138,.05);border:1px solid rgba(13,155,138,.18)">';
+    h += '<div class="tx-card-label" style="color:var(--teal)">Intake mottaget</div>';
+    h += '<div style="font-size:12px;color:var(--text);margin-bottom:8px">';
+    h += 'NRS ' + (intake.nrsCurrent??'–') + ' · ' + new Date(intake.ts||intake.createdAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
     h += '</div>';
+    if (intake.redFlagCount > 0) {
+      h += '<div style="font-size:12px;font-weight:700;color:#f87171;margin-bottom:8px">' + intake.redFlagCount + ' röd' + (intake.redFlagCount>1?'a':'') + ' flagg' + (intake.redFlagCount>1?'or':'a') + ' — granska innan besöket</div>';
+    }
+    h += '<button onclick="closeTreatmentPanel();_reviewIntake(\'' + (pat?.id||'') + '\')" style="padding:7px 14px;background:var(--teal);border:none;border-radius:8px;font-size:12px;font-weight:700;color:white;cursor:pointer;font-family:var(--font)">Granska intake</button>';
+    h += '</div>';
+  } else if (bk.intakeSent && !bk.intakeCompleted) {
+    h += '<div class="tx-card">';
+    h += '<div class="tx-card-label">Intake</div>';
+    h += '<div style="font-size:12px;color:var(--muted)">Skickat — inväntar svar från patient</div>';
+    h += '<div style="display:flex;gap:8px;margin-top:8px">';
+    h += '<button onclick="_copyIntakeLink(\'' + (bk.intakeLink||'') + '\')" style="padding:6px 12px;background:none;border:1px solid var(--border);border-radius:8px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Kopiera länk</button>';
+    h += '<button onclick="_sendIntakeNow(\'' + bkId + '\')" style="padding:6px 12px;background:rgba(13,155,138,.1);border:1px solid rgba(13,155,138,.2);border-radius:8px;font-size:11px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Skicka igen</button>';
+    h += '</div></div>';
   }
 
-  // Hael plan status
-  if (haelVisit) {
-    var logs = haelVisit.logs||[];
-    var tw = haelVisit.plan.totalWeeks||4;
-    var pct = Math.min(100,Math.round((Date.now()-new Date(haelVisit.date))/604800000/tw*100));
-    h += '<div style="margin-bottom:16px;background:var(--bg);border-radius:12px;padding:12px">';
-    h += '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Aktiv Hael-plan</div>';
-    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">';
-    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">' + logs.length + ' pass loggade</div>';
-    h += '<div style="font-size:12px;color:var(--muted)">' + pct + '% av planen</div>';
-    h += '</div>';
-    h += '<div style="height:4px;background:var(--border);border-radius:2px"><div style="width:'+pct+'%;height:100%;background:var(--teal);border-radius:2px"></div></div>';
-    h += '</div>';
-  }
+  // ── Boka status ────────────────────────────────────────────────────────
+  h += '<div class="tx-card">';
+  h += '<div class="tx-card-label">Bokningsstatus</div>';
+  h += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+  ['scheduled','confirmed','completed','no-show','cancelled'].forEach(function(st){
+    var isCur = bk.status === st;
+    h += '<button onclick="_setBkStatus(\'' + bkId + '\',\'' + st + '\')" style="padding:5px 11px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);border:1px solid ' + (isCur?(stTextC[st]||'var(--teal)'):'var(--border)') + ';background:' + (isCur?(stColors[st]||'rgba(13,155,138,.1)'):'none') + ';color:' + (isCur?(stTextC[st]||'var(--teal)'):'var(--muted)') + '">' + (stLabels[st]||st) + '</button>';
+  });
+  h += '</div></div>';
 
-  // Visit count
-  h += '<div style="margin-bottom:16px;display:flex;gap:10px">';
-  h += '<div style="flex:1;background:var(--bg);border-radius:10px;padding:10px;text-align:center">';
-  h += '<div style="font-size:22px;font-weight:800;color:var(--teal)">' + visits.length + '</div>';
-  h += '<div style="font-size:10px;color:var(--muted)">BESÖK TOTALT</div>';
-  h += '</div>';
-  var lastSoap = visits.find(function(v){ return v.soap?.S; });
-  h += '<div style="flex:1;background:var(--bg);border-radius:10px;padding:10px;text-align:center">';
-  h += '<div style="font-size:22px;font-weight:800;color:var(--ink)">' + (nrsLast??'–') + '</div>';
-  h += '<div style="font-size:10px;color:var(--muted)">NRS SENAST</div>';
-  h += '</div>';
-  h += '</div>';
-
-  // Actions
-  h += '<div style="display:flex;flex-direction:column;gap:8px">';
-  h += '<button onclick="closeTreatmentPanel();_startVisitFromBk(\'' + bkId + '\')" class="tx-action-btn" style="background:var(--teal);color:white">';
-  h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 3l14 9-14 9V3z"/></svg>';
-  h += 'Ta emot ' + e(bk.patientName.split(' ')[0]) + ' nu →</button>';
-
-  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
-  h += '<button onclick="closeTreatmentPanel();openPat(\'' + (pat?.id||'') + '\')" class="tx-action-btn" style="background:var(--bg);color:var(--text);border:1px solid var(--border);font-size:13px">Öppna patient</button>';
-  h += '<button onclick="openRecurringBookingDialog(\'' + (pat?.id||'') + '\',\'' + bk.date + '\',\'' + bk.time + '\')" class="tx-action-btn" style="background:var(--bg);color:var(--text);border:1px solid var(--border);font-size:12px">Boka serie</button>';
-  h += '</div>';
-
-  if (pat && !getWaitlist().find(function(w){ return w.patId===pat.id; })) {
-    h += '<button onclick="addToWaitlist(\'' + (pat?.id||'') + '\',\'\')" class="tx-action-btn" style="background:var(--bg);color:var(--muted);border:1px solid var(--border);font-size:12px">+ Lägg till väntelista</button>';
-  }
+  // ── Sekundära åtgärder ─────────────────────────────────────────────────
+  h += '<div style="display:flex;gap:8px;margin-top:auto;padding-top:4px">';
+  h += '<button onclick="closeTreatmentPanel();openPat(\'' + (pat?.id||'') + '\')" class="tx-sec-btn">Patientkort</button>';
+  h += '<button onclick="closeTreatmentPanel();openBookingDialog(bk.date,bk.time,\'' + (pat?.id||'') + '\')" class="tx-sec-btn">Boka om</button>';
+  h += '<button onclick="_deleteBk(\'' + bkId + '\')" style="padding:11px 14px;border:1px solid rgba(192,48,48,.25);border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font);background:none;color:rgba(192,48,48,.7);transition:border-color .15s">Avboka</button>';
   h += '</div>';
 
   h += '</div>'; // end body
   panel.innerHTML = h;
 
-  // Open panel
   requestAnimationFrame(function(){
     panel.classList.add('open');
     _txPanelOpen = true;
   });
 }
+
 
 function closeTreatmentPanel() {
   var panel = document.getElementById('tx-side-panel');
@@ -24611,15 +24666,50 @@ function _renderDayView() {
   h += '<div class="day-view-list">';
 
   if (!bks.length) {
-    h += '<div style="padding:32px 24px;text-align:center">';
-    h += '<div style="font-size:48px;margin-bottom:16px;animation:hael-float 3s ease infinite">📭</div>';
+    // Kolla om det finns bokningar kommande 7 dagar
+    var upcomingBks = (function() {
+      var all = getBookings().filter(function(b){ return b.status !== 'cancelled'; });
+      var result = [];
+      for (var di = 1; di <= 7; di++) {
+        var d = new Date(today); d.setDate(d.getDate() + di);
+        var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+        var dayBks = all.filter(function(b){ return b.date === ds; });
+        if (dayBks.length) result.push({ date: ds, dateObj: d, bookings: dayBks });
+        if (result.length >= 3) break;
+      }
+      return result;
+    })();
+
+    h += '<div style="padding:24px 20px">';
     h += '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px">Inga bokningar ' + (isToday?'idag':'denna dag') + '</div>';
-    h += '<div style="font-size:13px;color:var(--muted);margin-bottom:16px">Använd ⌘K för att söka och boka en patient</div>';
-    h += '<button onclick="openCommandPalette()" class="btn btn-p" style="padding:10px 20px">Boka patient →</button>';
-    // Show waitlist suggestion
+    h += '<div style="font-size:13px;color:var(--muted);margin-bottom:16px">Sök och boka en patient med ⌘K</div>';
+    h += '<button onclick="openCommandPalette()" class="btn btn-p" style="padding:10px 20px">Boka patient</button>';
+
+    if (upcomingBks.length) {
+      h += '<div style="margin-top:24px">';
+      h += '<div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Kommande bokningar</div>';
+      upcomingBks.forEach(function(day) {
+        var dayLabel = day.dateObj.toLocaleDateString('sv-SE', {weekday:'long',day:'numeric',month:'short'});
+        dayLabel = dayLabel.charAt(0).toUpperCase() + dayLabel.slice(1);
+        h += '<div style="margin-bottom:10px">';
+        h += '<div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:6px">' + dayLabel + ' · ' + day.bookings.length + ' patient' + (day.bookings.length!==1?'er':'') + '</div>';
+        day.bookings.slice(0,3).forEach(function(bk) {
+          h += '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:9px;margin-bottom:4px;cursor:pointer" onclick="rDayView(\'' + bk.date + '\')">';
+          h += '<div style="font-size:12px;font-weight:700;color:var(--muted);width:36px;flex-shrink:0">' + (bk.time||'') + '</div>';
+          h += '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--ink)">' + e(bk.patientName) + '</div>';
+          if (bk.serviceName) h += '<div style="font-size:11px;color:var(--muted)">' + e(bk.serviceName) + '</div>';
+          h += '</div>';
+          h += '<div style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(13,155,138,.1);color:var(--teal)">' + bk.duration + ' min</div>';
+          h += '</div>';
+        });
+        h += '</div>';
+      });
+      h += '</div>';
+    }
+
     var wl = getWaitlist();
     if (wl.length) {
-      h += '<div style="margin-top:16px;font-size:12px;color:var(--muted)">Väntelista: <span style="color:var(--teal);font-weight:700;cursor:pointer" onclick="openWaitlistDialog()">' + wl[0].patName + ' väntar (#1 av ' + wl.length + ')</span></div>';
+      h += '<div style="margin-top:12px;font-size:12px;color:var(--muted)">Väntelista: <span style="color:var(--teal);font-weight:700;cursor:pointer" onclick="openWaitlistDialog()">' + wl[0].patName + ' väntar (#1 av ' + wl.length + ')</span></div>';
     }
     h += '</div>';
   } else {

@@ -4880,6 +4880,46 @@ async function _sickExecute() {
 
 
 
+// ── Missing function stubs ────────────────────────────────────────────────────
+function closeTreatmentPanel() {
+  var panel = document.getElementById('tx-side-panel');
+  if (panel) {
+    panel.classList.remove('open');
+    setTimeout(function(){ if (panel.parentNode) panel.parentNode.removeChild(panel); }, 300);
+  }
+}
+
+function openMeeting(bkId) {
+  // Open the meeting/recording screen with booking context
+  var bk = bkId ? getBooking(bkId) : null;
+  if (bk) {
+    var pat = (S.patients||[]).find(function(p){ return p.id === bk.patientId; });
+    if (pat) { S.pat = pat; S.activePat = pat; }
+    S.activeBkId = bkId;
+  }
+  go('meeting');
+}
+
+function _startVisitManual(bkId) {
+  var bk = getBooking(bkId);
+  if (!bk) return;
+  var pat = (S.patients||[]).find(function(p){ return p.id === bk.patientId; });
+  if (pat) { S.pat = pat; S.activePat = pat; }
+  S.activeBkId = bkId;
+  go('manualsoap');
+  if (typeof rManualSOAP === 'function') rManualSOAP(bk);
+}
+
+function _addIssue(issue) {
+  // Add an issue to the actions/åtgärder queue
+  try {
+    var issues = JSON.parse(localStorage.getItem('vela:manual-issues') || '[]');
+    issues.push(Object.assign({ id: 'issue_' + Date.now(), createdAt: new Date().toISOString(), open: true }, issue));
+    localStorage.setItem('vela:manual-issues', JSON.stringify(issues));
+  } catch(e) { console.warn('_addIssue error:', e); }
+}
+
+
 // ══════════════════════════════════════════════════════════════════════════════
 //  VELA CALENDAR — World-class implementation
 // ══════════════════════════════════════════════════════════════════════════════
@@ -8993,40 +9033,6 @@ async function sendPortalMagicLink(pat) {
 }
 
 // Check URL hash for portal routes
-function _checkPortalHash() {
-  var hash = window.location.hash;
-
-  // Direct magic link: #portal-login/TOKEN
-  if (hash.startsWith('#portal-login/')) {
-    var token = hash.slice(14);
-    var verified = _verifyPortalToken(token);
-    if (verified) {
-      _setPortalSession(verified.patId, verified.email);
-      // Clean URL
-      window.history.replaceState(null, '', window.location.pathname + '#portal/' + verified.patId);
-      _launchPortalUI(verified.patId);
-      return true;
-    } else {
-      _launchPortalLogin(null, 'Länken har gått ut. Ange din e-post för att få en ny.');
-      return true;
-    }
-  }
-
-  // Portal entry: #portal/PATID — check session or show login
-  if (hash.startsWith('#portal/')) {
-    var patId = hash.slice(8);
-    if (!patId || patId.includes('/')) return false;
-    var session = _getPortalSession();
-    if (session && session.patId === patId) {
-      _launchPortalUI(patId);
-    } else {
-      _launchPortalLogin(patId, null);
-    }
-    return true;
-  }
-
-  return false;
-}
 
 // Show portal login screen
 function _launchPortalLogin(patId, errorMsg) {
@@ -9112,13 +9118,6 @@ function _launchPortalUI(patId) {
   renderPatientPortal(patId, pat);
 }
 
-function _maybeLaunchPortal() {
-  var hash = window.location.hash;
-  if (hash.startsWith('#portal')) {
-    return _checkPortalHash();
-  }
-  return false;
-}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PATIENT PORTAL — self-service for patients
@@ -10586,10 +10585,6 @@ function _gmailOpenCompose() {
   showAutoSaveToast('Skriv nytt mail — kommer snart');
 }
 
-function _gmailRunSearch() {
-  _gmailState.search = document.getElementById('gm-search')?.value || '';
-  _gmailRenderListPanel();
-}
 
 
 function _gmailRunSearch() {

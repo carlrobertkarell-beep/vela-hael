@@ -944,6 +944,27 @@ button, input, textarea, select { font-family: inherit; }
 .ldtitle      { font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px; }
 </style>
 <style id="vela-ux-css">
+/* ── Gmail inbox in Vela ────────────────────────────────────────────────── */
+.gm-thread { display:flex; align-items:flex-start; gap:12px; padding:12px 16px;
+  border-bottom:1px solid var(--border2); cursor:pointer; transition:background .1s; }
+.gm-thread:hover { background:rgba(177,186,196,.04); }
+.gm-thread.unread { background:rgba(177,186,196,.03); }
+.gm-thread.unread .gm-subject { font-weight:700; color:var(--ink); }
+.gm-avatar { width:32px; height:32px; border-radius:50%; background:var(--surface2);
+  border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; color:var(--text); flex-shrink:0; font-family:var(--font-mono); }
+.gm-body { flex:1; min-width:0; }
+.gm-from { font-size:13px; font-weight:500; color:var(--ink); }
+.gm-subject { font-size:13px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.gm-snippet { font-size:12px; color:var(--text2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:1px; }
+.gm-meta { flex-shrink:0; text-align:right; }
+.gm-date { font-size:11px; color:var(--text2); white-space:nowrap; }
+.gm-ai-suggest { background:rgba(45,212,191,.04); border:1px solid rgba(45,212,191,.15);
+  border-radius:9px; padding:12px 16px; margin-bottom:12px; }
+.gm-thread-view { display:none; position:fixed; inset:0; z-index:600;
+  background:var(--bg); overflow-y:auto; }
+.gm-thread-view.open { display:block; }
+
 /* ── Patient portal — full standalone page ──────────────────────────────── */
 .pp-wrap { min-height:100vh; background:#080e18; font-family:"Plus Jakarta Sans",system-ui,sans-serif; color:#e6edf3; }
 .pp-topbar { height:52px; background:#0d1117; border-bottom:1px solid #21262d; display:flex; align-items:center; padding:0 24px; gap:12px; position:sticky; top:0; z-index:100; }
@@ -2153,6 +2174,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
     <div id="s-patjournal" class="screen"></div>
     <div id="s-intelligence" class="screen"></div>
         <div id="s-actions" class="screen">
+        <div id="s-activity" class="screen"></div>
         <div id="s-patient-portal" class="screen"></div></div>
         <div id="s-calendar" class="screen"></div>
     <div id="s-intake" class="screen"></div>
@@ -4732,7 +4754,7 @@ function go(scr){
     if (tb2) tb2.style.display = '';
   }
   rTopbar();
-  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
+  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
 }
@@ -7668,7 +7690,7 @@ function _renderGlobalTopbar() {
   if (searchBtn) searchBtn.onclick = function() { openCommandPalette && openCommandPalette(); };
 
   var inboxBtn = document.getElementById('vela-gtb-inbox-btn');
-  if (inboxBtn) inboxBtn.onclick = function() { openInbox && openInbox(); };
+  if (inboxBtn) inboxBtn.onclick = function() { go('activity'); };
 
   var avatarBtn = document.getElementById('vela-gtb-avatar-btn');
   if (avatarBtn) avatarBtn.onclick = function(e) { e.stopPropagation(); _openUserMenu(); };
@@ -8488,6 +8510,254 @@ function _reopenIssue(id) {
 }
 
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PATIENT PORTAL AUTH — Magic link authentication
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Generate daily magic token — valid for one day, scoped to patient+email
+function _portalMagicToken(patId, email) {
+  var day = new Date().toISOString().slice(0,10); // YYYY-MM-DD
+  var secret = 'vela_portal_' + (getClinicConfig().id || 'clinic');
+  var raw = patId + '|' + email.toLowerCase() + '|' + day + '|' + secret;
+  // Simple deterministic hash using djb2
+  var hash = 5381;
+  for (var i = 0; i < raw.length; i++) {
+    hash = ((hash << 5) + hash) + raw.charCodeAt(i);
+    hash = hash & hash; // 32-bit int
+  }
+  // Combine with base64 of payload for readability
+  var payload = btoa(patId + '|' + email.toLowerCase() + '|' + day)
+    .replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+  var sig = Math.abs(hash).toString(36);
+  return payload + '.' + sig;
+}
+
+// Verify token — returns { patId, email } or null
+function _verifyPortalToken(token) {
+  try {
+    var parts = token.split('.');
+    if (parts.length !== 2) return null;
+    var payload = JSON.parse(atob(parts[0].replace(/-/g,'+').replace(/_/g,'/')));
+    // payload is an array from btoa(patId|email|day)
+    // Actually atob gives back the string, parse it
+    var decoded = atob(parts[0].replace(/-/g,'+').replace(/_/g,'/'));
+    var [patId, email, day] = decoded.split('|');
+    if (!patId || !email || !day) return null;
+
+    // Check day validity — token valid for 1 day
+    var tokenDate = new Date(day + 'T00:00:00');
+    var now = new Date();
+    var diffHours = (now - tokenDate) / 3600000;
+    if (diffHours > 24) return null; // expired
+
+    // Verify signature
+    var expected = _portalMagicToken(patId, email);
+    if (expected !== token) return null;
+
+    return { patId, email };
+  } catch(e) { return null; }
+}
+
+// Portal session — stored in sessionStorage (clears on tab close)
+var _portalSession = null;
+
+function _getPortalSession() {
+  if (_portalSession) return _portalSession;
+  try {
+    var s = JSON.parse(sessionStorage.getItem('vela:portal-session') || 'null');
+    if (s && s.exp > Date.now()) { _portalSession = s; return s; }
+    sessionStorage.removeItem('vela:portal-session');
+    return null;
+  } catch(e) { return null; }
+}
+
+function _setPortalSession(patId, email) {
+  var s = { patId, email, exp: Date.now() + 2 * 3600 * 1000 }; // 2h
+  _portalSession = s;
+  sessionStorage.setItem('vela:portal-session', JSON.stringify(s));
+}
+
+function _clearPortalSession() {
+  _portalSession = null;
+  sessionStorage.removeItem('vela:portal-session');
+}
+
+// Build magic login URL for a patient
+function getPortalLoginUrl(patId, email) {
+  if (!email) return null;
+  var token = _portalMagicToken(patId, email);
+  return window.location.origin + window.location.pathname + '#portal-login/' + token;
+}
+
+// Build portal entry URL (unauthenticated — shows login form)
+function getPortalEntryUrl(patId) {
+  return window.location.origin + window.location.pathname + '#portal/' + patId;
+}
+
+// Send magic link email to patient
+async function sendPortalMagicLink(pat) {
+  if (!pat || !pat.email) {
+    showAutoSaveToast('Patienten saknar e-postadress');
+    return;
+  }
+  var cfg = getClinicConfig();
+  var loginUrl = getPortalLoginUrl(pat.id, pat.email);
+  var htmlBody = _velaMagicLinkHtml(pat.name, loginUrl, cfg);
+
+  // Send via _velaSendMail but override html directly
+  var key = _velaGetApiKey('resend');
+  if (!key) { showAutoSaveToast('Resend API-nyckel saknas'); return; }
+  var fromAddr = cfg.email || 'no-reply@hael.se';
+  var fromName = cfg.name || 'Kliniken';
+
+  try {
+    var res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: fromName + ' <' + fromAddr + '>',
+        to: [pat.email],
+        subject: 'Din inloggningslänk till patientportalen',
+        html: htmlBody,
+        text: 'Logga in på din portal: ' + loginUrl,
+      })
+    });
+    if (res.ok) showAutoSaveToast('Inloggningslänk skickad till ' + pat.email);
+    else showAutoSaveToast('Kunde inte skicka — kontrollera Resend-nyckel');
+  } catch(e) {
+    showAutoSaveToast('Nätverksfel vid mailutskick');
+  }
+}
+
+// Check URL hash for portal routes
+function _checkPortalHash() {
+  var hash = window.location.hash;
+
+  // Direct magic link: #portal-login/TOKEN
+  if (hash.startsWith('#portal-login/')) {
+    var token = hash.slice(14);
+    var verified = _verifyPortalToken(token);
+    if (verified) {
+      _setPortalSession(verified.patId, verified.email);
+      // Clean URL
+      window.history.replaceState(null, '', window.location.pathname + '#portal/' + verified.patId);
+      _launchPortalUI(verified.patId);
+      return true;
+    } else {
+      _launchPortalLogin(null, 'Länken har gått ut. Ange din e-post för att få en ny.');
+      return true;
+    }
+  }
+
+  // Portal entry: #portal/PATID — check session or show login
+  if (hash.startsWith('#portal/')) {
+    var patId = hash.slice(8);
+    if (!patId || patId.includes('/')) return false;
+    var session = _getPortalSession();
+    if (session && session.patId === patId) {
+      _launchPortalUI(patId);
+    } else {
+      _launchPortalLogin(patId, null);
+    }
+    return true;
+  }
+
+  return false;
+}
+
+// Show portal login screen
+function _launchPortalLogin(patId, errorMsg) {
+  var shell = document.getElementById('app-shell');
+  var gtb = document.getElementById('vela-global-topbar-wrap');
+  var mtb = document.querySelector('.topbar');
+  if (shell) shell.style.display = 'none';
+  if (gtb) gtb.style.display = 'none';
+  if (mtb) mtb.style.display = 'none';
+
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var el = document.getElementById('s-patient-portal');
+  if (!el) return;
+  el.classList.add('active');
+
+  var cfg = getClinicConfig();
+
+  el.innerHTML = '<div class="pp-wrap" style="min-height:100vh;display:flex;flex-direction:column">'
+    + '<div class="pp-topbar">'
+    + '<div class="pp-logo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>'
+    + '<span class="pp-wordmark">Vela</span>'
+    + (cfg.name ? '<span class="pp-clinic-name">/ ' + e(cfg.name) + '</span>' : '')
+    + '</div>'
+    + '<div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 20px">'
+    + '<div style="width:100%;max-width:380px">'
+    + '<div style="font-size:22px;font-weight:700;color:#e6edf3;margin-bottom:6px;letter-spacing:-.02em">Patientportal</div>'
+    + '<div style="font-size:14px;color:#6e7681;margin-bottom:28px">Ange din e-postadress för att logga in.</div>'
+    + (errorMsg ? '<div style="background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:8px;padding:12px 14px;font-size:13px;color:#f85149;margin-bottom:16px">' + errorMsg + '</div>' : '')
+    + '<input id="pp-login-email" type="email" placeholder="din@epost.se" class="pp-input" style="margin-bottom:10px" autocomplete="email">'
+    + '<div id="pp-login-err" style="font-size:12px;color:#f85149;display:none;margin-bottom:8px"></div>'
+    + '<button id="pp-login-btn" class="pp-btn pp-btn-primary" style="width:100%;justify-content:center">Skicka inloggningslänk</button>'
+    + '<div id="pp-login-sent" style="display:none;margin-top:14px;padding:12px 14px;background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.2);border-radius:8px;font-size:13px;color:#3fb950">Länk skickad! Kontrollera din e-post.</div>'
+    + '<p style="font-size:12px;color:#484f58;margin-top:20px;line-height:1.6;text-align:center">Du får en engångslänk som är giltig i 60 minuter.</p>'
+    + '</div></div></div>';
+
+  // Wire login button
+  var emailInp = el.querySelector('#pp-login-email');
+  var loginBtn = el.querySelector('#pp-login-btn');
+  var errDiv   = el.querySelector('#pp-login-err');
+  var sentDiv  = el.querySelector('#pp-login-sent');
+
+  loginBtn.onclick = async function() {
+    var email = emailInp.value.trim().toLowerCase();
+    if (!email || !email.includes('@')) {
+      errDiv.style.display = 'block';
+      errDiv.textContent = 'Ange en giltig e-postadress.';
+      return;
+    }
+    errDiv.style.display = 'none';
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Skickar...';
+
+    // Find patient by email
+    var pat = (S.patients||[]).find(function(p){ return (p.email||'').toLowerCase() === email; });
+    if (pat) {
+      await sendPortalMagicLink(pat);
+      loginBtn.style.display = 'none';
+      sentDiv.style.display = 'block';
+    } else {
+      // Unknown email — don't reveal whether patient exists (privacy)
+      loginBtn.style.display = 'none';
+      sentDiv.style.display = 'block';
+    }
+  };
+
+  emailInp.onkeydown = function(e) { if (e.key === 'Enter') loginBtn.click(); };
+}
+
+// Launch authenticated portal UI
+function _launchPortalUI(patId) {
+  var shell = document.getElementById('app-shell');
+  var gtb = document.getElementById('vela-global-topbar-wrap');
+  var mtb = document.querySelector('.topbar');
+  if (shell) shell.style.display = 'none';
+  if (gtb) gtb.style.display = 'none';
+  if (mtb) mtb.style.display = 'none';
+
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var el = document.getElementById('s-patient-portal');
+  if (el) el.classList.add('active');
+
+  var pat = (S.patients||[]).find(function(p){ return p.id === patId; });
+  renderPatientPortal(patId, pat);
+}
+
+function _maybeLaunchPortal() {
+  var hash = window.location.hash;
+  if (hash.startsWith('#portal')) {
+    return _checkPortalHash();
+  }
+  return false;
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 // PATIENT PORTAL — self-service for patients
 // Access: ?portal=TOKEN or hash #portal/TOKEN
@@ -8615,7 +8885,7 @@ function renderPatientPortal(patId, pat) {
       h += '<div>Avbokning och ombokning är kostnadsfritt upp till ' + cancelHours + 'h före besöket. Senare avbokning debiteras fullt pris.</div>';
       h += '</div>';
 
-      h += '<div class="section-title-sm" style="margin-bottom:10px">Kommande</div>';
+      h += '<div style="font-size:13px;color:#6e7681;margin-bottom:14px">Vill du ändra eller avboka? Klicka på knappen vid din tid nedan &mdash; du behöver inte kontakta kliniken.</div>';
       h += '<div class="pp-card">';
       upcoming.forEach(function(bk) {
         var bkDate = new Date(bk.date + 'T' + (bk.time||'12:00'));
@@ -8632,12 +8902,16 @@ function renderPatientPortal(patId, pat) {
         h += '<div class="pp-card-meta">' + e(bk.serviceName||'Behandling') + ' &middot; ' + bk.duration + ' min';
         if (cfg.address) h += ' &middot; ' + e(cfg.address);
         h += '</div></div>';
-        h += '<div style="display:flex;gap:6px;flex-shrink:0">';
+        h += '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end">';
         if (canChange) {
-          h += '<button class="pp-btn" onclick="_ppReschedule(\'' + bk.id + '\',\'' + patId + '\')">Boka om</button>';
-          h += '<button class="pp-btn pp-btn-danger" onclick="_ppCancel(\'' + bk.id + '\',\'' + patId + '\',false)">Avboka</button>';
+          h += '<button class="pp-btn pp-btn-primary" style="font-size:12px" onclick="_ppReschedule(\'' + bk.id + '\',\'' + patId + '\')">';
+          h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>';
+          h += 'Boka om</button>';
+          h += '<button class="pp-btn" style="font-size:11px;color:#8b949e" onclick="_ppCancel(\'' + bk.id + '\',\'' + patId + '\',false)">Avboka</button>';
         } else if (isLate) {
-          h += '<button class="pp-btn pp-btn-danger" onclick="_ppCancel(\'' + bk.id + '\',\'' + patId + '\',true)" style="font-size:11px">Avboka (sent)</button>';
+          h += '<button class="pp-btn" style="font-size:11px;color:#f85149;border-color:rgba(248,81,73,.3)" onclick="_ppCancel(\'' + bk.id + '\',\'' + patId + '\',true)">Avboka (sent)</button>';
+        } else {
+          h += '<span class="pp-status-pill pp-status-green" style="font-size:11px">Pågår snart</span>';
         }
         h += '</div></div>';
       });
@@ -8745,89 +9019,240 @@ function renderPatientPortal(patId, pat) {
 function _ppReschedule(bookingId, patId) {
   var bk = getBookings().find(function(b){ return b.id===bookingId; });
   if (!bk) return;
-  var cfg = getClinicConfig();
+  var cfg    = getClinicConfig();
+  var pat    = (S.patients||[]).find(function(p){ return p.id===patId; });
+  var step   = 1;
+  var selDate= null;
+  var selTime= null;
 
-  // Build reschedule overlay
-  var ov = document.createElement('div');
-  ov.style.cssText = 'position:fixed;inset:0;z-index:900;background:rgba(8,14,24,.85);display:flex;align-items:flex-end;justify-content:center;font-family:"Plus Jakarta Sans",system-ui,sans-serif';
-
-  var today = new Date().toISOString().slice(0,10);
-  var nextWeekDates = [];
-  for (var i=1; i<=14; i++) {
-    var d = new Date(); d.setDate(d.getDate()+i);
-    nextWeekDates.push(d.toISOString().slice(0,10));
+  // Date formatting helpers
+  function fmtDate(d) {
+    var dt = new Date(d + 'T12:00');
+    var s = dt.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'});
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+  function fmtShort(d) {
+    var dt = new Date(d + 'T12:00');
+    return dt.toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short'});
+  }
+  function dayInitial(d) {
+    var dt = new Date(d + 'T12:00');
+    return dt.toLocaleDateString('sv-SE',{weekday:'short'}).charAt(0).toUpperCase()
+         + dt.toLocaleDateString('sv-SE',{weekday:'short'}).slice(1,3);
   }
 
-  var sheet = document.createElement('div');
-  sheet.style.cssText = 'background:#161b22;border-radius:16px 16px 0 0;width:100%;max-width:560px;padding:24px;max-height:80vh;overflow-y:auto';
-  sheet.innerHTML = '<div style="font-size:18px;font-weight:700;color:#e6edf3;margin-bottom:4px">Boka om din tid</div>'
-    + '<div style="font-size:13px;color:#6e7681;margin-bottom:20px">Nuvarande tid: ' + bk.date + ' kl ' + bk.time + '</div>'
-    + '<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6e7681;margin-bottom:8px">V\u00e4lj nytt datum</div>'
-    + '<input type="date" id="pp-new-date" min="' + today + '" value="" class="pp-input" style="margin-bottom:16px">'
-    + '<div id="pp-slot-wrap"></div>'
-    + '<div id="pp-reschedule-err" style="font-size:12px;color:#f85149;display:none;margin-bottom:8px"></div>'
-    + '<div style="display:flex;gap:8px;margin-top:16px">'
-    + '<button onclick="this.closest(\'[data-pp-ov]\').remove()" class="pp-btn" style="flex:1">Avbryt</button>'
-    + '<button id="pp-confirm-reschedule" class="pp-btn pp-btn-primary" style="flex:2" disabled>V\u00e4lj en tid</button>'
-    + '</div>';
-  sheet.setAttribute('data-pp-ov','1');
-  ov.setAttribute('data-pp-ov','1');
-  ov.appendChild(sheet);
-  document.body.appendChild(ov);
-  ov.onclick = function(e){ if(e.target===ov) ov.remove(); };
-
-  var selectedSlot = null;
-  var dateInput = sheet.querySelector('#pp-new-date');
-  dateInput.onchange = function() {
-    selectedSlot = null;
-    sheet.querySelector('#pp-confirm-reschedule').disabled = true;
-    sheet.querySelector('#pp-confirm-reschedule').textContent = 'V\u00e4lj en tid';
-    var slots = getAvailableSlots ? getAvailableSlots(bk.therapistId, dateInput.value, bk.duration) : [];
-    var wrap = sheet.querySelector('#pp-slot-wrap');
-    if (!slots.length) {
-      wrap.innerHTML = '<div style="font-size:13px;color:#6e7681;padding:8px 0">Inga lediga tider detta datum.</div>';
-      return;
+  // Build available date chips for next 21 days that have at least one slot
+  function getAvailableDates() {
+    var dates = [];
+    var today = new Date();
+    for (var i=1; i<=21; i++) {
+      var d = new Date(today); d.setDate(today.getDate()+i);
+      var ds = d.toISOString().slice(0,10);
+      var slots = getAvailableSlots ? getAvailableSlots(bk.therapistId||null, ds, bk.duration) : [];
+      if (slots.length) dates.push({ date:ds, slots:slots });
     }
-    wrap.innerHTML = '<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6e7681;margin-bottom:8px">Lediga tider</div>'
-      + '<div class="pp-slot-grid">'
-      + slots.map(function(s){ return '<div class="pp-slot" data-time="'+s+'">'+s+'</div>'; }).join('')
-      + '</div>';
-    wrap.querySelectorAll('.pp-slot').forEach(function(slot) {
-      slot.onclick = function() {
-        wrap.querySelectorAll('.pp-slot').forEach(function(s){s.classList.remove('selected');});
-        slot.classList.add('selected');
-        selectedSlot = slot.getAttribute('data-time');
-        var btn = sheet.querySelector('#pp-confirm-reschedule');
-        btn.disabled = false;
-        btn.textContent = 'Bekr\u00e4fta ' + dateInput.value + ' kl ' + selectedSlot;
+    return dates;
+  }
+
+  // ── Overlay shell ─────────────────────────────────────────────────────────
+  var existing = document.getElementById('pp-reschedule-ov');
+  if (existing) existing.remove();
+
+  var ov = document.createElement('div');
+  ov.id = 'pp-reschedule-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:950;background:rgba(1,4,9,.82);display:flex;align-items:flex-end;justify-content:center;font-family:"Plus Jakarta Sans",system-ui,sans-serif;backdrop-filter:blur(3px)';
+
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'background:#0d1117;border-top:1px solid #30363d;border-radius:16px 16px 0 0;width:100%;max-width:580px;max-height:88vh;overflow-y:auto;animation:pp-slide-up .22s ease';
+
+  var style = document.createElement('style');
+  style.textContent = '@keyframes pp-slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}'
+    + '.pp-rs-date{padding:10px 14px;border:1.5px solid #30363d;border-radius:9px;cursor:pointer;text-align:center;transition:all .12s;background:#161b22}'
+    + '.pp-rs-date:hover,.pp-rs-date.sel{border-color:#2dd4bf;background:rgba(45,212,191,.08)}'
+    + '.pp-rs-date.sel .pp-rs-date-day{color:#2dd4bf}'
+    + '.pp-rs-date-day{font-size:13px;font-weight:700;color:#e6edf3}'
+    + '.pp-rs-date-num{font-size:12px;color:#6e7681;margin-top:2px}'
+    + '.pp-rs-slot{padding:9px 6px;border:1.5px solid #30363d;border-radius:8px;cursor:pointer;text-align:center;font-size:14px;font-weight:600;color:#e6edf3;background:#161b22;transition:all .12s}'
+    + '.pp-rs-slot:hover,.pp-rs-slot.sel{border-color:#2dd4bf;background:rgba(45,212,191,.08);color:#2dd4bf}'
+    + '.pp-rs-step-ind{display:flex;align-items:center;gap:6px}'
+    + '.pp-rs-step-dot{width:7px;height:7px;border-radius:50%;background:#30363d;transition:background .15s}'
+    + '.pp-rs-step-dot.active{background:#2dd4bf}'
+    + '.pp-rs-step-dot.done{background:#3fb950}';
+  document.head.appendChild(style);
+
+  document.body.appendChild(ov);
+  ov.appendChild(sheet);
+  ov.onclick = function(e){ if(e.target===ov){ov.remove();style.remove();} };
+
+  function render() {
+    var availDates = getAvailableDates();
+
+    var h = '';
+    // ── Header ──────────────────────────────────────────────────────────────
+    h += '<div style="padding:20px 22px 16px;border-bottom:1px solid #21262d">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+    h += '<div style="font-size:17px;font-weight:700;color:#e6edf3">Boka om din tid</div>';
+    h += '<button onclick="document.getElementById(\'pp-reschedule-ov\').remove()" style="background:none;border:none;color:#6e7681;cursor:pointer;font-size:22px;line-height:1;padding:2px 6px">&times;</button>';
+    h += '</div>';
+    // Step indicator
+    h += '<div class="pp-rs-step-ind">';
+    ['Välj datum','Välj tid','Bekräfta'].forEach(function(lbl,i) {
+      var s = i+1;
+      var done = step > s, active = step === s;
+      h += '<div class="pp-rs-step-dot ' + (done?'done':active?'active':'') + '"></div>';
+      h += '<span style="font-size:11px;font-weight:' + (active?'700':'400') + ';color:' + (done?'#3fb950':active?'#e6edf3':'#484f58') + '">' + lbl + '</span>';
+      if (i < 2) h += '<div style="flex:1;height:1px;background:#21262d"></div>';
+    });
+    h += '</div></div>';
+
+    // ── Current booking info ─────────────────────────────────────────────────
+    h += '<div style="margin:16px 22px;padding:12px 16px;background:#161b22;border:1px solid #30363d;border-radius:9px">';
+    h += '<div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#484f58;margin-bottom:5px">Din nuvarande tid</div>';
+    h += '<div style="font-size:14px;font-weight:600;color:#6e7681;text-decoration:line-through">' + fmtDate(bk.date) + ' kl ' + bk.time + '</div>';
+    h += '</div>';
+
+    // ── Step 1: Pick date ────────────────────────────────────────────────────
+    if (step === 1) {
+      h += '<div style="padding:0 22px 24px">';
+      h += '<div style="font-size:14px;color:#8b949e;margin-bottom:14px">Välj ett nytt datum nedan. Bara dagar med lediga tider visas.</div>';
+
+      if (!availDates.length) {
+        h += '<div style="padding:24px;text-align:center;color:#6e7681;font-size:14px">Inga lediga tider de närmaste 3 veckorna.<br><span style="font-size:12px;margin-top:6px;display:block">Kontakta kliniken för att hitta en tid.</span></div>';
+        h += '<div style="padding:0 0 16px"><a href="tel:' + (cfg.phone||'') + '" class="pp-btn" style="display:block;text-align:center;text-decoration:none">' + (cfg.phone || 'Ring kliniken') + '</a></div>';
+      } else {
+        h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin-bottom:20px">';
+        availDates.forEach(function(d) {
+          var s = fmtShort(d.date).split(' ');
+          var dayName = s[0]; var dayNum = s.slice(1).join(' ');
+          h += '<div class="pp-rs-date' + (selDate===d.date?' sel':'') + '" data-date="' + d.date + '">'
+            + '<div class="pp-rs-date-day">' + dayName + '</div>'
+            + '<div class="pp-rs-date-num">' + dayNum + '</div>'
+            + '<div style="font-size:10px;color:#484f58;margin-top:2px">' + d.slots.length + ' tider</div>'
+            + '</div>';
+        });
+        h += '</div>';
+        h += '<button id="pp-step1-next" class="pp-btn pp-btn-primary" style="width:100%;justify-content:center;padding:12px" ' + (selDate?'':'disabled') + '>Visa lediga tider</button>';
+      }
+      h += '</div>';
+    }
+
+    // ── Step 2: Pick time ────────────────────────────────────────────────────
+    else if (step === 2) {
+      var dateSlots = availDates.find(function(d){return d.date===selDate;});
+      var slots = dateSlots ? dateSlots.slots : [];
+      h += '<div style="padding:0 22px 24px">';
+      h += '<div style="font-size:15px;font-weight:600;color:#e6edf3;margin-bottom:4px">' + fmtDate(selDate) + '</div>';
+      h += '<div style="font-size:13px;color:#8b949e;margin-bottom:16px">Välj en tid som passar dig.</div>';
+      h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:8px;margin-bottom:20px">';
+      slots.forEach(function(s) {
+        h += '<div class="pp-rs-slot' + (selTime===s?' sel':'') + '" data-time="' + s + '">' + s + '</div>';
+      });
+      h += '</div>';
+      h += '<div style="display:flex;gap:8px">';
+      h += '<button onclick="window._ppRsBack()" class="pp-btn" style="flex:1;justify-content:center">← Tillbaka</button>';
+      h += '<button id="pp-step2-next" class="pp-btn pp-btn-primary" style="flex:2;justify-content:center" ' + (selTime?'':'disabled') + '>Fortsätt</button>';
+      h += '</div></div>';
+    }
+
+    // ── Step 3: Confirm ──────────────────────────────────────────────────────
+    else if (step === 3) {
+      h += '<div style="padding:0 22px 28px">';
+      h += '<div style="font-size:14px;color:#8b949e;margin-bottom:16px">Bekräfta att du vill boka om din tid.</div>';
+
+      // Summary card
+      h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden;margin-bottom:20px">';
+      h += '<div style="padding:14px 16px;border-bottom:1px solid #21262d">';
+      h += '<div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#484f58;margin-bottom:8px">Byter till</div>';
+      h += '<div style="font-size:18px;font-weight:700;color:#e6edf3;margin-bottom:2px">' + fmtDate(selDate) + '</div>';
+      h += '<div style="font-size:16px;color:#2dd4bf;font-weight:700">Kl ' + selTime + '</div>';
+      h += '</div>';
+      h += '<div style="padding:12px 16px">';
+      h += '<div style="font-size:13px;color:#6e7681">' + (bk.serviceName||'Behandling') + ' &middot; ' + bk.duration + ' min';
+      if (cfg.address) h += '<br>' + e(cfg.address);
+      h += '</div></div></div>';
+
+      h += '<div style="padding:12px 14px;background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:8px;font-size:13px;color:#3fb950;margin-bottom:20px;display:flex;gap:8px;align-items:center">';
+      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>';
+      h += 'Bekr&auml;ftelse skickas till ' + e(pat && pat.email ? pat.email : 'din e-post') + '</div>';
+
+      h += '<div style="display:flex;gap:8px">';
+      h += '<button onclick="window._ppRsBack()" class="pp-btn" style="flex:1;justify-content:center">← Ändra</button>';
+      h += '<button id="pp-confirm-btn" class="pp-btn pp-btn-primary" style="flex:2;justify-content:center;padding:12px">Bekräfta ombokning</button>';
+      h += '</div></div>';
+    }
+
+    sheet.innerHTML = h;
+
+    // Wire date chips
+    sheet.querySelectorAll('[data-date]').forEach(function(chip) {
+      chip.onclick = function() {
+        selDate = chip.getAttribute('data-date');
+        render();
       };
     });
-  };
+    // Step 1 next
+    var s1btn = sheet.querySelector('#pp-step1-next');
+    if (s1btn) s1btn.onclick = function() { if(selDate){step=2;render();} };
 
-  sheet.querySelector('#pp-confirm-reschedule').onclick = function() {
-    if (!selectedSlot || !dateInput.value) return;
-    // Perform reschedule
-    var bookings = getBookings();
-    var idx = bookings.findIndex(function(b){return b.id===bookingId;});
-    if (idx !== -1) {
-      var oldDate = bookings[idx].date, oldTime = bookings[idx].time;
-      bookings[idx].date = dateInput.value;
-      bookings[idx].time = selectedSlot;
-      bookings[idx].rescheduledAt = new Date().toISOString();
-      bookings[idx].rescheduledFrom = { date: oldDate, time: oldTime };
-      saveBookings && saveBookings(bookings);
+    // Wire time chips
+    sheet.querySelectorAll('[data-time]').forEach(function(chip) {
+      chip.onclick = function() {
+        selTime = chip.getAttribute('data-time');
+        render();
+      };
+    });
+    // Step 2 next
+    var s2btn = sheet.querySelector('#pp-step2-next');
+    if (s2btn) s2btn.onclick = function() { if(selTime){step=3;render();} };
 
-      // Send confirmation
-      var pat2 = (S.patients||[]).find(function(p){return p.id===patId;});
-      if (pat2 && pat2.email) {
-        var body = 'Hej ' + pat2.name.split(' ')[0] + ',\n\nDin tid har bokats om till ' + dateInput.value + ' kl ' + selectedSlot + '.\n\nKlinik: ' + (cfg.name||'') + (cfg.address?'\nAdress: '+cfg.address:'') + '\n\nSe dina bokningar: ' + getPortalUrl(patId);
-        _velaSendMail && _velaSendMail(pat2.email, 'Ombokning bekr\u00e4ftad \u2014 ' + (cfg.name||'Kliniken'), body);
+    // Confirm
+    var cfBtn = sheet.querySelector('#pp-confirm-btn');
+    if (cfBtn) cfBtn.onclick = function() {
+      cfBtn.disabled = true;
+      cfBtn.textContent = 'Bokar om...';
+      var bookings = getBookings();
+      var bi = bookings.findIndex(function(b){return b.id===bookingId;});
+      if (bi !== -1) {
+        var oldDate = bookings[bi].date, oldTime = bookings[bi].time;
+        bookings[bi].date = selDate;
+        bookings[bi].time = selTime;
+        bookings[bi].rescheduledAt = new Date().toISOString();
+        bookings[bi].rescheduledFrom = { date:oldDate, time:oldTime };
+        saveBookings && saveBookings(bookings);
+
+        // Send HTML confirmation email
+        if (pat && pat.email) {
+          var updatedBk = bookings[bi];
+          sendBookingConfirmationWithPortal(updatedBk, pat);
+        }
+
+        // Show success screen
+        sheet.innerHTML = '<div style="padding:40px 28px;text-align:center">'
+          + '<div style="width:56px;height:56px;border-radius:50%;background:rgba(63,185,80,.1);border:2px solid #3fb950;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">'
+          + '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>'
+          + '<div style="font-size:20px;font-weight:700;color:#e6edf3;margin-bottom:6px">Ombokning bekräftad</div>'
+          + '<div style="font-size:15px;font-weight:600;color:#2dd4bf;margin-bottom:4px">' + fmtDate(selDate) + ' kl ' + selTime + '</div>'
+          + '<div style="font-size:13px;color:#6e7681;margin-bottom:24px">En bekräftelse har skickats till din e-post.</div>'
+          + '<button onclick="document.getElementById(\'pp-reschedule-ov\').remove()" class="pp-btn pp-btn-primary" style="width:100%;justify-content:center">Klart</button>'
+          + '</div>';
+
+        setTimeout(function(){
+          ov.remove(); style.remove();
+          renderPatientPortal(patId, (S.patients||[]).find(function(p){return p.id===patId;}));
+        }, 2800);
       }
-      ov.remove();
-      renderPatientPortal(patId, (S.patients||[]).find(function(p){return p.id===patId;}));
-    }
+    };
+  }
+
+  // Back navigation
+  window._ppRsBack = function() {
+    if (step === 2) { step=1; selTime=null; render(); }
+    else if (step === 3) { step=2; render(); }
   };
+
+  render();
 }
+
 
 // ── Cancel flow ───────────────────────────────────────────────────────────────
 function _ppCancel(bookingId, patId, isLate) {
@@ -8875,8 +9300,15 @@ function _ppCancel(bookingId, patId, isLate) {
   };
 }
 
+
+function _sendPortalLinkToPat(patId) {
+  var pat = (S.patients||[]).find(function(p){return p.id===patId;});
+  if (!pat || !pat.email) { showAutoSaveToast('Patienten saknar e-postadress'); return; }
+  sendPortalMagicLink(pat);
+}
+
 function _copyPortalLink(patId) {
-  var url = getPortalUrl(patId);
+  var url = getPortalEntryUrl(patId);
   if (navigator.clipboard) {
     navigator.clipboard.writeText(url).then(function(){
       showAutoSaveToast('Portal-länk kopierad!');
@@ -8897,30 +9329,52 @@ function _ppOpenIntake(patId) {
 function sendBookingConfirmationWithPortal(bk, pat) {
   if (!pat || !pat.email) return;
   var cfg = getClinicConfig();
-  var portalUrl = getPortalUrl(pat.id);
   var cancelHours = cfg.cancelPolicyHours || 24;
-  var dateStr = new Date(bk.date + 'T12:00').toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'});
+
+  // Generate a magic login URL valid for 24h
+  var loginUrl = getPortalLoginUrl(pat.id, pat.email);
+  if (!loginUrl) {
+    // No email — skip
+    return;
+  }
+
+  var dateStr = new Date(bk.date + 'T12:00').toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+  var subject = 'Bokningsbekräftelse \u2014 ' + dateStr + ' kl ' + bk.time;
 
-  var subject = 'Bokningsbekr\u00e4ftelse \u2014 ' + dateStr + ' kl ' + bk.time;
-  var body = 'Hej ' + pat.name.split(' ')[0] + ',\n\n'
-    + 'Din tid \u00e4r bekr\u00e4ftad:\n\n'
-    + '\uD83D\uDCC5 ' + dateStr + '\n'
-    + '\u23F0 Kl ' + bk.time + ' (' + bk.duration + ' min)\n'
-    + '\uD83C\uDFE5 ' + (bk.serviceName||'Behandling') + '\n'
-    + (cfg.address ? '\uD83D\uDCCD ' + cfg.address + '\n' : '')
-    + '\n\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\n\n'
-    + '\uD83D\uDD17 Hantera din bokning: ' + portalUrl + '\n\n'
-    + 'H\u00e4r kan du:\n'
-    + '  \u2022 Boka om din tid (upp till ' + cancelHours + 'h i f\u00f6rv\u00e4g)\n'
-    + '  \u2022 Avboka\n'
-    + '  \u2022 Se din Hael-plan och hem\u00f6vningar\n'
-    + '  \u2022 Fylla i intake-formul\u00e4r\n\n'
-    + 'Vi ser fram emot ditt bes\u00f6k!\n\n'
-    + '/ ' + (cfg.name||'Kliniken');
+  // HTML version
+  var htmlBody = _velaBookingConfirmHtml(bk, pat, loginUrl, cfg);
 
-  _velaSendMail && _velaSendMail(pat.email, subject, body, cfg.name);
+  // Plain text fallback
+  var textBody = 'Hej ' + pat.name.split(' ')[0] + ',\n\n'
+    + 'Din tid är bekräftad: ' + dateStr + ' kl ' + bk.time + ' (' + bk.duration + ' min).\n'
+    + (bk.serviceName ? 'Behandling: ' + bk.serviceName + '\n' : '')
+    + (cfg.address ? 'Adress: ' + cfg.address + '\n' : '')
+    + '\nLogga in på din portal: ' + loginUrl + '\n'
+    + 'Länken är giltig i 24 timmar.\n\n'
+    + 'Ombokning och avbokning är kostnadsfritt upp till ' + cancelHours + 'h före besöket.\n\n'
+    + '/ ' + (cfg.name || 'Kliniken');
+
+  // Send via Resend with proper HTML
+  var key = _velaGetApiKey && _velaGetApiKey('resend');
+  if (!key) return;
+
+  var fromAddr = cfg.email || 'no-reply@hael.se';
+  var fromName = cfg.name || 'Kliniken';
+
+  fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: fromName + ' <' + fromAddr + '>',
+      to: [pat.email],
+      subject: subject,
+      html: htmlBody,
+      text: textBody,
+    })
+  }).then(function(r){ if (r.ok) console.log('Vela: booking confirm sent'); });
 }
+
 
 // ── AI mail handler ───────────────────────────────────────────────────────────
 async function _aiHandlePatientEmail(fromEmail, subject, body) {
@@ -8971,6 +9425,436 @@ function _maybeLaunchPortal() {
     return true;
   }
   return false;
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VELA GMAIL INTEGRATION
+// Uses Google Identity Services (GIS) + Gmail REST API — no backend needed
+// ══════════════════════════════════════════════════════════════════════════════
+
+var _gmailToken   = null;
+var _gmailTokenExp= 0;
+var _gmailThreads = [];
+var _gmailLoading = false;
+
+// Google OAuth config — user sets Client ID in Settings
+function _gmailClientId() {
+  return localStorage.getItem('vela:gmail-client-id') || '';
+}
+
+function _gmailSaveToken(token, expiresIn) {
+  _gmailToken = token;
+  _gmailTokenExp = Date.now() + (expiresIn - 60) * 1000;
+  localStorage.setItem('vela:gmail-token', JSON.stringify({ token, exp: _gmailTokenExp }));
+}
+
+function _gmailLoadToken() {
+  try {
+    var s = JSON.parse(localStorage.getItem('vela:gmail-token') || 'null');
+    if (s && s.exp > Date.now()) { _gmailToken = s.token; _gmailTokenExp = s.exp; return true; }
+  } catch(e) {}
+  return false;
+}
+
+function _gmailIsAuthed() {
+  return _gmailToken && _gmailTokenExp > Date.now();
+}
+
+// Initiate Google OAuth flow (implicit grant, no backend)
+function _gmailAuth(onSuccess) {
+  var clientId = _gmailClientId();
+  if (!clientId) {
+    showAutoSaveToast('Ange Google Client ID i Inställningar → Kommunikation');
+    go('settings');
+    window._settingsActiveTab = 'comms';
+    _renderSettingsNav && _renderSettingsNav();
+    _renderSettingsContent && _renderSettingsContent('comms');
+    return;
+  }
+
+  // Use GIS token client
+  if (!window.google?.accounts?.oauth2) {
+    // Load GIS script
+    var script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.onload = function() { _gmailAuth(onSuccess); };
+    document.head.appendChild(script);
+    return;
+  }
+
+  var client = google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose',
+    callback: function(resp) {
+      if (resp.error) { showAutoSaveToast('Gmail: ' + resp.error); return; }
+      _gmailSaveToken(resp.access_token, resp.expires_in);
+      if (onSuccess) onSuccess();
+    },
+  });
+  client.requestAccessToken();
+}
+
+// Gmail API helper
+async function _gmailFetch(path, params) {
+  if (!_gmailIsAuthed()) return null;
+  var url = 'https://gmail.googleapis.com/gmail/v1/users/me' + path;
+  if (params) url += '?' + new URLSearchParams(params).toString();
+  try {
+    var r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + _gmailToken } });
+    if (r.status === 401) { _gmailToken = null; return null; }
+    return await r.json();
+  } catch(e) { return null; }
+}
+
+// Load inbox threads
+async function _gmailLoadInbox(query, maxResults) {
+  query = query || 'in:inbox';
+  maxResults = maxResults || 30;
+  var data = await _gmailFetch('/threads', { q: query, maxResults: maxResults });
+  if (!data || !data.threads) return [];
+
+  // Load first message of each thread (for snippet/subject/from)
+  var threads = await Promise.all(data.threads.map(async function(t) {
+    var td = await _gmailFetch('/threads/' + t.id, { format:'metadata', metadataHeaders:'Subject,From,Date' });
+    if (!td) return null;
+    var firstMsg = td.messages[0];
+    var lastMsg  = td.messages[td.messages.length-1];
+    var headers  = {};
+    (firstMsg.payload?.headers||[]).forEach(function(h){ headers[h.name.toLowerCase()] = h.value; });
+    var unread = (lastMsg.labelIds||[]).includes('UNREAD');
+    return {
+      id: t.id,
+      msgId: lastMsg.id,
+      from: headers['from'] || '',
+      subject: headers['subject'] || '(Inget ämne)',
+      date: headers['date'] || '',
+      snippet: lastMsg.snippet || '',
+      unread: unread,
+      messageCount: td.messages.length,
+    };
+  }));
+  return threads.filter(Boolean);
+}
+
+// Load full thread for reading
+async function _gmailLoadThread(threadId) {
+  return await _gmailFetch('/threads/' + threadId, { format:'full' });
+}
+
+// Decode Gmail base64 body
+function _gmailDecode(str) {
+  try {
+    return decodeURIComponent(escape(atob(str.replace(/-/g,'+').replace(/_/g,'/'))));
+  } catch(e) { return ''; }
+}
+
+function _gmailGetBody(payload) {
+  if (!payload) return '';
+  if (payload.body && payload.body.data) return _gmailDecode(payload.body.data);
+  if (payload.parts) {
+    for (var p of payload.parts) {
+      if (p.mimeType === 'text/plain' && p.body?.data) return _gmailDecode(p.body.data);
+    }
+    for (var p of payload.parts) {
+      var r = _gmailGetBody(p);
+      if (r) return r;
+    }
+  }
+  return '';
+}
+
+// ── Inbox screen ─────────────────────────────────────────────────────────────
+async function rInbox() {
+  var el = document.getElementById('s-activity');
+  if (!el) {
+    // Create screen if needed
+    var screens = document.querySelector('.main-content');
+    if (screens) {
+      var s = document.createElement('div');
+      s.id = 's-activity';
+      s.className = 'screen';
+      screens.appendChild(s);
+      el = s;
+    }
+  }
+  if (!el) return;
+
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  el.classList.add('active');
+  S.screen = 'activity';
+
+  var activeTab = window._inboxTab || 'all';
+  var searchQ   = window._inboxSearch || '';
+
+  var h = '<div class="page-shell">';
+  h += '<div class="page-header">';
+  h += '<div class="page-header-left">';
+  h += '<div class="page-title">Inkorg</div>';
+  h += '<div class="page-subtitle">calle@kansei.se</div>';
+  h += '</div>';
+  h += '<div class="page-actions">';
+  if (_gmailIsAuthed()) {
+    h += '<button id="gmail-refresh-btn" class="act-btn" style="gap:6px">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>';
+    h += 'Uppdatera</button>';
+    h += '<button id="gmail-ai-btn" class="act-btn act-btn-primary" style="gap:6px">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+    h += 'AI-genomgång</button>';
+  }
+  h += '</div></div>';
+
+  if (!_gmailIsAuthed()) {
+    // Not connected
+    h += '<div class="item-list"><div class="empty-state" style="padding:56px 24px">';
+    h += '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
+    h += '<div class="empty-state-title" style="margin-top:16px">Gmail inte ansluten</div>';
+    h += '<div class="empty-state-sub">Anslut ditt Gmail-konto för att läsa mail direkt i Vela och låta AI hantera patientförfrågningar.</div>';
+    h += '<button id="gmail-connect-btn" class="act-btn act-btn-primary">Anslut Gmail</button>';
+    h += '</div></div>';
+    h += '</div>';
+    el.innerHTML = h;
+    var cb = document.getElementById('gmail-connect-btn');
+    if (cb) cb.onclick = function() { _gmailAuth(function(){ rInbox(); }); };
+    return;
+  }
+
+  // ── Search bar ──────────────────────────────────────────────────────────
+  h += '<div class="filter-bar" style="margin-bottom:16px">';
+  h += '<div class="filter-bar-search">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += '<input id="gmail-search-inp" type="text" placeholder="Sök mail..." value="' + (searchQ||'') + '" '
+     + 'oninput="window._inboxSearch=this.value" onkeydown="if(event.key===\'Enter\')_gmailRunSearch()">';
+  h += '</div>';
+  [['all','Alla'], ['patient','Patienter'], ['unread','Olästa'], ['booking','Bokningar']].forEach(function(f) {
+    var a = activeTab === f[0];
+    h += '<button class="filter-chip' + (a?' active':'') + '" onclick="window._inboxTab=\'' + f[0] + '\';rInbox()">' + f[1] + '</button>';
+  });
+  h += '</div>';
+
+  h += '<div id="gmail-thread-list">';
+  h += '<div class="item-list"><div class="empty-state">';
+  h += '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6-8.5"/></svg>';
+  h += '<div style="font-size:13px;color:var(--text2);margin-top:12px">Hämtar mail...</div>';
+  h += '</div></div></div>';
+
+  h += '</div>'; // page-shell
+  el.innerHTML = h;
+
+  // Wire buttons
+  var refreshBtn = document.getElementById('gmail-refresh-btn');
+  if (refreshBtn) refreshBtn.onclick = function() { _gmailThreads = []; rInbox(); };
+
+  var aiBtn = document.getElementById('gmail-ai-btn');
+  if (aiBtn) aiBtn.onclick = _gmailAiReview;
+
+  var searchInp = document.getElementById('gmail-search-inp');
+  if (searchInp) searchInp.onkeydown = function(e) { if(e.key==='Enter') _gmailRunSearch(); };
+
+  // Load threads async
+  _gmailLoadAndRender(activeTab, searchQ);
+}
+
+async function _gmailLoadAndRender(tab, searchQ) {
+  var query = 'in:inbox';
+  if (tab === 'patient')  query = 'in:inbox category:primary';
+  if (tab === 'unread')   query = 'in:inbox is:unread';
+  if (tab === 'booking')  query = 'in:inbox (bokning OR ombokning OR avbokning OR tid)';
+  if (searchQ)            query = searchQ;
+
+  var threads = await _gmailLoadInbox(query, 30);
+  _gmailThreads = threads;
+
+  var listEl = document.getElementById('gmail-thread-list');
+  if (!listEl) return;
+
+  if (!threads.length) {
+    listEl.innerHTML = '<div class="item-list"><div class="empty-state">'
+      + '<div class="empty-state-title">Inga mail</div>'
+      + '<div class="empty-state-sub">Inga mail matchar filtret.</div>'
+      + '</div></div>';
+    return;
+  }
+
+  var h = '<div class="item-list">';
+  threads.forEach(function(t) {
+    var fromName = t.from.replace(/<[^>]+>/,'').trim().replace(/"/g,'') || t.from;
+    var initials = fromName.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) || '?';
+    var dateStr = t.date ? new Date(t.date).toLocaleDateString('sv-SE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
+
+    // Check if from a patient
+    var pat = (S.patients||[]).find(function(p){
+      return t.from.toLowerCase().includes((p.email||'').toLowerCase()) && p.email;
+    });
+
+    h += '<div class="gm-thread' + (t.unread?' unread':'') + '" data-thread-id="' + t.id + '">';
+    h += '<div class="gm-avatar">' + initials + '</div>';
+    h += '<div class="gm-body">';
+    h += '<div style="display:flex;align-items:center;gap:6px">';
+    h += '<span class="gm-from">' + e(fromName.slice(0,30)) + '</span>';
+    if (t.messageCount > 1) h += '<span style="font-size:10px;background:var(--surface3);color:var(--text2);padding:1px 6px;border-radius:10px">' + t.messageCount + '</span>';
+    if (pat) h += '<span class="status-pill teal" style="font-size:9px">Patient</span>';
+    h += '</div>';
+    h += '<div class="gm-subject">' + e(t.subject.slice(0,70)) + '</div>';
+    h += '<div class="gm-snippet">' + e(t.snippet.slice(0,80)) + '</div>';
+    h += '</div>';
+    h += '<div class="gm-meta"><div class="gm-date">' + dateStr + '</div>';
+    if (t.unread) h += '<div style="width:8px;height:8px;border-radius:50%;background:var(--blue);margin:4px 0 0 auto"></div>';
+    h += '</div></div>';
+  });
+  h += '</div>';
+  listEl.innerHTML = h;
+
+  // Wire thread clicks
+  listEl.querySelectorAll('.gm-thread').forEach(function(row) {
+    row.onclick = function() {
+      var tid = row.getAttribute('data-thread-id');
+      _gmailOpenThread(tid);
+    };
+  });
+}
+
+// Open a thread
+async function _gmailOpenThread(threadId) {
+  var t = _gmailThreads.find(function(t){ return t.id===threadId; });
+  var thread = await _gmailLoadThread(threadId);
+  if (!thread) return;
+
+  var pat = t ? (S.patients||[]).find(function(p){
+    return t.from.toLowerCase().includes((p.email||'').toLowerCase()) && p.email;
+  }) : null;
+
+  // Build overlay
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:700;background:var(--bg);overflow-y:auto;font-family:var(--font)';
+
+  var h = '<div style="max-width:720px;margin:0 auto;padding:24px 20px 80px">';
+  // Header
+  h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)">';
+  h += '<button onclick="this.closest(\'[style*=z-index]\').remove()" style="background:none;border:none;color:var(--text);cursor:pointer;font-size:13px;font-family:var(--font);display:flex;align-items:center;gap:5px">'
+     + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Inkorg</button>';
+  h += '<div style="flex:1;font-size:16px;font-weight:700;color:var(--ink)">' + e((t?.subject||'').slice(0,80)) + '</div>';
+  if (pat) {
+    h += '<button onclick="openPat(\'' + pat.id + '\');this.closest(\'[style*=z-index]\').remove()" class="act-btn" style="font-size:12px">Öppna patient</button>';
+  }
+  h += '</div>';
+
+  // AI suggestion bar
+  h += '<div class="gm-ai-suggest" id="gm-ai-bar">'
+     + '<div style="display:flex;align-items:center;gap:8px">'
+     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+     + '<span style="font-size:12px;color:var(--teal);font-weight:700">VELA AI</span>'
+     + '<button id="gm-analyze-btn" style="margin-left:auto;background:none;border:1px solid rgba(45,212,191,.3);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--teal);cursor:pointer;font-family:var(--font)">Analysera med AI</button>'
+     + '</div>'
+     + '<div id="gm-ai-result" style="display:none;margin-top:8px;font-size:13px;color:var(--text);line-height:1.65"></div>'
+     + '</div>';
+
+  // Messages
+  thread.messages.forEach(function(msg) {
+    var headers = {};
+    (msg.payload?.headers||[]).forEach(function(h){ headers[h.name.toLowerCase()] = h.value; });
+    var from = headers['from'] || '';
+    var fromName = from.replace(/<[^>]+>/,'').trim().replace(/"/g,'') || from;
+    var date = headers['date'] ? new Date(headers['date']).toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}) : '';
+    var body = _gmailGetBody(msg.payload);
+    var isFromPatient = pat && from.toLowerCase().includes((pat.email||'').toLowerCase());
+
+    h += '<div style="margin-bottom:20px;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px' + (isFromPatient?';border-left:3px solid var(--blue)':'') + '">';
+    h += '<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">';
+    h += '<div>';
+    h += '<div style="font-size:14px;font-weight:600;color:var(--ink)">' + e(fromName) + '</div>';
+    h += '<div style="font-size:11px;color:var(--text2);margin-top:2px">' + e(date) + '</div>';
+    h += '</div>';
+    if (isFromPatient) h += '<span class="status-pill blue" style="font-size:10px">Från patient</span>';
+    h += '</div>';
+    h += '<div style="font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap">' + e(body.slice(0, 2000)) + (body.length>2000?'…':'') + '</div>';
+    h += '</div>';
+  });
+
+  h += '</div>';
+  ov.innerHTML = h;
+  document.body.appendChild(ov);
+
+  // Wire AI analysis
+  var analyzeBtn = ov.querySelector('#gm-analyze-btn');
+  if (analyzeBtn) analyzeBtn.onclick = async function() {
+    analyzeBtn.textContent = 'Analyserar...';
+    analyzeBtn.disabled = true;
+    var lastMsg = thread.messages[thread.messages.length-1];
+    var body = _gmailGetBody(lastMsg?.payload);
+    var patContext = pat ? 'Patient: ' + pat.name + ', ' + (pat.visits||[]).length + ' besök.' : '';
+    var prompt = 'Analysera detta mail och ge ett konkret förslag på svar. Var kort och professionell.\n\n'
+      + (patContext ? patContext + '\n\n' : '')
+      + 'Mail:\n' + (t?.subject ? 'Ämne: ' + t.subject + '\n' : '')
+      + body.slice(0,800);
+    try {
+      var resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:600, messages:[{role:'user',content:prompt}] })
+      });
+      var data = await resp.json();
+      var text = data.content?.[0]?.text || 'Kunde inte analysera.';
+      var resultDiv = ov.querySelector('#gm-ai-result');
+      if (resultDiv) {
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div style="white-space:pre-wrap">' + e(text) + '</div>';
+      }
+    } catch(e) {}
+    analyzeBtn.textContent = 'Analysera med AI';
+    analyzeBtn.disabled = false;
+  };
+}
+
+// AI batch review of inbox
+async function _gmailAiReview() {
+  if (!_gmailThreads.length) { showAutoSaveToast('Inga mail att analysera'); return; }
+  var btn = document.getElementById('gmail-ai-btn');
+  if (btn) { btn.textContent = 'Analyserar...'; btn.disabled = true; }
+
+  var summaries = _gmailThreads.slice(0,10).map(function(t,i){
+    return (i+1) + '. Från: ' + t.from.split('<')[0].trim() + ' | Ämne: ' + t.subject + ' | ' + t.snippet.slice(0,80);
+  }).join('\n');
+
+  var prompt = 'Du är assistent åt Carl-Robert Kärell, naprapat på Kansei Ortopedi & Rehabcenter.\n\n'
+    + 'Här är de senaste mailet i inkorgen. Identifiera:\n'
+    + '1. Mail som kräver svar idag\n'
+    + '2. Patientförfrågningar om ombokning/avbokning\n'
+    + '3. Mail som kan ignoreras\n\n'
+    + 'Mail:\n' + summaries + '\n\nGe en kort åtgärdslista på svenska.';
+
+  try {
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:800, messages:[{role:'user',content:prompt}] })
+    });
+    var data = await resp.json();
+    var text = data.content?.[0]?.text || '';
+
+    // Show result as callout
+    var shell = document.querySelector('#s-activity .page-shell');
+    if (shell) {
+      var existing = document.getElementById('gmail-ai-review-result');
+      if (existing) existing.remove();
+      var div = document.createElement('div');
+      div.id = 'gmail-ai-review-result';
+      div.className = 'callout teal';
+      div.style.cssText = 'margin-bottom:16px;white-space:pre-wrap;font-size:13px;line-height:1.7';
+      div.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><div>' + e(text) + '</div>';
+      var filterBar = shell.querySelector('.filter-bar');
+      if (filterBar) shell.insertBefore(div, filterBar);
+    }
+  } catch(e) {}
+
+  if (btn) { btn.textContent = 'AI-genomgång'; btn.disabled = false; }
+}
+
+function _gmailRunSearch() {
+  var q = document.getElementById('gmail-search-inp')?.value || '';
+  window._inboxSearch = q;
+  window._inboxTab = 'all';
+  _gmailLoadAndRender('all', q);
 }
 
 function rDashboard() {
@@ -19287,18 +20171,112 @@ async function _velaSendMail(to, subject, body, fromName) {
 }
 
 function _velaMailHtml(body, fromName, cfg) {
-  var lines = body.split('\n').map(function(l){ return l ? '<p style="margin:0 0 10px;line-height:1.65">' + l + '</p>' : '<br>'; }).join('');
-  return '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:#f7f8fa;margin:0;padding:40px 20px">'
-    + '<div style="max-width:560px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.06)">'
-    + '<div style="background:#07101e;padding:20px 28px">'
-    + '<div style="font-size:15px;font-weight:700;color:white;letter-spacing:-.02em">' + (cfg.name || fromName) + '</div>'
-    + '</div>'
-    + '<div style="padding:28px 28px 20px;color:#1a2233;font-size:15px">' + lines + '</div>'
-    + '<div style="padding:16px 28px 24px;font-size:12px;color:#8898aa;border-top:1px solid #edf2f7">'
-    + (cfg.address ? cfg.address + '<br>' : '')
-    + (cfg.phone ? cfg.phone + ' · ' : '') + (cfg.email || '') + '</div>'
-    + '</div></body></html>';
+  // Generic plaintext-to-HTML conversion (fallback for retention msgs etc)
+  var lines = body.split('\n').map(function(l){
+    return l.trim() ? '<p style="margin:0 0 12px;line-height:1.7;color:#24292f">' + l + '</p>' : '<div style="height:8px"></div>';
+  }).join('');
+  return _velaMailFrame(lines, fromName, cfg, null);
 }
+
+// Core mail frame — used by all transactional mails
+function _velaMailFrame(contentHtml, fromName, cfg, ctaHtml) {
+  var clinicName = cfg.name || fromName || 'Kliniken';
+  var footer = [cfg.address, cfg.phone, cfg.email].filter(Boolean).join('  ·  ');
+  return '<!DOCTYPE html>'
+    + '<html lang="sv"><head><meta charset="utf-8">'
+    + '<meta name="viewport" content="width=device-width,initial-scale=1">'
+    + '<title>' + clinicName + '</title></head>'
+    + '<body style="margin:0;padding:0;background:#f6f8fa;font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Helvetica,Arial,sans-serif">'
+    + '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f6f8fa;padding:40px 20px">'
+    + '<tr><td align="center">'
+    + '<table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px">'
+    // Logo row
+    + '<tr><td style="padding-bottom:20px">'
+    + '<span style="font-size:13px;font-weight:700;color:#57606a;letter-spacing:.04em">' + clinicName.toUpperCase() + '</span>'
+    + '</td></tr>'
+    // Card
+    + '<tr><td style="background:#ffffff;border:1px solid #d0d7de;border-radius:10px;overflow:hidden">'
+    + '<table width="100%" cellpadding="0" cellspacing="0">'
+    // Top accent bar
+    + '<tr><td style="background:#2dd4bf;height:3px;display:block"></td></tr>'
+    // Content
+    + '<tr><td style="padding:32px 32px 24px">'
+    + contentHtml
+    + (ctaHtml || '')
+    + '</td></tr>'
+    // Footer divider
+    + (footer ? '<tr><td style="padding:16px 32px 20px;border-top:1px solid #eaeef2">'
+      + '<span style="font-size:12px;color:#57606a;line-height:1.6">' + footer + '</span>'
+      + '</td></tr>' : '')
+    + '</table>'
+    + '</td></tr>'
+    // Bottom note
+    + '<tr><td style="padding:20px 0 0;text-align:center">'
+    + '<span style="font-size:11px;color:#8c959f">Skickat via Vela &mdash; säker klinisk kommunikation</span>'
+    + '</td></tr>'
+    + '</table>'
+    + '</td></tr></table>'
+    + '</body></html>';
+}
+
+// Booking confirmation email HTML
+function _velaBookingConfirmHtml(bk, pat, portalLoginUrl, cfg) {
+  var cancelHours = cfg.cancelPolicyHours || 24;
+  var dateStr = new Date(bk.date + 'T12:00').toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+
+  var content = ''
+    + '<p style="margin:0 0 6px;font-size:22px;font-weight:700;color:#1f2328;letter-spacing:-.02em">Bokningsbekr&auml;ftelse</p>'
+    + '<p style="margin:0 0 28px;font-size:14px;color:#57606a">Hej ' + e(pat.name.split(' ')[0]) + ', din tid &auml;r bekr&auml;ftad.</p>'
+    // Details box
+    + '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f6f8fa;border:1px solid #d0d7de;border-radius:8px;margin-bottom:28px">'
+    + '<tr><td style="padding:20px 22px">'
+    + '<table width="100%" cellpadding="0" cellspacing="0">'
+    + _mailDetailRow('Datum', dateStr)
+    + _mailDetailRow('Tid', 'Kl ' + bk.time + ' (' + bk.duration + ' min)')
+    + _mailDetailRow('Behandling', bk.serviceName || 'Behandling')
+    + (cfg.address ? _mailDetailRow('Adress', cfg.address) : '')
+    + (bk.therapistName ? _mailDetailRow('Behandlare', bk.therapistName) : '')
+    + '</table>'
+    + '</td></tr></table>'
+    // Policy note
+    + '<p style="margin:0 0 24px;font-size:13px;color:#57606a;line-height:1.6;padding:12px 14px;background:#fff8c5;border:1px solid #d4a72c;border-radius:6px">'
+    + 'Ombokning och avbokning &auml;r kostnadsfritt upp till ' + cancelHours + ' timmar f&ouml;re bes&ouml;ket. Senare avbokning debiteras fullt pris.'
+    + '</p>'
+    + '<p style="margin:0 0 12px;font-size:14px;color:#24292f;line-height:1.6">Logga in p&aring; din personliga portal f&ouml;r att boka om, avboka eller ta del av din rehabplan.</p>';
+
+  var cta = '<a href="' + portalLoginUrl + '" '
+    + 'style="display:inline-block;background:#2dd4bf;color:#0d1117;font-size:14px;font-weight:700;'
+    + 'padding:12px 24px;border-radius:8px;text-decoration:none;letter-spacing:-.01em;margin-bottom:24px">'
+    + 'Logga in p&aring; din portal &rarr;</a>'
+    + '<p style="margin:0;font-size:12px;color:#8c959f">L&auml;nken &auml;r giltig i 60 minuter. Du kan alltid beg&auml;ra en ny via portalsidan.</p>';
+
+  return _velaMailFrame(content, cfg.name, cfg, cta);
+}
+
+// Magic link email HTML
+function _velaMagicLinkHtml(patName, magicUrl, cfg) {
+  var content = ''
+    + '<p style="margin:0 0 6px;font-size:22px;font-weight:700;color:#1f2328;letter-spacing:-.02em">Inloggningsl&auml;nk</p>'
+    + '<p style="margin:0 0 24px;font-size:14px;color:#57606a">Hej ' + e(patName.split(' ')[0]) + ', klicka p&aring; knappen nedan f&ouml;r att logga in p&aring; din portal.</p>'
+    + '<p style="margin:0 0 24px;font-size:13px;color:#57606a;line-height:1.6">H&auml;r kan du se dina bokningar, hantera &auml;ndringar och f&aring; tillg&aring;ng till din rehabplan och hem&ouml;vningar.</p>';
+
+  var cta = '<a href="' + magicUrl + '" '
+    + 'style="display:inline-block;background:#2dd4bf;color:#0d1117;font-size:14px;font-weight:700;'
+    + 'padding:12px 24px;border-radius:8px;text-decoration:none;letter-spacing:-.01em;margin-bottom:24px">'
+    + 'Logga in &rarr;</a>'
+    + '<p style="margin:0;font-size:12px;color:#8c959f">L&auml;nken &auml;r giltig i 60 minuter och kan bara anv&auml;ndas en g&aring;ng. Beg&auml;r en ny om den g&aring;tt ut.</p>';
+
+  return _velaMailFrame(content, cfg.name, cfg, cta);
+}
+
+function _mailDetailRow(label, value) {
+  return '<tr>'
+    + '<td style="padding:6px 0;font-size:13px;font-weight:600;color:#57606a;white-space:nowrap;width:120px">' + label + '</td>'
+    + '<td style="padding:6px 0;font-size:13px;color:#1f2328">' + e(value) + '</td>'
+    + '</tr>';
+}
+
 
 // ── SMS via 46elks ────────────────────────────────────────────────────────────
 async function _velaSendSMS(to, body) {
@@ -21195,6 +22173,21 @@ function _stComms(cfg) {
     h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">';
     h += '<div style="padding:13px 18px;border-bottom:1px solid var(--border)">';
     h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Mailkopplingar</div>';
+    // Gmail OAuth Client ID
+    var _gcid = localStorage.getItem('vela:gmail-client-id') || '';
+    var _gmailAuthed = _gmailIsAuthed ? _gmailIsAuthed() : false;
+    h += '<div style="margin:12px 0 16px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:9px">';
+    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="' + (_gmailAuthed?'var(--green)':'var(--text2)') + '" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
+    h += '<span style="font-size:13px;font-weight:600;color:var(--ink)">Gmail (calle@kansei.se)</span>';
+    h += '<span class="status-pill ' + (_gmailAuthed?'green':'muted') + '" style="font-size:10px">' + (_gmailAuthed?'Ansluten':'Ej ansluten') + '</span>';
+    h += '</div>';
+    h += '<div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.6">Google Client ID aktiverar Gmail-inkorgen direkt i Vela. Skapa ett på <a href="https://console.cloud.google.com/" target="_blank" style="color:var(--teal)">Google Cloud Console</a> med Gmail API och din Vela-URL som Authorized Origin.</div>';
+    h += '<div style="display:flex;gap:8px">';
+    h += '<input id="gcid-inp" type="text" placeholder="xxxx.apps.googleusercontent.com" value="' + e(_gcid) + '" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;font-size:12px;color:var(--ink);font-family:var(--font);outline:none">';
+    h += '<button onclick="var v=document.getElementById(\'gcid-inp\').value.trim();if(v){localStorage.setItem(\'vela:gmail-client-id\',v);showAutoSaveToast(\'Client ID sparat\');}" class="act-btn" style="font-size:12px">Spara</button>';
+    h += '<button onclick="_gmailAuth(function(){showAutoSaveToast(\'Gmail ansluten! &aring;ppna Aktivitet.\');})" class="act-btn act-btn-primary" style="font-size:12px">' + (_gmailAuthed?'Återanslut':'Anslut') + '</button>';
+    h += '</div></div>';
     h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">OAuth2 för Gmail/Outlook kräver backend och lanseras i Vela 2.0. IMAP/SMTP fungerar redan idag.</div></div>';
     [
       {name:'Gmail / Google Workspace', col:'#EA4335', icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>',

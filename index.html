@@ -674,14 +674,12 @@ button, input, textarea, select { font-family: inherit; }
 .vela-gtb-search {
   display: flex; align-items: center; gap: 8px;
   background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 7px; padding: 5px 12px; cursor: text;
-  width: 300px; height: 34px; box-sizing: border-box;
-  transition: border-color .15s, width .2s;
-  flex-shrink: 0;
+  border-radius: 7px; padding: 5px 12px; cursor: pointer;
+  width: 240px; height: 32px; box-sizing: border-box;
+  transition: border-color .15s; flex-shrink: 0;
 }
-.vela-gtb-search:hover { border-color: #58a6ff; }
-.vela-gtb-search:focus-within { border-color: #58a6ff; width: 420px; }
-.vela-gtb-search span { font-size: 13px; color: var(--text2); flex:1; white-space:nowrap; overflow:hidden; }
+.vela-gtb-search:hover { border-color: #58a6ff; background: var(--bg); }
+.vela-gtb-search span { font-size: 13px; color: #6e7681; flex:1; white-space:nowrap; overflow:hidden; }
 
 .vela-gtb-search:hover { border-color: rgba(177,186,196,.3); }
 .vela-gtb-search span { font-size:13px; color: var(--text2); flex: 1; }
@@ -698,10 +696,10 @@ button, input, textarea, select { font-family: inherit; }
 }
 .vela-gtb-icon-btn:hover { background: var(--surface2); border-color: var(--border); }
 .vela-gtb-avatar {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: var(--teal-lt); border: 1px solid rgba(45,212,191,.2);
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(45,212,191,.15); border: 1px solid rgba(45,212,191,.3) !important;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; background: none; border: none; padding: 0;
+  cursor: pointer; padding: 0;
   font-size:12px; font-weight: 700; color: var(--teal);
   cursor: pointer; font-family: var(--font-mono);
 }
@@ -8097,7 +8095,7 @@ function _updateStatusBadge() {
 }
 
 
-function _openUserMenu() {
+function _openUserMenu(evt) {
   // Close if already open
   document.getElementById('vela-user-menu-overlay')?.remove();
   document.getElementById('vela-user-menu')?.remove();
@@ -8117,10 +8115,11 @@ function _openUserMenu() {
   document.body.appendChild(overlay);
   document.addEventListener('keydown', _userMenuEscHandler);
 
-  // Menu
+  // Menu — positioned top-right like GitHub
   var menu = document.createElement('div');
   menu.id = 'vela-user-menu';
   menu.className = 'vela-user-menu';
+  menu.style.cssText = 'position:fixed;top:62px;right:12px;z-index:900';
   menu.onclick = function(e) { e.stopPropagation(); };
 
   function icon(path, size) {
@@ -8186,7 +8185,7 @@ function _openUserMenu() {
 
   wire('um-clinic-settings', function() {
     _closeUserMenu();
-    window._settingsActiveTab = 'clinic';
+    window._settingsActiveTab = 'general';
     go('settings');
   });
   wire('um-users', function() {
@@ -8308,21 +8307,24 @@ function _renderGlobalTopbar() {
   h += '<span class="bc-repo">' + e(clinicName) + '</span>';
   h += '</div></div>'; // closes left
 
-  // ── Center: search box (GitHub style — takes remaining space) ────────────
-  h += '<div style="flex:1;display:flex;align-items:center;justify-content:center">';
-  h += '<div class="vela-gtb-search" id="vela-gtb-search-btn" onclick="openCommandPalette()" title="Sök (⌘K)">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-  h += '<span>Sök eller hoppa till...</span>';
-  h += '<kbd style="font-size:11px;background:rgba(177,186,196,.1);border:1px solid rgba(177,186,196,.2);border-radius:4px;padding:1px 5px;color:#6e7681;white-space:nowrap">⌘K</kbd>';
-  h += '</div></div>';
+  // ── Spacer pushes right section to the right ──────────────────────────
+  h += '<div style="flex:1"></div>';
 
-  // ── Right: inbox + avatar ────────────────────────────────────────────────
+  // ── Right: search + inbox + avatar (like GitHub) ────────────────────────
   h += '<div class="vela-gtb-right">';
-  h += '<button class="vela-gtb-icon-btn" id="vela-gtb-inbox-btn" title="Inkorg">';
-  h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>';
+  // Search box — compact, right-aligned
+  h += '<div class="vela-gtb-search" id="vela-gtb-search-btn" onclick="openCommandPalette()" title="Sök (⌘K)">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += '<span>Sök eller hoppa till...</span>';
+  h += '<kbd style="font-size:11px;background:rgba(177,186,196,.1);border:1px solid rgba(177,186,196,.2);border-radius:4px;padding:1px 6px;color:#6e7681;white-space:nowrap">/</kbd>';
+  h += '</div>';
+  // Inbox icon — bigger
+  h += '<button class="vela-gtb-icon-btn" id="vela-gtb-inbox-btn" title="Inkorg" style="position:relative">';
+  h += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>';
   if (totalNotif > 0) h += '<div class="vela-gtb-notif-dot"></div>';
   h += '</button>';
-  h += '<button class="vela-gtb-avatar" id="vela-gtb-avatar-btn" title="' + e(email) + '" onclick="_openUserMenu()">' + initials + '</button>';
+  // Avatar — bigger, always clickable button
+  h += '<button class="vela-gtb-avatar" id="vela-gtb-avatar-btn" title="' + e(email) + '" onclick="_openUserMenu(event)">' + initials + '</button>';
   h += '</div>'; // right
   h += '</div>'; // row1
 
@@ -22576,7 +22578,7 @@ function rSettings() {
 
   const el = document.getElementById('s-settings');
   if (!el) return;
-  window._settingsActiveTab = window._settingsActiveTab || 'clinic';
+  window._settingsActiveTab = window._settingsActiveTab || 'general';
   el.innerHTML = '<div class="vela-settings-wrap"><div class="vela-settings-nav" id="vela-settings-nav"></div><div class="vela-settings-content" id="vela-settings-content"></div></div>';
   _renderSettingsNav();
   _renderSettingsContent(window._settingsActiveTab);
@@ -22990,47 +22992,47 @@ function _retQueueFromModal() {
 function _renderSettingsNav() {
   const nav = document.getElementById('vela-settings-nav');
   if (!nav) return;
-  const cur = window._settingsActiveTab || 'clinic';
+  const cur = window._settingsActiveTab || 'general';
 
   function tab(id, label, iconPath) {
     var active = cur === id;
     return '<button class="vela-stab' + (active ? ' active' : '') + '" data-tab="' + id + '">'
       + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="flex-shrink:0;opacity:' + (active?'1':'.6') + '">' + iconPath + '</svg>'
-      + label
-      + '</button>';
+      + label + '</button>';
   }
 
   function group(label) {
-    return '<div style="font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);padding:16px 12px 5px;cursor:default">' + label + '</div>';
+    return '<div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);padding:16px 12px 5px;cursor:default">' + label + '</div>';
   }
 
   var h = '';
 
-  // ── Klinik ───────────────────────────────────────────────────────────
-  h += group('Klinik');
-  h += tab('clinic',   'Klinikprofil',    '<circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>');
-  h += tab('users',    'Behandlare',      '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>');
-  h += tab('services', 'Tjänster & priser','<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>');
-  h += tab('schedule', 'Schema & bokningar','<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
+  // ── Arbetsyta ─────────────────────────────────────────────────────────
+  h += group('Arbetsyta');
+  h += tab('general',   'Allmänt',            '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>');
+  h += tab('users',     'Behandlare',         '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>');
+  h += tab('services',  'Tjänster & priser',  '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>');
+  h += tab('schedule',  'Tillgänglighet',     '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
 
-  // ── Automation ───────────────────────────────────────────────────────
+  // ── Automation ────────────────────────────────────────────────────────
   h += group('Automation');
-  h += tab('comms',    'Kommunikation',   '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>');
-  h += tab('ai',       'AI & retention',  '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>');
-  h += tab('workflow', 'Arbetsflöde',     '<path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>');
+  h += tab('comms',     'Kommunikation',      '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>');
+  h += tab('ai',        'AI & retention',     '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>');
+  h += tab('workflow',  'Arbetsflöde',        '<path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>');
 
-  // ── Konto ────────────────────────────────────────────────────────────
+  // ── Konto ─────────────────────────────────────────────────────────────
   h += group('Konto');
-  h += tab('apikey',   'API-nycklar',     '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>');
-  h += tab('billing',  'Abonnemang',      '<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>');
-  h += tab('sync',     'Synk & data',     '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>');
+  h += tab('apikey',    'API-nycklar',        '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>');
+  h += tab('billing',   'Abonnemang',         '<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>');
+  h += tab('sync',      'Synk & data',        '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>');
 
   nav.innerHTML = h;
 
-  // Wire tab clicks
   nav.querySelectorAll('.vela-stab').forEach(function(btn) {
     btn.onclick = function() {
       var tabId = btn.getAttribute('data-tab');
+      // Tillgänglighet → go to dedicated screen
+      if (tabId === 'schedule') { go('availability'); return; }
       window._settingsActiveTab = tabId;
       _renderSettingsNav();
       _renderSettingsContent(tabId);
@@ -23044,7 +23046,7 @@ function _renderSettingsContent(tab) {
   if (!el) return;
   const cfg = getClinicConfig();
   const key = S.apiKey || getKey();
-  if (tab === 'clinic')   el.innerHTML = _stClinic(cfg);
+  if (tab === 'general' || tab === 'clinic') el.innerHTML = _stGeneral(cfg);
   else if (tab === 'users')    el.innerHTML = _stUsers();
   else if (tab === 'services') el.innerHTML = _stServices();
   else if (tab === 'comms')    el.innerHTML = _stComms(cfg);
@@ -24146,6 +24148,106 @@ function renderActivityLog(pat) {
       + '</div>';
   }).join('');
 }
+
+function _resetWorkspace() {
+  if (!confirm("Återställ arbetsyta? Konfigurationen raderas men patientdata behålls.")) return;
+  if (typeof saveClinicConfig === "function") saveClinicConfig({});
+  showAutoSaveToast("Arbetsyta återställd");
+  _renderSettingsContent("general");
+}
+
+function _setTheme(light) {
+  if (light) document.body.classList.add('light'); else document.body.classList.remove('light');
+  localStorage.setItem('vela:theme', light?'light':'dark');
+}
+
+function _stGeneral(cfg) {
+  function row(label, hint, inputHtml) {
+    return '<div style="margin-bottom:20px"><label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:6px">' + label + '</label>'
+      + (hint ? '<div style="font-size:13px;color:var(--text2);margin-bottom:6px">' + hint + '</div>' : '')
+      + inputHtml + '</div>';
+  }
+  function inp(id, ph, val, extra) {
+    return '<input id="' + id + '" class="field" placeholder="' + ph + '" value="' + e(val||'') + '" ' + (extra||'') + ' style="width:100%;box-sizing:border-box">';
+  }
+
+  var h = '<div style="max-width:700px">';
+  h += '<h2 style="font-size:20px;font-weight:700;color:var(--ink);margin:0 0 6px">Allmänt</h2>';
+  h += '<p style="font-size:14px;color:var(--text2);margin:0 0 28px">Arbetsytans grundinställningar — namn, kontaktinfo och boknings-URL.</p>';
+
+  // Arbetsytans namn + URL slug
+  h += '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px">';
+  h += '<div style="padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface)">';
+  h += '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px">Namn på arbetsytan</div>';
+  h += '<div style="font-size:13px;color:var(--text2)">Visas i navigationen, e-post och Hael-planen.</div>';
+  h += '</div>';
+  h += '<div style="padding:20px">';
+  h += row('Kliniknamn', null, inp('st-name', 'T.ex. Kansei Ortopedi', cfg.name));
+  h += row('Behandlarnamn (signatur)', 'Används i journaler och patientkommunikation.', inp('st-sig', 'T.ex. Carl-Robert Engström', cfg.signature||cfg.therapistName));
+  h += '</div></div>';
+
+  // Kontaktuppgifter
+  h += '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px">';
+  h += '<div style="padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface)">';
+  h += '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px">Kontaktuppgifter</div>';
+  h += '<div style="font-size:13px;color:var(--text2)">Visas i patientkommunikation och kvitton.</div>';
+  h += '</div>';
+  h += '<div style="padding:20px">';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">';
+  h += '<div>' + row('E-post', null, inp('st-email', 'info@klinik.se', cfg.email)) + '</div>';
+  h += '<div>' + row('Telefon', null, inp('st-phone', '08-000 00 00', cfg.phone)) + '</div>';
+  h += '<div>' + row('Webbplats', null, inp('st-web', 'www.klinik.se', cfg.website)) + '</div>';
+  h += '<div>' + row('Adress', null, inp('st-addr', 'Gatuadress, stad', cfg.address)) + '</div>';
+  h += '</div></div></div>';
+
+  // Accentfärg
+  h += '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px">';
+  h += '<div style="padding:16px 20px;border-bottom:1px solid var(--border);background:var(--surface)">';
+  h += '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px">Utseende</div>';
+  h += '<div style="font-size:13px;color:var(--text2)">Accentfärg används i Hael-planer och patientkommunikation.</div>';
+  h += '</div>';
+  h += '<div style="padding:20px;display:flex;align-items:center;gap:16px">';
+  h += '<label style="font-size:13px;color:var(--text2)">Accentfärg</label>';
+  h += '<input type="color" id="st-accent" value="' + (cfg.accent||'#2dd4bf') + '" style="width:40px;height:32px;border:none;border-radius:6px;cursor:pointer;background:none;padding:0">';
+  h += '<span style="font-size:13px;color:var(--text2)">Används i Hael-planen och all patientkommunikation</span>';
+  var isDarkNow = !document.body.classList.contains('light');
+  h += '<div style="margin-left:auto;display:flex;gap:8px">';
+  h += '<button class="theme-btn' + (isDarkNow?' active':'') + '" onclick="_setTheme(0)" style="font-family:var(--font)">Mörkt</button>';
+  h += '<button class="theme-btn' + (!isDarkNow?' active':'') + '" onclick="_setTheme(1)" style="font-family:var(--font)">Ljust</button>';
+  h += '</div></div></div>';
+
+  // Danger zone — like GitHub
+  h += '<div style="border:1px solid rgba(248,81,73,.4);border-radius:10px;overflow:hidden;margin-bottom:24px">';
+  h += '<div style="padding:16px 20px;background:rgba(248,81,73,.05)">';
+  h += '<div style="font-size:14px;font-weight:700;color:#f85149">Riskzon</div>';
+  h += '</div>';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid rgba(248,81,73,.2)">';
+  h += '<div><div style="font-size:14px;font-weight:600;color:var(--ink)">Återställ arbetsyta</div><div style="font-size:13px;color:var(--text2)">Raderar all konfiguration men behåller patientdata.</div></div>';
+  h += '<button onclick="_resetWorkspace()" style="padding:6px 14px;border:1px solid rgba(248,81,73,.4);border-radius:7px;color:#f85149;background:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">Återställ</button>';
+  h += '</div></div>';
+
+  h += '<button onclick="_saveGeneralSettings()" style="padding:10px 24px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara inställningar</button>';
+  h += '</div>';
+  return h;
+}
+
+function _saveGeneralSettings() {
+  var cfg = getClinicConfig ? getClinicConfig() : {};
+  var fields = {
+    name: 'st-name', signature: 'st-sig', email: 'st-email',
+    phone: 'st-phone', website: 'st-web', address: 'st-addr'
+  };
+  Object.keys(fields).forEach(function(key) {
+    var el = document.getElementById(fields[key]);
+    if (el) cfg[key] = el.value.trim();
+  });
+  var accentEl = document.getElementById('st-accent');
+  if (accentEl) cfg.accent = accentEl.value;
+  if (typeof saveClinicConfig === 'function') saveClinicConfig(cfg);
+  showAutoSaveToast('Arbetsytans inställningar sparade ✓');
+  if (typeof _renderGlobalTopbar === 'function') _renderGlobalTopbar();
+}
+
 
 function _stClinic(cfg) {
   const isLight = document.body.classList.contains('light');

@@ -13578,8 +13578,15 @@ function rLogin() {
       });
     } else {
       sbSignIn(em,pw).then(function(r){
-        if(r.error){err.style.display='block';err.textContent=r.error.message||'Fel vid inloggning.';}
-        btn.disabled=false;btn.textContent='Logga in';
+        if(r.ok){
+          loadPats && loadPats();
+          go('dashboard');
+        } else {
+          err.style.display='block';
+          err.textContent=r.msg||'Fel e-post eller lösenord.';
+          btn.disabled=false;
+          btn.textContent='Logga in';
+        }
       });
     }
   };
@@ -28378,8 +28385,11 @@ function getAiProfileContext(userId) {
         var _tb    = document.getElementById('mobile-topbar');
         var _topbar = document.querySelector('.topbar');
         if (_shell)  _shell.style.display  = '';
+        if (_shell)  _shell.style.paddingTop = '52px';
         if (_tb)     _tb.style.display     = '';
         if (_topbar) _topbar.style.display = '';
+        var _gtbWrap = document.getElementById('vela-global-topbar-wrap');
+        if (_gtbWrap) _gtbWrap.style.display = '';
         loadPats();
         S.apiKey = getKey();
         startAutoSave();

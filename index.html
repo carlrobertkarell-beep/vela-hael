@@ -4751,38 +4751,35 @@ function go(scr){
     if (tb) tb.style.display = 'none';
   } else {
     var _isPlatformScreen = ['home','workspace-new','ask-full'].indexOf(scr) !== -1;
-    var _navSidebar = document.getElementById('nav-sidebar');
+    var _navSidebar  = document.getElementById('nav-sidebar');
     var _mainContent = document.querySelector('.main-content');
+    var _tb2         = document.querySelector('.topbar');
+
     if (_isPlatformScreen) {
-      // Platform screens own their full layout — hide all clinic chrome
-      if (_gtbWrap)    _gtbWrap.style.display    = 'none';
-      if (_appShell)   _appShell.style.paddingTop = '0';
-      if (_navSidebar) _navSidebar.style.display  = 'none';
+      // Platform screen: hide all clinic chrome, let screen render its own layout
+      if (_gtbWrap)     _gtbWrap.style.display     = 'none';
+      if (_appShell)    _appShell.style.paddingTop  = '0';
+      if (_navSidebar)  _navSidebar.style.display   = 'none';
       if (_mainContent) _mainContent.style.marginLeft = '0';
-      var tb2p = document.querySelector('.topbar');
-      if (tb2p) tb2p.style.display = 'none';
+      if (_tb2)         _tb2.style.display           = 'none';
+      // Clear any lingering inline styles from clinic screens on the platform screen el
+      var _pEl = document.getElementById('s-' + scr);
+      if (_pEl) _pEl.style.cssText = '';
     } else {
-      // Make platform screen cover full viewport
-      var _platEl = document.getElementById('s-' + scr);
-      if (_platEl) { _platEl.style.cssText = 'display:block;position:fixed;inset:0;z-index:150;overflow-y:auto;background:var(--bg)'; }
-      // Hide other platform screens
-      ['home','workspace-new','ask-full'].forEach(function(ps) {
-        if (ps !== scr) { var pEl = document.getElementById('s-' + ps); if (pEl) { pEl.classList.remove('active'); pEl.style.cssText = ''; } }
-      });
-      // Clinic-level screens: restore all clinic chrome
-      if (_gtbWrap)    _gtbWrap.style.display    = '';
-      if (_appShell)   _appShell.style.paddingTop = '52px';
-      if (_navSidebar) _navSidebar.style.display  = '';
+      // Clinic screen: restore all clinic chrome
+      if (_gtbWrap)     _gtbWrap.style.display      = '';
+      if (_appShell)    _appShell.style.paddingTop   = '52px';
+      if (_navSidebar)  _navSidebar.style.display    = '';
       if (_mainContent) _mainContent.style.marginLeft = '';
-      var tb2 = document.querySelector('.topbar');
-      if (tb2) tb2.style.display = '';
-      // Restore platform screens to normal (not fixed)
+      if (_tb2)         _tb2.style.display           = '';
+      // Clear any lingering styles on platform screens
       ['home','workspace-new','ask-full'].forEach(function(ps) {
         var pEl = document.getElementById('s-' + ps);
         if (pEl) { pEl.style.cssText = ''; pEl.classList.remove('active'); }
       });
     }
   }
+
   if (!_isPlatformScreen) rTopbar();
   const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
   if(fn[scr])fn[scr]();
@@ -31405,9 +31402,7 @@ function getAiProfileContext(userId) {
         var _shell = document.getElementById('app-shell');
         var _tb    = document.getElementById('mobile-topbar');
         var _topbar = document.querySelector('.topbar');
-        if (_shell)  _shell.style.display  = '';
-        if (_shell)  _shell.style.paddingTop = '0'; // home screen has no topbar
-        if (_tb)     _tb.style.display     = '';
+        if (_shell)  _shell.style.display = '';
         loadPats();
         S.apiKey = getKey();
         startAutoSave();

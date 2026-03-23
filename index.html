@@ -120,7 +120,7 @@ html, body { height: 100%; font-family: var(--font); color: var(--ink); backgrou
 button, input, textarea, select { font-family: inherit; }
 
 /* ── APP SHELL ──────────────────────────────────────────────── */
-.app-shell { display: flex; height: 100vh; overflow: hidden; }
+.app-shell { display: flex; height: 100vh; overflow: hidden; transition: padding-top .12s ease; }
 .main-content { flex: 1; overflow-y: auto; background: var(--bg); }
 .screen { display: none; min-height: 100%; }
 .screen.active { display: block; }
@@ -10730,7 +10730,7 @@ function rHome() {
   var h = '<div style="min-height:100%;background:var(--bg);font-family:var(--font)">';
 
   // ── Platform topbar ─────────────────────────────────────────────────────────
-  h += '<div style="height:62px;background:#0d1117;border-bottom:1px solid #21262d;display:flex;align-items:center;padding:0 16px;gap:10px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">';
+  h += '<div style="height:62px;background:var(--bg);border-bottom:1px solid var(--border2);display:flex;align-items:center;padding:0 16px;gap:10px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">';
   // Hamburger
   h += '<button style="background:none;border:none;color:#6e7681;cursor:pointer;padding:4px;border-radius:6px;display:flex" onmouseenter="this.style.color=\'#e6edf3\'" onmouseleave="this.style.color=\'#6e7681\'">'
      + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>';
@@ -10758,7 +10758,7 @@ function rHome() {
   h += '<div style="display:flex;min-height:calc(100vh - 62px);margin-top:62px">';
 
   // ── Left sidebar ────────────────────────────────────────────────────────────
-  h += '<div style="width:256px;flex-shrink:0;padding:20px 16px;border-right:1px solid #21262d;overflow-y:auto;background:#0d1117">';
+  h += '<div style="width:260px;flex-shrink:0;padding:20px 16px;border-right:1px solid #21262d;overflow-y:auto;background:#0d1117">';
 
   // Top repositories header (exactly like GitHub)
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';

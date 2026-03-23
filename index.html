@@ -5193,15 +5193,6 @@ function rCalendar() {
   var view     = st.view || 'week';
 
   // ── Outer shell ──────────────────────────────────────────────────────────
-  // ── Schedule reminder check ─────────────────────────────────────────────
-  var _schedExists = false;
-  var _allT2 = getTherapists ? getTherapists() : [];
-  (_allT2.length ? _allT2 : [{id: S.currentUser || 'me'}]).forEach(function(t) {
-    var sched = getTherapistWeekSchedule ? getTherapistWeekSchedule(t.id) : {};
-    var days = ['mon','tue','wed','thu','fri'];
-    days.forEach(function(d){ if ((sched[d]||[]).length > 0) _schedExists = true; });
-  });
-
   var h = '<div class="vcal-shell">';
   h += _vcalLeftPanel(st, now);
   h += '<div class="vcal-main">';
@@ -5240,6 +5231,14 @@ function rCalendar() {
 
 // ── LEFT PANEL ────────────────────────────────────────────────────────────────
 function _vcalLeftPanel(st, now) {
+  // Compute schedule existence here (not in caller scope)
+  var _schedExists = false;
+  var _leftThers = getTherapists ? getTherapists() : [];
+  (_leftThers.length ? _leftThers : [{id:'default'}]).forEach(function(t) {
+    var sc = getTherapistWeekSchedule ? getTherapistWeekSchedule(t.id) : {};
+    ['mon','tue','wed','thu','fri'].forEach(function(d){ if ((sc[d]||[]).length > 0) _schedExists = true; });
+  });
+
   var h = '<div class="vcal-left">';
 
   // Mini calendar

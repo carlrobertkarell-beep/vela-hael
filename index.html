@@ -196,7 +196,7 @@ button, input, textarea, select { font-family: inherit; }
   .nav-sidebar { position:fixed; top:0; bottom:0; left:0; width:230px !important; z-index:250; transform:translateX(-100%); }
   .nav-collapse-btn { display:none; }
   .nav-sidebar.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
-  .main-content { padding-top: 52px; }
+  .main-content { padding-top: 92px; }
   .app-shell { display: block; height: auto; min-height: 100vh; }
   .inbox-btn {
     position: relative; background: none; border: none; cursor: pointer;
@@ -1085,15 +1085,25 @@ button, input, textarea, select { font-family: inherit; }
 /* Global topbar: always visible on desktop */
 .vela-global-topbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 300;
-  height: 52px; background: var(--bg);
+  height: 92px; background: var(--bg);
   border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 0;
+  display: flex; flex-direction: column;
   font-family: var(--font);
+}
+.vela-gtb-row1 {
+  height: 52px; display: flex; align-items: center; gap: 0;
+  border-bottom: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+.vela-gtb-row2 {
+  height: 40px; display: flex; align-items: stretch;
+  padding: 0 8px; overflow-x: auto; overflow-y: hidden;
+  flex-shrink: 0;
 }
 .vela-gtb-left {
   display: flex; align-items: center; gap: 10px;
   padding: 0 16px 0 12px; flex-shrink: 0;
-  height: 100%;
+  flex: 1; /* take remaining space in row1 */
 }
 .vela-gtb-logo {
   display: flex; align-items: center; gap: 8px;
@@ -1113,10 +1123,7 @@ button, input, textarea, select { font-family: inherit; }
 .vela-gtb-breadcrumb .bc-repo  { color: var(--ink);  font-weight: 700; }
 
 /* Section tabs */
-.vela-gtb-tabs {
-  display: flex; align-items: stretch; height: 100%;
-  padding: 0 4px; flex: 1; overflow-x: auto; overflow-y: hidden;
-}
+.vela-gtb-tabs { display: none; } /* replaced by vela-gtb-row2 */
 .vela-gtb-tab {
   display: flex; align-items: center; gap: 7px;
   padding: 0 12px; border: none; background: none;
@@ -1131,6 +1138,8 @@ button, input, textarea, select { font-family: inherit; }
   color: var(--ink); font-weight: 600;
   border-bottom-color: var(--teal);
 }
+.vela-gtb-row2 .vela-gtb-tab svg { opacity: .7; }
+.vela-gtb-row2 .vela-gtb-tab.active svg { opacity: 1; }
 .vela-gtb-tab svg { opacity: .7; flex-shrink: 0; }
 .vela-gtb-tab.active svg { opacity: 1; }
 .vela-gtb-tab-badge {
@@ -1184,7 +1193,7 @@ button, input, textarea, select { font-family: inherit; }
 
 /* Push content down when topbar is visible */
 .app-shell-with-topbar {
-  padding-top: 52px;
+  padding-top: 92px;
 }
 @media (max-width: 768px) {
   .vela-global-topbar { display: none; }
@@ -4768,7 +4777,7 @@ function go(scr){
     } else {
       // Clinic screen: restore all clinic chrome
       if (_gtbWrap)     _gtbWrap.style.display      = '';
-      if (_appShell)    _appShell.style.paddingTop   = '52px';
+      if (_appShell)    _appShell.style.paddingTop   = '92px';
       if (_navSidebar)  _navSidebar.style.display    = '';
       if (_mainContent) _mainContent.style.marginLeft = '';
       if (_tb2)         _tb2.style.display           = '';
@@ -7671,6 +7680,8 @@ function _renderGlobalTopbar() {
   ];
 
   var h = '<div class="vela-global-topbar">';
+  // ── Row 1: logo + breadcrumb + search + avatar (like GitHub topbar) ─────────
+  h += '<div class="vela-gtb-row1">';
   h += '<div class="vela-gtb-left">';
   // Logo — SVG pulse icon, no box, just the mark like GitHub's octocat
   h += '<div class="vela-gtb-logo" id="vela-gtb-home-btn">';
@@ -7682,9 +7693,25 @@ function _renderGlobalTopbar() {
   h += '<span class="bc-owner">Vela</span>';
   h += '<span class="sep">/</span>';
   h += '<span class="bc-repo">' + e(clinicName) + '</span>';
-  h += '</div></div>';
+  h += '</div></div>'; // closes left
 
-  h += '<div class="vela-gtb-tabs">';
+  // ── Row 1 right: search + icons + avatar ────────────────────────────────
+  h += '<div class="vela-gtb-right">';
+  h += '<div class="vela-gtb-search" id="vela-gtb-search-btn">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += '<span>Sök patient...</span>';
+  h += '<kbd>⌘K</kbd>';
+  h += '</div>';
+  h += '<button class="vela-gtb-icon-btn" id="vela-gtb-inbox-btn" title="Inkorg">';
+  h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>';
+  if (totalNotif > 0) h += '<div class="vela-gtb-notif-dot"></div>';
+  h += '</button>';
+  h += '<div class="vela-gtb-avatar" id="vela-gtb-avatar-btn" title="' + e(email) + '">' + initials + '</div>';
+  h += '</div>'; // right
+  h += '</div>'; // row1
+
+  // ── Row 2: tabs (like GitHub Code/Issues/Actions row) ───────────────────
+  h += '<div class="vela-gtb-row2">';
   tabs.forEach(function(tab) {
     var isActive = activeTab === tab.id;
     h += '<button class="vela-gtb-tab' + (isActive ? ' active' : '') + '" data-dest="' + tab.dest + '">';
@@ -7695,21 +7722,8 @@ function _renderGlobalTopbar() {
     }
     h += '</button>';
   });
-  h += '</div>';
-
-  h += '<div class="vela-gtb-right">';
-  h += '<div class="vela-gtb-search" id="vela-gtb-search-btn">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-  h += '<span>S\u00f6k patient...</span>';
-  h += '<kbd>\u2318K</kbd>';
-  h += '</div>';
-  h += '<button class="vela-gtb-icon-btn" id="vela-gtb-inbox-btn" title="Inkorg">';
-  h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>';
-  if (totalNotif > 0) h += '<div class="vela-gtb-notif-dot"></div>';
-  h += '</button>';
-  h += '<div class="vela-gtb-avatar" id="vela-gtb-avatar-btn" title="' + e(email) + '">' + initials + '</div>';
-  h += '</div>';
-  h += '</div>';
+  h += '</div>'; // row2
+  h += '</div>'; // outer topbar
 
   wrap.innerHTML = h;
 

@@ -124,6 +124,14 @@ button, input, textarea, select { font-family: inherit; }
 .main-content { flex: 1; overflow-y: auto; background: var(--bg); }
 .screen { display: none; min-height: 100%; }
 .screen.active { display: block; }
+.platform-screen.active { 
+  display: block; 
+  position: fixed; 
+  inset: 0; 
+  z-index: 200; 
+  overflow-y: auto; 
+  background: var(--bg); 
+}
 
 /* ── SIDEBAR ────────────────────────────────────────────────── */
 .nav-sidebar {
@@ -2162,9 +2170,9 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
         <div class="vela-dh-avatar" id="vela-dh-avatar" title="Konto" onclick="go('settings')">?</div>
       </div>
     </div>
-    <div id="s-home" class="screen"></div>
-        <div id="s-workspace-new" class="screen"></div>
-        <div id="s-ask-full" class="screen"></div>
+    <div id="s-home" class="screen platform-screen"></div>
+        <div id="s-workspace-new" class="screen platform-screen"></div>
+        <div id="s-ask-full" class="screen platform-screen"></div>
     <div id="s-dashboard" class="screen"></div>
     <div id="s-list" class="screen"></div>
     <div id="s-detail" class="screen"></div>
@@ -4766,10 +4774,13 @@ function go(scr){
     var _tb2         = document.querySelector('.topbar');
 
     if (_isPlatformScreen) {
-      // Platform screen: hide ALL clinic chrome entirely
-      if (_gtbWrap)    _gtbWrap.style.display    = 'none';
-      if (_appShell)   _appShell.style.display    = 'none';
-      if (_tb2)        _tb2.style.display         = 'none';
+      // Platform screen: hide clinic chrome but NOT app-shell (s-home is inside it)
+      if (_gtbWrap)     _gtbWrap.style.display     = 'none';
+      if (_appShell)    _appShell.style.paddingTop  = '0';
+      if (_navSidebar)  _navSidebar.style.display   = 'none';
+      if (_mainContent) _mainContent.style.marginLeft = '0';
+      if (_tb2)         _tb2.style.display          = 'none';
+      if (_appShell)    _appShell.style.display      = '';
       // Clear any lingering inline styles on the platform screen el
       var _pEl = document.getElementById('s-' + scr);
       if (_pEl) { _pEl.style.cssText = ''; }
@@ -10716,7 +10727,7 @@ function rHome() {
     : checks.findIndex(function(c){ return !c.done; });
 
   // ── Full-page layout ───────────────────────────────────────────────────────
-  var h = '<div style="display:flex;flex-direction:column;height:100vh;background:var(--bg);font-family:var(--font)">';
+  var h = '<div style="min-height:100%;background:var(--bg);font-family:var(--font)">';
 
   // ── Platform topbar ─────────────────────────────────────────────────────────
   h += '<div style="height:62px;background:#0d1117;border-bottom:1px solid #21262d;display:flex;align-items:center;padding:0 16px;gap:10px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">';
@@ -10744,7 +10755,7 @@ function rHome() {
   h += '</div></div>'; // topbar
 
   // ── Two-column body ─────────────────────────────────────────────────────────
-  h += '<div style="display:flex;flex:1;overflow:hidden;margin-top:62px">';
+  h += '<div style="display:flex;min-height:calc(100vh - 62px);margin-top:62px">';
 
   // ── Left sidebar ────────────────────────────────────────────────────────────
   h += '<div style="width:256px;flex-shrink:0;padding:20px 16px;border-right:1px solid #21262d;overflow-y:auto;background:#0d1117">';

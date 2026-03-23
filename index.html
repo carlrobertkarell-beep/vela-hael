@@ -140,7 +140,7 @@ button, input, textarea, select { font-family: inherit; }
 .nav-sidebar.collapsed .nav-logo-wordmark,
 .nav-sidebar.collapsed .nav-footer-text { display:none; }
 .nav-sidebar.collapsed .nav-item { padding:9px 0; justify-content:center; gap:0; }
-.nav-sidebar.collapsed .nav-logo { padding:18px 0; justify-content:center; }
+.nav-sidebar.collapsed .nav-logo { display: none; }
 .nav-sidebar.collapsed .nav-collapse-arrow { transform:rotate(180deg); }
 .nav-item { position:relative; }
 .nav-tooltip { display:none; position:absolute; left:calc(100% + 10px); top:50%; transform:translateY(-50%); background:rgba(10,20,35,.96); color:rgba(255,255,255,.9); font-size:11px; font-weight:600; white-space:nowrap; padding:5px 10px; border-radius:7px; pointer-events:none; z-index:500; border:1px solid rgba(255,255,255,.08); box-shadow:0 4px 14px rgba(0,0,0,.4); }
@@ -152,7 +152,7 @@ button, input, textarea, select { font-family: inherit; }
 .nav-logo-wordmark { overflow:hidden; white-space:nowrap; }
 .nav-section { flex:1; padding:8px 8px 4px; overflow-y:auto; overflow-x:hidden; }
 .nav-section-label {
-  font-size: 11px; font-weight: 400; letter-spacing: 0;
+  font-size: 12px; font-weight: 400; letter-spacing: 0;
   text-transform: none; color: var(--text2);
   padding: 18px 10px 5px; display: block;
   white-space: nowrap; overflow: hidden; cursor: default;
@@ -160,7 +160,7 @@ button, input, textarea, select { font-family: inherit; }
 .nav-item {
   display: flex; align-items: center; gap: 9px; width: 100%;
   padding: 7px 10px; border: none; border-radius: 6px;
-  background: transparent; color: var(--text); font-size: 13px;
+  background: transparent; color: var(--text); font-size: 14px;
   font-weight: 400; cursor: pointer; text-align: left;
   transition: background .1s, color .1s;
   white-space: nowrap; font-family: var(--font);
@@ -196,7 +196,7 @@ button, input, textarea, select { font-family: inherit; }
   .nav-sidebar { position:fixed; top:0; bottom:0; left:0; width:230px !important; z-index:250; transform:translateX(-100%); }
   .nav-collapse-btn { display:none; }
   .nav-sidebar.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
-  .main-content { padding-top: 92px; }
+  .main-content { padding-top: 110px; }
   .app-shell { display: block; height: auto; min-height: 100vh; }
   .inbox-btn {
     position: relative; background: none; border: none; cursor: pointer;
@@ -1085,19 +1085,19 @@ button, input, textarea, select { font-family: inherit; }
 /* Global topbar: always visible on desktop */
 .vela-global-topbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 300;
-  height: 92px; background: var(--bg);
+  height: 110px; background: var(--bg);
   border-bottom: 1px solid var(--border);
   display: flex; flex-direction: column;
   font-family: var(--font);
 }
 .vela-gtb-row1 {
-  height: 52px; display: flex; align-items: center; gap: 0;
+  height: 62px; display: flex; align-items: center; gap: 0;
   border-bottom: 1px solid var(--border2);
   flex-shrink: 0;
 }
 .vela-gtb-row2 {
-  height: 40px; display: flex; align-items: stretch;
-  padding: 0 8px; overflow-x: auto; overflow-y: hidden;
+  height: 48px; display: flex; align-items: stretch;
+  padding: 0 16px; overflow-x: auto; overflow-y: hidden;
   flex-shrink: 0;
 }
 .vela-gtb-left {
@@ -1115,11 +1115,11 @@ button, input, textarea, select { font-family: inherit; }
   opacity: .9;
 }
 .vela-gtb-breadcrumb {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 13px; font-weight: 400; color: var(--text2);
+  display: flex; align-items: center; gap: 6px;
+  font-size: 15px; font-weight: 400; color: var(--text2);
 }
-.vela-gtb-breadcrumb .sep { color: var(--text2); opacity: .5; }
-.vela-gtb-breadcrumb .bc-owner { color: var(--text); font-weight: 600; }
+.vela-gtb-breadcrumb .sep { color: var(--text2); opacity: .5; font-size: 16px; }
+.vela-gtb-breadcrumb .bc-owner { color: var(--text); font-weight: 400; }
 .vela-gtb-breadcrumb .bc-repo  { color: var(--ink);  font-weight: 700; }
 
 /* Section tabs */
@@ -1193,7 +1193,7 @@ button, input, textarea, select { font-family: inherit; }
 
 /* Push content down when topbar is visible */
 .app-shell-with-topbar {
-  padding-top: 92px;
+  padding-top: 110px;
 }
 @media (max-width: 768px) {
   .vela-global-topbar { display: none; }
@@ -4777,7 +4777,7 @@ function go(scr){
     } else {
       // Clinic screen: restore all clinic chrome
       if (_gtbWrap)     _gtbWrap.style.display      = '';
-      if (_appShell)    _appShell.style.paddingTop   = '92px';
+      if (_appShell)    _appShell.style.paddingTop   = '110px';
       if (_navSidebar)  _navSidebar.style.display    = '';
       if (_mainContent) _mainContent.style.marginLeft = '';
       if (_tb2)         _tb2.style.display           = '';
@@ -10061,7 +10061,7 @@ function _gmailRenderThreadContent() {
   h += '</div>';
 
   // ── Body: messages + AI panel side by side ──────────────────────────────
-  h += '<div style="display:flex;flex:1;overflow:hidden;margin-top:52px">';
+  h += '<div style="display:flex;flex:1;overflow:hidden;margin-top:62px">';
 
   // Messages column
   h += '<div style="flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:14px;min-width:0">';
@@ -10305,7 +10305,7 @@ function rAskFull(prompt) {
   var authInit2  = authEmail2.slice(0,2).toUpperCase() || 'CA';
   el.innerHTML = '<div style="min-height:100vh;font-family:var(--font)">'
     // Fixed topbar matching home
-    + '<div style="height:52px;background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">'
+    + '<div style="height:62px;background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">'
     + '<button onclick="go(\'home\'" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;display:flex;align-items:center">'
     + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>'
     + '<div onclick="go(\'home\'" style="cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>'
@@ -10493,7 +10493,7 @@ function rNewWorkspace() {
 
   // ── Fixed platform topbar ─────────────────────────────────────────────────
   var h = '<div style="min-height:100vh;background:var(--bg);font-family:var(--font)">';
-  h += '<div style="height:52px;background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">';
+  h += '<div style="height:62px;background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">';
   h += '<button style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px" onclick="go(\'home\')">'
      + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>';
   h += '<div style="cursor:pointer" onclick="go(\'home\')">'
@@ -10503,7 +10503,7 @@ function rNewWorkspace() {
   h += '</div>'; // topbar
 
   // ── Page content ──────────────────────────────────────────────────────────
-  h += '<div style="max-width:680px;margin:0 auto;padding:72px 24px 80px;box-sizing:border-box">';
+  h += '<div style="max-width:680px;margin:0 auto;padding:82px 24px 80px;box-sizing:border-box">';
 
   // Header
   h += '<h1 style="font-size:24px;font-weight:700;color:var(--ink);margin:0 0 6px;letter-spacing:-.02em">Skapa en ny arbetsyta</h1>';
@@ -10699,7 +10699,7 @@ function rHome() {
   var h = '<div style="display:flex;flex-direction:column;height:100vh;background:var(--bg);font-family:var(--font)">';
 
   // ── Platform topbar ─────────────────────────────────────────────────────────
-  h += '<div style="height:52px;background:#0d1117;border-bottom:1px solid #21262d;display:flex;align-items:center;padding:0 16px;gap:10px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">';
+  h += '<div style="height:62px;background:#0d1117;border-bottom:1px solid #21262d;display:flex;align-items:center;padding:0 16px;gap:10px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">';
   // Hamburger
   h += '<button style="background:none;border:none;color:#6e7681;cursor:pointer;padding:4px;border-radius:6px;display:flex" onmouseenter="this.style.color=\'#e6edf3\'" onmouseleave="this.style.color=\'#6e7681\'">'
      + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>';

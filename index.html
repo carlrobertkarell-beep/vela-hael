@@ -2152,6 +2152,9 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
         <div class="vela-dh-avatar" id="vela-dh-avatar" title="Konto" onclick="go('settings')">?</div>
       </div>
     </div>
+    <div id="s-home" class="screen"></div>
+        <div id="s-workspace-new" class="screen"></div>
+        <div id="s-ask-full" class="screen"></div>
     <div id="s-dashboard" class="screen"></div>
     <div id="s-list" class="screen"></div>
     <div id="s-detail" class="screen"></div>
@@ -4753,7 +4756,7 @@ function go(scr){
     if (tb2) tb2.style.display = '';
   }
   rTopbar();
-  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
+  const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
 }
@@ -7632,7 +7635,7 @@ function _renderGlobalTopbar() {
   var totalNotif = alerts + unread;
 
   var tabs = [
-    { id:'home',         label:'Klinik',        dest:'dashboard', icon:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
+    { id:'home',         label:'Klinik',        dest:'home', icon:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>' },
     { id:'calendar',     label:'Kalender',       dest:'calendar',  icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
     { id:'journal',      label:'Besök',        dest:'manualsoap',icon:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
     { id:'hael',         label:'Hael',           dest:'hael',      icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
@@ -10239,6 +10242,617 @@ function _gmailRunSearch() {
   window._inboxTab = 'all';
   _gmailLoadAndRender('all', q);
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// rHome — Vela Home (platform-level launchpad, above clinic context)
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════════════════════
+// rAskFull — Full-screen Vela Ask (like GitHub Copilot chat page)
+// ══════════════════════════════════════════════════════════════════════════════
+var _askFullHistory = []; // { role:'user'|'assistant', content:string }
+var _askFullInitialPrompt = null;
+
+function rAskFull(prompt) {
+  var el = document.getElementById('s-ask-full');
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  el.classList.add('active');
+  S.screen = 'ask-full';
+
+  if (prompt) _askFullInitialPrompt = prompt;
+
+  el.innerHTML = '<div style="display:flex;height:calc(100vh - 52px);font-family:var(--font)">'
+    // ── Left sidebar ────────────────────────────────────────────────────
+    + '<div style="width:240px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column">'
+    + '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
+    + '<button onclick="_askFullNew()" style="display:flex;align-items:center;gap:7px;width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ny konversation</button>'
+    + '</div>'
+    + '<div style="flex:1;padding:12px 8px;overflow-y:auto">'
+    + '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);padding:4px 8px;margin-bottom:4px">Idag</div>'
+    + (_askFullHistory.length ? '<div id="ask-history-list"></div>' : '')
+    + '</div>'
+    + '<div style="padding:12px 16px;border-top:1px solid var(--border)">'
+    + '<button onclick="go(\'home\')" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font)">'
+    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Tillbaka till hem</button>'
+    + '</div></div>'
+    // ── Main chat area ──────────────────────────────────────────────────
+    + '<div style="flex:1;display:flex;flex-direction:column;overflow:hidden">'
+    // Agents / scopes bar (like GitHub's "Ask | All repositories | +")
+    + '<div style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0">'
+    + '<button onclick="window._askScope=\'all\'" style="display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)">'
+    + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>'
+    + 'Alla patienter <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>'
+    + '<button style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)">'
+    + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>'
+    + '<div style="margin-left:auto;display:flex;align-items:center;gap:6px">'
+    + '<span style="font-size:11px;color:var(--text2)">claude-sonnet-4</span>'
+    + '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>'
+    + '</div></div>'
+    // Messages
+    + '<div id="ask-full-msgs" style="flex:1;overflow-y:auto;padding:24px 20px;display:flex;flex-direction:column;gap:20px">'
+    + '</div>'
+    // Input
+    + '<div style="padding:14px 20px;border-top:1px solid var(--border);background:var(--bg)">'
+    + '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)">'
+    + '<textarea id="ask-full-ta" placeholder="Skriv din fråga..." style="width:100%;min-height:56px;max-height:200px;border:none;background:none;padding:14px 16px 6px;font-size:14px;font-family:var(--font);color:var(--ink);resize:none;outline:none;box-sizing:border-box;line-height:1.6"></textarea>'
+    + '<div style="display:flex;align-items:center;padding:6px 12px 10px;gap:8px">'
+    + '<span style="font-size:11px;color:var(--text2)">claude-sonnet-4-20250514</span>'
+    + '<span style="flex:1"></span>'
+    + '<button id="ask-full-send" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:var(--teal);border:none;border-radius:7px;cursor:pointer;flex-shrink:0">'
+    + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d1117" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'
+    + '</button></div></div></div>'
+    + '</div></div>';
+
+  // Wire input
+  var ta    = el.querySelector('#ask-full-ta');
+  var send  = el.querySelector('#ask-full-send');
+  var msgs  = el.querySelector('#ask-full-msgs');
+
+  function renderMsgs() {
+    msgs.innerHTML = '';
+    if (!_askFullHistory.length) {
+      msgs.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text2)">'
+        + '<div style="font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px">Hej, Carl-Robert!</div>'
+        + '<div style="font-size:14px;line-height:1.6">Jag kan svara på frågor om dina patienter, klinikens data och kliniska ämnen. Vad behöver du?</div>'
+        + '</div>';
+      return;
+    }
+    _askFullHistory.forEach(function(m) {
+      var isUser = m.role === 'user';
+      var div = document.createElement('div');
+      div.style.cssText = 'display:flex;gap:12px;' + (isUser?'flex-direction:row-reverse':'');
+      div.innerHTML = '<div style="width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:' + (isUser?'rgba(45,212,191,.1)':'var(--surface2)') + ';border:1px solid ' + (isUser?'rgba(45,212,191,.2)':'var(--border)') + ';color:' + (isUser?'var(--teal)':'var(--text)') + ';font-family:var(--font-mono)">' + (isUser?'CR':'V') + '</div>'
+        + '<div style="flex:1;max-width:680px">'
+        + '<div style="background:' + (isUser?'var(--surface)':'transparent') + ';border:' + (isUser?'1px solid var(--border)':'none') + ';border-radius:' + (isUser?'3px 12px 12px 12px':'0') + ';padding:' + (isUser?'12px 16px':'4px 0') + ';font-size:14px;color:var(--text);line-height:1.75;white-space:pre-wrap">' + (m.content||'') + '</div>'
+        + '</div>';
+      msgs.appendChild(div);
+    });
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  renderMsgs();
+
+  async function sendMsg() {
+    var q = ta.value.trim();
+    if (!q) return;
+    ta.value = '';
+    ta.style.height = '';
+    _askFullHistory.push({ role:'user', content:q });
+    renderMsgs();
+
+    // Loading indicator
+    var loadDiv = document.createElement('div');
+    loadDiv.style.cssText = 'display:flex;gap:12px;align-items:flex-start';
+    loadDiv.innerHTML = '<div style="width:32px;height:32px;border-radius:50%;flex-shrink:0;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text);font-family:var(--font-mono)">V</div>'
+      + '<div style="padding:16px 0;display:flex;gap:4px;align-items:center">'
+      + '<div style="width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 1.2s infinite"></div>'
+      + '<div style="width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 1.2s .3s infinite"></div>'
+      + '<div style="width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 1.2s .6s infinite"></div>'
+      + '</div>';
+    msgs.appendChild(loadDiv);
+    msgs.scrollTop = msgs.scrollHeight;
+
+    // Build context
+    var patCtx = (S.patients||[]).slice(0,10).map(function(p){
+      return p.name + (p.visits&&p.visits.length?' ('+p.visits.length+' besök)':'');
+    }).join(', ');
+
+    var cfg = getClinicConfig ? getClinicConfig() : {};
+    var systemPrompt = 'Du är Vela AI, en intelligent assistent för Carl-Robert Kärell, naprapat på ' + (cfg.name||'Kansei Ortopedi & Rehabcenter') + '. '
+      + 'Du har tillgång till klinikdata. Patienter: ' + patCtx + '. '
+      + 'Svara koncist och professionellt på svenska. '
+      + 'Du kan hjälpa med: journalföring, rehabplaner, patientanalyser, retention, ekonomi och kliniska frågor.';
+
+    var messages = _askFullHistory.map(function(m){ return { role:m.role, content:m.content }; });
+
+    try {
+      var resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-20250514',
+          max_tokens:1500,
+          system: systemPrompt,
+          messages: messages,
+        })
+      });
+      var data = await resp.json();
+      var reply = data.content?.[0]?.text || 'Kunde inte svara just nu.';
+      loadDiv.remove();
+      _askFullHistory.push({ role:'assistant', content:reply });
+      renderMsgs();
+    } catch(ex) {
+      loadDiv.remove();
+      _askFullHistory.push({ role:'assistant', content:'Anslutningsfel. Kontrollera API-nyckel i Inställningar.' });
+      renderMsgs();
+    }
+  }
+
+  send.onclick = sendMsg;
+  ta.onkeydown = function(e) {
+    if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+  };
+  ta.oninput = function() {
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(ta.scrollHeight, 200) + 'px';
+  };
+
+  // Auto-send initial prompt
+  if (_askFullInitialPrompt) {
+    ta.value = _askFullInitialPrompt;
+    _askFullInitialPrompt = null;
+    setTimeout(sendMsg, 150);
+  }
+}
+
+function _askFullNew() {
+  _askFullHistory = [];
+  rAskFull();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// rNewWorkspace — "Skapa ny arbetsyta" (like GitHub's "Create a new repository")
+// ══════════════════════════════════════════════════════════════════════════════
+function rNewWorkspace() {
+  var el = document.getElementById('s-workspace-new');
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  el.classList.add('active');
+  S.screen = 'workspace-new';
+
+  function field(label, required, id, placeholder, helpText) {
+    return '<div style="margin-bottom:18px">'
+      + '<label style="display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:5px">' + label + (required?'<span style="color:var(--red)"> *</span>':'') + '</label>'
+      + (helpText?'<div style="font-size:12px;color:var(--text2);margin-bottom:6px">' + helpText + '</div>':'')
+      + '<input id="' + id + '" type="text" placeholder="' + placeholder + '" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--font);outline:none;box-sizing:border-box;transition:border-color .15s" onfocus="this.style.borderColor=\'var(--teal)\'" onblur="this.style.borderColor=\'var(--border)\'">'
+      + '</div>';
+  }
+
+  function sectionHeader(num, title) {
+    return '<div style="display:flex;align-items:center;gap:12px;margin:28px 0 16px">'
+      + '<div style="width:26px;height:26px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0d1117;flex-shrink:0">' + num + '</div>'
+      + '<span style="font-size:16px;font-weight:700;color:var(--ink)">' + title + '</span>'
+      + '</div>';
+  }
+
+  var typeOptions = ['Klinik', 'Salong', 'Mottagning', 'Studio', 'Spa & Wellness', 'Fysioterapi', 'Psykologi', 'Annan'];
+
+  var h = '<div style="max-width:680px;margin:0 auto;padding:40px 24px 80px;box-sizing:border-box">';
+
+  // Breadcrumb
+  h += '<div style="font-size:13px;color:var(--text2);margin-bottom:20px">';
+  h += '<span onclick="go(\'home\')" style="cursor:pointer;color:var(--teal)">Hem</span>';
+  h += '<span style="margin:0 6px;opacity:.5">/</span>';
+  h += '<span>Ny arbetsyta</span></div>';
+
+  h += '<h1 style="font-size:22px;font-weight:700;color:var(--ink);margin:0 0 4px">Skapa en ny arbetsyta</h1>';
+  h += '<p style="font-size:14px;color:var(--text2);margin:0 0 6px">En arbetsyta innehåller dina patienter, bokningar och all klinisk data. <span style="color:var(--text2)">Har du en befintlig verksamhet?</span> <span style="color:var(--teal);cursor:pointer">Importera data →</span></p>';
+  h += '<p style="font-size:12px;color:var(--text2);margin:0 0 24px;font-style:italic">Obligatoriska fält markeras med asterisk (*).</p>';
+
+  h += '<div style="border-top:1px solid var(--border);padding-top:0">';
+
+  // Section 1
+  h += sectionHeader(1, 'Allmänt');
+
+  // Owner + name (like GitHub)
+  h += '<div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:18px">';
+  h += '<div style="flex:0 0 auto">';
+  h += '<label style="display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:5px">Ägare <span style="color:var(--red)">*</span></label>';
+  h += '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:14px;color:var(--ink)">';
+  h += '<div style="width:22px;height:22px;border-radius:50%;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--teal)">CA</div>';
+  h += 'carlrobert &nbsp;<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div></div>';
+  h += '<div style="font-size:20px;color:var(--text2);padding-bottom:10px">/</div>';
+  h += '<div style="flex:1">';
+  h += '<label style="display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:5px">Arbetsytans namn <span style="color:var(--red)">*</span></label>';
+  h += '<input id="ws-name" type="text" placeholder="min-klinik" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--font);outline:none;box-sizing:border-box;transition:border-color .15s" onfocus="this.style.borderColor=\'var(--teal)\'" onblur="this.style.borderColor=\'var(--border)\'">';
+  h += '</div></div>';
+  h += '<div style="font-size:12px;color:var(--text2);margin-bottom:18px">Bra arbetsytenamn är korta och minnesvärda. Hur vore det med <span id="ws-suggestion" style="color:var(--teal);cursor:pointer">kansei-rehab</span>?</div>';
+
+  // Description
+  h += '<div style="margin-bottom:18px">';
+  h += '<label style="display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:5px">Beskrivning <span style="color:var(--text2);font-weight:400">(valfritt)</span></label>';
+  h += '<input id="ws-desc" type="text" placeholder="Naprapatmottagning i Stockholm specialiserad på idrottsskador" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--font);outline:none;box-sizing:border-box" onfocus="this.style.borderColor=\'var(--teal)\'" onblur="this.style.borderColor=\'var(--border)\'">';
+  h += '<div style="font-size:11px;color:var(--text2);margin-top:4px" id="ws-desc-count">0 / 200 tecken</div>';
+  h += '</div>';
+
+  // Section 2
+  h += sectionHeader(2, 'Konfiguration');
+
+  // Type selector
+  h += '<div style="border:1px solid var(--border);border-radius:9px;overflow:hidden;margin-bottom:16px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border2)">';
+  h += '<div><div style="font-size:14px;font-weight:600;color:var(--ink)">Typ av verksamhet <span style="color:var(--red)">*</span></div><div style="font-size:12px;color:var(--text2);margin-top:2px">Välj den kategori som bäst beskriver din verksamhet</div></div>';
+  h += '<select id="ws-type" style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-size:13px;color:var(--ink);font-family:var(--font);cursor:pointer;outline:none">';
+  typeOptions.forEach(function(t) {
+    h += '<option value="' + t.toLowerCase() + '">' + t + '</option>';
+  });
+  h += '</select></div>';
+
+  // Visibility toggle (like GitHub)
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border2)">';
+  h += '<div><div style="font-size:14px;font-weight:600;color:var(--ink)">Synlighet</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Vem kan se och arbeta i arbetsytan</div></div>';
+  h += '<div style="display:flex;gap:8px">';
+  h += '<label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--teal);border-radius:7px;background:rgba(45,212,191,.06);cursor:pointer;font-size:13px;color:var(--ink)">'
+     + '<input type="radio" name="ws-vis" value="private" checked style="accent-color:var(--teal)"> Privat</label>';
+  h += '<label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;cursor:pointer;font-size:13px;color:var(--text)">'
+     + '<input type="radio" name="ws-vis" value="team" style="accent-color:var(--teal)"> Team</label>';
+  h += '</div></div>';
+
+  // AI retention toggle
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border2)">';
+  h += '<div><div style="font-size:14px;font-weight:600;color:var(--ink)">AI Retention</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Aktivera automatiska retention-utskick från dag ett</div></div>';
+  h += '<label style="display:flex;align-items:center;gap:8px;cursor:pointer">';
+  h += '<span style="font-size:12px;color:var(--text2)" id="ws-ret-label">Av</span>';
+  h += '<input type="checkbox" id="ws-retention" style="width:36px;height:20px;accent-color:var(--teal);cursor:pointer" onchange="document.getElementById(\'ws-ret-label\').textContent=this.checked?\'På\':\'Av\'">';
+  h += '</label></div>';
+
+  // Intakeformulär toggle
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px">';
+  h += '<div><div style="font-size:14px;font-weight:600;color:var(--ink)">Intake-formulär</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Skicka hälsodeklaration automatiskt vid bokning</div></div>';
+  h += '<label style="display:flex;align-items:center;gap:8px;cursor:pointer">';
+  h += '<span style="font-size:12px;color:var(--text2)" id="ws-int-label">Av</span>';
+  h += '<input type="checkbox" id="ws-intake" style="width:36px;height:20px;accent-color:var(--teal);cursor:pointer" onchange="document.getElementById(\'ws-int-label\').textContent=this.checked?\'På\':\'Av\'">';
+  h += '</label></div>';
+  h += '</div>'; // config box
+
+  // Submit
+  h += '<div style="display:flex;justify-content:flex-end;margin-top:24px">';
+  h += '<button id="ws-create-btn" style="padding:10px 28px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Skapa arbetsyta</button>';
+  h += '</div>';
+  h += '</div></div>'; // form + outer
+
+  el.innerHTML = h;
+
+  // Wire description counter
+  var descEl = el.querySelector('#ws-desc');
+  if (descEl) descEl.oninput = function() {
+    el.querySelector('#ws-desc-count').textContent = descEl.value.length + ' / 200 tecken';
+  };
+
+  // Wire name → suggestion
+  var nameEl = el.querySelector('#ws-name');
+  var sugEl  = el.querySelector('#ws-suggestion');
+  var suggestions = ['kansei-rehab', 'min-klinik', 'vela-klinik'];
+  if (sugEl) sugEl.onclick = function() {
+    if (nameEl) nameEl.value = suggestions[0];
+  };
+
+  // Wire create button
+  var createBtn = el.querySelector('#ws-create-btn');
+  if (createBtn) createBtn.onclick = function() {
+    var name = (el.querySelector('#ws-name')||{}).value?.trim();
+    if (!name) { el.querySelector('#ws-name').focus(); showAutoSaveToast('Ange ett namn för arbetsytan'); return; }
+    var desc = (el.querySelector('#ws-desc')||{}).value?.trim() || '';
+    var type = (el.querySelector('#ws-type')||{}).value || 'klinik';
+    var retention = el.querySelector('#ws-retention')?.checked || false;
+    var intake    = el.querySelector('#ws-intake')?.checked || false;
+
+    // Save workspace config
+    var workspaces = JSON.parse(localStorage.getItem('vela:workspaces')||'[]');
+    workspaces.push({ id:'ws_'+Date.now(), name:name, desc:desc, type:type, retention:retention, intake:intake, createdAt:new Date().toISOString() });
+    localStorage.setItem('vela:workspaces', JSON.stringify(workspaces));
+
+    showAutoSaveToast('Arbetsyta skapad!');
+    setTimeout(function(){ go('home'); }, 600);
+  };
+}
+
+
+
+function rHome() {
+  var el = document.getElementById('s-home');
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  el.classList.add('active');
+  S.screen = 'home';
+
+  var now   = new Date();
+  var hour  = now.getHours();
+  var pats  = S.patients || [];
+  var cfg   = getClinicConfig ? getClinicConfig() : {};
+
+  // Gather context for chips
+  var openIssues = typeof _gatherIssues==='function' ? _gatherIssues().filter(function(i){
+    var closed = JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').map(function(c){return c.id;});
+    return closed.indexOf(i.id)===-1;
+  }) : [];
+
+  // Getting started
+  var checks = [
+    { label:'Anslut Anthropic API-nyckel', done:!!(localStorage.getItem('vela:api-key')||'').length,           action:"go('settings')", sub:'Krävs för alla AI-funktioner i Vela' },
+    { label:'Fyll i klinikprofil',         done:!!(cfg.address),                                                action:"go('settings')", sub:'Namn, adress och kontaktuppgifter' },
+    { label:'Lägg till din första patient',done: pats.length > 0,                                               action:"go('list')",     sub:'Importera eller skapa manuellt' },
+    { label:'Anslut Gmail',                done: typeof _gmailIsAuthed==='function'&&_gmailIsAuthed(),           action:"go('activity')", sub:'Läs och hantera patientmail i Vela' },
+    { label:'Konfigurera e-postutskick',   done:!!(localStorage.getItem('vela:resend-key')||'').length,         action:"go('settings')", sub:'Resend — bekräftelser och retention' },
+  ];
+  var doneCnt = checks.filter(function(c){ return c.done; }).length;
+  var allDone = doneCnt === checks.length;
+
+  // Workspaces in sidebar
+  var workspaces = JSON.parse(localStorage.getItem('vela:workspaces')||'[]');
+
+  var h = '<div style="display:flex;height:calc(100vh - 52px);background:var(--bg);font-family:var(--font)">';
+
+  // ── Left sidebar (like GitHub home sidebar) ───────────────────────────────
+  h += '<div style="width:280px;flex-shrink:0;padding:20px 16px;border-right:1px solid var(--border);overflow-y:auto">';
+
+  // New workspace button
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h += '<span style="font-size:12px;font-weight:600;color:var(--text2)">Arbetsytor</span>';
+  h += '<button onclick="go(\'workspace-new\')" style="display:flex;align-items:center;gap:5px;padding:3px 10px;background:var(--green);color:#0d1117;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">'
+     + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ny</button>';
+  h += '</div>';
+
+  // Search
+  h += '<div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:7px 10px;margin-bottom:12px">';
+  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += '<input type="text" placeholder="Hitta en arbetsyta..." style="border:none;background:none;font-size:12px;color:var(--ink);font-family:var(--font);outline:none;width:100%">';
+  h += '</div>';
+
+  // Workspace list — current clinic + any created
+  var wsItems = [{ id:'current', name: cfg.name||'Min klinik', sub:'Aktiv', isCurrent:true }];
+  workspaces.forEach(function(w){ wsItems.push({ id:w.id, name:w.name, sub:w.type, isCurrent:false }); });
+
+  wsItems.forEach(function(ws) {
+    h += '<div onclick="go(\'dashboard\')" style="display:flex;align-items:center;gap:10px;padding:8px 6px;border-radius:7px;cursor:pointer;margin-bottom:2px" '
+       + 'onmouseenter="this.style.background=\'rgba(177,186,196,.08)\'" onmouseleave="this.style.background=\'none\'">';
+    h += '<div style="width:28px;height:28px;border-radius:7px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--teal);flex-shrink:0">';
+    h += ws.name.slice(0,2).toUpperCase() + '</div>';
+    h += '<div style="flex:1;min-width:0">';
+    h += '<div style="font-size:13px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e(ws.name) + '</div>';
+    h += '<div style="font-size:11px;color:var(--text2)">' + e(ws.sub) + '</div></div>';
+    if (ws.isCurrent) h += '<div style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0"></div>';
+    h += '</div>';
+  });
+
+  h += '</div>'; // sidebar
+
+  // ── Main content ──────────────────────────────────────────────────────────
+  h += '<div style="flex:1;overflow-y:auto">';
+  h += '<div style="max-width:740px;margin:0 auto;padding:36px 24px 80px;box-sizing:border-box">';
+
+  h += '<h1 style="font-size:22px;font-weight:700;color:var(--ink);margin:0 0 20px;letter-spacing:-.02em">Hem</h1>';
+
+  // ── Ask box ─────────────────────────────────────────────────────────────
+  h += '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px;background:var(--surface)">';
+  h += '<textarea id="home-ask-ta" placeholder="Fråga Vela AI om vad som helst..." style="width:100%;min-height:68px;border:none;background:none;padding:14px 16px 6px;font-size:15px;font-family:var(--font);color:var(--ink);resize:none;outline:none;box-sizing:border-box;line-height:1.6"></textarea>';
+  // Slash command autocomplete placeholder
+  h += '<div id="home-slash-dd" style="display:none;border-top:1px solid var(--border);background:var(--surface)">';
+  var slashCmds = [
+    {cmd:'/rapport',    desc:'Generera verksamhetsrapport'},
+    {cmd:'/rehabplan',  desc:'Skapa rehabplan för en patient'},
+    {cmd:'/journal',    desc:'Skriv journalanteckning'},
+    {cmd:'/mail',       desc:'Skriv patientmail'},
+    {cmd:'/retention',  desc:'Kör retention-analys'},
+    {cmd:'/export',     desc:'Exportera data'},
+  ];
+  slashCmds.forEach(function(sc) {
+    h += '<div class="home-slash-item" data-cmd="' + sc.cmd + '" style="display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--border2)" onmouseenter="this.style.background=\'rgba(177,186,196,.06)\'" onmouseleave="this.style.background=\'none\'">';
+    h += '<code style="font-size:13px;font-weight:600;color:var(--teal);font-family:var(--font-mono)">' + sc.cmd + '</code>';
+    h += '<span style="font-size:12px;color:var(--text2)">' + sc.desc + '</span></div>';
+  });
+  h += '</div>';
+  // Bottom bar
+  h += '<div style="display:flex;align-items:center;gap:8px;padding:7px 12px 10px">';
+  h += '<button style="display:flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:none;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)">';
+  h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>';
+  h += 'Alla patienter <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>';
+  h += '<span style="flex:1"></span>';
+  h += '<span style="font-size:11px;color:var(--text2)">claude-sonnet-4</span>';
+  h += '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
+  h += '<button id="home-ask-send" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:var(--teal);border:none;border-radius:7px;cursor:pointer">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0d1117" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+  h += '</button></div></div>';
+
+  // ── Chips ──────────────────────────────────────────────────────────────
+  h += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:28px">';
+
+  function homeChip(label, icon, subs) {
+    var hasDD = subs && subs.length;
+    var c = '<div style="position:relative" class="hc-wrap">';
+    c += '<button class="hc-btn" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);font-size:13px;font-weight:500;color:var(--text);cursor:pointer;font-family:var(--font);white-space:nowrap">';
+    c += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' + icon + '</svg>' + label;
+    if (hasDD) c += ' <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
+    c += '</button>';
+    if (hasDD) {
+      c += '<div class="hc-dd" style="display:none;position:absolute;top:calc(100% + 5px);left:0;z-index:300;background:var(--surface);border:1px solid var(--border);border-radius:9px;box-shadow:0 8px 28px rgba(0,0,0,.35);min-width:290px;overflow:hidden">';
+      subs.forEach(function(s) {
+        c += '<div class="hc-item" data-p="' + e(s) + '" style="padding:10px 14px;font-size:13px;color:var(--text);cursor:pointer;border-bottom:1px solid var(--border2)" onmouseenter="this.style.background=\'rgba(177,186,196,.07)\'" onmouseleave="this.style.background=\'none\'">' + s + '</div>';
+      });
+      c += '</div>';
+    }
+    c += '</div>';
+    return c;
+  }
+
+  h += homeChip('Fråga',
+    '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+    null);
+
+  h += homeChip('Rapport',
+    '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+    ['Månadsrapport för ' + (cfg.name||'kliniken'),
+     'Kvartalsöversikt — intäkter och besök',
+     'Behandlarprestation senaste 30 dagarna',
+     'Exportera sammanfattning till CFO',
+     'Avhoppstrend — vilka patienter försvinner?']);
+
+  h += homeChip('Åtgärder',
+    '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+    openIssues.length
+      ? openIssues.slice(0,4).map(function(i){ return i.patName + ' — ' + i.title; }).concat(['Visa alla ' + openIssues.length + ' öppna ärenden →'])
+      : ['Visa alla öppna ärenden', 'Patienter med avhoppsrisk', 'Olästa patientmail', 'No-shows att debitera']);
+
+  h += homeChip('Insikter',
+    '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+    ['Vilka patienter löper störst risk att hoppa av?',
+     'Hur ser retention-trenden ut de senaste 3 månaderna?',
+     'Vilka diagnoser är vanligast?',
+     'Sammanfatta klinikens status just nu']);
+
+  h += '</div>'; // chips
+
+  // ── Getting started ───────────────────────────────────────────────────
+  if (!allDone) {
+    h += '<div style="margin-bottom:28px">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+    h += '<span style="font-size:15px;font-weight:600;color:var(--ink)">Kom igång</span>';
+    h += '<div style="display:flex;align-items:center;gap:10px">';
+    h += '<div style="width:120px;height:5px;background:var(--surface2);border-radius:99px;overflow:hidden"><div style="width:' + Math.round(doneCnt/checks.length*100) + '%;height:100%;background:var(--teal);border-radius:99px"></div></div>';
+    h += '<span style="font-size:12px;color:var(--text2)">' + doneCnt + '/' + checks.length + ' klart</span>';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" style="cursor:pointer"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>';
+    h += '</div></div>';
+    h += '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)">';
+    checks.forEach(function(c, i) {
+      h += '<div onclick="' + (c.done?'':c.action) + '" style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:' + (i<checks.length-1?'1px solid var(--border2)':'none') + ';cursor:' + (c.done?'default':'pointer') + '">';
+      h += '<div style="width:20px;height:20px;border-radius:50%;border:2px solid ' + (c.done?'var(--green)':'var(--border)') + ';background:' + (c.done?'var(--green)':'none') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">';
+      if (c.done) h += '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      h += '</div>';
+      h += '<div><div style="font-size:14px;font-weight:' + (c.done?'400':'600') + ';color:' + (c.done?'var(--text2)':'var(--ink)') + ';' + (c.done?'text-decoration:line-through':'') + '">' + c.label + '</div>';
+      if (!c.done) h += '<div style="font-size:12px;color:var(--text2);margin-top:2px">' + c.sub + '</div>';
+      h += '</div></div>';
+    });
+    h += '</div></div>';
+  }
+
+  // ── Utforska Vela cards ───────────────────────────────────────────────
+  h += '<div>';
+  h += '<div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:12px">Utforska Vela</div>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+  [
+    { icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',   title:'AI-journalföring',   sub:'Spela in besök och transkribera automatiskt',      dest:'meeting' },
+    { icon:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>',  title:'Retention-system',   sub:'Automatiska utskick baserade på patientstatus',   dest:'intelligence' },
+    { icon:'<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/>',  title:'Patientportalen',   sub:'Patienter bokar om och läser sin rehabplan',       dest:'list' },
+    { icon:'<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>',  title:'Hael-planer',        sub:'Personliga rehabprogram som patienten ser',        dest:'hael' },
+  ].forEach(function(dc) {
+    h += '<div onclick="go(\'' + dc.dest + '\')" style="border:1px solid var(--border);border-radius:9px;padding:16px;cursor:pointer;background:var(--surface);transition:border-color .15s" onmouseenter="this.style.borderColor=\'var(--teal)\'" onmouseleave="this.style.borderColor=\'var(--border)\'">';
+    h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round" style="margin-bottom:8px;display:block">' + dc.icon + '</svg>';
+    h += '<div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px">' + dc.title + '</div>';
+    h += '<div style="font-size:12px;color:var(--text2);line-height:1.5">' + dc.sub + '</div>';
+    h += '</div>';
+  });
+  h += '</div></div>';
+
+  h += '</div></div>'; // content + scroll
+
+  // ── Footer ──────────────────────────────────────────────────────────────
+  h += '<footer style="border-top:1px solid var(--border);padding:18px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:var(--bg)">';
+  h += '<div style="display:flex;align-items:center;gap:7px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span style="font-size:12px;color:var(--text2)">&copy; 2026 Vela AB</span></div>';
+  h += '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">';
+  ['Villkor','Integritet','Säkerhet','Status','Vela Docs','Kontakta oss'].forEach(function(lbl) {
+    h += '<a href="#" style="font-size:12px;color:var(--text2);text-decoration:none" onmouseover="this.style.color=\'var(--ink)\'" onmouseout="this.style.color=\'var(--text2)\'">' + lbl + '</a>';
+  });
+  h += '</div></footer>';
+
+  h += '</div>'; // page
+  el.innerHTML = h;
+
+  // ── Wire Ask box ──────────────────────────────────────────────────────────
+  var ta   = el.querySelector('#home-ask-ta');
+  var send = el.querySelector('#home-ask-send');
+  var slashDD = el.querySelector('#home-slash-dd');
+
+  function sendHomeAsk() {
+    var q = ta.value.trim();
+    if (!q) return;
+    _askFullHistory = [];
+    go('ask-full');
+    // After navigation, send the prompt
+    setTimeout(function() { rAskFull(q); }, 50);
+  }
+
+  send.onclick = sendHomeAsk;
+  ta.onkeydown = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendHomeAsk(); return; }
+    // Slash commands
+    if (e.key === '/') {
+      setTimeout(function() {
+        if (ta.value.trim().startsWith('/')) {
+          slashDD.style.display = 'block';
+        }
+      }, 0);
+    } else if (e.key === 'Escape') {
+      slashDD.style.display = 'none';
+    }
+  };
+  ta.oninput = function() {
+    if (!ta.value.trim().startsWith('/')) slashDD.style.display = 'none';
+  };
+
+  // Slash command click
+  el.querySelectorAll('.home-slash-item').forEach(function(item) {
+    item.onclick = function() {
+      ta.value = item.getAttribute('data-cmd') + ' ';
+      slashDD.style.display = 'none';
+      ta.focus();
+    };
+  });
+
+  // ── Wire chips ─────────────────────────────────────────────────────────
+  document.addEventListener('click', function homeChipClose(e) {
+    if (!e.target.closest('.hc-wrap')) {
+      document.querySelectorAll('.hc-dd').forEach(function(d){ d.style.display='none'; });
+    }
+    if (S.screen !== 'home') document.removeEventListener('click', homeChipClose);
+  });
+
+  el.querySelectorAll('.hc-btn').forEach(function(btn) {
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      var dd = btn.closest('.hc-wrap').querySelector('.hc-dd');
+      if (!dd) { ta.focus(); return; }
+      document.querySelectorAll('.hc-dd').forEach(function(d){ if(d!==dd) d.style.display='none'; });
+      dd.style.display = dd.style.display==='none'||!dd.style.display ? 'block' : 'none';
+    };
+  });
+
+  el.querySelectorAll('.hc-item').forEach(function(item) {
+    item.onclick = function(e) {
+      e.stopPropagation();
+      document.querySelectorAll('.hc-dd').forEach(function(d){ d.style.display='none'; });
+      var prompt = item.getAttribute('data-p');
+      ta.value = prompt;
+      sendHomeAsk();
+    };
+  });
+}
+
+
+async function _homeAsk(prompt) {
+  // Open Vela Ask with the prompt pre-filled
+  if (window._velaAskPrompt) {
+    _velaAskPrompt(prompt);
+  } else if (typeof toggleVelaAsk === 'function') {
+    toggleVelaAsk();
+    setTimeout(function() {
+      if (window._velaAskPrompt) _velaAskPrompt(prompt);
+    }, 200);
+  }
+}
+
+
 
 function rDashboard() {
   rDayView();
@@ -30689,7 +31303,7 @@ function getAiProfileContext(userId) {
         initTheme();
         const _ld = document.getElementById('page-loader');
         if (_ld) { _ld.style.opacity='0'; _ld.style.transition='opacity .2s'; setTimeout(()=>{ try{_ld.remove();}catch(e){} },250); }
-        if (!_maybeLaunchPortal()) { go('dashboard'); }
+        if (!_maybeLaunchPortal()) { go('home'); }
         initVelaAsk();
         setTimeout(() => rNavLogo(), 100);
         setTimeout(() => syncFromCloud(), 800);

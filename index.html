@@ -4751,17 +4751,22 @@ function go(scr){
     if (tb) tb.style.display = 'none';
   } else {
     var _isPlatformScreen = ['home','workspace-new','ask-full'].indexOf(scr) !== -1;
+    var _navSidebar = document.getElementById('nav-sidebar');
+    var _mainContent = document.querySelector('.main-content');
     if (_isPlatformScreen) {
-      // Platform-level screens have their own minimal topbar inside the screen HTML
-      // Hide the clinic topbar completely
-      if (_gtbWrap) _gtbWrap.style.display = 'none';
-      if (_appShell) _appShell.style.paddingTop = '0';
+      // Platform screens own their full layout — hide all clinic chrome
+      if (_gtbWrap)    _gtbWrap.style.display    = 'none';
+      if (_appShell)   _appShell.style.paddingTop = '0';
+      if (_navSidebar) _navSidebar.style.display  = 'none';
+      if (_mainContent) _mainContent.style.marginLeft = '0';
       var tb2p = document.querySelector('.topbar');
       if (tb2p) tb2p.style.display = 'none';
     } else {
-      // Clinic-level screens: show clinic topbar
-      if (_gtbWrap) _gtbWrap.style.display = '';
-      if (_appShell) _appShell.style.paddingTop = '52px';
+      // Clinic-level screens: restore all clinic chrome
+      if (_gtbWrap)    _gtbWrap.style.display    = '';
+      if (_appShell)   _appShell.style.paddingTop = '52px';
+      if (_navSidebar) _navSidebar.style.display  = '';
+      if (_mainContent) _mainContent.style.marginLeft = '';
       var tb2 = document.querySelector('.topbar');
       if (tb2) tb2.style.display = '';
     }
@@ -10480,6 +10485,7 @@ function rNewWorkspace() {
   h += '<input id="ws-name" type="text" placeholder="min-klinik" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--font);outline:none;box-sizing:border-box;transition:border-color .15s" onfocus="this.style.borderColor=\'var(--teal)\'" onblur="this.style.borderColor=\'var(--border)\'">';
   h += '</div></div>';
   h += '<div style="font-size:12px;color:var(--text2);margin-bottom:18px">Bra arbetsytenamn är korta och minnesvärda. Hur vore det med <span id="ws-suggestion" style="color:var(--teal);cursor:pointer">kansei-rehab</span>?</div>';
+  h += '<div id="ws-name-err" style="display:none;align-items:center;gap:6px;font-size:12px;color:var(--red);margin:-8px 0 10px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span id="ws-name-err-txt"></span></div>';
 
   // Description
   h += '<div style="margin-bottom:18px">';
@@ -10552,9 +10558,33 @@ function rNewWorkspace() {
 
   // Wire create button
   var createBtn = el.querySelector('#ws-create-btn');
+  // Live name validation
+  var nameInp = el.querySelector('#ws-name');
+  var nameErr = el.querySelector('#ws-name-err');
+  function validateName() {
+    var val = nameInp.value.trim().toLowerCase().replace(/\s+/g,'-');
+    nameInp.value = val;
+    var existing = JSON.parse(localStorage.getItem('vela:workspaces')||'[]');
+    var cfg = getClinicConfig ? getClinicConfig() : {};
+    var takenNames = existing.map(function(w){ return w.name.toLowerCase(); });
+    if (cfg.name) takenNames.push(cfg.name.toLowerCase());
+    if (val && takenNames.indexOf(val) !== -1) {
+      nameErr.textContent = 'Namnet “' + val + '” är redan använt. Välj ett annat.';
+      nameErr.style.display = 'flex';
+      nameInp.style.borderColor = 'var(--red)';
+      return false;
+    } else {
+      nameErr.style.display = 'none';
+      nameInp.style.borderColor = val ? 'var(--green)' : 'var(--border)';
+      return true;
+    }
+  }
+  if (nameInp) { nameInp.oninput = validateName; nameInp.onblur = validateName; }
+
   if (createBtn) createBtn.onclick = function() {
     var name = (el.querySelector('#ws-name')||{}).value?.trim();
-    if (!name) { el.querySelector('#ws-name').focus(); showAutoSaveToast('Ange ett namn för arbetsytan'); return; }
+    if (!name) { nameInp.focus(); showAutoSaveToast('Ange ett namn för arbetsytan'); return; }
+    if (!validateName()) return; // name collision
     var desc = (el.querySelector('#ws-desc')||{}).value?.trim() || '';
     var type = (el.querySelector('#ws-type')||{}).value || 'klinik';
     var retention = el.querySelector('#ws-retention')?.checked || false;
@@ -10581,100 +10611,103 @@ function rHome() {
 
   var pats = S.patients || [];
   var cfg  = getClinicConfig ? getClinicConfig() : {};
-  var workspaces = JSON.parse(localStorage.getItem('vela:workspaces') || '[]');
+  var ws   = JSON.parse(localStorage.getItem('vela:workspaces') || '[]');
 
-  // All workspaces = saved ones + current clinic as default
-  var allWs = [{ id:'current', name: cfg.name || 'Min klinik', type:'klinik', isCurrent:true }]
-    .concat(workspaces.map(function(w){ return Object.assign({}, w, { isCurrent:false }); }));
+  // All workspaces
+  var allWs = [{ id:'current', name: cfg.name || 'Min klinik', type:'Aktiv arbetsyta', isCurrent:true }]
+    .concat(ws);
 
-  // Getting started = workspace-focused, not API-key focused
+  // Getting started — GitHub accordion style
   var checks = [
-    { label:'Skapa din första arbetsyta',     done: workspaces.length > 0 || pats.length > 0, action:"go('workspace-new')", sub:'Sätt upp klinik, salong eller mottagning' },
-    { label:'Lägg till din första patient',   done: pats.length > 0,                          action:"go('dashboard')", sub:'Importera eller skapa manuellt' },
-    { label:'Anslut Anthropic API-nyckel',    done:!!(localStorage.getItem('vela:api-key')||'').length, action:"go('settings')", sub:'Krävs för alla AI-funktioner' },
-    { label:'Anslut Gmail',                   done: typeof _gmailIsAuthed==='function'&&_gmailIsAuthed(), action:"go('activity')", sub:'Läs patientmail direkt i Vela' },
-    { label:'Konfigurera e-postutskick',      done:!!(localStorage.getItem('vela:resend-key')||'').length, action:"go('settings')", sub:'Bekräftelser och retention via Resend' },
+    { label:'Skapa din första arbetsyta',   done: ws.length > 0,  action:"go('workspace-new')", actionLabel:'Skapa arbetsyta', sub:'En arbetsyta samlar alla dina patienter, bokningar och klinisk data på ett ställe.' },
+    { label:'Lägg till din första patient', done: pats.length > 0, action:"go('dashboard')",     actionLabel:'Gå till patienter', sub:'Importera en befintlig patientlista eller lägg till manuellt.' },
+    { label:'Anslut Anthropic API-nyckel',  done:!!(localStorage.getItem('vela:api-key')||'').length, action:"go('settings')", actionLabel:'Öppna inställningar', sub:'API-nyckeln aktiverar AI-journalföring, rehabplaner, retention och Vela Ask.' },
+    { label:'Anslut Gmail',                 done: typeof _gmailIsAuthed==='function'&&_gmailIsAuthed(), action:"go('activity')", actionLabel:'Anslut Gmail', sub:'Läs och svara på patientmail utan att lämna Vela. AI föreslår svar direkt.' },
+    { label:'Konfigurera e-postutskick',    done:!!(localStorage.getItem('vela:resend-key')||'').length, action:"go('settings')", actionLabel:'Konfigurera', sub:'Resend möjliggör automatiska bokningsbekräftelser och retention-utskick.' },
   ];
   var doneCnt = checks.filter(function(c){ return c.done; }).length;
 
-  // Dynamic chip suggestions
+  // Open issues for chip context
   var openIssues = typeof _gatherIssues==='function' ? _gatherIssues().filter(function(i){
-    var closed = JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').map(function(c){return c.id;});
-    return closed.indexOf(i.id)===-1;
+    return JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').map(function(c){return c.id;}).indexOf(i.id)===-1;
   }) : [];
 
-  var authEmail = (_authUser && _authUser.email) || '';
-  var authInitials = authEmail.slice(0,2).toUpperCase() || 'CA';
+  var authEmail    = (_authUser && _authUser.email) || '';
+  var authInitials = authEmail.split('@')[0].slice(0,2).toUpperCase() || 'CA';
 
-  // ═══ Full page layout — NO app topbar, HOME has its own ══════════════════
-  var h = '<div style="min-height:100vh;background:var(--bg);font-family:var(--font);display:flex;flex-direction:column">';
+  // Active getting-started item
+  var activeCheck = window._homeActiveCheck !== undefined ? window._homeActiveCheck
+    : checks.findIndex(function(c){ return !c.done; });
 
-  // ── Platform topbar (GitHub-style, simple) ────────────────────────────────
-  h += '<div style="height:52px;background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;position:sticky;top:0;z-index:100;flex-shrink:0">';
-  // Hamburger (like GitHub)
-  h += '<button style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;display:flex;align-items:center">'
-     + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>';
+  // ── Full-page layout ───────────────────────────────────────────────────────
+  var h = '<div style="display:flex;flex-direction:column;height:100vh;background:var(--bg);font-family:var(--font)">';
+
+  // ── Platform topbar ─────────────────────────────────────────────────────────
+  h += '<div style="height:52px;background:#0d1117;border-bottom:1px solid #21262d;display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;position:sticky;top:0;z-index:100">';
+  // Hamburger
+  h += '<button style="background:none;border:none;color:#6e7681;cursor:pointer;padding:4px;border-radius:6px;display:flex" onmouseenter="this.style.color=\'#e6edf3\'" onmouseleave="this.style.color=\'#6e7681\'">'
+     + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>';
   // Logo
-  h += '<div style="display:flex;align-items:center;gap:7px;cursor:pointer;margin-right:8px" onclick="rHome()">';
-  h += '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
-  h += '</div>';
-  // Search (like GitHub "Type / to search")
-  h += '<div style="flex:1;max-width:360px">';
-  h += '<div style="display:flex;align-items:center;gap:8px;background:rgba(177,186,196,.1);border:1px solid var(--border);border-radius:7px;padding:6px 12px;cursor:text" onclick="document.getElementById(\'home-ask-ta\').focus()">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-  h += '<span style="font-size:13px;color:var(--text2)">Sök eller fråga Vela AI...</span>';
-  h += '<kbd style="margin-left:auto;font-size:10px;background:rgba(177,186,196,.15);border:1px solid var(--border);border-radius:4px;padding:1px 5px;color:var(--text2)">⌘K</kbd>';
-  h += '</div></div>';
-  // Right: avatar
-  h += '<div style="margin-left:auto;display:flex;align-items:center;gap:10px">';
-  h += '<button onclick="go(\'settings\')" style="background:none;border:none;cursor:pointer;padding:4px;color:var(--text2)" title="Inställningar">'
+  h += '<div style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px;border-radius:6px;margin-right:4px" onclick="rHome()" onmouseenter="this.style.opacity=\'.8\'" onmouseleave="this.style.opacity=\'1\'">'
+     + '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e6edf3" stroke-width="2.2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>';
+  // Search bar
+  h += '<div style="flex:1;max-width:320px">'
+     + '<div style="display:flex;align-items:center;gap:8px;background:#161b22;border:1px solid #30363d;border-radius:6px;padding:5px 12px;cursor:text;transition:border-color .15s" '
+     + 'onclick="document.getElementById(\'home-ask-ta\').focus()" onmouseenter="this.style.borderColor=\'#58a6ff\'" onmouseleave="this.style.borderColor=\'#30363d\'">'
+     + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
+     + '<span style="font-size:13px;color:#6e7681;flex:1">Sök eller fråga Vela AI...</span>'
+     + '<kbd style="font-size:10px;background:#21262d;border:1px solid #30363d;border-radius:4px;padding:1px 5px;color:#6e7681;font-family:var(--font-mono)">⌘K</kbd>'
+     + '</div></div>';
+  // Right
+  h += '<div style="margin-left:auto;display:flex;align-items:center;gap:6px">';
+  // Settings icon
+  h += '<button onclick="go(\'settings\')" style="background:none;border:none;cursor:pointer;padding:5px;border-radius:6px;color:#6e7681;display:flex;align-items:center" onmouseenter="this.style.color=\'#e6edf3\'" onmouseleave="this.style.color=\'#6e7681\'" title="Inställningar">'
      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>';
-  h += '<div onclick="_openUserMenu(this)" style="width:30px;height:30px;border-radius:50%;background:rgba(45,212,191,.15);border:1px solid rgba(45,212,191,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font-mono)">' + authInitials + '</div>';
-  h += '</div></div>'; // platform topbar
+  // Avatar
+  h += '<div onclick="_openUserMenu(this)" style="width:28px;height:28px;border-radius:50%;background:rgba(45,212,191,.15);border:1px solid rgba(45,212,191,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#2dd4bf;cursor:pointer;font-family:var(--font-mono)">' + authInitials + '</div>';
+  h += '</div></div>'; // topbar
 
-  // ── Body: sidebar + main ──────────────────────────────────────────────────
+  // ── Two-column body ─────────────────────────────────────────────────────────
   h += '<div style="display:flex;flex:1;overflow:hidden">';
 
-  // Sidebar (like GitHub's left panel on dashboard)
-  h += '<div style="width:270px;flex-shrink:0;padding:16px 12px;border-right:1px solid var(--border);overflow-y:auto;background:var(--bg)">';
+  // ── Left sidebar ────────────────────────────────────────────────────────────
+  h += '<div style="width:256px;flex-shrink:0;padding:20px 16px;border-right:1px solid #21262d;overflow-y:auto;background:#0d1117">';
 
-  // Workspace header + New button
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
-  h += '<span style="font-size:11px;font-weight:700;color:var(--text2);letter-spacing:.04em;text-transform:uppercase">Arbetsytor</span>';
-  h += '<button onclick="go(\'workspace-new\')" style="display:flex;align-items:center;gap:4px;padding:3px 10px;background:var(--green);color:#0d1117;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)">'
-     + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
-     + ' Ny arbetsyta</button>';
+  // Top repositories header (exactly like GitHub)
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h += '<span style="font-size:13px;font-weight:600;color:#e6edf3">Arbetsytor</span>';
+  h += '<button onclick="go(\'workspace-new\')" style="display:flex;align-items:center;gap:4px;padding:3px 10px;background:#238636;color:#fff;border:1px solid rgba(240,246,252,.1);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">'
+     + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ny</button>';
   h += '</div>';
 
-  // Search workspaces
-  h += '<div style="display:flex;align-items:center;gap:7px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:6px 10px;margin-bottom:10px">';
-  h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-  h += '<input type="text" placeholder="Hitta en arbetsyta..." style="border:none;background:none;font-size:12px;color:var(--ink);font-family:var(--font);outline:none;width:100%">';
-  h += '</div>';
+  // Search (exactly like GitHub's "Find a repository...")
+  h += '<div style="position:relative;margin-bottom:12px">'
+     + '<input type="text" placeholder="Hitta en arbetsyta..." style="width:100%;background:#161b22;border:1px solid #30363d;border-radius:6px;padding:6px 10px 6px 30px;font-size:12px;color:#e6edf3;font-family:var(--font);outline:none;box-sizing:border-box;transition:border-color .15s" onfocus="this.style.borderColor=\'#58a6ff\'" onblur="this.style.borderColor=\'#30363d\'">'
+     + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="2" style="position:absolute;left:8px;top:50%;transform:translateY(-50%)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
+     + '</div>';
 
-  // Workspace items
-  allWs.forEach(function(ws) {
-    var initials = ws.name.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-    h += '<div onclick="go(\'dashboard\')" style="display:flex;align-items:center;gap:10px;padding:8px 8px;border-radius:8px;cursor:pointer;margin-bottom:2px;transition:background .1s" onmouseenter="this.style.background=\'rgba(177,186,196,.08)\'" onmouseleave="this.style.background=\'transparent\'">';
-    h += '<div style="width:28px;height:28px;border-radius:7px;background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.15);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--teal);flex-shrink:0;font-family:var(--font-mono)">' + initials + '</div>';
-    h += '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + e(ws.name) + '</div>';
-    h += '<div style="font-size:11px;color:var(--text2)">' + e(ws.type||'klinik') + '</div></div>';
-    if (ws.isCurrent) h += '<div style="width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0"></div>';
+  // Workspace list (like repo list)
+  allWs.forEach(function(workspace) {
+    var initials = (workspace.name||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    h += '<div onclick="go(\'dashboard\')" style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-radius:6px;cursor:pointer;margin-bottom:1px;transition:background .1s" onmouseenter="this.style.background=\'#161b22\'" onmouseleave="this.style.background=\'transparent\'">';
+    h += '<div style="width:16px;height:16px;border-radius:50%;background:rgba(45,212,191,.15);border:1px solid rgba(45,212,191,.3);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#2dd4bf;flex-shrink:0;font-family:var(--font-mono)">' + initials.charAt(0) + '</div>';
+    h += '<span style="font-size:13px;color:#58a6ff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e(workspace.name) + '</span>';
+    if (workspace.isCurrent) h += '<div style="width:6px;height:6px;border-radius:50%;background:#3fb950;flex-shrink:0"></div>';
     h += '</div>';
   });
 
-  h += '</div>'; // sidebar
+  h += '</div>'; // left sidebar
 
-  // ── Main content ────────────────────────────────────────────────────────
-  h += '<div style="flex:1;overflow-y:auto">';
-  h += '<div style="max-width:720px;margin:0 auto;padding:32px 24px 80px;box-sizing:border-box">';
-  h += '<h1 style="font-size:22px;font-weight:700;color:var(--ink);margin:0 0 18px;letter-spacing:-.02em">Hem</h1>';
+  // ── Main content ────────────────────────────────────────────────────────────
+  h += '<div style="flex:1;overflow-y:auto;background:#0d1117">';
+  h += '<div style="max-width:680px;margin:0 auto;padding:28px 24px 80px;box-sizing:border-box">';
+  h += '<h1 style="font-size:20px;font-weight:600;color:#e6edf3;margin:0 0 16px">Hem</h1>';
 
-  // ── Ask box ──────────────────────────────────────────────────────────────
-  h += '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px;background:var(--surface)">';
-  h += '<textarea id="home-ask-ta" placeholder="Fråga Vela AI om vad som helst..." style="width:100%;min-height:68px;border:none;background:none;padding:14px 16px 6px;font-size:15px;font-family:var(--font);color:var(--ink);resize:none;outline:none;box-sizing:border-box;line-height:1.6"></textarea>';
-  // Slash autocomplete
-  h += '<div id="home-slash-dd" style="display:none;border-top:1px solid var(--border)">';
+  // ── Ask box (exactly like GitHub's) ─────────────────────────────────────────
+  h += '<div style="border:1px solid #30363d;border-radius:9px;overflow:hidden;margin-bottom:10px;background:#161b22;transition:border-color .15s" onfocusin="this.style.borderColor=\'#58a6ff\'" onfocusout="this.style.borderColor=\'#30363d\'">';
+  h += '<textarea id="home-ask-ta" placeholder="Fråga vad som helst..." style="width:100%;min-height:64px;border:none;background:none;padding:12px 16px 6px;font-size:14px;font-family:var(--font);color:#e6edf3;resize:none;outline:none;box-sizing:border-box;line-height:1.6;color-scheme:dark"></textarea>';
+  // Slash autocomplete dropdown
+  h += '<div id="home-slash-dd" style="display:none">';
   [
     {cmd:'/rapport',   desc:'Generera verksamhetsrapport'},
     {cmd:'/rehabplan', desc:'Skapa rehabplan för en patient'},
@@ -10683,42 +10716,47 @@ function rHome() {
     {cmd:'/retention', desc:'Kör retention-analys'},
     {cmd:'/export',    desc:'Exportera data'},
   ].forEach(function(sc) {
-    h += '<div class="hm-slash" data-cmd="' + sc.cmd + '" style="display:flex;align-items:center;gap:12px;padding:9px 14px;cursor:pointer;border-bottom:1px solid var(--border2)" onmouseenter="this.style.background=\'rgba(177,186,196,.06)\'" onmouseleave="this.style.background=\'none\'">'
-       + '<code style="font-size:13px;font-weight:600;color:var(--teal);font-family:var(--font-mono)">' + sc.cmd + '</code>'
-       + '<span style="font-size:12px;color:var(--text2)">' + sc.desc + '</span></div>';
+    h += '<div class="hm-slash" data-cmd="' + sc.cmd + '" style="display:flex;align-items:center;gap:12px;padding:8px 14px;cursor:pointer;border-bottom:1px solid #21262d;background:#161b22" onmouseenter="this.style.background=\'#1f2937\'" onmouseleave="this.style.background=\'#161b22\'">'
+       + '<code style="font-size:12px;font-weight:600;color:#58a6ff;font-family:var(--font-mono)">' + sc.cmd + '</code>'
+       + '<span style="font-size:12px;color:#6e7681">' + sc.desc + '</span></div>';
   });
   h += '</div>';
   // Bottom bar
-  h += '<div style="display:flex;align-items:center;gap:8px;padding:7px 12px 10px;border-top:1px solid var(--border2)">';
-  h += '<button style="display:flex;align-items:center;gap:5px;padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:none;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)">'
-     + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'
-     + ' Alla patienter'
-     + ' <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>';
-  h += '<span style="margin-left:auto;font-size:11px;color:var(--text2)">claude-sonnet-4</span>';
-  h += '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
-  h += '<button id="home-ask-send" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;background:var(--teal);border:none;border-radius:7px;cursor:pointer">'
-     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0d1117" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'
-     + '</button></div></div>';
+  h += '<div style="display:flex;align-items:center;gap:6px;padding:6px 12px 10px;border-top:1px solid #21262d">';
+  // Ask | All repositories | +  (exactly GitHub's chips)
+  h += '<button style="display:flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid #30363d;border-radius:6px;background:none;font-size:12px;color:#e6edf3;cursor:pointer;font-family:var(--font)">'
+     + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/></svg>'
+     + ' Fråga <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>';
+  h += '<button style="display:flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid #30363d;border-radius:6px;background:none;font-size:12px;color:#e6edf3;cursor:pointer;font-family:var(--font)">'
+     + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>'
+     + ' Alla arbetsytor <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></button>';
+  h += '<button style="padding:3px 7px;border:1px solid #30363d;border-radius:6px;background:none;font-size:13px;color:#6e7681;cursor:pointer;font-family:var(--font)">+</button>';
+  h += '<span style="margin-left:auto;font-size:11px;color:#6e7681">claude-sonnet-4</span>';
+  h += '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
+  h += '<button id="home-send" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:#2dd4bf;border:none;border-radius:6px;cursor:pointer;flex-shrink:0">'
+     + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0d1117" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>';
+  h += '</div></div>';
 
-  // ── Action chips ──────────────────────────────────────────────────────────
-  h += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:28px">';
+  // ── Action chips (like GitHub's Agent | Create issue | Write code | Git | Pull requests) ──
+  h += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:24px">';
 
-  function mkChip(label, icon, items) {
+  function mkChip(label, icon, items, color) {
     var c = '<div style="position:relative" class="hc-w">';
-    c += '<button class="hc-b" style="display:flex;align-items:center;gap:6px;padding:6px 11px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);font-size:13px;font-weight:500;color:var(--text);cursor:pointer;font-family:var(--font);white-space:nowrap">'
+    c += '<button class="hc-b" style="display:flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid #30363d;border-radius:20px;background:#161b22;font-size:13px;font-weight:500;color:' + (color||'#e6edf3') + ';cursor:pointer;font-family:var(--font);white-space:nowrap;transition:border-color .12s,background .12s" onmouseenter="this.style.borderColor=\'#58a6ff\'" onmouseleave="this.style.borderColor=\'#30363d\'">'
        + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' + icon + '</svg>' + label;
-    if (items) c += ' <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
+    if (items) c += ' <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
     c += '</button>';
-    if (items) {
-      c += '<div class="hc-d" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:300;background:var(--surface);border:1px solid var(--border);border-radius:9px;box-shadow:0 8px 28px rgba(0,0,0,.35);min-width:280px;overflow:hidden">';
+    if (items && items.length) {
+      c += '<div class="hc-d" style="display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:400;background:#161b22;border:1px solid #30363d;border-radius:9px;box-shadow:0 8px 28px rgba(0,0,0,.6);min-width:280px;overflow:hidden">';
       items.forEach(function(s) {
-        c += '<div class="hc-i" data-p="' + s.replace(/"/g,'&quot;') + '" style="padding:10px 14px;font-size:13px;color:var(--text);cursor:pointer;border-bottom:1px solid var(--border2)" onmouseenter="this.style.background=\'rgba(177,186,196,.07)\'" onmouseleave="this.style.background=\'none\'">' + s + '</div>';
+        c += '<div class="hc-i" data-p="' + s.replace(/"/g,'&quot;') + '" style="padding:9px 14px;font-size:13px;color:#c9d1d9;cursor:pointer;border-bottom:1px solid #21262d" onmouseenter="this.style.background=\'#1f2937\'" onmouseleave="this.style.background=\'transparent\'">' + s + '</div>';
       });
       c += '</div>';
     }
     return c + '</div>';
   }
 
+  // No-dropdown "Fråga" chip
   h += mkChip('Fråga', '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>', null);
 
   h += mkChip('Rapport',
@@ -10727,101 +10765,112 @@ function rHome() {
      'Kvartalsöversikt — intäkter och besök',
      'Behandlarprestation senaste 30 dagarna',
      'Exportera sammanfattning till CFO',
-     'Avhoppstrend — vilka patienter försvinner?']);
+     'Avhoppstrend de senaste 3 månaderna']);
 
   h += mkChip('Åtgärder',
     '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
     openIssues.length
-      ? openIssues.slice(0,4).map(function(i){ return i.patName + ' — ' + i.title; }).concat(['Visa alla ' + openIssues.length + ' öppna ärenden →'])
-      : ['Visa alla öppna ärenden', 'Patienter med avhoppsrisk', 'Olästa patientmail', 'No-shows att debitera']);
+      ? openIssues.slice(0,4).map(function(i){ return i.patName + ' \u2014 ' + i.title; }).concat(['Visa alla ' + openIssues.length + ' \u00f6ppna \u00e4renden \u2192'])
+      : ['Visa alla \u00f6ppna \u00e4renden', 'Patienter med avhoppsrisk', 'Ol\u00e4sta patientmail', 'No-shows att debitera']);
 
   h += mkChip('Insikter',
     '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
-    ['Vilka patienter löper störst risk att hoppa av?',
-     'Hur ser retention-trenden ut de senaste 3 månaderna?',
-     'Vilka diagnoser är vanligast i min databas?',
+    ['Vilka patienter l\u00f6per st\u00f6rst risk att hoppa av?',
+     'Hur ser retention-trenden ut senaste 3 m\u00e5naderna?',
+     'Vilka diagnoser \u00e4r vanligast?',
      'Sammanfatta klinikens status just nu']);
 
   h += '</div>';
 
-  // ── Getting started ────────────────────────────────────────────────────────
-  h += '<div style="margin-bottom:28px">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
-  h += '<span style="font-size:15px;font-weight:600;color:var(--ink)">Kom igång</span>';
-  h += '<div style="display:flex;align-items:center;gap:10px">';
-  h += '<div style="width:100px;height:4px;background:var(--surface2);border-radius:99px;overflow:hidden"><div style="width:' + Math.round(doneCnt/checks.length*100) + '%;height:100%;background:var(--teal);border-radius:99px"></div></div>';
-  h += '<span style="font-size:11px;color:var(--text2)">' + doneCnt + '/' + checks.length + ' klart</span>';
+  // ── Getting started — GitHub accordion ────────────────────────────────────────
+  h += '<div style="margin-bottom:24px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h += '<span style="font-size:14px;font-weight:600;color:#e6edf3">Kom ig\u00e5ng</span>';
+  h += '<div style="display:flex;align-items:center;gap:8px">';
+  // Progress bar exactly like GitHub
+  h += '<div style="width:80px;height:6px;background:#21262d;border-radius:99px;overflow:hidden">'
+     + '<div style="width:' + Math.round(doneCnt/checks.length*100) + '%;height:100%;background:#2dd4bf;border-radius:99px;transition:width .4s"></div></div>';
+  h += '<span style="font-size:12px;color:#6e7681">' + doneCnt + '/' + checks.length + ' klart</span>';
   h += '</div></div>';
-  h += '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)">';
+  // Accordion list
+  h += '<div style="border:1px solid #30363d;border-radius:9px;overflow:hidden;background:#161b22">';
   checks.forEach(function(c, i) {
-    var isLast = i === checks.length-1;
-    h += '<div onclick="' + (c.done?'':c.action) + '" style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;' + (isLast?'':'border-bottom:1px solid var(--border2);') + 'cursor:' + (c.done?'default':'pointer') + '">';
-    h += '<div style="width:20px;height:20px;border-radius:50%;border:2px solid ' + (c.done?'var(--green)':'var(--border)') + ';background:' + (c.done?'var(--green)':'none') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">';
-    if (c.done) h += '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    var isActive = activeCheck === i;
+    var isLast   = i === checks.length - 1;
+    h += '<div class="gs-row" data-idx="' + i + '" style="border-bottom:' + (isLast?'none':'1px solid #21262d') + ';background:' + (isActive?'#1c2128':'transparent') + ';cursor:pointer;transition:background .1s">';
+    h += '<div style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px">';
+    // Checkbox circle
+    h += '<div style="width:20px;height:20px;border-radius:50%;border:2px solid ' + (c.done?'#3fb950':'#30363d') + ';background:' + (c.done?'#3fb950':'transparent') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">';
+    if (c.done) h += '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0d1117" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
     h += '</div>';
-    h += '<div><div style="font-size:13px;font-weight:' + (c.done?'400':'600') + ';color:' + (c.done?'var(--text2)':'var(--ink)') + ';' + (c.done?'text-decoration:line-through':'') + '">' + c.label + '</div>';
-    if (!c.done) h += '<div style="font-size:12px;color:var(--text2);margin-top:2px">' + c.sub + '</div>';
-    h += '</div></div>';
+    h += '<div style="flex:1">';
+    h += '<div style="font-size:13px;font-weight:' + (c.done?'400':'600') + ';color:' + (c.done?'#6e7681':'#e6edf3') + ';' + (c.done?'text-decoration:line-through':'') + '">' + c.label + '</div>';
+    // Expanded content (only for active row)
+    if (isActive && !c.done) {
+      h += '<div style="margin-top:8px;font-size:13px;color:#8b949e;line-height:1.6">' + c.sub + '</div>';
+      h += '<div style="margin-top:12px"><button onclick="' + c.action + '" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:#238636;color:#fff;border:1px solid rgba(240,246,252,.1);border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">'
+         + c.actionLabel + '</button></div>';
+    }
+    h += '</div></div></div>';
   });
   h += '</div></div>';
 
-  // ── Utforska Vela ──────────────────────────────────────────────────────────
-  h += '<div style="margin-bottom:32px">';
-  h += '<div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:12px">Utforska Vela</div>';
-  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+  // ── Utforska Vela (like "Start with GitHub Docs") ─────────────────────────────
+  h += '<div>';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h += '<span style="font-size:14px;font-weight:600;color:#e6edf3">Utforska Vela</span>';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="2" style="cursor:pointer"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>';
+  h += '</div>';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';
   [
-    { icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', title:'AI-journalföring', sub:'Spela in besök och transkribera automatiskt', dest:'meeting' },
-    { icon:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>', title:'Retention-system', sub:'Automatiska utskick baserade på patientstatus', dest:'intelligence' },
-    { icon:'<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/>', title:'Patientportalen', sub:'Patienter bokar om och läser sin rehabplan', dest:'list' },
-    { icon:'<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>', title:'Hael-planer', sub:'Personliga rehabprogram som patienten ser', dest:'hael' },
+    { icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',                                                      title:'AI-journalföring',   sub:'Spela in besök · Transkribera automatiskt',    est:'2 min',  dest:'meeting' },
+    { icon:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>',                         title:'Retention-system',   sub:'Automatiska utskick · Avhoppsanalys',          est:'5 min',  dest:'intelligence' },
+    { icon:'<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/>',      title:'Patientportalen',    sub:'Ombokning · Hael-plan · Hemövningar',          est:'3 min',  dest:'list' },
+    { icon:'<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>', title:'Hael-planer',        sub:'Personliga rehabprogram',                     est:'4 min',  dest:'hael' },
   ].forEach(function(dc) {
-    h += '<div onclick="go(\'' + dc.dest + '\')" style="border:1px solid var(--border);border-radius:9px;padding:16px;cursor:pointer;background:var(--surface);transition:border-color .15s" onmouseenter="this.style.borderColor=\'var(--teal)\'" onmouseleave="this.style.borderColor=\'var(--border)\'">';
-    h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round" style="margin-bottom:8px;display:block">' + dc.icon + '</svg>';
-    h += '<div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px">' + dc.title + '</div>';
-    h += '<div style="font-size:12px;color:var(--text2);line-height:1.5">' + dc.sub + '</div></div>';
+    h += '<div onclick="go(\'' + dc.dest + '\')" style="border:1px solid #30363d;border-radius:9px;padding:14px 16px;cursor:pointer;background:#161b22;transition:border-color .15s" onmouseenter="this.style.borderColor=\'#58a6ff\'" onmouseleave="this.style.borderColor=\'#30363d\'">';
+    h += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="1.8" stroke-linecap="round" style="margin-bottom:10px;display:block">' + dc.icon + '</svg>';
+    h += '<div style="font-size:13px;font-weight:600;color:#e6edf3;margin-bottom:2px">' + dc.title + '</div>';
+    h += '<div style="font-size:11px;color:#6e7681;line-height:1.5;margin-bottom:6px">' + dc.sub + '</div>';
+    h += '<div style="font-size:11px;color:#6e7681">Läs &middot; Ca ' + dc.est + '</div>';
+    h += '</div>';
   });
   h += '</div></div>';
+
+  // Footer
+  h += '<div style="margin-top:40px;padding-top:20px;border-top:1px solid #21262d;display:flex;flex-wrap:wrap;gap:12px">';
+  ['Villkor','Integritet','Säkerhet','Status','Vela Docs','Kontakta oss'].forEach(function(l) {
+    h += '<a href="#" style="font-size:12px;color:#6e7681;text-decoration:none" onmouseover="this.style.color=\'#58a6ff\'" onmouseout="this.style.color=\'#6e7681\'">' + l + '</a>';
+  });
+  h += '<span style="font-size:12px;color:#6e7681;margin-left:auto">&copy; 2026 Vela AB</span>';
+  h += '</div>';
 
   h += '</div></div>'; // content + scroll
-
-  // ── Footer ─────────────────────────────────────────────────────────────────
-  h += '<footer style="border-top:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">';
-  h += '<div style="display:flex;align-items:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span style="font-size:12px;color:var(--text2)">&copy; 2026 Vela AB</span></div>';
-  h += '<div style="display:flex;gap:14px;flex-wrap:wrap">';
-  ['Villkor','Integritet','Säkerhet','Status','Vela Docs','Kontakta oss'].forEach(function(l) {
-    h += '<a href="#" style="font-size:12px;color:var(--text2);text-decoration:none" onmouseover="this.style.color=\'var(--ink)\'" onmouseout="this.style.color=\'var(--text2)\'">' + l + '</a>';
-  });
-  h += '</div></footer>';
-
   h += '</div></div>'; // body + page
 
   el.innerHTML = h;
 
   // ── Wire interactions ─────────────────────────────────────────────────────
   var ta   = el.querySelector('#home-ask-ta');
-  var send = el.querySelector('#home-ask-send');
+  var send = el.querySelector('#home-send');
   var slashDD = el.querySelector('#home-slash-dd');
 
   function doSend() {
-    var q = ta.value.trim();
+    var q = (ta.value||'').trim();
     if (!q) return;
     _askFullHistory = [];
-    // Navigate to ask-full and send
-    var savedQ = q;
-    rAskFull(savedQ);
+    rAskFull(q);
   }
-
   if (send) send.onclick = doSend;
   if (ta) {
     ta.onkeydown = function(e) {
-      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); return; }
-      if (e.key === 'Escape') { slashDD.style.display='none'; return; }
+      if (e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); doSend(); }
+      if (e.key==='Escape') slashDD.style.display='none';
     };
     ta.oninput = function() {
-      slashDD.style.display = ta.value.trim().startsWith('/') ? 'block' : 'none';
+      slashDD.style.display = (ta.value||'').trim().startsWith('/') ? 'block' : 'none';
     };
   }
-
   el.querySelectorAll('.hm-slash').forEach(function(item) {
     item.onclick = function() {
       ta.value = item.getAttribute('data-cmd') + ' ';
@@ -10833,15 +10882,15 @@ function rHome() {
   // Chips
   document.addEventListener('click', function hcClose(e) {
     if (!e.target.closest('.hc-w')) document.querySelectorAll('.hc-d').forEach(function(d){ d.style.display='none'; });
-    if (S.screen !== 'home') document.removeEventListener('click', hcClose);
+    if (S.screen!=='home') document.removeEventListener('click', hcClose);
   });
   el.querySelectorAll('.hc-b').forEach(function(btn) {
     btn.onclick = function(e) {
       e.stopPropagation();
       var dd = btn.closest('.hc-w').querySelector('.hc-d');
-      if (!dd) { if(ta) ta.focus(); return; }
+      if (!dd){ if(ta) ta.focus(); return; }
       document.querySelectorAll('.hc-d').forEach(function(d){ if(d!==dd) d.style.display='none'; });
-      dd.style.display = dd.style.display==='block' ? 'none' : 'block';
+      dd.style.display = dd.style.display==='block'?'none':'block';
     };
   });
   el.querySelectorAll('.hc-i').forEach(function(item) {
@@ -10852,11 +10901,20 @@ function rHome() {
       doSend();
     };
   });
+
+  // Getting started accordion
+  el.querySelectorAll('.gs-row').forEach(function(row) {
+    row.onclick = function() {
+      var idx = parseInt(row.getAttribute('data-idx'));
+      window._homeActiveCheck = (window._homeActiveCheck === idx) ? -1 : idx;
+      rHome();
+    };
+  });
 }
 
 function _homeAsk(prompt) {
-  if (window._velaAskPrompt) { _velaAskPrompt(prompt); }
-  else { if (typeof toggleVelaAsk==='function') toggleVelaAsk(); setTimeout(function(){ if(window._velaAskPrompt) _velaAskPrompt(prompt); },200); }
+  _askFullHistory = [];
+  rAskFull(prompt);
 }
 
 

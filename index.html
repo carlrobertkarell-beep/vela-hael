@@ -19154,30 +19154,16 @@ Klinikdata:
 function rNavLogo() {
   const el = document.getElementById('nav-logo-inner');
   if (!el) return;
-  const cfg = getClinicConfig();
-  if (cfg.logoData) {
-    // Clinic has uploaded a logo
-    el.innerHTML = '<img src="'+cfg.logoData+'" style="max-height:32px;max-width:160px;object-fit:contain;display:block">';
-  } else if (cfg.name && cfg.name !== 'Min klinik') {
-    // Show clinic name as text logo
-    const words = cfg.name.trim().split(' ');
-    const initials = words.map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    el.innerHTML = '<div style="display:flex;align-items:center;gap:9px">'
-      + '<div style="width:28px;height:28px;border-radius:7px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:800;color:#2dd4bf;font-family:var(--font-mono,monospace)">'+initials+'</div>'
-      + '<div style="font-size:13px;font-weight:700;color:rgba(255,255,255,.85);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px">'+e(cfg.name)+'</div>'
-      + '</div>';
-  } else {
-    // Default: Vela wordmark (no Zenya)
-    el.innerHTML = '<div style="display:flex;align-items:center;gap:8px">'
-      + '<div style="width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,rgba(45,212,191,.3),rgba(45,212,191,.06));border:1px solid rgba(45,212,191,.12);display:flex;align-items:center;justify-content:center">'
-      + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
-      + '</div>'
-      + '<span class="nav-logo-wordmark" style="font-size:15px;font-weight:800;color:white;letter-spacing:-.02em">Vela</span>'
-      + '</div>';
-  }
+  // Always Vela branding — never clinic logo or colors
+  el.innerHTML = '<div style="display:flex;align-items:center;gap:9px">'
+    + '<div style="width:28px;height:28px;border-radius:7px;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+    + '</div>'
+    + '<span class="nav-logo-wordmark" style="font-size:15px;font-weight:800;color:var(--ink);letter-spacing:-.02em">Vela</span>'
+    + '</div>';
 }
 
-// ── SETTINGS SCREEN ─────────────────────────────────────────
+
 function rSettings() {
   // Scroll content to top when settings opened
   setTimeout(function(){
@@ -20148,17 +20134,14 @@ function _stComms(cfg) {
     h += '<div style="padding:14px 13px">';
     h += '<div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.8">Hej [patientnamn],<br><br>[Ditt meddelande]<br><br></div>';
     h += '<div style="border-top:1px solid var(--border);padding-top:11px;display:flex;gap:12px;align-items:flex-start">';
-    if (clinic.logoData || cfg.logoData) {
-      h += '<img src="'+(clinic.logoData||cfg.logoData)+'" style="height:28px;object-fit:contain;flex-shrink:0">';
-    }
-    h += '<div style="font-size:12px;color:var(--text);line-height:1.9"><strong>'+e(sigName)+'</strong><br>';
+        h += '<div style="font-size:12px;color:var(--text);line-height:1.9"><strong>'+e(sigName)+'</strong><br>';
     if (clinic.name||cfg.name) h += e(clinic.name||cfg.name)+'<br>';
     var contactLine = [clinic.phone||cfg.phone, clinic.email||cfg.email].filter(Boolean).join(' · ');
     if (contactLine) h += e(contactLine)+'<br>';
     if (clinic.website||cfg.website) h += '<span style="color:var(--teal)">'+e(clinic.website||cfg.website)+'</span>';
     h += '</div></div></div></div>';
     h += '<div style="padding:9px 18px;background:rgba(45,212,191,.03);border-top:1px solid var(--border);font-size:11px;color:var(--muted)">';
-    h += 'Ändra signatur-namn: Klinik → Behandlarnamn · Logotyp: Klinik → Logotyp</div>';
+    h += 'Ändra signatur-namn: Klinik → Behandlarnamn</div>';
     h += '</div>';
 
     // Upload custom signature
@@ -20540,12 +20523,8 @@ function _stClinic(cfg) {
   // Logo
   h += '<div style="margin-top:20px">';
   h += '<div class="vela-st-label">Kliniklogotyp</div>';
-  h += '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px" id="logo-upload-row">';
-  if (cfg.logoData) h += '<img src="'+cfg.logoData+'" style="height:40px;object-fit:contain;border:1px solid var(--border);border-radius:8px;padding:4px 8px">';
-  h += '<label style="display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:var(--navy)">';
-  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
-  h += 'Ladda upp logotyp<input type="file" accept="image/*" style="display:none" onchange="handleLogoUpload(this)"></label>';
-  if (cfg.logoData) h += '<button onclick="removeClinicLogo()" style="padding:9px 14px;background:none;border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--red);cursor:pointer;font-family:var(--font)">Ta bort</button>';
+  h += '<div style="margin-top:12px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--text2)">Vela behåller sin varumärkesidentitet i gränssnittet. Kliniknamnet syns i navigationen.</div>';
+
   h += '</div></div>';
   // Theme
   h += '<div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">';
@@ -21462,36 +21441,9 @@ function toggleTheme() {
   if (settingsActive) { window._settingsActiveTab='clinic'; _renderSettingsContent('clinic'); _renderSettingsNav(); }
 }
 
-function handleLogoUpload(input) {
-  const file = input.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const cfg = getClinicConfig();
-    cfg.logoData = ev.target.result;
-    saveClinicConfig(cfg);
-    rNavLogo();
-    const logoWrap = input.closest('label')?.parentElement;
-    if (logoWrap) {
-      let previewImg = logoWrap.querySelector('img');
-      if (!previewImg) {
-        previewImg = document.createElement('img');
-        previewImg.style.cssText = 'height:40px;object-fit:contain;border:1px solid var(--border);border-radius:8px;padding:4px 8px';
-        logoWrap.insertBefore(previewImg, logoWrap.firstChild);
-      }
-      previewImg.src = ev.target.result;
-    }
-    showAutoSaveToast('Logotyp sparad');
-  };
-  reader.readAsDataURL(file);
-}
+function handleLogoUpload(input) { /* logo upload removed */ }
 
-function removeClinicLogo() {
-  const cfg = getClinicConfig();
-  delete cfg.logoData;
-  saveClinicConfig(cfg);
-  rNavLogo();
-  _renderSettingsContent('clinic');
-}
+function removeClinicLogo() { /* logo removal removed */ }
 
 function showDropoutList() {
   const at_risk = S.patients.filter(p => {

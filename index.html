@@ -4518,6 +4518,368 @@ function needsIntake(patId) {
 
 // ── MAIN RENDER ───────────────────────────────────────────────────────────────
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SICK DAY — "Jag är sjuk" emergency cancellation flow
+// ══════════════════════════════════════════════════════════════════════════════
+
+function openSickDayPanel() {
+  document.getElementById('sick-panel')?.remove();
+
+  var panel = document.createElement('div');
+  panel.id = 'sick-panel';
+  panel.style.cssText = [
+    'position:fixed;inset:0;z-index:800',
+    'display:flex;align-items:flex-end;justify-content:center',
+    'background:rgba(7,16,30,.72);backdrop-filter:blur(6px)',
+    'font-family:var(--font)',
+  ].join(';');
+  panel.onclick = function(e){ if(e.target===panel) _sickClose(); };
+
+  var now     = new Date();
+  var todayStr = _calDateStr(now);
+
+  // Preview bookings for next 3 days
+  var dayPreviews = [];
+  for (var d = 0; d < 3; d++) {
+    var date = new Date(now);
+    date.setDate(now.getDate() + d);
+    var dStr  = _calDateStr(date);
+    var label = d === 0 ? 'Idag' : d === 1 ? 'Imorgon' : _sickFmtDate(date);
+    var bks   = (getBookings ? getBookings() : []).filter(function(b){
+      return b.date === dStr && b.status !== 'cancelled' && b.status !== 'completed';
+    });
+    dayPreviews.push({ d: d, dStr: dStr, label: label, bks: bks });
+  }
+
+  var h = '<div style="width:100%;max-width:520px;background:var(--surface);border-radius:16px 16px 0 0;max-height:90vh;overflow-y:auto">';
+
+  // Header
+  h += '<div style="display:flex;align-items:center;gap:12px;padding:20px 20px 14px;border-bottom:1px solid var(--border)">';
+  h += '<div style="width:40px;height:40px;border-radius:50%;background:rgba(248,81,73,.12);border:1px solid rgba(248,81,73,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+  h += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>';
+  h += '<div style="flex:1">';
+  h += '<div style="font-size:16px;font-weight:800;color:var(--ink)">Sjukanmälan</div>';
+  h += '<div style="font-size:13px;color:var(--text2);margin-top:1px">Avboka alla bokningar och notifiera patienter automatiskt</div>';
+  h += '</div>';
+  h += '<button onclick="_sickClose()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1">×</button>';
+  h += '</div>';
+
+  // Day selector
+  h += '<div style="padding:16px 20px 0">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px">Välj vilka dagar att avboka</div>';
+
+  // Day cards with checkboxes
+  dayPreviews.forEach(function(dp) {
+    var hasBks = dp.bks.length > 0;
+    h += '<label style="display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:10px;cursor:pointer;margin-bottom:8px;background:var(--bg);transition:border-color .1s" ';
+    h += 'id="sick-day-label-' + dp.d + '">';
+    h += '<input type="checkbox" id="sick-check-' + dp.d + '" value="' + dp.dStr + '"'
+       + (hasBks ? ' checked' : '') + (hasBks ? '' : ' disabled')
+       + ' style="width:16px;height:16px;margin-top:2px;accent-color:var(--red,#f85149);flex-shrink:0;cursor:pointer">';
+    h += '<div style="flex:1">';
+    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">';
+    h += '<span style="font-size:14px;font-weight:700;color:' + (hasBks?'var(--ink)':'var(--text2)') + '">' + dp.label + '</span>';
+    h += '<span style="font-size:12px;color:' + (hasBks?'#f85149':'var(--text2)') + ';font-weight:600">';
+    h += hasBks ? dp.bks.length + ' bokningar' : 'Inga bokningar';
+    h += '</span></div>';
+
+    if (hasBks) {
+      // List patients
+      dp.bks.forEach(function(bk) {
+        var hasEmail  = !!(bk.patientEmail || _sickGetPatEmail(bk.patientId));
+        var isPrepaid = !!(bk.payStatus === 'paid' || bk.paidAmount > 0);
+        h += '<div style="display:flex;align-items:center;gap:6px;padding:3px 0">';
+        h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="7" r="4"/><path d="M5 20a7 7 0 0114 0"/></svg>';
+        h += '<span style="font-size:13px;color:var(--text)">' + e(bk.patientName||'Okänd') + '</span>';
+        h += '<span style="font-size:12px;color:var(--text2)">kl ' + (bk.time||'?') + '</span>';
+        if (hasEmail)  h += '<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:rgba(45,212,191,.1);color:var(--teal)">✉ Mail</span>';
+        if (isPrepaid) h += '<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:rgba(210,153,34,.12);color:#d29922">💰 Förbetald</span>';
+        h += '</div>';
+      });
+    }
+    h += '</div></label>';
+  });
+  h += '</div>';
+
+  // Message level selector
+  var totalAffected = dayPreviews.reduce(function(sum, dp){ return sum + dp.bks.length; }, 0);
+  h += '<div style="padding:14px 20px">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px">Ton i mailet</div>';
+  h += '<div style="display:flex;gap:8px">';
+  [
+    { id:'brief',    label:'Kortfattat',    desc:'Kort avbokning, tid att boka om erbjuds' },
+    { id:'personal', label:'Personligt',    desc:'Varm ton, ber om ursäkt och lovar kontakt' },
+    { id:'urgent',   label:'Akut',          desc:'Betonar allvaret, förbetalt återbetalas direkt' },
+  ].forEach(function(opt, i) {
+    h += '<label style="flex:1;display:flex;flex-direction:column;gap:4px;padding:10px 12px;border:1px solid var(--border);border-radius:9px;cursor:pointer;text-align:center" id="sick-tone-' + opt.id + '">';
+    h += '<input type="radio" name="sick-tone" value="' + opt.id + '"' + (i===1?' checked':'') + ' style="display:none">';
+    h += '<span style="font-size:13px;font-weight:700;color:var(--ink)">' + opt.label + '</span>';
+    h += '<span style="font-size:11px;color:var(--text2);line-height:1.4">' + opt.desc + '</span>';
+    h += '</label>';
+  });
+  h += '</div></div>';
+
+  // AI preview toggle
+  h += '<div style="padding:0 20px 14px">';
+  h += '<button onclick="_sickPreviewMail()" style="display:flex;align-items:center;gap:7px;padding:8px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+  h += 'Förhandsgranska mail</button>';
+  h += '<div id="sick-mail-preview" style="display:none;margin-top:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap"></div>';
+  h += '</div>';
+
+  // Action button
+  h += '<div style="padding:0 20px 24px">';
+  h += '<button id="sick-send-btn" onclick="_sickExecute()" style="width:100%;padding:14px;background:var(--red,#f85149);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:800;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">';
+  h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+  if (totalAffected === 0) {
+    h += 'Inga bokningar att avboka';
+  } else {
+    h += 'Avboka och skicka mail till ' + totalAffected + ' patient' + (totalAffected>1?'er':'');
+  }
+  h += '</button>';
+  if (totalAffected === 0) {
+    document.getElementById ? null : null; // just to keep
+  }
+  h += '<div style="font-size:12px;color:var(--text2);text-align:center;margin-top:8px">Patienter kan boka om utan tidsbegränsning efter detta</div>';
+  h += '</div>';
+
+  h += '</div>'; // sheet
+  panel.innerHTML = h;
+  document.body.appendChild(panel);
+
+  // Wire tone radio labels
+  panel.querySelectorAll('input[name="sick-tone"]').forEach(function(radio) {
+    var lbl = panel.querySelector('#sick-tone-' + radio.value);
+    radio.onchange = function() {
+      panel.querySelectorAll('[id^="sick-tone-"]').forEach(function(l){
+        l.style.borderColor = 'var(--border)';
+        l.style.background  = 'none';
+      });
+      if (lbl) { lbl.style.borderColor = 'var(--teal)'; lbl.style.background = 'rgba(45,212,191,.05)'; }
+    };
+    if (radio.checked) { radio.onchange(); }
+  });
+}
+
+function _sickClose() {
+  document.getElementById('sick-panel')?.remove();
+}
+
+function _sickGetPatEmail(patientId) {
+  var pat = (S.patients||[]).find(function(p){ return p.id === patientId; });
+  return pat ? pat.email : null;
+}
+
+function _sickFmtDate(d) {
+  var days = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+  var months = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+  return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()];
+}
+
+function _sickGetSelectedDays() {
+  var selected = [];
+  [0,1,2].forEach(function(d) {
+    var cb = document.getElementById('sick-check-' + d);
+    if (cb && cb.checked) selected.push(cb.value);
+  });
+  return selected;
+}
+
+function _sickGetTone() {
+  var radios = document.querySelectorAll('input[name="sick-tone"]');
+  for (var i = 0; i < radios.length; i++) {
+    if (radios[i].checked) return radios[i].value;
+  }
+  return 'personal';
+}
+
+function _sickGenerateMailBody(patName, bkDate, bkTime, tone, hasPrepaid, cfg) {
+  var clinicName = cfg.name || 'kliniken';
+  var dateFormatted = new Date(bkDate + 'T12:00').toLocaleDateString('sv-SE', {
+    weekday:'long', day:'numeric', month:'long'
+  });
+  dateFormatted = dateFormatted.charAt(0).toUpperCase() + dateFormatted.slice(1);
+
+  var bodies = {
+    brief: [
+      'Hej ' + patName + ',',
+      '',
+      'På grund av sjukdom behöver vi tyvärr avboka ditt besök ' + dateFormatted + ' kl ' + bkTime + '.',
+      '',
+      hasPrepaid ? 'Din förskottsbetalning återbetalas inom 3–5 arbetsdagar.' : '',
+      '',
+      'Du är välkommen att boka en ny tid direkt via vår bokningssida.',
+      '',
+      'Ursäkta besväret.',
+      clinicName,
+    ],
+    personal: [
+      'Hej ' + patName + ',',
+      '',
+      'Jag behöver tyvärr avboka ditt besök ' + dateFormatted + ' kl ' + bkTime + ' på grund av sjukdom.',
+      '',
+      'Det är inte alls optimalt och jag förstår att detta är besvärligt för dig. Jag hoppas att vi snart kan hitta en ny tid.',
+      '',
+      hasPrepaid ? 'Eftersom du betalat i förväg återbetalar vi naturligtvis hela beloppet — detta sker inom 3–5 arbetsdagar.' : '',
+      '',
+      'Boka gärna en ny tid direkt — länken nedan tar dig direkt till lediga tider och du behöver inte logga in.',
+      '',
+      'Tack för din förståelse och hälsa på snart igen!',
+      'Med vänliga hälsningar,',
+      clinicName,
+    ],
+    urgent: [
+      'Hej ' + patName + ',',
+      '',
+      'VIKTIGT: Ditt besök ' + dateFormatted + ' kl ' + bkTime + ' är avbokat.',
+      '',
+      'På grund av akut sjukdom är detta tyvärr nödvändigt med omedelbar verkan.',
+      '',
+      hasPrepaid ? '⚡ Du har betalat i förväg — beloppet återbetalas OMEDELBART, du bör se det på ditt konto inom 1–3 dagar.' : '',
+      '',
+      'Boka om så snart det passar dig — ditt ärende prioriteras och du kan boka direkt nedan.',
+      '',
+      'Vi ber om ursäkt för de olägenheter detta orsakar.',
+      clinicName,
+    ]
+  };
+
+  return (bodies[tone] || bodies.personal).filter(function(l){ return l !== null; }).join('\n');
+}
+
+function _sickPreviewMail() {
+  var previewEl = document.getElementById('sick-mail-preview');
+  if (!previewEl) return;
+
+  var tone    = _sickGetTone();
+  var cfg     = getClinicConfig ? getClinicConfig() : {};
+  var days    = _sickGetSelectedDays();
+
+  if (!days.length) {
+    previewEl.style.display = 'block';
+    previewEl.textContent = '⚠ Välj minst en dag att avboka.';
+    return;
+  }
+
+  // Show preview for first booking found
+  var bks = getBookings ? getBookings() : [];
+  var firstBk = bks.find(function(b){
+    return days.indexOf(b.date) !== -1 && b.status !== 'cancelled' && b.status !== 'completed';
+  });
+
+  if (!firstBk) {
+    previewEl.style.display = 'block';
+    previewEl.textContent = 'Inga aktiva bokningar på valda dagar.';
+    return;
+  }
+
+  var isPrepaid = !!(firstBk.payStatus === 'paid' || firstBk.paidAmount > 0);
+  var body = _sickGenerateMailBody(firstBk.patientName||'Patient', firstBk.date, firstBk.time||'?', tone, isPrepaid, cfg);
+
+  previewEl.style.display = 'block';
+  previewEl.innerHTML = '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:8px">Förhandsgranskning (första bokning)</div>'
+    + '<div style="font-size:13px;color:var(--text);line-height:1.75;white-space:pre-wrap">' + e(body) + '</div>';
+}
+
+async function _sickExecute() {
+  var btn  = document.getElementById('sick-send-btn');
+  var days = _sickGetSelectedDays();
+  var tone = _sickGetTone();
+  var cfg  = getClinicConfig ? getClinicConfig() : {};
+
+  if (!days.length) {
+    showAutoSaveToast('Välj minst en dag att avboka');
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Avbokar och skickar…'; }
+
+  // Gather all affected bookings
+  var bks = (getBookings ? getBookings() : []).filter(function(b){
+    return days.indexOf(b.date) !== -1 && b.status !== 'cancelled' && b.status !== 'completed';
+  });
+
+  var sent = 0, failed = 0, refunds = 0;
+
+  for (var i = 0; i < bks.length; i++) {
+    var bk = bks[i];
+
+    // 1. Cancel booking
+    bk.status = 'cancelled';
+    bk.cancelledAt = new Date().toISOString();
+    bk.cancelReason = 'sick_day';
+    bk.rescheduleAllowed = true; // override 24h rule
+    if (typeof upsertBooking === 'function') upsertBooking(bk);
+
+    // 2. Get patient email
+    var email = bk.patientEmail;
+    if (!email) {
+      var pat = (S.patients||[]).find(function(p){ return p.id === bk.patientId; });
+      email = pat ? pat.email : null;
+    }
+
+    // 3. Check prepaid
+    var isPrepaid = !!(bk.payStatus === 'paid' || bk.paidAmount > 0);
+    if (isPrepaid) {
+      refunds++;
+      bk.refundPending = true;
+      bk.refundAmount  = bk.paidAmount || bk.price;
+      if (typeof upsertBooking === 'function') upsertBooking(bk);
+    }
+
+    // 4. Send email
+    if (email) {
+      var body    = _sickGenerateMailBody(bk.patientName||'Patient', bk.date, bk.time||'?', tone, isPrepaid, cfg);
+      var dateStr = new Date(bk.date + 'T12:00').toLocaleDateString('sv-SE', { day:'numeric', month:'long' });
+      var subject = 'Avbokning av ditt besök ' + dateStr + ' kl ' + (bk.time||'');
+
+      // Build HTML version with rebooking CTA
+      var portalUrl = (typeof getPortalLoginUrl === 'function' && bk.patientId && email)
+        ? getPortalLoginUrl(bk.patientId, email)
+        : null;
+
+      var ctaHtml = portalUrl
+        ? '<a href="' + portalUrl + '" style="display:inline-block;background:#0e7490;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">Boka ny tid →</a>'
+        : '';
+
+      var htmlBody = _velaMailFrame
+        ? _velaMailFrame(body.replace(/\n/g, '<br>'), cfg.name||'Kliniken', cfg, ctaHtml)
+        : body;
+
+      try {
+        var result = await _velaSendMail(email, subject, body, cfg.name);
+        if (result && result.ok !== false) sent++;
+        else { failed++; console.warn('Mail failed:', bk.patientName); }
+      } catch(e) {
+        failed++;
+        console.warn('Mail error:', e);
+      }
+    }
+  }
+
+  // Show result
+  _sickClose();
+  if (S.screen === 'calendar') rCalendar();
+
+  var msg = bks.length + ' bokningar avbokade · ' + sent + ' mail skickade';
+  if (refunds > 0) msg += ' · ' + refunds + ' återbetalning' + (refunds>1?'ar':'') + ' köade';
+  if (failed > 0)  msg += ' · ' + failed + ' mail misslyckades (kontrollera e-post)';
+  showAutoSaveToast(msg, 5000);
+
+  // Create Åtgärder issue if refunds pending
+  if (refunds > 0 && typeof _addIssue === 'function') {
+    _addIssue({
+      type:    'refund',
+      title:   refunds + ' återbetalning' + (refunds>1?'ar':' behöver') + ' behandlas',
+      patName: 'Flera patienter',
+      urgent:  true,
+    });
+  }
+}
+
+
+
 // ══════════════════════════════════════════════════════════════════════════════
 //  VELA CALENDAR — World-class implementation
 // ══════════════════════════════════════════════════════════════════════════════
@@ -4943,6 +5305,10 @@ function _vcalLeftPanel(st, now) {
     h += '<div style="font-size:12px;color:#d29922;line-height:1.4">Inga bokningsbara tider inlagda. <strong>Sätt upp ditt schema →</strong></div>';
     h += '</div>';
   }
+  // Sick day emergency button
+  h += '<button onclick="openSickDayPanel()" style="display:flex;align-items:center;gap:7px;width:100%;padding:9px 10px;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.25);border-radius:8px;font-size:13px;font-weight:700;color:#f85149;cursor:pointer;font-family:var(--font);margin-bottom:6px">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>';
+  h += 'Jag är sjuk idag</button>';
   h += '<button onclick="go(\'availability\')" style="display:flex;align-items:center;gap:7px;width:100%;padding:8px 10px;background:none;border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">';
   h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
   h += 'Tillgänglighet & schema</button>';

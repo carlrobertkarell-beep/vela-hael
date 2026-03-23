@@ -1027,12 +1027,11 @@ button, input, textarea, select { font-family: inherit; }
 
 /* ── SETTINGS LAYOUT ─────────────────────────────────────── */
 .vela-settings-wrap {
-  display: flex; min-height: calc(100vh - 52px); max-width: 1100px;
-  margin: 0 auto; padding: 0;
+  display: flex; min-height: calc(100vh - 110px);
+  margin: 0; padding: 0;
 }
 .vela-settings-nav {
-  width: 220px; flex-shrink: 0; padding: 24px 12px;
-  border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 1px;
+  display: none; /* navigation is in the main app sidebar */
 }
 .vela-stab {
   display: flex; align-items: center; gap: 9px;
@@ -1042,7 +1041,7 @@ button, input, textarea, select { font-family: inherit; }
 }
 .vela-stab:hover { background: rgba(177,186,196,.06); color: var(--ink); }
 .vela-stab.active { background: rgba(177,186,196,.06); color: var(--ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--teal); }
-.vela-settings-content { flex: 1; padding: 32px 36px; min-width: 0; }
+.vela-settings-content { flex: 1; padding: 32px 36px; min-width: 0; max-width: 820px; }
 .vela-st-section { max-width: 640px; }
 .vela-st-title { font-size:18px; font-weight: 700; color: var(--ink); margin-bottom: 6px; letter-spacing: -.02em; }
 .vela-st-desc { font-size:13px; color: var(--muted); line-height: 1.6; }
@@ -14404,79 +14403,132 @@ function smartIntakeHTML() {
   return h;
 }
 
-function rManualSOAP() {
+function rManualSOAP(bk) {
   const p = S.pat;
   if (!p) { go('list'); return; }
   const el = document.getElementById('s-manualsoap');
-  const soap = currentSOAP&&currentSOAP.soap||{};
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  S.screen = 'manualsoap';
+
+  const soap = currentSOAP && currentSOAP.soap || {};
+
   const soapFields = [
-    {l:'S', name:'Subjektivt -- patientens berättelse, symtom, smärtbeskrivning', ph:'Patienten beskriver smärta i... Debut för... Aggraveras av... Lindras av...'},
-    {l:'O', name:'Objektivt -- undersökningsfynd, tester, rörelseomfång', ph:'Inspektion visar... Palpation... ROM... Lasègue... Kraftnedsättning...'},
-    {l:'A', name:'Bedömning -- diagnos, funktionsnivå, prognos', ph:'Bedömning: Klinisk bild förenlig med... Funktionsnivå... Prognos...'},
-    {l:'P', name:'Plan -- åtgärder, hemprogram, uppföljning', ph:'Behandling: ... Hemövningar... Återbesök om...'}
+    { l:'S', color:'#3b82f6', label:'Subjektivt',
+      desc:'Patientens berättelse, symtom, smärtbeskrivning',
+      ph:'Patienten beskriver smärta i... Debut för... Aggraveras av... Lindras av...' },
+    { l:'O', color:'#8b5cf6', label:'Objektivt',
+      desc:'Undersökningsfynd, tester, rörelseomfång',
+      ph:'Inspektion visar... Palpation... ROM... Lasègue... Kraftnedsättning...' },
+    { l:'A', color:'#0891b2', label:'Bedömning',
+      desc:'Diagnos, funktionsnivå, prognos',
+      ph:'Klinisk bild förenlig med... Funktionsnivå... Prognos...' },
+    { l:'P', color:'#059669', label:'Plan',
+      desc:'Åtgärder, hemprogram, uppföljning',
+      ph:'Behandling: ... Hemövningar... Återbesök om...' }
   ];
+
   el.innerHTML = `
-  <div style="background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;height:52px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50">
-    <button onclick="autoSaveJournalDraft();go('detail')" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:13px;font-weight:500;color:var(--muted);padding:0;font-family:var(--font);transition:color .15s" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">
-      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      Kundkort
-    </button>
-    <span style="color:var(--border2)">></span>
-    <span style="font-size:13px;font-weight:600;color:var(--ink)">${e(p.name)}</span>
-    <span style="font-size:13px;color:var(--muted)">-- Besöksjournal</span>
-    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
-      <span id="soap-autosave-label" style="font-size:13px;color:var(--muted);display:none">Sparad</span>
-    </div>
-  </div>
-  <div style="max-width:800px;margin:0 auto;padding:28px 32px 80px">
-    <div class="ftit">Besöksjournal -- ${e(p.name)}</div>
-    <div class="msoap-hint">Fyll i de fält som är relevanta. AI föreslår differentialdiagnoser och riktlinjer i realtid.</div>
+  <div style="display:flex;flex-direction:column;height:100%;background:var(--bg);font-family:var(--font)">
 
-    ${smartIntakeHTML()}
-    
-    ${soapFields.map(f=>`
-    <div class="msoap-section">
-      <div class="msoap-hdr" style="justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="msoap-lbl ${f.l}">${f.l}</div>
-          <div class="msoap-name">${f.name}</div>
+    <!-- Sticky topbar -->
+    <div style="height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0;position:sticky;top:0;z-index:50">
+      <button onclick="autoSaveJournalDraft();go('detail')"
+        style="display:flex;align-items:center;gap:5px;background:none;border:none;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:var(--font)"
+        onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--text2)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Patientkort
+      </button>
+      <span style="color:var(--border);font-size:16px">/</span>
+      <span style="font-size:14px;font-weight:700;color:var(--ink)">${e(p.name)}</span>
+      <span style="font-size:13px;color:var(--text2)">· Besöksjournal</span>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <span id="soap-autosave-label" style="font-size:12px;color:var(--text2);display:none">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Autosparad
+        </span>
+        <button onclick="finishManualSOAP(false)"
+          style="padding:6px 14px;background:var(--teal);color:#0d1117;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">
+          Spara & granska
+        </button>
+      </div>
+    </div>
+
+    <!-- Scrollable content -->
+    <div style="flex:1;overflow-y:auto">
+      <div style="max-width:720px;margin:0 auto;padding:28px 24px 80px">
+
+        ${smartIntakeHTML()}
+
+        <!-- SOAP fields -->
+        <div style="display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:20px">
+          ${soapFields.map((f, i) => `
+          <div style="border-bottom:${i < 3 ? '1px solid var(--border)' : 'none'};background:var(--surface)">
+            <!-- Field header -->
+            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border2)">
+              <div style="width:26px;height:26px;border-radius:7px;background:${f.color}20;border:1px solid ${f.color}40;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <span style="font-size:13px;font-weight:800;color:${f.color}">${f.l}</span>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--ink)">${f.label}</div>
+                <div style="font-size:11px;color:var(--text2)">${f.desc}</div>
+              </div>
+              <div style="margin-left:auto">
+                ${micBtnHTML('ms-' + f.l, f.l)}
+              </div>
+            </div>
+            <!-- Textarea -->
+            <textarea id="ms-${f.l}"
+              placeholder="${f.ph}"
+              oninput="triggerClinicalAnalysis(collectMSOAPText());autoSaveJournalDraft()"
+              style="width:100%;min-height:90px;border:none;background:transparent;padding:12px 16px;font-size:14px;color:var(--text);font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.7"
+              >${e(soap[f.l] || '')}</textarea>
+          </div>`).join('')}
         </div>
-        ${micBtnHTML('ms-'+f.l, f.l)}
-      </div>
-      <textarea class="msoap-ta" id="ms-${f.l}" placeholder="${f.ph}" oninput="triggerClinicalAnalysis(collectMSOAPText());autoSaveJournalDraft()">${e(soap[f.l]||'')}</textarea>
-    </div>`).join('')}
-    
-    <div style="margin-top:6px">
-      <span class="slabel" style="margin-top:0">Diagnos</span>
-      <div class="msoap-diag-row">
-        <select class="field" id="ms-diag">
-          ${DIAGS.map(d=>`<option ${d===(currentSOAP&&currentSOAP.diagnosis)?'selected':''}>${d}</option>`).join('')}
-        </select>
-        <input class="field" id="ms-custom" placeholder="Fritext diagnos (om valt ovan)..." value="${e(currentSOAP&&currentSOAP.customDiagnosis||'')}">
-      </div>
-    </div>
-    
-    <div style="margin-top:4px">
-      <span class="slabel">ICD-10 (valfritt)</span>
-      <div class="msoap-diag-row">
-        <input class="field" id="ms-icd" placeholder="M54.5" value="${e(currentSOAP&&currentSOAP.icd10||'')}" style="font-family:'DM Mono',monospace">
-        <input class="field" id="ms-icddesc" placeholder="ICD-10 beskrivning..." value="${e(currentSOAP&&currentSOAP.icd10desc||'')}">
-      </div>
-    </div>
 
-    ${clinicalPanelHTML()}
+        <!-- Diagnos + ICD-10 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--teal);margin-bottom:6px">Diagnos</label>
+            <select id="ms-diag" class="field" style="width:100%;margin-bottom:8px">
+              ${DIAGS.map(d => `<option ${d === (currentSOAP && currentSOAP.diagnosis) ? 'selected' : ''}>${d}</option>`).join('')}
+            </select>
+            <input class="field" id="ms-custom" placeholder="Fritext diagnos (valfritt)..." value="${e(currentSOAP && currentSOAP.customDiagnosis || '')}" style="width:100%">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:6px">ICD-10 (valfritt)</label>
+            <input class="field" id="ms-icd" placeholder="M54.5" value="${e(currentSOAP && currentSOAP.icd10 || '')}" style="width:100%;margin-bottom:8px;font-family:var(--font-mono,monospace)">
+            <input class="field" id="ms-icddesc" placeholder="Beskrivning..." value="${e(currentSOAP && currentSOAP.icd10desc || '')}" style="width:100%">
+          </div>
+        </div>
 
-    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-      <button class="meet-done-btn" style="flex:2" onclick="finishManualSOAP(false)">
-        Spara journal & granska ->
-      </button>
-      <button class="meet-done-btn" style="flex:2;background:#1a5a6a" onclick="finishManualSOAP(true)">
-        Spara & skapa rehabplan direkt ->
-      </button>
+        <!-- AI clinical panel -->
+        ${clinicalPanelHTML()}
+
+        <!-- Action buttons -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px">
+          <button onclick="finishManualSOAP(false)"
+            style="padding:13px;background:var(--teal);color:#0d1117;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:7px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Spara journal
+          </button>
+          <button onclick="finishManualSOAP(true)"
+            style="padding:13px;background:rgba(45,212,191,.1);color:var(--teal);border:1px solid rgba(45,212,191,.25);border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:7px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Spara + rehabplan
+          </button>
+        </div>
+        <button onclick="go('detail')"
+          style="width:100%;margin-top:10px;padding:11px;background:none;border:1px solid var(--border);border-radius:10px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--font)">
+          Avbryt
+        </button>
+
+      </div>
     </div>
-    <button class="btn" style="width:100%;margin-top:8px;padding:10px" onclick="go('detail')">Avbryt</button>
-  </div></div>`;
+  </div>`;
 }
+
 
 async function finishManualSOAP(goPlan) {
   // Read values

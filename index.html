@@ -10038,7 +10038,7 @@ function _gmailRenderThreadContent() {
   h += '</div>';
 
   // ── Body: messages + AI panel side by side ──────────────────────────────
-  h += '<div style="display:flex;flex:1;overflow:hidden">';
+  h += '<div style="display:flex;flex:1;overflow:hidden;margin-top:52px">';
 
   // Messages column
   h += '<div style="flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:14px;min-width:0">';
@@ -10278,7 +10278,18 @@ function rAskFull(prompt) {
 
   if (prompt) _askFullInitialPrompt = prompt;
 
-  el.innerHTML = '<div style="display:flex;height:calc(100vh - 52px);font-family:var(--font)">'
+  var authEmail2 = (_authUser && _authUser.email) || '';
+  var authInit2  = authEmail2.slice(0,2).toUpperCase() || 'CA';
+  el.innerHTML = '<div style="min-height:100vh;font-family:var(--font)">'
+    // Fixed topbar matching home
+    + '<div style="height:52px;background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">'
+    + '<button onclick="go(\'home\'" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;display:flex;align-items:center">'
+    + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>'
+    + '<div onclick="go(\'home\'" style="cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>'
+    + '<span style="font-size:13px;font-weight:500;color:var(--text2)">Vela Ask</span>'
+    + '<div style="margin-left:auto;width:30px;height:30px;border-radius:50%;background:rgba(45,212,191,.15);border:1px solid rgba(45,212,191,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--teal);font-family:var(--font-mono)">' + authInit2 + '</div>'
+    + '</div>'
+    + '<div style="display:flex;height:calc(100vh - 52px);margin-top:52px;font-family:var(--font)">'
     // ── Left sidebar ────────────────────────────────────────────────────
     + '<div style="width:240px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column">'
     + '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
@@ -10289,9 +10300,9 @@ function rAskFull(prompt) {
     + '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);padding:4px 8px;margin-bottom:4px">Idag</div>'
     + (_askFullHistory.length ? '<div id="ask-history-list"></div>' : '')
     + '</div>'
-    + '<div style="padding:12px 16px;border-top:1px solid var(--border)">'
-    + '<button onclick="go(\'home\')" style="display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--text2);font-size:12px;cursor:pointer;font-family:var(--font)">'
-    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Tillbaka till hem</button>'
+    + '<div style="margin-top:auto;padding:12px 16px;border-top:1px solid var(--border)">'
+    + '<button onclick="go(\'home\')" style="display:flex;align-items:center;gap:7px;width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;font-family:var(--font)">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Tillbaka till hem</button>'
     + '</div></div>'
     // ── Main chat area ──────────────────────────────────────────────────
     + '<div style="flex:1;display:flex;flex-direction:column;overflow:hidden">'
@@ -10319,7 +10330,7 @@ function rAskFull(prompt) {
     + '<button id="ask-full-send" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:var(--teal);border:none;border-radius:7px;cursor:pointer;flex-shrink:0">'
     + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d1117" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'
     + '</button></div></div></div>'
-    + '</div></div>';
+    + '</div></div></div>';
 
   // Wire input
   var ta    = el.querySelector('#ask-full-ta');
@@ -10643,7 +10654,7 @@ function rHome() {
   var h = '<div style="display:flex;flex-direction:column;height:100vh;background:var(--bg);font-family:var(--font)">';
 
   // ── Platform topbar ─────────────────────────────────────────────────────────
-  h += '<div style="height:52px;background:#0d1117;border-bottom:1px solid #21262d;display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;position:sticky;top:0;z-index:100">';
+  h += '<div style="height:52px;background:#0d1117;border-bottom:1px solid #21262d;display:flex;align-items:center;padding:0 16px;gap:10px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">';
   // Hamburger
   h += '<button style="background:none;border:none;color:#6e7681;cursor:pointer;padding:4px;border-radius:6px;display:flex" onmouseenter="this.style.color=\'#e6edf3\'" onmouseleave="this.style.color=\'#6e7681\'">'
      + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>';
@@ -10898,7 +10909,9 @@ function rHome() {
       e.stopPropagation();
       document.querySelectorAll('.hc-d').forEach(function(d){ d.style.display='none'; });
       ta.value = item.getAttribute('data-p');
-      doSend();
+      ta.focus();
+      // Move cursor to end
+      ta.selectionStart = ta.selectionEnd = ta.value.length;
     };
   });
 

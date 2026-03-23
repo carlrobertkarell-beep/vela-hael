@@ -61,7 +61,7 @@
 
   /* ── Borders — solid, not rgba ──────────────────────────── */
   --border:   #30363d;
-  --border2:  #21262d;
+  --border2:  #2d333b;
 
   /* ── Typography faces ───────────────────────────────────── */
   --font:       'Plus Jakarta Sans', system-ui, sans-serif;
@@ -611,8 +611,8 @@ button, input, textarea, select { font-family: inherit; }
 }
 .vela-gtb-row2 {
   height: 48px; display: flex; align-items: stretch;
-  padding: 0 16px; overflow-x: auto; overflow-y: hidden;
-  flex-shrink: 0;
+  padding: 0 8px; overflow-x: auto; overflow-y: hidden;
+  flex-shrink: 0; border-bottom: 1px solid var(--border);
 }
 .vela-gtb-left {
   display: flex; align-items: center; gap: 10px;
@@ -640,16 +640,16 @@ button, input, textarea, select { font-family: inherit; }
 .vela-gtb-tabs { display: none; } /* replaced by vela-gtb-row2 */
 .vela-gtb-tab {
   display: flex; align-items: center; gap: 7px;
-  padding: 0 12px; border: none; background: none;
-  font-size:13px; font-weight: 400; color: var(--text);
+  padding: 0 14px; border: none; background: none;
+  font-size: 14px; font-weight: 500; color: #8b949e;
   cursor: pointer; font-family: var(--font); white-space: nowrap;
   border-bottom: 2px solid transparent; margin-bottom: -1px;
   transition: color .12s, border-color .12s;
   position: relative;
 }
-.vela-gtb-tab:hover { color: var(--ink); }
+.vela-gtb-tab:hover { color: #e6edf3; }
 .vela-gtb-tab.active {
-  color: var(--ink); font-weight: 600;
+  color: #e6edf3; font-weight: 700;
   border-bottom-color: var(--teal);
 }
 .vela-gtb-row2 .vela-gtb-tab svg { opacity: .7; }

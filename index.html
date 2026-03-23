@@ -79,7 +79,7 @@
 
   /* ── Sidebar ───────────────────────────────────────────── */
   --sb-bg:        #0d1117;
-  --sb-border:    #21262d;
+  --sb-border:    #30363d;
   --sb-text:      #6e7681;
   --sb-text2:     #c9d1d9;
   --sb-hover:     rgba(177,186,196,.06);
@@ -598,8 +598,8 @@ button, input, textarea, select { font-family: inherit; }
 
 /* Global topbar: always visible on desktop */
 .vela-global-topbar {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 300;
-  height: 110px; background: var(--bg);
+  position: fixed; top: 0; left: 0; right: 0; z-index: 400;
+  height: 110px; background: var(--surface);
   border-bottom: 1px solid var(--border);
   display: flex; flex-direction: column;
   font-family: var(--font);
@@ -988,16 +988,10 @@ button, input, textarea, select { font-family: inherit; }
 .search-inp:focus { border-color:var(--teal,#2dd4bf); }
 
 /* ── DESKTOP HEADER ──────────────────────────────────────── */
-.vela-desktop-header {
-  display: none; /* hidden on mobile — topbar handles that */
-  position: sticky; top: 0; z-index: 120;
-  height: 52px; background: var(--bg);
-  border-bottom: 1px solid var(--border2, rgba(255,255,255,.06));
-  align-items: center; justify-content: space-between;
-  padding: 0 32px; flex-shrink: 0;
-}
+.vela-desktop-header { display: none !important; } /* replaced by global topbar */
+
 @media (min-width: 769px) {
-  .vela-desktop-header { display: flex; }
+  .vela-desktop-header { display: none !important; }
   .main-content { display: flex; flex-direction: column; }
 }
 .vela-dh-left { font-size:13px; color: var(--muted); font-weight: 500; }
@@ -10878,7 +10872,7 @@ function rAskFull(prompt) {
   var authInit2  = authEmail2.slice(0,2).toUpperCase() || 'CA';
   el.innerHTML = '<div style="min-height:100vh;font-family:var(--font)">'
     // Fixed topbar matching home
-    + '<div style="height:62px;background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">'
+    + '<div style="height:62px;background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:12px;position:fixed;top:0;left:0;right:0;z-index:400;box-sizing:border-box">'
     + '<button onclick="go(\'home\'" style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px;display:flex;align-items:center">'
     + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>'
     + '<div onclick="go(\'home\'" style="cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>'
@@ -11066,7 +11060,7 @@ function rNewWorkspace() {
 
   // ── Fixed platform topbar ─────────────────────────────────────────────────
   var h = '<div style="min-height:100vh;background:var(--bg);font-family:var(--font)">';
-  h += '<div style="height:62px;background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">';
+  h += '<div style="height:62px;background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;position:fixed;top:0;left:0;right:0;z-index:400;box-sizing:border-box">';
   h += '<button style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px" onclick="go(\'home\')">'
      + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>';
   h += '<div style="cursor:pointer" onclick="go(\'home\')">'
@@ -11272,7 +11266,7 @@ function rHome() {
   var h = '<div style="min-height:100%;background:var(--bg);font-family:var(--font)">';
 
   // ── Platform topbar ─────────────────────────────────────────────────────────
-  h += '<div style="height:62px;background:var(--bg);border-bottom:1px solid var(--border2);display:flex;align-items:center;padding:0 16px;gap:10px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">';
+  h += '<div style="height:62px;background:var(--bg);border-bottom:1px solid var(--border2);display:flex;align-items:center;padding:0 16px;gap:10px;position:fixed;top:0;left:0;right:0;z-index:400;box-sizing:border-box">';
   // Hamburger
   h += '<button style="background:none;border:none;color:#6e7681;cursor:pointer;padding:4px;border-radius:6px;display:flex" onmouseenter="this.style.color=\'#e6edf3\'" onmouseleave="this.style.color=\'#6e7681\'">'
      + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>';

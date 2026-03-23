@@ -22378,12 +22378,12 @@ function _stComms(cfg) {
     h += '<button onclick="var v=document.getElementById(\'gcid-inp\').value.trim();if(v){localStorage.setItem(\'vela:gmail-client-id\',v);showAutoSaveToast(\'Client ID sparat\');}" class="act-btn" style="font-size:12px">Spara</button>';
     h += '<button onclick="_gmailAuth(function(){showAutoSaveToast(\'Gmail ansluten! &aring;ppna Aktivitet.\');})" class="act-btn act-btn-primary" style="font-size:12px">' + (_gmailAuthed?'Återanslut':'Anslut') + '</button>';
     h += '</div></div>';
-    h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">OAuth2 för Gmail/Outlook kräver backend och lanseras i Vela 2.0. IMAP/SMTP fungerar redan idag.</div></div>';
+    h += '<div style="font-size:11px;color:var(--muted);margin-top:1px">Gmail ansluts via Google Client ID ovan. IMAP/SMTP fungerar för övriga mailservrar.</div></div>';
     [
       {name:'Gmail / Google Workspace', col:'#EA4335', icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>',
-       note:'OAuth2 i Vela 2.0. Fungerar nu via App Password + IMAP nedan.', avail:false},
+       note:'Ansluts via Google Client ID — se ovan.', avail:false},
       {name:'Outlook / Microsoft 365', col:'#0078D4', icon:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
-       note:'OAuth2 i Vela 2.0. Fungerar nu via IMAP med app-lösenord.', avail:false},
+       note:'Ansluts via OAuth. IMAP fungerar redan idag.', avail:false},
       {name:'IMAP / SMTP (alla mailservrar)', col:'#6B7280', icon:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l.82-.82a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 1 2.81.7A2 2 0 0 1 22 16.92z"/>',
        note:'Loopia, Telia, One.com, eget mailserver — aktiveras nu.', avail:true},
     ].forEach(function(p,i) {

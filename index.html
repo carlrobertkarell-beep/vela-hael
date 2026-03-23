@@ -944,6 +944,48 @@ button, input, textarea, select { font-family: inherit; }
 .ldtitle      { font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px; }
 </style>
 <style id="vela-ux-css">
+/* ── Patient portal — full standalone page ──────────────────────────────── */
+.pp-wrap { min-height:100vh; background:#080e18; font-family:"Plus Jakarta Sans",system-ui,sans-serif; color:#e6edf3; }
+.pp-topbar { height:52px; background:#0d1117; border-bottom:1px solid #21262d; display:flex; align-items:center; padding:0 24px; gap:12px; position:sticky; top:0; z-index:100; }
+.pp-logo { width:28px; height:28px; border-radius:7px; background:rgba(45,212,191,.1); border:1px solid rgba(45,212,191,.2); display:flex; align-items:center; justify-content:center; }
+.pp-wordmark { font-size:14px; font-weight:800; color:#e6edf3; letter-spacing:-.02em; }
+.pp-clinic-name { font-size:13px; color:#6e7681; }
+.pp-body { max-width:720px; margin:0 auto; padding:32px 20px 80px; }
+.pp-greeting { font-size:24px; font-weight:700; color:#e6edf3; letter-spacing:-.02em; margin-bottom:4px; }
+.pp-sub { font-size:14px; color:#6e7681; margin-bottom:28px; }
+.pp-section-title { font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#6e7681; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid #21262d; }
+.pp-card { background:#161b22; border:1px solid #30363d; border-radius:12px; overflow:hidden; margin-bottom:16px; }
+.pp-card-row { display:flex; align-items:center; gap:14px; padding:14px 16px; border-bottom:1px solid #21262d; }
+.pp-card-row:last-child { border-bottom:none; }
+.pp-card-icon { width:36px; height:36px; border-radius:9px; background:#21262d; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.pp-card-body { flex:1; min-width:0; }
+.pp-card-title { font-size:14px; font-weight:600; color:#e6edf3; }
+.pp-card-meta  { font-size:12px; color:#6e7681; margin-top:2px; }
+.pp-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; transition:all .1s; border:1px solid #30363d; background:#21262d; color:#e6edf3; }
+.pp-btn:hover { background:#30363d; }
+.pp-btn-primary { background:#2dd4bf; color:#0d1117; border-color:#2dd4bf; font-weight:700; }
+.pp-btn-primary:hover { background:#14b8a6; }
+.pp-btn-danger { color:#f85149; border-color:rgba(248,81,73,.3); background:none; }
+.pp-btn-danger:hover { background:rgba(248,81,73,.08); }
+.pp-policy-box { background:rgba(210,153,34,.06); border:1px solid rgba(210,153,34,.25); border-radius:9px; padding:12px 16px; font-size:12px; color:#d29922; line-height:1.6; margin-bottom:16px; display:flex; gap:10px; }
+.pp-tabs { display:flex; border-bottom:1px solid #21262d; margin-bottom:20px; overflow-x:auto; }
+.pp-tab { padding:10px 16px; border:none; background:none; font-size:13px; color:#6e7681; cursor:pointer; font-family:inherit; font-weight:500; border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; transition:color .1s; }
+.pp-tab:hover { color:#c9d1d9; }
+.pp-tab.active { color:#e6edf3; border-bottom-color:#2dd4bf; font-weight:700; }
+.pp-slot-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(80px,1fr)); gap:8px; margin-top:10px; }
+.pp-slot { padding:9px; border:1px solid #30363d; border-radius:8px; font-size:13px; font-weight:600; text-align:center; cursor:pointer; background:#161b22; color:#e6edf3; transition:all .1s; }
+.pp-slot:hover, .pp-slot.selected { border-color:#2dd4bf; background:rgba(45,212,191,.08); color:#2dd4bf; }
+.pp-input { width:100%; background:#161b22; border:1px solid #30363d; border-radius:8px; padding:11px 14px; font-size:14px; color:#e6edf3; font-family:inherit; outline:none; box-sizing:border-box; transition:border-color .12s; }
+.pp-input:focus { border-color:#2dd4bf; }
+.pp-status-pill { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.pp-status-green { background:rgba(63,185,80,.1); color:#3fb950; border:1px solid rgba(63,185,80,.2); }
+.pp-status-amber { background:rgba(210,153,34,.1); color:#d29922; border:1px solid rgba(210,153,34,.2); }
+.pp-status-red   { background:rgba(248,81,73,.1);  color:#f85149; border:1px solid rgba(248,81,73,.2); }
+.pp-empty { text-align:center; padding:48px 20px; }
+.pp-empty-icon { margin:0 auto 14px; width:48px; height:48px; border-radius:50%; background:#21262d; display:flex; align-items:center; justify-content:center; }
+.pp-empty-title { font-size:16px; font-weight:600; color:#e6edf3; margin-bottom:6px; }
+.pp-empty-sub { font-size:13px; color:#6e7681; line-height:1.6; max-width:300px; margin:0 auto; }
+
 /* ── Avatar dropdown menu — GitHub-style ────────────────────────────────── */
 .vela-user-menu-overlay {
   position: fixed; inset: 0; z-index: 499;
@@ -2110,6 +2152,8 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
     <div id="s-sbs-soap" class="screen"></div>
     <div id="s-patjournal" class="screen"></div>
     <div id="s-intelligence" class="screen"></div>
+        <div id="s-actions" class="screen">
+        <div id="s-patient-portal" class="screen"></div></div>
         <div id="s-calendar" class="screen"></div>
     <div id="s-intake" class="screen"></div>
     <div id="s-economy" class="screen"></div>
@@ -4688,7 +4732,7 @@ function go(scr){
     if (tb2) tb2.style.display = '';
   }
   rTopbar();
-  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
+  const fn={dashboard:rDashboard,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
 }
@@ -7553,12 +7597,12 @@ function _renderGlobalTopbar() {
   var tabMap = {
     dashboard:'home', list:'home', detail:'home',
     calendar:'calendar',
-    intelligence:'intelligence', retention:'intelligence',
-    hael:'hael', form:'hael', doc:'hael',
-    settings:'settings',
     meeting:'journal', soap:'journal', manualsoap:'journal',
+    hael:'hael', form:'hael', doc:'hael',
+    intelligence:'intelligence',
+    actions:'actions', retention:'actions',
+    activity:'activity', settings:'settings',
   };
-  var activeTab = tabMap[scr] || 'home';
 
   var retQ = getRetentionQueue ? getRetentionQueue() : [];
   var alerts = retQ.filter(function(q){ return !q.sentAt && !q.approved; }).length;
@@ -7571,8 +7615,8 @@ function _renderGlobalTopbar() {
     { id:'journal',      label:'Besök',        dest:'manualsoap',icon:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>' },
     { id:'hael',         label:'Hael',           dest:'hael',      icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
     { id:'intelligence', label:'Insikter',   dest:'intelligence', icon:'<path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>', badge: alerts||null },
-    { id:'actions',      label:'Åtgärder',      dest:'list',      icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' },
-    { id:'activity',     label:'Aktivitet',     dest:'dashboard', icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',                                                                  badge: null },
+    { id:'actions',      label:'Åtgärder',      dest:'actions',      icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' },
+    { id:'activity',     label:'Aktivitet',     dest:'intelligence', icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',                                                                  badge: null },
     { id:'settings',     label:'Inställningar',  dest:'settings',  icon:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>' },
   ];
 
@@ -8008,6 +8052,927 @@ function togSettings(){
 }
 
 // rDashboard v1 removed
+
+// ══════════════════════════════════════════════════════════════════════════════
+// rActions — Åtgärder screen (GitHub Issues equivalent)
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Issue types with severity + icons
+var _ISSUE_TYPES = {
+  red_flag:   { label: 'Röd flagga',      color: 'red',   icon: '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',  priority: 1 },
+  dropout:    { label: 'Avhoppsrisk',     color: 'amber', icon: '<path d="M22 16.92v3a2 2 0 01-2.18 2A19.8 19.8 0 014.69 13 19.5 19.5 0 012 4.69a2 2 0 011.72-2.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l.91-.91a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>', priority: 2 },
+  unread_msg: { label: 'Oläst meddelande',color: 'blue',  icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', priority: 3 },
+  no_journal: { label: 'Saknar journal',  color: 'amber', icon: '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', priority: 4 },
+  overdue:    { label: 'Förfallet besök', color: 'red',   icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', priority: 5 },
+  no_show:    { label: 'Uteblev',         color: 'red',   icon: '<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>', priority: 6 },
+};
+
+// Gather all open issues from current state
+function _gatherIssues() {
+  var issues = [];
+  var now = Date.now();
+
+  (S.patients||[]).forEach(function(p) {
+    var visits = (p.visits||[]).sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; });
+    var lastV  = visits[0];
+
+    // Red flags from intake
+    var intake = getLatestIntakeForPatient && getLatestIntakeForPatient(p.id);
+    if (intake && (intake.redFlagCount||0) > 0 && !intake._reviewedAt) {
+      issues.push({
+        id: 'rf_'+p.id, type:'red_flag', patId:p.id, patName:p.name,
+        title: intake.redFlagCount + ' r\u00f6d' + (intake.redFlagCount>1?'a':'') + ' flagg' + (intake.redFlagCount>1?'or':'a') + ' i intake',
+        meta: 'Mottaget ' + new Date(intake.ts||intake.createdAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}),
+        age: now - new Date(intake.ts||intake.createdAt||now),
+        aiSuggestion: 'Granska intake och hantera flaggorna med patienten vid n\u00e4sta bes\u00f6k.',
+        closeFn: 'markIntakeReviewed', closeLabel: 'Markera granskad',
+      });
+    }
+
+    // Dropout risk
+    if (_clinPriority) {
+      var pr = _clinPriority(p);
+      if (pr.level >= 2) {
+        var retQ = getRetentionQueue ? getRetentionQueue() : [];
+        var queued = retQ.find(function(q){ return q.patId===p.id && !q.sentAt; });
+        if (!queued) {
+          issues.push({
+            id: 'do_'+p.id, type:'dropout', patId:p.id, patName:p.name,
+            title: 'Risk f\u00f6r avhopp',
+            meta: pr.signals.map(function(s){return s.text;}).join(' \u00b7 ').slice(0,80),
+            age: now - new Date(lastV?.date||now),
+            aiSuggestion: 'Skicka ett personligt \u00e5terbesöksmeddelande via AI Retention.',
+            closeFn: 'generateRetention', closeLabel: 'Skicka med AI',
+            aiCanAutoHandle: true,
+          });
+        }
+      }
+    }
+
+    // Unread patient messages
+    var unread = (p.messages||[]).filter(function(m){ return m.from==='patient'&&!m.read; });
+    if (unread.length) {
+      issues.push({
+        id: 'msg_'+p.id, type:'unread_msg', patId:p.id, patName:p.name,
+        title: unread.length + ' ol\u00e4st' + (unread.length>1?'a':'') + ' meddelande' + (unread.length>1?'n':''),
+        meta: (unread[0].body||'').slice(0,60),
+        age: now - new Date(unread[0].sentAt||unread[0].createdAt||now),
+        aiSuggestion: 'Sammanfatta meddelandena och f\u00f6reslå ett svar.',
+        closeFn: 'openPatMessages', closeLabel: 'L\u00e4s & svara',
+      });
+    }
+
+    // Visit with no journal
+    var recentUnjournal = visits.slice(0,3).filter(function(v){
+      if (v.status === 'no-show') return false;
+      if (v.soap && (v.soap.S||v.soap.A)) return false;
+      var vAge = now - new Date(v.date||0);
+      return vAge < 30*86400000 && vAge > 0;
+    });
+    if (recentUnjournal.length) {
+      recentUnjournal.forEach(function(v) {
+        issues.push({
+          id: 'nj_'+v.id, type:'no_journal', patId:p.id, patName:p.name,
+          title: 'Bes\u00f6k saknar journal',
+          meta: v.date + (v.serviceName?' \u00b7 '+v.serviceName:''),
+          age: now - new Date(v.date||now),
+          aiSuggestion: 'Generera ett SOAP-utkast baserat p\u00e5 patientens historik.',
+          closeFn: 'openJournal', closeLabel: 'Skriv journal',
+          visitId: v.id, aiCanAutoHandle: true,
+        });
+      });
+    }
+
+    // Overdue return visit
+    if (lastV && lastV.date) {
+      var fw = lastV.form?.followup || lastV.plan?.form?.followup || 4;
+      var dueDate = new Date(lastV.date); dueDate.setDate(dueDate.getDate() + fw*7);
+      var isOverdue = dueDate < new Date() && (now - dueDate) < 60*86400000;
+      var hasUpcoming = getBookings && getBookings().some(function(b){ return b.patientId===p.id && b.date > new Date().toISOString().slice(0,10); });
+      if (isOverdue && !hasUpcoming) {
+        issues.push({
+          id: 'ov_'+p.id, type:'overdue', patId:p.id, patName:p.name,
+          title: '\u00c5terbes\u00f6k f\u00f6rfallet',
+          meta: 'F\u00f6rfallet ' + dueDate.toLocaleDateString('sv-SE',{day:'numeric',month:'short'}),
+          age: now - dueDate,
+          aiSuggestion: 'Skicka bokningspåminnelse och f\u00f6reslå lediga tider.',
+          closeFn: 'bookReturnVisit', closeLabel: 'Boka \u00e5terbes\u00f6k',
+          aiCanAutoHandle: true,
+        });
+      }
+    }
+  });
+
+  // Sort by priority then age
+  issues.sort(function(a,b){
+    var ta = _ISSUE_TYPES[a.type]; var tb = _ISSUE_TYPES[b.type];
+    return (ta?.priority||9) - (tb?.priority||9) || b.age - a.age;
+  });
+
+  return issues;
+}
+
+// Closed issues from localStorage
+function _getClosedIssues() {
+  try { return JSON.parse(localStorage.getItem('vela:closed-issues')||'[]'); } catch(e){ return []; }
+}
+function _closeIssue(id, resolution) {
+  var closed = _getClosedIssues();
+  if (!closed.find(function(c){return c.id===id;})) {
+    closed.unshift({ id:id, closedAt: new Date().toISOString(), resolution:resolution||'manual' });
+    if (closed.length > 200) closed = closed.slice(0,200);
+    localStorage.setItem('vela:closed-issues', JSON.stringify(closed));
+  }
+  rActions();
+}
+
+function rActions() {
+  var el = document.getElementById('s-actions');
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  el.classList.add('active');
+  S.screen = 'actions';
+
+  var allIssues = _gatherIssues();
+  var closedIds = _getClosedIssues().map(function(c){return c.id;});
+  var openIssues   = allIssues.filter(function(i){return closedIds.indexOf(i.id)===-1;});
+  var closedIssues = allIssues.filter(function(i){return closedIds.indexOf(i.id)!==-1;});
+
+  var activeTab = window._actionsTab || 'open';
+  var activeType = window._actionsType || '';
+  var searchQ    = window._actionsSearch || '';
+
+  var displayed = activeTab === 'open' ? openIssues : closedIssues;
+  if (activeType) displayed = displayed.filter(function(i){return i.type===activeType;});
+  if (searchQ)    displayed = displayed.filter(function(i){
+    return (i.patName||'').toLowerCase().includes(searchQ.toLowerCase())
+        || (i.title||'').toLowerCase().includes(searchQ.toLowerCase());
+  });
+
+  var aiAutoCount = openIssues.filter(function(i){return i.aiCanAutoHandle;}).length;
+
+  var h = '<div class="page-shell">';
+
+  // ── Page header ───────────────────────────────────────────────────────
+  h += '<div class="page-header">';
+  h += '<div class="page-header-left">';
+  h += '<div class="page-title">\u00c5tg\u00e4rder</div>';
+  h += '<div class="page-subtitle">Kliniska \u00e4renden som kr\u00e4ver uppm\u00e4rksamhet &nbsp;\u00b7&nbsp; '
+     + '<strong style="color:var(--ink)">' + openIssues.length + '</strong> \u00f6ppna'
+     + (closedIssues.length ? ' &nbsp;\u00b7&nbsp; <span style="color:var(--text2)">' + closedIssues.length + ' hanterade</span>' : '')
+     + '</div>';
+  h += '</div>';
+  h += '<div class="page-actions">';
+  if (aiAutoCount > 0) {
+    h += '<button id="ai-handle-all-btn" class="act-btn" style="gap:7px">'
+       + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+       + 'AI hanterar alla <span class="vela-gtb-tab-badge" style="background:var(--teal-lt);color:var(--teal)">' + aiAutoCount + '</span>'
+       + '</button>';
+  }
+  h += '<button id="actions-ai-brief-btn" class="act-btn act-btn-primary" style="gap:7px">'
+     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+     + 'Vela Ask';
+  h += '</button></div></div>';
+
+  // ── AI briefing strip ─────────────────────────────────────────────────
+  if (openIssues.length > 0) {
+    var byType = {};
+    openIssues.forEach(function(i){ byType[i.type]=(byType[i.type]||0)+1; });
+    var summary = Object.keys(byType).map(function(t){
+      return byType[t] + '\u00a0' + (_ISSUE_TYPES[t]?.label||t).toLowerCase();
+    }).join(', ');
+    h += '<div style="background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.15);border-radius:10px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+    h += '<div style="flex:1"><span style="font-size:11px;font-weight:700;color:var(--teal);margin-right:8px">VELA AI</span>';
+    h += '<span style="font-size:13px;color:var(--text)">' + openIssues.length + ' \u00f6ppna \u00e4renden: ' + summary + '. ';
+    if (aiAutoCount > 0) h += aiAutoCount + ' kan hanteras automatiskt av AI.';
+    h += '</span></div>';
+    h += '<button id="ai-triage-btn" style="background:none;border:1px solid rgba(45,212,191,.3);border-radius:7px;padding:5px 12px;font-size:12px;color:var(--teal);cursor:pointer;font-family:var(--font);font-weight:600;white-space:nowrap">Triagera med AI</button>';
+    h += '</div>';
+  }
+
+  // ── Filter bar ────────────────────────────────────────────────────────
+  h += '<div style="display:flex;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:12px">';
+  // Search
+  h += '<div style="flex:1;display:flex;align-items:center;gap:8px;padding:8px 14px;border-right:1px solid var(--border)">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += '<input id="actions-search" type="text" placeholder="Sök patient eller \u00e4rendetyp..." value="' + (searchQ||'') + '" '
+     + 'style="border:none;background:none;font-size:13px;color:var(--ink);font-family:var(--font);outline:none;width:100%" '
+     + 'oninput="window._actionsSearch=this.value;rActions()">';
+  h += '</div>';
+  // Type filter
+  h += '<div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-right:1px solid var(--border)">';
+  h += '<span style="font-size:11px;color:var(--text2);font-weight:600">Typ</span>';
+  var typeFilters = [
+    {id:'',           label:'Alla'},
+    {id:'red_flag',   label:'Röda flaggor'},
+    {id:'dropout',    label:'Avhoppsrisk'},
+    {id:'unread_msg', label:'Meddelanden'},
+    {id:'no_journal', label:'Saknar journal'},
+    {id:'overdue',    label:'Förfallet'},
+  ];
+  typeFilters.forEach(function(tf) {
+    var isActive = activeType === tf.id;
+    var cnt = tf.id ? allIssues.filter(function(i){return i.type===tf.id&&closedIds.indexOf(i.id)===-1;}).length : openIssues.length;
+    if (tf.id && !cnt) return; // hide types with 0
+    h += '<button class="filter-chip' + (isActive?' active':'') + '" style="padding:4px 10px;font-size:11px" '
+       + 'onclick="window._actionsType=\'' + tf.id + '\';rActions()">'
+       + tf.label;
+    if (cnt) h += '<span class="chip-count">' + cnt + '</span>';
+    h += '</button>';
+  });
+  h += '</div>';
+  // Sort/assignee controls
+  h += '<div style="padding:0 12px;display:flex;align-items:center;gap:6px">';
+  h += '<span style="font-size:11px;color:var(--text2)">Sortera</span>';
+  [['priority','Prioritet'],['age','Ålder'],['patient','Patient']].forEach(function(s){
+    var isA = (window._actionsSort||'priority')===s[0];
+    h += '<button onclick="window._actionsSort=\'' + s[0] + '\';rActions()" '
+       + 'style="padding:4px 8px;border:1px solid ' + (isA?'var(--teal)':'var(--border)') + ';border-radius:6px;'
+       + 'font-size:11px;font-weight:600;background:' + (isA?'var(--teal-lt)':'none') + ';'
+       + 'color:' + (isA?'var(--teal)':'var(--text2)') + ';cursor:pointer;font-family:var(--font)">'
+       + s[1] + '</button>';
+  });
+  h += '</div></div>';
+
+  // ── Open/Closed tabs ──────────────────────────────────────────────────
+  h += '<div class="subnav" style="margin-bottom:0">';
+  h += '<button class="subnav-tab' + (activeTab==='open'?' active':'') + '" onclick="window._actionsTab=\'open\';rActions()">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  h += 'Öppna <span class="tab-count">' + openIssues.length + '</span></button>';
+  h += '<button class="subnav-tab' + (activeTab==='closed'?' active':'') + '" onclick="window._actionsTab=\'closed\';rActions()">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  h += 'Hanterade <span class="tab-count">' + closedIssues.length + '</span></button>';
+  h += '</div>';
+
+  // ── Issue list ────────────────────────────────────────────────────────
+  if (!displayed.length) {
+    h += '<div class="item-list" style="border-top:none;border-radius:0 0 10px 10px">';
+    h += '<div class="empty-state" style="padding:48px 24px">';
+    if (activeTab === 'open') {
+      h += '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+      h += '<div class="empty-state-title" style="color:var(--green)">Inga öppna ärenden</div>';
+      h += '<div class="empty-state-sub">Alla kliniska ärenden är hanterade. Bra jobbat.</div>';
+    } else {
+      h += '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+      h += '<div class="empty-state-title">Inga hanterade ärenden</div>';
+      h += '<div class="empty-state-sub">Hanterade ärenden visas här.</div>';
+    }
+    h += '</div></div>';
+  } else {
+    h += '<div class="item-list" style="border-top:none;border-radius:0 0 10px 10px">';
+    displayed.forEach(function(issue) {
+      var itype = _ISSUE_TYPES[issue.type] || {};
+      var isClosed = closedIds.indexOf(issue.id) !== -1;
+      var ageStr = _relativeDate ? _relativeDate(new Date(Date.now()-issue.age).toISOString().slice(0,10)) : '';
+
+      h += '<div class="item-row" style="' + (isClosed?'opacity:.5':'') + '">';
+
+      // Type icon
+      h += '<div class="item-row-icon">'
+         + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--' + (itype.color||'text2') + ')" stroke-width="1.8" stroke-linecap="round">'
+         + (itype.icon||'<circle cx="12" cy="12" r="10"/>')
+         + '</svg></div>';
+
+      // Content
+      h += '<div class="item-row-body">';
+      h += '<div class="item-row-title">';
+      h += '<span class="link" onclick="openPat(\'' + issue.patId + '\')">' + e(issue.patName) + '</span>';
+      h += '<span style="color:var(--text2);font-weight:400">&nbsp;·&nbsp;' + e(issue.title) + '</span>';
+      if (issue.aiCanAutoHandle && !isClosed) {
+        h += '<span style="font-size:9px;background:var(--teal-lt);color:var(--teal);padding:1px 7px;border-radius:4px;font-weight:700;letter-spacing:.04em">AI</span>';
+      }
+      h += '</div>';
+      h += '<div class="item-row-meta">';
+      h += '<span class="status-pill ' + (itype.color||'muted') + '" style="font-size:10px">' + (itype.label||'') + '</span>';
+      if (issue.meta) h += ' &nbsp;' + e(issue.meta.slice(0,70));
+      if (ageStr) h += ' &nbsp;·&nbsp; ' + ageStr;
+      h += '</div>';
+      // AI suggestion (expandable)
+      if (issue.aiSuggestion && !isClosed) {
+        h += '<div style="font-size:11px;color:var(--teal);margin-top:4px;display:flex;align-items:center;gap:5px">'
+           + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+           + e(issue.aiSuggestion)
+           + '</div>';
+      }
+      h += '</div>';
+
+      // Actions
+      h += '<div class="item-row-action" style="display:flex;gap:6px;flex-shrink:0">';
+      if (!isClosed) {
+        if (issue.aiCanAutoHandle) {
+          h += '<button class="act-btn" style="font-size:11px;color:var(--teal);border-color:rgba(45,212,191,.3)" '
+             + 'onclick="_aiHandleIssue(\'' + issue.id + '\')">'
+             + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+             + 'AI</button>';
+        }
+        h += '<button class="act-btn" style="font-size:11px" '
+           + 'onclick="_handleIssueAction(\'' + issue.id + '\',\'' + issue.closeFn + '\',\'' + (issue.visitId||'') + '\',\'' + issue.patId + '\')">'
+           + e(issue.closeLabel||'\u00c5tg\u00e4rda') + '</button>';
+        h += '<button style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:11px;padding:5px 8px;font-family:var(--font)" '
+           + 'onclick="_closeIssue(\'' + issue.id + '\',\'manual\')" title="Stäng ärende">✓</button>';
+      } else {
+        h += '<button style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:11px;padding:5px 8px;font-family:var(--font)" '
+           + 'onclick="_reopenIssue(\'' + issue.id + '\')">Återöppna</button>';
+      }
+      h += '</div></div>';
+    });
+    h += '</div>';
+  }
+
+  h += '</div>'; // page-shell
+  el.innerHTML = h;
+
+  // Wire buttons
+  var briefBtn = document.getElementById('actions-ai-brief-btn');
+  if (briefBtn) briefBtn.onclick = function() {
+    var open = _gatherIssues().filter(function(i){ return _getClosedIssues().map(function(c){return c.id;}).indexOf(i.id)===-1; });
+    var summary = open.map(function(i){ return i.patName+': '+i.title; }).join('\n');
+    var prompt = open.length
+      ? 'Jag har ' + open.length + ' öppna kliniska ärenden:\n\n' + summary + '\n\nVilka ska jag prioritera och hur?'
+      : 'Inga öppna ärenden just nu. Vad borde jag tänka på proaktivt?';
+    if (window._velaAskPrompt) { _velaAskPrompt(prompt); }
+    else { toggleVelaAsk && toggleVelaAsk(); }
+  };
+
+  var triageBtn = document.getElementById('ai-triage-btn');
+  if (triageBtn) triageBtn.onclick = function() {
+    triageBtn.textContent = 'Triagerar...';
+    triageBtn.disabled = true;
+    var open = _gatherIssues().filter(function(i){ return _getClosedIssues().map(function(c){return c.id;}).indexOf(i.id)===-1; });
+    var prompt = 'Du är en klinisk assistent. Triagera dessa ' + open.length + ' ärenden:\n\n'
+      + open.map(function(i,n){ return (n+1)+'. '+i.patName+' – '+i.title+(i.meta?' ('+i.meta+')':''); }).join('\n')
+      + '\n\nGe en kortfattad prioriteringsordning med motivering (max 3 meningar per ärende). Skriv på svenska.';
+    fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] })
+    }).then(function(r){return r.json();}).then(function(d){
+      var text = d.content && d.content[0] && d.content[0].text || 'Kunde inte triagera.';
+      // Show result in a callout above the list
+      var briefDiv = document.createElement('div');
+      briefDiv.className = 'callout teal';
+      briefDiv.style.cssText = 'margin-bottom:16px;white-space:pre-wrap;font-size:12px;line-height:1.7';
+      briefDiv.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><div>' + e(text) + '</div>';
+      var shell = el.querySelector('.page-shell');
+      var filterBar = el.querySelector('.subnav');
+      if (shell && filterBar) shell.insertBefore(briefDiv, filterBar);
+    }).catch(function(){}).finally(function(){
+      triageBtn.textContent='Triagera med AI'; triageBtn.disabled=false;
+    });
+  };
+
+  var allAiBtn = document.getElementById('ai-handle-all-btn');
+  if (allAiBtn) allAiBtn.onclick = function() { _aiHandleAllIssues(); };
+}
+
+function _handleIssueAction(issueId, fn, visitId, patId) {
+  if (fn === 'generateRetention') {
+    _generateRetentionForPat && _generateRetentionForPat(patId);
+    _closeIssue(issueId, 'retention_queued');
+  } else if (fn === 'openPatMessages') {
+    openPat(patId);
+    window._detailTab = 'messages';
+    rDetail();
+  } else if (fn === 'openJournal') {
+    openPat(patId);
+    if (visitId) S.visitId = visitId;
+    go('manualsoap');
+    _closeIssue(issueId, 'journal_opened');
+  } else if (fn === 'bookReturnVisit') {
+    openPat(patId);
+    openCommandPalette && openCommandPalette();
+  } else if (fn === 'markIntakeReviewed') {
+    var intake = getLatestIntakeForPatient && getLatestIntakeForPatient(patId);
+    if (intake) {
+      intake._reviewedAt = new Date().toISOString();
+      var forms = getIntakeForms ? getIntakeForms() : [];
+      var idx = forms.findIndex(function(f){return f.id===intake.id;});
+      if (idx !== -1) { forms[idx] = intake; saveIntakeForms && saveIntakeForms(forms); }
+    }
+    _closeIssue(issueId, 'reviewed');
+  } else {
+    _closeIssue(issueId, 'manual');
+  }
+}
+
+function _aiHandleIssue(issueId) {
+  var issues = _gatherIssues();
+  var issue = issues.find(function(i){return i.id===issueId;});
+  if (!issue) return;
+  // For AI-handleable issues, use retention AI
+  if (issue.type === 'dropout' || issue.type === 'overdue') {
+    _generateRetentionForPat && _generateRetentionForPat(issue.patId);
+    _closeIssue(issueId, 'ai_retention');
+  } else if (issue.type === 'no_journal') {
+    // Pre-fill and open manual SOAP
+    openPat(issue.patId);
+    if (issue.visitId) S.visitId = issue.visitId;
+    go('manualsoap');
+    _closeIssue(issueId, 'ai_journal');
+  }
+}
+
+function _aiHandleAllIssues() {
+  var closedIds = _getClosedIssues().map(function(c){return c.id;});
+  var aiIssues = _gatherIssues().filter(function(i){
+    return i.aiCanAutoHandle && closedIds.indexOf(i.id)===-1;
+  });
+  aiIssues.forEach(function(i){ _aiHandleIssue(i.id); });
+}
+
+function _reopenIssue(id) {
+  var closed = _getClosedIssues().filter(function(c){return c.id!==id;});
+  localStorage.setItem('vela:closed-issues', JSON.stringify(closed));
+  rActions();
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PATIENT PORTAL — self-service for patients
+// Access: ?portal=TOKEN or hash #portal/TOKEN
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Generate a secure portal token for a patient
+function _portalToken(patId) {
+  // Simple deterministic token: base64(patId + clinic_secret)
+  var secret = (getClinicConfig().id || 'vela') + '_portal_2025';
+  var raw = patId + '|' + secret;
+  // Use btoa for browser compat
+  try { return btoa(raw).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_'); } catch(e) { return patId; }
+}
+
+function _patIdFromToken(token) {
+  try {
+    var decoded = atob(token.replace(/-/g,'+').replace(/_/g,'/'));
+    return decoded.split('|')[0];
+  } catch(e) { return null; }
+}
+
+// Build portal URL for a patient
+function getPortalUrl(patId) {
+  var token = _portalToken(patId);
+  return window.location.origin + window.location.pathname + '#portal/' + token;
+}
+
+// Check if current URL is a portal session
+function _checkPortalHash() {
+  var hash = window.location.hash;
+  if (!hash.startsWith('#portal/')) return false;
+  var token = hash.slice(8);
+  var patId = _patIdFromToken(token);
+  if (!patId) return false;
+  var pat = (S.patients||[]).find(function(p){ return p.id === patId; });
+  if (!pat) {
+    // Try loading from Supabase/cloud
+    _loadPortalForPatient(patId, token);
+    return true;
+  }
+  _loadPortalForPatient(patId, token);
+  return true;
+}
+
+function _loadPortalForPatient(patId, token) {
+  // Hide clinic UI
+  var shell = document.getElementById('app-shell');
+  var gtb = document.getElementById('vela-global-topbar-wrap');
+  var mtb = document.querySelector('.topbar');
+  if (shell) shell.style.display = 'none';
+  if (gtb) gtb.style.display = 'none';
+  if (mtb) mtb.style.display = 'none';
+
+  // Show portal screen
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  var el = document.getElementById('s-patient-portal');
+  if (el) el.classList.add('active');
+
+  var pat = (S.patients||[]).find(function(p){ return p.id === patId; });
+  renderPatientPortal(patId, pat);
+}
+
+function renderPatientPortal(patId, pat) {
+  var el = document.getElementById('s-patient-portal');
+  if (!el) return;
+
+  var cfg     = getClinicConfig ? getClinicConfig() : {};
+  var bookings = (getBookings ? getBookings() : [])
+    .filter(function(b){ return b.patientId===patId && b.status!=='cancelled'; })
+    .sort(function(a,b){ return (a.date+a.time) > (b.date+b.time) ? 1 : -1; });
+  var upcoming = bookings.filter(function(b){ return b.date >= new Date().toISOString().slice(0,10); });
+  var past     = bookings.filter(function(b){ return b.date  < new Date().toISOString().slice(0,10); }).reverse();
+  var haelVisit = pat ? (pat.visits||[]).filter(function(v){return v.plan;}).sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0] : null;
+  var exercises = haelVisit?.plan?.exercises || haelVisit?.plan?.phases?.flatMap?.(function(ph){return ph.exercises||[];}) || [];
+  var intake    = pat && getLatestIntakeForPatient ? getLatestIntakeForPatient(patId) : null;
+
+  var activeTab = window._ppTab || 'bookings';
+  var patName   = pat ? pat.name.split(' ')[0] : 'Hej';
+
+  var h = '<div class="pp-wrap">';
+
+  // ── Topbar ─────────────────────────────────────────────────────────────
+  h += '<div class="pp-topbar">';
+  h += '<div class="pp-logo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>';
+  h += '<span class="pp-wordmark">Vela</span>';
+  if (cfg.name) h += '<span class="pp-clinic-name">/ ' + e(cfg.name) + '</span>';
+  h += '</div>';
+
+  h += '<div class="pp-body">';
+  h += '<div class="pp-greeting">Hej ' + e(patName) + '!</div>';
+  h += '<div class="pp-sub">Hantera dina bokningar och din rehabplan.</div>';
+
+  // ── Tabs ────────────────────────────────────────────────────────────────
+  h += '<div class="pp-tabs">';
+  var tabs = [
+    { id:'bookings',  label:'Mina bokningar', count: upcoming.length },
+    { id:'exercises', label:'Hemövningar',    count: exercises.length || null },
+    { id:'plan',      label:'Hael-plan',      count: haelVisit ? 1 : null },
+    { id:'intake',    label:'Intake',         count: null },
+    { id:'history',   label:'Historik',       count: null },
+  ];
+  tabs.forEach(function(tab) {
+    h += '<button class="pp-tab' + (activeTab===tab.id?' active':'') + '" '
+       + 'onclick="window._ppTab=\'' + tab.id + '\';renderPatientPortal(\'' + patId + '\',' + (pat?'S.patients.find(function(p){return p.id===\''+patId+'\'})':'null') + ')">'
+       + tab.label;
+    if (tab.count) h += ' <span style="background:rgba(45,212,191,.15);color:#2dd4bf;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:700">' + tab.count + '</span>';
+    h += '</button>';
+  });
+  h += '</div>';
+
+  // ── TAB: Bokningar ──────────────────────────────────────────────────────
+  if (activeTab === 'bookings') {
+    if (!upcoming.length) {
+      h += '<div class="pp-card">';
+      h += '<div class="pp-empty">';
+      h += '<div class="pp-empty-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>';
+      h += '<div class="pp-empty-title">Inga kommande bokningar</div>';
+      h += '<div class="pp-empty-sub">Kontakta kliniken för att boka ny tid.</div>';
+      h += '</div></div>';
+    } else {
+      // 24h policy notice
+      var cancelHours = cfg.cancelPolicyHours || 24;
+      h += '<div class="pp-policy-box">';
+      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      h += '<div>Avbokning och ombokning är kostnadsfritt upp till ' + cancelHours + 'h före besöket. Senare avbokning debiteras fullt pris.</div>';
+      h += '</div>';
+
+      h += '<div class="section-title-sm" style="margin-bottom:10px">Kommande</div>';
+      h += '<div class="pp-card">';
+      upcoming.forEach(function(bk) {
+        var bkDate = new Date(bk.date + 'T' + (bk.time||'12:00'));
+        var hoursUntil = (bkDate - new Date()) / 3600000;
+        var canChange  = hoursUntil > cancelHours;
+        var dateStr    = bkDate.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'});
+        dateStr        = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+        var isLate     = !canChange && hoursUntil > 0;
+
+        h += '<div class="pp-card-row">';
+        h += '<div class="pp-card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>';
+        h += '<div class="pp-card-body">';
+        h += '<div class="pp-card-title">' + dateStr + ' kl ' + (bk.time||'') + '</div>';
+        h += '<div class="pp-card-meta">' + e(bk.serviceName||'Behandling') + ' &middot; ' + bk.duration + ' min';
+        if (cfg.address) h += ' &middot; ' + e(cfg.address);
+        h += '</div></div>';
+        h += '<div style="display:flex;gap:6px;flex-shrink:0">';
+        if (canChange) {
+          h += '<button class="pp-btn" onclick="_ppReschedule(\'' + bk.id + '\',\'' + patId + '\')">Boka om</button>';
+          h += '<button class="pp-btn pp-btn-danger" onclick="_ppCancel(\'' + bk.id + '\',\'' + patId + '\',false)">Avboka</button>';
+        } else if (isLate) {
+          h += '<button class="pp-btn pp-btn-danger" onclick="_ppCancel(\'' + bk.id + '\',\'' + patId + '\',true)" style="font-size:11px">Avboka (sent)</button>';
+        }
+        h += '</div></div>';
+      });
+      h += '</div>';
+    }
+  }
+
+  // ── TAB: Hemövningar ───────────────────────────────────────────────────
+  else if (activeTab === 'exercises') {
+    if (!exercises.length) {
+      h += '<div class="pp-card"><div class="pp-empty">';
+      h += '<div class="pp-empty-title">Inga hemövningar</div>';
+      h += '<div class="pp-empty-sub">Din behandlare lägger till övningar när din Hael-plan är aktiv.</div>';
+      h += '</div></div>';
+    } else {
+      h += '<div class="pp-card">';
+      exercises.forEach(function(ex) {
+        h += '<div class="pp-card-row">';
+        h += '<div class="pp-card-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="1.8" stroke-linecap="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>';
+        h += '<div class="pp-card-body">';
+        h += '<div class="pp-card-title">' + e(ex.name||'Övning') + '</div>';
+        h += '<div class="pp-card-meta">';
+        if (ex.sets && ex.reps) h += ex.sets + ' set &times; ' + ex.reps + ' reps';
+        else if (ex.duration) h += ex.duration + ' sek';
+        if (ex.frequency) h += ' &middot; ' + e(ex.frequency);
+        h += '</div>';
+        if (ex.tip || ex.correctFeel) {
+          h += '<div style="font-size:12px;color:#8b949e;margin-top:4px">' + e((ex.tip||ex.correctFeel||'').slice(0,120)) + '</div>';
+        }
+        h += '</div></div>';
+      });
+      h += '</div>';
+    }
+  }
+
+  // ── TAB: Hael-plan ─────────────────────────────────────────────────────
+  else if (activeTab === 'plan') {
+    if (!haelVisit) {
+      h += '<div class="pp-card"><div class="pp-empty">';
+      h += '<div class="pp-empty-title">Ingen aktiv Hael-plan</div>';
+      h += '<div class="pp-empty-sub">Din behandlare skapar en rehabiliteringsplan för dig.</div>';
+      h += '</div></div>';
+    } else {
+      var planLink = window.location.origin + window.location.pathname + '#plan/' + patId + '/' + haelVisit.id;
+      h += '<div class="pp-card pp-card-row" style="padding:16px">';
+      h += '<div class="pp-card-icon" style="width:44px;height:44px;border-radius:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>';
+      h += '<div class="pp-card-body">';
+      h += '<div class="pp-card-title">' + e(haelVisit.plan?.form?.diagnosis||'Din Hael-plan') + '</div>';
+      h += '<div class="pp-card-meta">Startad ' + haelVisit.date + ' &middot; ' + (haelVisit.plan?.totalWeeks||haelVisit.plan?.form?.followup||4) + ' veckor</div>';
+      h += '</div>';
+      h += '<a href="' + planLink + '" target="_blank" class="pp-btn pp-btn-primary">Visa plan</a>';
+      h += '</div>';
+    }
+  }
+
+  // ── TAB: Intake ────────────────────────────────────────────────────────
+  else if (activeTab === 'intake') {
+    if (intake) {
+      var sentDate = new Date(intake.ts||intake.createdAt).toLocaleDateString('sv-SE',{day:'numeric',month:'long'});
+      h += '<div class="pp-policy-box" style="background:rgba(63,185,80,.05);border-color:rgba(63,185,80,.2);color:#3fb950">';
+      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>';
+      h += '<div>Ditt intake-svar mottaget ' + sentDate + '. Tack!</div>';
+      h += '</div>';
+    }
+    // Show intake form link or embedded
+    var intakeLink = (pat?.intakeLink) || ('?intake=' + patId);
+    h += '<div class="pp-card pp-card-row" style="padding:16px">';
+    h += '<div class="pp-card-icon" style="width:44px;height:44px;border-radius:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="' + (intake?'#3fb950':'#2dd4bf') + '" stroke-width="1.8" stroke-linecap="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></div>';
+    h += '<div class="pp-card-body">';
+    h += '<div class="pp-card-title">H\u00e4lsodeklaration</div>';
+    h += '<div class="pp-card-meta">' + (intake ? 'Inskickat ' + new Date(intake.ts||intake.createdAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : 'Ej ifyllt \u2014 ta 5 minuter innan ditt bes\u00f6k') + '</div>';
+    h += '</div>';
+    if (!intake) h += '<button class="pp-btn pp-btn-primary" onclick="_ppOpenIntake(\'' + patId + '\')">Fyll i</button>';
+    h += '</div>';
+  }
+
+  // ── TAB: Historik ──────────────────────────────────────────────────────
+  else if (activeTab === 'history') {
+    if (!past.length) {
+      h += '<div class="pp-card"><div class="pp-empty">';
+      h += '<div class="pp-empty-title">Inga tidigare bes\u00f6k</div>';
+      h += '</div></div>';
+    } else {
+      h += '<div class="pp-card">';
+      past.slice(0,10).forEach(function(bk) {
+        var bkDate = new Date(bk.date + 'T12:00').toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+        h += '<div class="pp-card-row">';
+        h += '<div class="pp-card-icon"><div class="status-dot ' + (bk.status==='completed'?'green':bk.status==='no-show'?'red':'muted') + '"></div></div>';
+        h += '<div class="pp-card-body">';
+        h += '<div class="pp-card-title">' + bkDate + '</div>';
+        h += '<div class="pp-card-meta">' + e(bk.serviceName||'Behandling') + ' &middot; ' + bk.duration + ' min</div>';
+        h += '</div>';
+        h += '<div><span class="pp-status-' + (bk.status==='completed'?'green':bk.status==='no-show'?'red':'amber') + ' pp-status-pill">' + (bk.status==='completed'?'Genomf\u00f6rd':bk.status==='no-show'?'Uteblev':'Registrerad') + '</span></div>';
+        h += '</div>';
+      });
+      h += '</div>';
+    }
+  }
+
+  h += '</div></div>'; // pp-body + pp-wrap
+  el.innerHTML = h;
+}
+
+// ── Reschedule flow ───────────────────────────────────────────────────────────
+function _ppReschedule(bookingId, patId) {
+  var bk = getBookings().find(function(b){ return b.id===bookingId; });
+  if (!bk) return;
+  var cfg = getClinicConfig();
+
+  // Build reschedule overlay
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:900;background:rgba(8,14,24,.85);display:flex;align-items:flex-end;justify-content:center;font-family:"Plus Jakarta Sans",system-ui,sans-serif';
+
+  var today = new Date().toISOString().slice(0,10);
+  var nextWeekDates = [];
+  for (var i=1; i<=14; i++) {
+    var d = new Date(); d.setDate(d.getDate()+i);
+    nextWeekDates.push(d.toISOString().slice(0,10));
+  }
+
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'background:#161b22;border-radius:16px 16px 0 0;width:100%;max-width:560px;padding:24px;max-height:80vh;overflow-y:auto';
+  sheet.innerHTML = '<div style="font-size:18px;font-weight:700;color:#e6edf3;margin-bottom:4px">Boka om din tid</div>'
+    + '<div style="font-size:13px;color:#6e7681;margin-bottom:20px">Nuvarande tid: ' + bk.date + ' kl ' + bk.time + '</div>'
+    + '<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6e7681;margin-bottom:8px">V\u00e4lj nytt datum</div>'
+    + '<input type="date" id="pp-new-date" min="' + today + '" value="" class="pp-input" style="margin-bottom:16px">'
+    + '<div id="pp-slot-wrap"></div>'
+    + '<div id="pp-reschedule-err" style="font-size:12px;color:#f85149;display:none;margin-bottom:8px"></div>'
+    + '<div style="display:flex;gap:8px;margin-top:16px">'
+    + '<button onclick="this.closest(\'[data-pp-ov]\').remove()" class="pp-btn" style="flex:1">Avbryt</button>'
+    + '<button id="pp-confirm-reschedule" class="pp-btn pp-btn-primary" style="flex:2" disabled>V\u00e4lj en tid</button>'
+    + '</div>';
+  sheet.setAttribute('data-pp-ov','1');
+  ov.setAttribute('data-pp-ov','1');
+  ov.appendChild(sheet);
+  document.body.appendChild(ov);
+  ov.onclick = function(e){ if(e.target===ov) ov.remove(); };
+
+  var selectedSlot = null;
+  var dateInput = sheet.querySelector('#pp-new-date');
+  dateInput.onchange = function() {
+    selectedSlot = null;
+    sheet.querySelector('#pp-confirm-reschedule').disabled = true;
+    sheet.querySelector('#pp-confirm-reschedule').textContent = 'V\u00e4lj en tid';
+    var slots = getAvailableSlots ? getAvailableSlots(bk.therapistId, dateInput.value, bk.duration) : [];
+    var wrap = sheet.querySelector('#pp-slot-wrap');
+    if (!slots.length) {
+      wrap.innerHTML = '<div style="font-size:13px;color:#6e7681;padding:8px 0">Inga lediga tider detta datum.</div>';
+      return;
+    }
+    wrap.innerHTML = '<div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6e7681;margin-bottom:8px">Lediga tider</div>'
+      + '<div class="pp-slot-grid">'
+      + slots.map(function(s){ return '<div class="pp-slot" data-time="'+s+'">'+s+'</div>'; }).join('')
+      + '</div>';
+    wrap.querySelectorAll('.pp-slot').forEach(function(slot) {
+      slot.onclick = function() {
+        wrap.querySelectorAll('.pp-slot').forEach(function(s){s.classList.remove('selected');});
+        slot.classList.add('selected');
+        selectedSlot = slot.getAttribute('data-time');
+        var btn = sheet.querySelector('#pp-confirm-reschedule');
+        btn.disabled = false;
+        btn.textContent = 'Bekr\u00e4fta ' + dateInput.value + ' kl ' + selectedSlot;
+      };
+    });
+  };
+
+  sheet.querySelector('#pp-confirm-reschedule').onclick = function() {
+    if (!selectedSlot || !dateInput.value) return;
+    // Perform reschedule
+    var bookings = getBookings();
+    var idx = bookings.findIndex(function(b){return b.id===bookingId;});
+    if (idx !== -1) {
+      var oldDate = bookings[idx].date, oldTime = bookings[idx].time;
+      bookings[idx].date = dateInput.value;
+      bookings[idx].time = selectedSlot;
+      bookings[idx].rescheduledAt = new Date().toISOString();
+      bookings[idx].rescheduledFrom = { date: oldDate, time: oldTime };
+      saveBookings && saveBookings(bookings);
+
+      // Send confirmation
+      var pat2 = (S.patients||[]).find(function(p){return p.id===patId;});
+      if (pat2 && pat2.email) {
+        var body = 'Hej ' + pat2.name.split(' ')[0] + ',\n\nDin tid har bokats om till ' + dateInput.value + ' kl ' + selectedSlot + '.\n\nKlinik: ' + (cfg.name||'') + (cfg.address?'\nAdress: '+cfg.address:'') + '\n\nSe dina bokningar: ' + getPortalUrl(patId);
+        _velaSendMail && _velaSendMail(pat2.email, 'Ombokning bekr\u00e4ftad \u2014 ' + (cfg.name||'Kliniken'), body);
+      }
+      ov.remove();
+      renderPatientPortal(patId, (S.patients||[]).find(function(p){return p.id===patId;}));
+    }
+  };
+}
+
+// ── Cancel flow ───────────────────────────────────────────────────────────────
+function _ppCancel(bookingId, patId, isLate) {
+  var bk = getBookings().find(function(b){ return b.id===bookingId; });
+  if (!bk) return;
+  var cfg = getClinicConfig();
+
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;inset:0;z-index:900;background:rgba(8,14,24,.85);display:flex;align-items:center;justify-content:center;padding:20px;font-family:"Plus Jakarta Sans",system-ui,sans-serif';
+  ov.innerHTML = '<div style="background:#161b22;border:1px solid #30363d;border-radius:14px;padding:24px;max-width:400px;width:100%">'
+    + '<div style="font-size:17px;font-weight:700;color:#e6edf3;margin-bottom:8px">Avboka tid</div>'
+    + (isLate ? '<div style="background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:8px;padding:12px;font-size:13px;color:#f85149;margin-bottom:16px">Din tid är om mindre \u00e4n ' + (cfg.cancelPolicyHours||24) + ' timmar. Enligt v\u00e5r policy debiteras fullt pris vid sen avbokning.</div>' : '')
+    + '<div style="font-size:14px;color:#8b949e;margin-bottom:20px">Vill du avboka din tid ' + bk.date + ' kl ' + bk.time + '?</div>'
+    + '<div style="display:flex;gap:8px">'
+    + '<button onclick="this.closest(\'div[style*=inset]\').remove()" class="pp-btn" style="flex:1">Beh\u00e5ll tid</button>'
+    + '<button id="pp-confirm-cancel" class="pp-btn pp-btn-danger" style="flex:1">Ja, avboka</button>'
+    + '</div></div>';
+  document.body.appendChild(ov);
+  ov.onclick = function(e){ if(e.target===ov) ov.remove(); };
+
+  ov.querySelector('#pp-confirm-cancel').onclick = function() {
+    var bookings = getBookings();
+    var idx = bookings.findIndex(function(b){return b.id===bookingId;});
+    if (idx !== -1) {
+      bookings[idx].status = 'cancelled';
+      bookings[idx].cancelledAt = new Date().toISOString();
+      bookings[idx].cancelledByPatient = true;
+      bookings[idx].lateCancellation = isLate;
+      saveBookings && saveBookings(bookings);
+
+      // Notify clinic
+      var pat2 = (S.patients||[]).find(function(p){return p.id===patId;});
+      if (cfg.email) {
+        var body = (pat2?pat2.name:'Patient') + ' har avbokat sin tid ' + bk.date + ' kl ' + bk.time + (isLate?' (SEN AVBOKNING — debitera?)':'') + '.';
+        _velaSendMail && _velaSendMail(cfg.email, 'Avbokning \u2014 ' + (pat2?pat2.name:'Patient'), body);
+      }
+      // Confirm to patient
+      if (pat2 && pat2.email) {
+        var pbody = 'Hej ' + pat2.name.split(' ')[0] + ',\n\nDin tid ' + bk.date + ' kl ' + bk.time + ' \u00e4r avbokad.' + (isLate?'\n\nObs: Avbokning gjordes under ' + (cfg.cancelPolicyHours||24) + 'h-gr\u00e4nsen. Fullt pris kan komma att debiteras.':'') + '\n\nBoka ny tid: ' + getPortalUrl(patId);
+        _velaSendMail && _velaSendMail(pat2.email, 'Avbokning bekr\u00e4ftad', pbody);
+      }
+      ov.remove();
+      renderPatientPortal(patId, (S.patients||[]).find(function(p){return p.id===patId;}));
+    }
+  };
+}
+
+function _copyPortalLink(patId) {
+  var url = getPortalUrl(patId);
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(function(){
+      showAutoSaveToast('Portal-länk kopierad!');
+    });
+  } else {
+    window.prompt('Kopiera länken:', url);
+  }
+}
+
+function _ppOpenIntake(patId) {
+  var pat = (S.patients||[]).find(function(p){return p.id===patId;});
+  if (pat && pat.intakeLink) {
+    window.location.href = pat.intakeLink;
+  }
+}
+
+// ── Booking confirmation with portal link ─────────────────────────────────────
+function sendBookingConfirmationWithPortal(bk, pat) {
+  if (!pat || !pat.email) return;
+  var cfg = getClinicConfig();
+  var portalUrl = getPortalUrl(pat.id);
+  var cancelHours = cfg.cancelPolicyHours || 24;
+  var dateStr = new Date(bk.date + 'T12:00').toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'});
+  dateStr = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+
+  var subject = 'Bokningsbekr\u00e4ftelse \u2014 ' + dateStr + ' kl ' + bk.time;
+  var body = 'Hej ' + pat.name.split(' ')[0] + ',\n\n'
+    + 'Din tid \u00e4r bekr\u00e4ftad:\n\n'
+    + '\uD83D\uDCC5 ' + dateStr + '\n'
+    + '\u23F0 Kl ' + bk.time + ' (' + bk.duration + ' min)\n'
+    + '\uD83C\uDFE5 ' + (bk.serviceName||'Behandling') + '\n'
+    + (cfg.address ? '\uD83D\uDCCD ' + cfg.address + '\n' : '')
+    + '\n\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\n\n'
+    + '\uD83D\uDD17 Hantera din bokning: ' + portalUrl + '\n\n'
+    + 'H\u00e4r kan du:\n'
+    + '  \u2022 Boka om din tid (upp till ' + cancelHours + 'h i f\u00f6rv\u00e4g)\n'
+    + '  \u2022 Avboka\n'
+    + '  \u2022 Se din Hael-plan och hem\u00f6vningar\n'
+    + '  \u2022 Fylla i intake-formul\u00e4r\n\n'
+    + 'Vi ser fram emot ditt bes\u00f6k!\n\n'
+    + '/ ' + (cfg.name||'Kliniken');
+
+  _velaSendMail && _velaSendMail(pat.email, subject, body, cfg.name);
+}
+
+// ── AI mail handler ───────────────────────────────────────────────────────────
+async function _aiHandlePatientEmail(fromEmail, subject, body) {
+  var cfg = getClinicConfig();
+  var apiKey = _velaGetApiKey ? _velaGetApiKey('anthropic') : null;
+  if (!apiKey) return null;
+
+  // Find patient from email
+  var pat = (S.patients||[]).find(function(p){ return (p.email||'').toLowerCase() === fromEmail.toLowerCase(); });
+  var patContext = pat
+    ? 'Patient: ' + pat.name + '. Kommande bokningar: ' + JSON.stringify((getBookings()||[]).filter(function(b){return b.patientId===pat.id&&b.date>=new Date().toISOString().slice(0,10)&&b.status!=='cancelled';}).map(function(b){return b.date+' kl '+b.time;}))
+    : 'Ok\u00e4nd pats\u00e4ndare (ej registrerad patient).';
+
+  var prompt = 'Du \u00e4r en AI-assistent f\u00f6r kliniken "' + (cfg.name||'Kliniken') + '". En patient har skickat ett mail.\n\n'
+    + patContext + '\n\n'
+    + 'Portal-l\u00e4nk: ' + (pat ? getPortalUrl(pat.id) : '[ej registrerad]') + '\n\n'
+    + 'Avsändare: ' + fromEmail + '\n'
+    + '\u00c4mne: ' + subject + '\n'
+    + 'Meddelande: ' + body + '\n\n'
+    + 'Klassificera mailet och generera ett svar. Svara ENDAST med ett JSON-objekt:\n'
+    + '{\n'
+    + '  "intent": "reschedule|cancel|question|other",\n'
+    + '  "canAutoHandle": true/false,\n'
+    + '  "reply": "Ditt svar p\u00e5 svenska h\u00e4r...",\n'
+    + '  "clinicNote": "Notering till klinikern om vad som h\u00e4nt"\n'
+    + '}\n\n'
+    + 'Om intent \u00e4r reschedule eller cancel, h\u00e4nvisa alltid till portalen f\u00f6r sj\u00e4lvbetj\u00e4ning.\n'
+    + 'H\u00e4lsa patienten v\u00e4lkommen vid fr\u00e5gor. Skriv aldrig att du \u00e4r en AI.';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:500, messages:[{role:'user',content:prompt}] })
+    });
+    var data = await res.json();
+    var text = data.content?.[0]?.text || '{}';
+    var clean = text.replace(/```json|```/g,'').trim();
+    return JSON.parse(clean);
+  } catch(e) { return null; }
+}
+
+// ── Wire portal hash check into startup ──────────────────────────────────────
+// Called from go() — show portal if URL has #portal/
+function _maybeLaunchPortal() {
+  if (window.location.hash.startsWith('#portal/')) {
+    _checkPortalHash();
+    return true;
+  }
+  return false;
+}
+
 function rDashboard() {
   rDayView();
   return;
@@ -28348,7 +29313,7 @@ function getAiProfileContext(userId) {
         initTheme();
         const _ld = document.getElementById('page-loader');
         if (_ld) { _ld.style.opacity='0'; _ld.style.transition='opacity .2s'; setTimeout(()=>{ try{_ld.remove();}catch(e){} },250); }
-        go('dashboard');
+        if (!_maybeLaunchPortal()) { go('dashboard'); }
         initVelaAsk();
         setTimeout(() => rNavLogo(), 100);
         setTimeout(() => syncFromCloud(), 800);

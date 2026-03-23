@@ -607,7 +607,6 @@ button, input, textarea, select { font-family: inherit; }
 .vela-gtb-row1 {
   height: 62px; display: flex; align-items: center; gap: 0;
   background: var(--surface); /* #161b22 — elevated shelf like GitHub */
-  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 .vela-gtb-row2 {
@@ -675,11 +674,15 @@ button, input, textarea, select { font-family: inherit; }
   border-left: 1px solid var(--border); height: 100%;
 }
 .vela-gtb-search {
-  display: flex; align-items: center; gap: 7px;
+  display: flex; align-items: center; gap: 8px;
   background: var(--surface2); border: 1px solid var(--border);
   border-radius: 7px; padding: 5px 10px; cursor: pointer;
-  transition: border-color .12s; min-width: 180px;
+  min-width: 260px; max-width: 400px; flex: 1;
+  transition: border-color .15s, background .15s;
 }
+.vela-gtb-search:hover { background: var(--surface3,var(--surface)); border-color: var(--teal); }
+.vela-gtb-search span { font-size: 13px; color: var(--text2); flex:1; }
+
 .vela-gtb-search:hover { border-color: rgba(177,186,196,.3); }
 .vela-gtb-search span { font-size:13px; color: var(--text2); flex: 1; }
 .vela-gtb-search kbd {
@@ -698,6 +701,7 @@ button, input, textarea, select { font-family: inherit; }
   width: 28px; height: 28px; border-radius: 50%;
   background: var(--teal-lt); border: 1px solid rgba(45,212,191,.2);
   display: flex; align-items: center; justify-content: center;
+  cursor: pointer; background: none; border: none; padding: 0;
   font-size:12px; font-weight: 700; color: var(--teal);
   cursor: pointer; font-family: var(--font-mono);
 }
@@ -1568,7 +1572,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 /* ── COMMAND PALETTE ─────────────────────────────────────────────────────── */
 .cmd-overlay { position:fixed;inset:0;z-index:800;background:rgba(7,16,30,.75);backdrop-filter:blur(8px);display:flex;align-items:flex-start;justify-content:center;padding-top:80px;animation:cmd-fade-in .1s ease; }
 @keyframes cmd-fade-in { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:none} }
-.cmd-box { background:var(--surface);border:1px solid rgba(255,255,255,.1);border-radius:18px;width:100%;max-width:580px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.5); }
+.cmd-box { background:var(--surface);border:1px solid rgba(255,255,255,.1);border-radius:18px;width:100%;max-width: 660px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.5); }
 .cmd-input-row { display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border); }
 .cmd-icon { color:var(--teal);flex-shrink:0; }
 .cmd-input { flex:1;background:none;border:none;font-size:17px;color:var(--ink);outline:none;font-family:var(--font); }
@@ -1620,7 +1624,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .noshow-risk.high { background:rgba(248,81,73,.15);color:#f85149; }
 .noshow-risk.medium { background:rgba(200,160,48,.12);color:#d29922; }
 .noshow-risk.low { background:rgba(26,122,74,.1);color:#3fb950; }
-@media (max-width:768px) {
+@media (max-width: 660px) {
   .tx-panel { width:100%;border-left:none;border-top:1px solid var(--border); top:auto; height:85vh; transform:translateY(100%); }
   .tx-panel.open { transform:translateY(0); }
   .cmd-overlay { padding-top:20px;align-items:flex-end; }
@@ -8306,16 +8310,16 @@ function _renderGlobalTopbar() {
 
   // ── Row 1 right: search + icons + avatar ────────────────────────────────
   h += '<div class="vela-gtb-right">';
-  h += '<div class="vela-gtb-search" id="vela-gtb-search-btn">';
+  h += '<div class="vela-gtb-search" id="vela-gtb-search-btn" title="Sök patienter, bokningar, skärmar... (⌘K)">';
   h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-  h += '<span>Sök patient...</span>';
-  h += '<kbd>⌘K</kbd>';
+  h += '<span style="flex:1">Sök eller hoppa till...</span>';
+  h += '<kbd style="font-size:11px;background:rgba(177,186,196,.1);border:1px solid rgba(177,186,196,.2);border-radius:4px;padding:1px 6px;color:var(--text2)">⌘K</kbd>';
   h += '</div>';
   h += '<button class="vela-gtb-icon-btn" id="vela-gtb-inbox-btn" title="Inkorg">';
   h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>';
   if (totalNotif > 0) h += '<div class="vela-gtb-notif-dot"></div>';
   h += '</button>';
-  h += '<div class="vela-gtb-avatar" id="vela-gtb-avatar-btn" title="' + e(email) + '">' + initials + '</div>';
+  h += '<button class="vela-gtb-avatar" id="vela-gtb-avatar-btn" title="' + e(email) + '" onclick="_openUserMenu()">' + initials + '</button>';
   h += '</div>'; // right
   h += '</div>'; // row1
 
@@ -28896,103 +28900,168 @@ function closeCommandPalette() {
 
 function _renderCommandPalette() {
   document.getElementById('cmd-overlay')?.remove();
+
   var ov = document.createElement('div');
   ov.id = 'cmd-overlay';
   ov.className = 'cmd-overlay';
   ov.onclick = function(ev){ if(ev.target===ov) closeCommandPalette(); };
 
-  var q = _cmdState.query;
+  var q = (_cmdState.query || '').trim();
   var patients = S.patients || [];
+  var bks = getBookings ? getBookings() : [];
+  var now = new Date();
+  var todayStr = now.toISOString().slice(0,10);
+
+  // Match patients
   var matchedPats = q.length >= 1
-    ? patients.filter(function(p){ return p.name && p.name.toLowerCase().includes(q.toLowerCase()); }).slice(0,6)
-    : patients.slice(0,4);
+    ? patients.filter(function(p){ return p.name && p.name.toLowerCase().includes(q.toLowerCase()); }).slice(0,5)
+    : patients.slice(0,3);
 
-  var h = '<div class="cmd-box" onclick="event.stopPropagation()">';
+  // Match bookings (today's + search by patient name)
+  var matchedBks = q.length >= 2
+    ? bks.filter(function(b){ return b.patientName && b.patientName.toLowerCase().includes(q.toLowerCase()) && b.status !== 'cancelled'; }).slice(0,3)
+    : bks.filter(function(b){ return b.date === todayStr && b.status !== 'cancelled'; }).slice(0,3);
 
-  // Input
-  if (_cmdState.selectedPat) {
-    // Patient vald — visa patientrad istället för sökfält
-    h += '<div class="cmd-input-row" style="cursor:default">';
-    h += '<div style="width:32px;height:32px;border-radius:50%;background:rgba(45,212,191,.07);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-    var _ini = (_cmdState.selectedPat.name||'?').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
-    h += '<span style="font-size:13px;font-weight:800;color:var(--teal)">' + _ini + '</span></div>';
-    h += '<span style="font-size:14px;font-weight:700;color:var(--ink);flex:1">' + e(_cmdState.selectedPat.name) + '</span>';
-    h += '<button onclick="_cmdClearPat()" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;padding:4px 10px;font-family:var(--font)">Byt patient</button>';
-    h += '</div>';
-  } else {
-    h += '<div class="cmd-input-row">';
-    h += '<svg class="cmd-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-    h += '<input id="cmd-input" class="cmd-input" placeholder="Sök patient..." value="' + e(q) + '" oninput="_cmdInput(this.value)" onkeydown="_cmdKey(event)">';
-    h += '<span class="cmd-kbd">ESC</span>';
-    h += '</div>';
+  // Navigation commands
+  var navCmds = [
+    { label:'Kalender',        icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', dest:'calendar', hint:'C' },
+    { label:'Patienter',       icon:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>', dest:'list', hint:'P' },
+    { label:'Nytt besök',      icon:'<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4 9.5-9.5z"/>', dest:'manualsoap', hint:'B' },
+    { label:'Åtgärder',        icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>', dest:'actions' },
+    { label:'Aktivitet',       icon:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/>', dest:'activity' },
+    { label:'Inställningar',   icon:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>', dest:'settings' },
+    { label:'Tillgänglighet',  icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>', dest:'availability' },
+    { label:'Hael-planer',     icon:'<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>', dest:'hael' },
+  ];
+
+  var filteredNav = q.length >= 1
+    ? navCmds.filter(function(c){ return c.label.toLowerCase().includes(q.toLowerCase()); })
+    : navCmds;
+
+  // Actions
+  var actionCmds = [
+    { label:'Ny bokning',        icon:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>', action:function(){ closeCommandPalette(); openBookingDialog(null,null); } },
+    { label:'Ny patient',        icon:'<path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>', action:function(){ closeCommandPalette(); go('editpat'); } },
+    { label:'Jag är sjuk idag', icon:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>', action:function(){ closeCommandPalette(); openSickDayPanel(); }, danger:true },
+    { label:'Sätt status',       icon:'<circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>', action:function(){ closeCommandPalette(); openStatusModal(); } },
+  ];
+
+  var filteredActions = q.length >= 1
+    ? actionCmds.filter(function(c){ return c.label.toLowerCase().includes(q.toLowerCase()); })
+    : actionCmds;
+
+  function svgIcon(path) {
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="flex-shrink:0">' + path + '</svg>';
   }
+
+  var h = '<div class="cmd-box" onclick="event.stopPropagation()" style="width:100%;max-width:660px">';
+
+  // Input row — GitHub style
+  h += '<div class="cmd-input-row">';
+  h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += '<input id="cmd-input" class="cmd-input" placeholder="Sök patienter, bokningar, navigera..." value="' + e(q) + '" oninput="_cmdInput(this.value)" onkeydown="_cmdKey(event)" autocomplete="off">';
+  if (q) {
+    h += '<button onclick="_cmdClear()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;line-height:1;padding:0 4px;font-family:var(--font)">×</button>';
+  } else {
+    h += '<kbd style="font-size:11px;background:rgba(177,186,196,.1);border:1px solid rgba(177,186,196,.2);border-radius:4px;padding:1px 7px;color:var(--text2);white-space:nowrap">ESC</kbd>';
+  }
+  h += '</div>';
 
   h += '<div class="cmd-results" id="cmd-results">';
 
-  // AI booking panel (shown when patient selected)
-  if (_cmdState.selectedPat) {
-    h += _buildCmdAiPanel(_cmdState.selectedPat);
-  }
+  var hasResults = false;
 
-  // Patient results
+  // ── PATIENTS ─────────────────────────────────────────────────────────────
   if (matchedPats.length) {
+    hasResults = true;
     h += '<div class="cmd-section-label">' + (q ? 'Patienter' : 'Senaste patienter') + '</div>';
-    matchedPats.forEach(function(p, i) {
-      var lastVisit = (p.visits||[]).slice(-1)[0];
-      var nrs = null;
-      if (lastVisit) {
-        var nrsVals = (lastVisit.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; });
-        nrs = nrsVals.length ? nrsVals[nrsVals.length-1] : (lastVisit.form?.pain ?? null);
-      }
-      var lastDate = lastVisit?.date ? _relativeDate(lastVisit.date) : 'Inga besök';
-      var diag = lastVisit?.form?.diagnosis || lastVisit?.plan?.form?.diagnosis || '';
-      var noshow = _predictNoShow(p);
-      var dropout = _scanDropoutRisks().find(function(r){ return r.patId===p.id; });
-      var initials = p.name.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
-      var nrsColor = nrs==null?'var(--muted)':nrs>=7?'#f85149':nrs>=4?'#d29922':'#3fb950';
-      var isSelected = _cmdState.selectedPat?.id === p.id;
-
-      h += '<div class="cmd-item' + (isSelected?' selected':'') + '" onclick="_cmdSelectPat(\'' + p.id + '\')" data-idx="' + i + '">';
-      h += '<div class="cmd-item-icon" style="background:rgba(45,212,191,.06);color:var(--teal);font-size:13px;font-weight:800">' + initials + '</div>';
+    matchedPats.forEach(function(p) {
+      var lastV = (p.visits||[]).slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; })[0];
+      var lastDate = lastV && lastV.date ? _relativeDate(lastV.date) : 'Inga besök';
+      var diag = (lastV && (lastV.form && lastV.form.diagnosis || lastV.plan && lastV.plan.form && lastV.plan.form.diagnosis)) || '';
+      var initials = (p.name||'?').split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+      h += '<div class="cmd-item" onclick="closeCommandPalette();openPat(\'' + p.id + '\')">';
+      h += '<div class="cmd-item-icon" style="background:rgba(45,212,191,.08);color:var(--teal);font-size:12px;font-weight:800">' + initials + '</div>';
       h += '<div class="cmd-item-main">';
-      h += '<div class="cmd-item-title">' + e(p.name);
-      if (nrs!=null) h += ' <span class="cal-nrs-pill" style="background:' + nrsColor + '22;color:' + nrsColor + '">NRS ' + nrs + '</span>';
-      if (dropout && dropout.score >= 60) h += ' <span style="font-size:11px;color:#f85149">⚠ avhoppsrisk</span>';
+      h += '<div class="cmd-item-title">' + e(p.name) + '</div>';
+      h += '<div class="cmd-item-sub">' + lastDate + (diag ? ' · ' + e(diag.slice(0,35)) : '') + '</div>';
       h += '</div>';
-      h += '<div class="cmd-item-sub">' + lastDate + (diag?' · '+e(diag.split('(')[0].trim()):'') + '</div>';
-      h += '</div>';
-      if (noshow.risk === 'high') h += '<span class="noshow-risk high">No-show ' + noshow.pct + '%</span>';
-      else if (noshow.risk === 'medium') h += '<span class="noshow-risk medium">No-show ' + noshow.pct + '%</span>';
+      h += '<div style="font-size:11px;color:var(--text2);flex-shrink:0">' + (p.visits||[]).length + ' besök</div>';
       h += '</div>';
     });
   }
 
-  // Quick actions
-  if (!q) {
-    h += '<div class="cmd-section-label">Snabbåtgärder</div>';
-    var actions = [
-      {icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
-       title:'Öppna kalender', sub:'Se dagens bokningar', fn:"closeCommandPalette();go('calendar')"},
-      {icon:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
-       title:'Ny patient', sub:'Lägg till ny patientprofil', fn:"closeCommandPalette();_openNewPatientDialog()"},
-      {icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
-       title:'Ekonomiöversikt', sub:'Intäkter och fakturor', fn:"closeCommandPalette();go('economy')"},
-      {icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>',
-       title:'Väntelista', sub:_getWaitlist().length + ' patienter väntar', fn:"closeCommandPalette();openWaitlistDialog()"},
-    ];
-    actions.forEach(function(a) {
-      h += '<div class="cmd-item" onclick="' + a.fn + '">';
-      h += '<div class="cmd-item-icon" style="background:rgba(255,255,255,.05);color:var(--muted)">';
-      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' + a.icon + '</svg></div>';
-      h += '<div class="cmd-item-main"><div class="cmd-item-title">' + a.title + '</div><div class="cmd-item-sub">' + a.sub + '</div></div>';
+  // ── BOOKINGS ──────────────────────────────────────────────────────────────
+  if (matchedBks.length) {
+    hasResults = true;
+    h += '<div class="cmd-section-label">' + (q ? 'Bokningar' : 'Bokningar idag') + '</div>';
+    matchedBks.forEach(function(bk) {
+      var statusColors = { scheduled:'var(--teal)', confirmed:'#3fb950', completed:'var(--text2)', 'no-show':'#d29922' };
+      var col = statusColors[bk.status] || 'var(--text2)';
+      h += '<div class="cmd-item" onclick="closeCommandPalette();openBookingDetail(\'' + bk.id + '\')">';
+      h += '<div class="cmd-item-icon" style="background:' + col + '18;color:' + col + '">' + svgIcon('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>') + '</div>';
+      h += '<div class="cmd-item-main">';
+      h += '<div class="cmd-item-title">' + e(bk.patientName||'Okänd') + '</div>';
+      h += '<div class="cmd-item-sub">' + (bk.date||'') + ' kl ' + (bk.time||'') + (bk.serviceName ? ' · ' + e(bk.serviceName) : '') + '</div>';
+      h += '</div></div>';
+    });
+  }
+
+  // ── NAVIGATE ──────────────────────────────────────────────────────────────
+  if (filteredNav.length) {
+    hasResults = true;
+    h += '<div class="cmd-section-label">Navigera</div>';
+    filteredNav.forEach(function(cmd) {
+      h += '<div class="cmd-item" onclick="closeCommandPalette();go(\'' + cmd.dest + '\')">';
+      h += '<div class="cmd-item-icon" style="background:var(--surface2)">' + svgIcon(cmd.icon) + '</div>';
+      h += '<div class="cmd-item-main"><div class="cmd-item-title">' + cmd.label + '</div></div>';
+      if (cmd.hint) h += '<kbd style="font-size:11px;background:rgba(177,186,196,.08);border:1px solid var(--border);border-radius:4px;padding:1px 6px;color:var(--text2)">' + cmd.hint + '</kbd>';
       h += '</div>';
     });
   }
 
-  h += '</div></div>';
+  // ── ACTIONS ──────────────────────────────────────────────────────────────
+  if (filteredActions.length) {
+    hasResults = true;
+    var _acts = filteredActions;
+    h += '<div class="cmd-section-label">Åtgärder</div>';
+    _acts.forEach(function(cmd, i) {
+      h += '<div class="cmd-item" id="cmd-act-' + i + '" onclick="window._cmdActFns[' + i + ']()">';
+      h += '<div class="cmd-item-icon" style="background:' + (cmd.danger?'rgba(248,81,73,.1)':'var(--surface2)') + ';color:' + (cmd.danger?'#f85149':'currentColor') + '">' + svgIcon(cmd.icon) + '</div>';
+      h += '<div class="cmd-item-main"><div class="cmd-item-title" style="color:' + (cmd.danger?'#f85149':'var(--ink)') + '">' + cmd.label + '</div></div>';
+      h += '</div>';
+    });
+    // Store action functions on window for onclick access
+    window._cmdActFns = _acts.map(function(c){ return c.action; });
+  }
+
+  // No results
+  if (!hasResults && q.length > 0) {
+    h += '<div style="padding:24px 20px;text-align:center;color:var(--text2);font-size:14px">Inga resultat för <strong style="color:var(--ink)">"' + e(q) + '"</strong></div>';
+  }
+
+  // Footer — tips
+  h += '</div>'; // cmd-results
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-top:1px solid var(--border);background:var(--bg)">';
+  h += '<div style="display:flex;align-items:center;gap:12px">';
+  h += '<span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px"><kbd style="font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px">↑↓</kbd> navigera</span>';
+  h += '<span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px"><kbd style="font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px">↵</kbd> välj</span>';
+  h += '<span style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:4px"><kbd style="font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:1px 5px">ESC</kbd> stäng</span>';
+  h += '</div>';
+  h += '<span style="font-size:11px;color:var(--text2)">Vela Sök</span>';
+  h += '</div>';
+  h += '</div>'; // cmd-box
+
   ov.innerHTML = h;
   document.body.appendChild(ov);
 }
+
+function _cmdClear() {
+  _cmdState.query = '';
+  _renderCommandPalette();
+  setTimeout(function(){ document.getElementById('cmd-input')?.focus(); }, 30);
+}
+
 
 function _buildCmdAiPanel(pat) {
   var slots     = _cmdState.aiSlots;

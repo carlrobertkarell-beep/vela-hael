@@ -7625,6 +7625,7 @@ function _renderGlobalTopbar() {
     actions:'actions', retention:'actions',
     activity:'activity', settings:'settings',
   };
+  var activeTab = tabMap[scr] || 'home';
 
   var retQ = getRetentionQueue ? getRetentionQueue() : [];
   var alerts = retQ.filter(function(q){ return !q.sentAt && !q.approved; }).length;

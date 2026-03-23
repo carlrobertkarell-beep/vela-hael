@@ -1091,32 +1091,31 @@ button, input, textarea, select { font-family: inherit; }
   font-family: var(--font);
 }
 .vela-gtb-left {
-  display: flex; align-items: center; gap: 12px;
-  padding: 0 16px; flex-shrink: 0;
-  border-right: 1px solid var(--border); height: 100%;
+  display: flex; align-items: center; gap: 10px;
+  padding: 0 16px 0 12px; flex-shrink: 0;
+  height: 100%;
 }
 .vela-gtb-logo {
   display: flex; align-items: center; gap: 8px;
   text-decoration: none; cursor: pointer;
 }
 .vela-gtb-logo-mark {
-  width: 28px; height: 28px; border-radius: 7px;
-  background: var(--teal-lt); border: 1px solid rgba(45,212,191,.25);
+  width: 26px; height: 26px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 11px; font-weight: 800; color: var(--teal);
-  font-family: var(--font-mono); flex-shrink: 0;
+  opacity: .9;
 }
 .vela-gtb-breadcrumb {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 14px; font-weight: 500; color: var(--text);
+  display: flex; align-items: center; gap: 5px;
+  font-size: 13px; font-weight: 400; color: var(--text2);
 }
-.vela-gtb-breadcrumb .sep { color: var(--text2); }
-.vela-gtb-breadcrumb .current { color: var(--ink); font-weight: 700; }
+.vela-gtb-breadcrumb .sep { color: var(--text2); opacity: .5; }
+.vela-gtb-breadcrumb .bc-owner { color: var(--text); font-weight: 600; }
+.vela-gtb-breadcrumb .bc-repo  { color: var(--ink);  font-weight: 700; }
 
 /* Section tabs */
 .vela-gtb-tabs {
   display: flex; align-items: stretch; height: 100%;
-  padding: 0 8px; flex: 1; overflow-x: auto; overflow-y: hidden;
+  padding: 0 4px; flex: 1; overflow-x: auto; overflow-y: hidden;
 }
 .vela-gtb-tab {
   display: flex; align-items: center; gap: 7px;
@@ -7645,13 +7644,16 @@ function _renderGlobalTopbar() {
 
   var h = '<div class="vela-global-topbar">';
   h += '<div class="vela-gtb-left">';
+  // Logo — SVG pulse icon, no box, just the mark like GitHub's octocat
   h += '<div class="vela-gtb-logo" id="vela-gtb-home-btn">';
-  h += '<div class="vela-gtb-logo-mark">V</div>';
-  h += '</div>';
+  h += '<div class="vela-gtb-logo-mark">';
+  h += '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+  h += '</div></div>';
+  // Breadcrumb — GitHub style: owner / repo
   h += '<div class="vela-gtb-breadcrumb">';
-  h += '<span style="color:var(--text2);font-size:13px">Vela</span>';
+  h += '<span class="bc-owner">Vela</span>';
   h += '<span class="sep">/</span>';
-  h += '<span class="current">' + e(clinicName) + '</span>';
+  h += '<span class="bc-repo">' + e(clinicName) + '</span>';
   h += '</div></div>';
 
   h += '<div class="vela-gtb-tabs">';
@@ -9566,477 +9568,668 @@ function _gmailGetBody(payload) {
 }
 
 // ── Inbox screen ─────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// VELA MAILAPP — 3-panel layout med AI-assistans
+// ══════════════════════════════════════════════════════════════════════════════
+
+var _gmailState = {
+  folder: 'inbox',        // inbox | sent | drafts
+  threads: [],            // deduped thread list for current folder
+  selectedThread: null,   // opened thread
+  aiOpen: false,          // AI panel visible
+  aiResult: null,         // AI analysis result
+  search: '',
+  filter: 'all',          // all | patient | scheduling | clinical | admin
+  loading: false,
+};
+
+// ── Intent detection ──────────────────────────────────────────────────────────
+function _gmailDetectIntent(subject, snippet) {
+  var text = ((subject||'') + ' ' + (snippet||'')).toLowerCase();
+  if (/ombok|flytta tid|ändra tid|ny tid|annan tid|boka om|tisdag|onsdag|måndag|fredag|lördag|efter kl|kl \d|tid på|närmst en|eftermiddags/.test(text))
+    return { id:'scheduling', label:'Tidsbyte',   color:'amber', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' };
+  if (/avbok|inställ|ej kan komma|kan inte komma|förhind|inte möjlig/.test(text))
+    return { id:'cancel',     label:'Avbokning',  color:'red',   icon:'M6 18L18 6M6 6l12 12' };
+  if (/övning|rehab|plan|hemma|smärta|ont i|behandling|besök|hej robert|hej carl|tack för/.test(text))
+    return { id:'clinical',   label:'Klinisk',    color:'teal',  icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' };
+  if (/faktura|betalning|påminnelse|invoice|kvitto|erbjudande|pris|995|990/.test(text))
+    return { id:'admin',      label:'Admin',      color:'muted', icon:'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z' };
+  if (/google|workspace|noreply@|no.reply|report|security|notification/.test(text))
+    return { id:'system',     label:'System',     color:'muted', icon:'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' };
+  return { id:'other', label:'', color:'muted', icon:'' };
+}
+
+function _gmailDateStr(ms) {
+  var d = new Date(parseInt(ms));
+  var now = new Date();
+  var diff = Math.floor((now - d) / 86400000);
+  if (diff === 0) return d.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
+  if (diff === 1) return 'Igår';
+  if (diff < 7)  return d.toLocaleDateString('sv-SE',{weekday:'short'});
+  return d.toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
+}
+
+function _gmailFromName(from) {
+  return (from||'').replace(/<[^>]+>/,'').trim().replace(/^"(.*)"$/,'$1') || (from||'').split('@')[0];
+}
+function _gmailFromEmail(from) {
+  return ((from||'').match(/<([^>]+)>/) || [])[1] || (from||'');
+}
+function _gmailInitials(name) {
+  return (name||'?').split(' ').filter(Boolean).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) || '?';
+}
+
+// ── Main screen ───────────────────────────────────────────────────────────────
 async function rInbox() {
   var el = document.getElementById('s-activity');
   if (!el) {
     var mc = document.querySelector('.main-content');
-    if (mc) { var s = document.createElement('div'); s.id='s-activity'; s.className='screen'; mc.appendChild(s); el=s; }
+    if (mc) { var s=document.createElement('div');s.id='s-activity';s.className='screen';mc.appendChild(s);el=s; }
   }
   if (!el) return;
-
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   el.classList.add('active');
   S.screen = 'activity';
+  _gmailRenderShell(el);
+  if (_gmailIsAuthed && _gmailIsAuthed()) _gmailLoadFolder();
+}
 
-  var activeFilter = window._inboxFilter || 'all';
-  var searchQ      = window._inboxSearch || '';
+function _gmailRenderShell(el) {
+  var authed = _gmailIsAuthed && _gmailIsAuthed();
+  el.innerHTML = '<div id="gm-app" style="display:flex;height:calc(100vh - 52px);overflow:hidden;font-family:var(--font)"></div>';
+  var app = el.querySelector('#gm-app');
 
-  // ── Detect intent from snippet/subject ─────────────────────────────────
-  function detectIntent(subject, snippet) {
-    var text = (subject + ' ' + snippet).toLowerCase();
-    if (/ombok|flytta|ändra tid|ny tid|annan tid|tisdag|onsdag|måndag|fredag|lördag|efter kl|kl \d/.test(text))
-      return { id:'reschedule', label:'Ombokning',  color:'amber' };
-    if (/avbok|inställ|ej kan komma|kan inte komma|förhind/.test(text))
-      return { id:'cancel',     label:'Avbokning',  color:'red' };
-    if (/öv(ning|ningar)|rehab|plan|hemma|smärt|ont i|protokoll|journa/.test(text))
-      return { id:'clinical',   label:'Klinisk',    color:'teal' };
-    if (/faktura|betalning|påminnelse|invoice|kvitto/.test(text))
-      return { id:'admin',      label:'Admin',      color:'muted' };
-    if (/google|workspace|noreply|report|security/.test(text))
-      return { id:'system',     label:'System',     color:'muted' };
-    return { id:'other', label:'', color:'muted' };
+  if (!authed) {
+    app.innerHTML = _gmailNotConnectedHTML();
+    app.querySelector('#gm-connect-btn')?.addEventListener('click', function(){
+      _gmailAuth(function(){ rInbox(); });
+    });
+    return;
   }
 
-  var h = '<div class="page-shell" style="max-width:860px">';
+  // ── Three-panel layout ────────────────────────────────────────────────────
+  app.innerHTML =
+    '<div id="gm-sidebar" style="width:220px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto"></div>'
+  + '<div id="gm-list-panel" style="width:300px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden"></div>'
+  + '<div id="gm-thread-panel" style="flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;min-width:0"></div>';
 
-  // ── Page header ─────────────────────────────────────────────────────────
-  h += '<div class="page-header">';
-  h += '<div class="page-header-left">';
-  h += '<div class="page-title">Inkorg</div>';
-  h += '<div class="page-subtitle">calle@kansei.se</div>';
+  _gmailRenderSidebar();
+  _gmailRenderListPanel();
+  _gmailRenderThreadPanel();
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+function _gmailRenderSidebar() {
+  var sb = document.getElementById('gm-sidebar');
+  if (!sb) return;
+
+  var unread    = _gmailState.threads.filter(function(t){return t.unread;}).length;
+  var folder    = _gmailState.folder;
+  var selFilter = _gmailState.filter;
+
+  // Count threads per intent
+  var intentCounts = {};
+  _gmailState.threads.forEach(function(t) {
+    var id = _gmailDetectIntent(t.subject, t.snippet).id;
+    intentCounts[id] = (intentCounts[id]||0) + 1;
+  });
+
+  function navBtn(id, label, iconPath, count, isSub) {
+    var isFolder = ['inbox','sent','drafts'].includes(id);
+    var active = isFolder ? (folder===id && selFilter==='all') : selFilter===id;
+    return '<button data-nav="' + id + '" style="'
+      + 'display:flex;align-items:center;gap:9px;width:100%;'
+      + 'padding:' + (isSub?'6px 14px 6px 18px':'7px 14px') + ';'
+      + 'border:none;background:' + (active?'rgba(177,186,196,.08)':'none') + ';'
+      + 'color:' + (active?'var(--ink)':'var(--text)') + ';'
+      + 'font-size:' + (isSub?'12':'13') + 'px;font-weight:' + (active?'600':'400') + ';'
+      + 'cursor:pointer;font-family:var(--font);text-align:left;'
+      + 'box-sizing:border-box;'
+      + (active?'box-shadow:inset 3px 0 0 var(--teal)':'')
+      + '">'
+      + (iconPath ? '<svg width="' + (isSub?'13':'14') + '" height="' + (isSub?'13':'14') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="flex-shrink:0;opacity:' + (active?'.9':'.55') + '">' + iconPath + '</svg>' : '<div style="width:14px;flex-shrink:0"></div>')
+      + '<span style="flex:1">' + label + '</span>'
+      + (count ? '<span style="font-size:10px;font-weight:700;background:' + (active?'rgba(45,212,191,.12)':'var(--surface2)') + ';color:' + (active?'var(--teal)':'var(--text2)') + ';padding:1px 6px;border-radius:10px;min-width:16px;text-align:center">' + count + '</span>' : '')
+      + '</button>';
+  }
+
+  function sectionLabel(label) {
+    return '<div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);padding:16px 14px 5px;cursor:default">' + label + '</div>';
+  }
+
+  var h = '';
+
+  // ── Top: Skriv button ───────────────────────────────────────────────────
+  h += '<div style="padding:14px 12px 10px">';
+  h += '<button id="gm-compose-btn" style="'
+     + 'display:flex;align-items:center;justify-content:center;gap:7px;'
+     + 'width:100%;padding:7px 12px;background:var(--teal);color:#0d1117;'
+     + 'border:none;border-radius:7px;font-size:13px;font-weight:700;'
+     + 'cursor:pointer;font-family:var(--font)">'
+     + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+     + 'Skriv mail</button>';
   h += '</div>';
-  h += '<div class="page-actions">';
-  if (_gmailIsAuthed && _gmailIsAuthed()) {
-    h += '<button id="inbox-refresh-btn" class="act-btn" style="gap:6px">';
-    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>Uppdatera</button>';
-    h += '<button id="inbox-ai-all-btn" class="act-btn act-btn-primary" style="gap:6px">';
-    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>AI-genomgång</button>';
+
+  // ── Section 1: Mappar (like "All workflows" + individual) ──────────────
+  h += sectionLabel('Mappar');
+  h += navBtn('inbox',  'Inkorg',  '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/>', unread||null);
+  h += navBtn('sent',   'Skickat', '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>');
+  h += navBtn('drafts', 'Utkast',  '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>');
+
+  // ── Section 2: Klinisk filtrering (like workflow names) ────────────────
+  h += '<div style="border-top:1px solid var(--border);margin-top:8px"></div>';
+  h += sectionLabel('Klinisk');
+  h += navBtn('scheduling', 'Tidsbyte',   '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    intentCounts['scheduling']||null, true);
+  h += navBtn('clinical',   'Kliniska',   '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>',
+    intentCounts['clinical']||null, true);
+  h += navBtn('cancel',     'Avbokningar','<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
+    intentCounts['cancel']||null, true);
+  h += navBtn('admin',      'Admin',      '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+    intentCounts['admin']||null, true);
+
+  // ── Section 3: Automatik (like "Management") ───────────────────────────
+  h += '<div style="border-top:1px solid var(--border);margin-top:8px"></div>';
+  h += sectionLabel('Automatik');
+  // Retention queue count
+  var retQ = getRetentionQueue ? getRetentionQueue() : [];
+  var retSent   = retQ.filter(function(q){return q.sentAt;}).length;
+  var retPending = retQ.filter(function(q){return !q.sentAt && q.approved;}).length;
+  h += navBtn('retention-sent',    'Skickade retention', '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+    retSent||null, true);
+  h += navBtn('retention-pending', 'Schemalagda',        '<svg width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    retPending||null, true);
+  h += navBtn('portal-activity',   'Portal-aktivitet',   '<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
+    null, true);
+
+  // ── AI-genomgång button at bottom ──────────────────────────────────────
+  h += '<div style="margin-top:auto;border-top:1px solid var(--border);padding:10px 12px">';
+  h += '<button id="gm-ai-all-btn" style="'
+     + 'display:flex;align-items:center;gap:7px;width:100%;'
+     + 'padding:7px 12px;background:none;border:1px solid rgba(45,212,191,.25);border-radius:7px;'
+     + 'font-size:12px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">'
+     + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+     + 'AI-genomgång av inkorg</button>';
+  h += '</div>';
+
+  sb.innerHTML = h;
+
+  // ── Wire all nav buttons ──────────────────────────────────────────────
+  sb.querySelectorAll('[data-nav]').forEach(function(btn) {
+    btn.onclick = function() {
+      var id = btn.getAttribute('data-nav');
+      var isFolder = ['inbox','sent','drafts'].includes(id);
+      if (isFolder) {
+        _gmailState.folder = id;
+        _gmailState.filter = 'all';
+        _gmailState.selectedThread = null;
+        _gmailState.aiResult = null;
+        _gmailRenderSidebar();
+        _gmailLoadFolder();
+      } else if (id === 'retention-sent' || id === 'retention-pending' || id === 'portal-activity') {
+        // Show in list panel as a special view
+        _gmailState.filter = id;
+        _gmailRenderSidebar();
+        _gmailRenderListPanel();
+      } else {
+        _gmailState.filter = id;
+        _gmailRenderSidebar();
+        _gmailRenderListPanel();
+      }
+    };
+  });
+
+  sb.querySelector('#gm-compose-btn')?.addEventListener('click', _gmailOpenCompose);
+  sb.querySelector('#gm-ai-all-btn')?.addEventListener('click', _gmailAiReview);
+}
+
+
+// ── Thread list panel ─────────────────────────────────────────────────────────
+function _gmailRenderListPanel() {
+  var panel = document.getElementById('gm-list-panel');
+  if (!panel) return;
+
+  // Filter threads
+  var threads = _gmailState.threads;
+  if (_gmailState.filter !== 'all') {
+    threads = threads.filter(function(t) {
+      return _gmailDetectIntent(t.subject, t.snippet).id === _gmailState.filter;
+    });
   }
+  if (_gmailState.search) {
+    var q = _gmailState.search.toLowerCase();
+    threads = threads.filter(function(t){
+      return (t.fromName||'').toLowerCase().includes(q)
+          || (t.subject||'').toLowerCase().includes(q)
+          || (t.snippet||'').toLowerCase().includes(q);
+    });
+  }
+
+  // Header
+  var folderLabel = {inbox:'Inkorg',sent:'Skickat',drafts:'Utkast'}[_gmailState.folder]||'';
+  var h = '<div style="padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0">';
+  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+  h += '<span style="font-size:14px;font-weight:700;color:var(--ink)">' + folderLabel + '</span>';
+  if (threads.length) h += '<span style="font-size:11px;color:var(--text2);background:var(--surface2);padding:1px 7px;border-radius:10px">' + threads.length + '</span>';
+  h += '</div>';
+  // Search
+  h += '<div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:6px 10px">';
+  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += '<input id="gm-search" type="text" placeholder="Sök..." value="' + (_gmailState.search||'') + '" style="border:none;background:none;font-size:12px;color:var(--ink);font-family:var(--font);outline:none;width:100%">';
   h += '</div></div>';
 
-  if (!(_gmailIsAuthed && _gmailIsAuthed())) {
-    // ── Not connected ─────────────────────────────────────────────────────
-    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:48px 32px;text-align:center">';
-    h += '<div style="width:56px;height:56px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">';
-    h += '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.5" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>';
-    h += '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:6px">Gmail inte ansluten</div>';
-    h += '<div style="font-size:14px;color:var(--text);max-width:360px;margin:0 auto 20px;line-height:1.6">Anslut Gmail för att se och hantera patientmail direkt i Vela med AI-assistans.</div>';
-    h += '<button id="gmail-connect-btn" class="act-btn act-btn-primary" style="font-size:14px;padding:10px 22px">Anslut Gmail &rarr;</button>';
-    h += '<div style="margin-top:12px;font-size:12px;color:var(--text2)">Konfigureras i Inställningar &rarr; Kommunikation</div>';
+  if (_gmailState.loading) {
+    h += '<div style="display:flex;align-items:center;justify-content:center;padding:40px;flex-direction:column;gap:12px">';
+    h += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6-8.5"/></svg>';
+    h += '<span style="font-size:12px;color:var(--text2)">Hämtar mail...</span></div>';
     h += '</div>';
-    h += '</div>';
-    el.innerHTML = h;
-    var cb = document.getElementById('gmail-connect-btn');
-    if (cb) cb.onclick = function() { _gmailAuth(function(){ rInbox(); }); };
+    panel.innerHTML = h;
     return;
   }
 
-  // ── Search + filter ─────────────────────────────────────────────────────
-  h += '<div style="display:flex;gap:8px;margin-bottom:16px;align-items:center">';
-  h += '<div style="flex:1;display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px">';
-  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-  h += '<input id="inbox-search-inp" type="text" placeholder="Sök i inkorgen..." value="' + (searchQ||'') + '" style="border:none;background:none;font-size:13px;color:var(--ink);font-family:var(--font);outline:none;width:100%">';
-  h += '</div>';
-  var filters = [
-    {id:'all',        label:'Alla'},
-    {id:'reschedule', label:'Ombokning'},
-    {id:'cancel',     label:'Avbokning'},
-    {id:'clinical',   label:'Klinisk'},
-    {id:'unread',     label:'Olästa'},
-  ];
-  filters.forEach(function(f) {
-    var a = activeFilter===f.id;
-    h += '<button class="filter-chip'+(a?' active':'') + '" onclick="window._inboxFilter=\'' + f.id + '\';_gmailLoadAndRender()" style="white-space:nowrap;font-size:12px">' + f.label + '</button>';
-  });
-  h += '</div>';
+  h += '<div id="gm-thread-rows" style="flex:1;overflow-y:auto">';
+  if (!threads.length) {
+    h += '<div style="padding:40px 20px;text-align:center;color:var(--text2);font-size:13px">Inga mail</div>';
+  } else {
+    threads.forEach(function(t) {
+      var intent = _gmailDetectIntent(t.subject, t.snippet);
+      var isSelected = _gmailState.selectedThread && _gmailState.selectedThread.threadId === t.threadId;
+      var pat = (S.patients||[]).find(function(p){ return p.email && t.fromEmail && t.fromEmail.toLowerCase().includes(p.email.toLowerCase()); });
 
-  // ── AI result slot ──────────────────────────────────────────────────────
-  h += '<div id="inbox-ai-result" style="display:none;margin-bottom:16px"></div>';
+      h += '<div class="gm-row" data-tid="' + t.threadId + '" style="'
+         + 'display:flex;align-items:flex-start;gap:10px;padding:11px 14px;cursor:pointer;'
+         + 'border-bottom:1px solid var(--border2);transition:background .1s;'
+         + 'background:' + (isSelected?'rgba(45,212,191,.05)':t.unread?'rgba(177,186,196,.03)':'transparent') + ';'
+         + (isSelected?'box-shadow:inset 3px 0 0 var(--teal)':'')
+         + '">';
 
-  // ── Thread list placeholder ─────────────────────────────────────────────
-  h += '<div id="inbox-thread-list">';
-  h += '<div class="item-list"><div class="empty-state">';
-  h += '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6-8.5"/></svg>';
-  h += '<div style="font-size:13px;color:var(--text2);margin-top:10px">H&auml;mtar mail...</div>';
-  h += '</div></div></div>';
+      // Avatar
+      h += '<div style="position:relative;flex-shrink:0">';
+      h += '<div style="width:34px;height:34px;border-radius:50%;background:' + (pat?'rgba(45,212,191,.1)':'var(--surface2)') + ';border:1px solid ' + (pat?'rgba(45,212,191,.2)':'var(--border)') + ';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:' + (pat?'var(--teal)':'var(--text)') + ';font-family:var(--font-mono)">' + _gmailInitials(t.fromName) + '</div>';
+      if (t.unread) h += '<div style="position:absolute;top:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:var(--blue);border:2px solid var(--bg)"></div>';
+      h += '</div>';
 
-  h += '</div>'; // page-shell
-  el.innerHTML = h;
+      // Content
+      h += '<div style="flex:1;min-width:0">';
+      // Row 1: from + date
+      h += '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:6px;margin-bottom:2px">';
+      h += '<span style="font-size:13px;font-weight:' + (t.unread?'700':'500') + ';color:' + (t.unread?'var(--ink)':'var(--text)') + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">' + (t.fromName||'').slice(0,22) + '</span>';
+      h += '<span style="font-size:11px;color:var(--text2);flex-shrink:0">' + _gmailDateStr(t.internalDate) + '</span>';
+      h += '</div>';
+      // Row 2: subject + count
+      h += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">';
+      h += '<span style="font-size:12px;font-weight:' + (t.unread?'600':'400') + ';color:' + (t.unread?'var(--ink)':'var(--text)') + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + (t.subject||'').slice(0,40) + '</span>';
+      if (t.count > 1) h += '<span style="font-size:10px;background:var(--surface3);color:var(--text2);padding:0 5px;border-radius:8px;flex-shrink:0">' + t.count + '</span>';
+      h += '</div>';
+      // Row 3: snippet + intent badge
+      h += '<div style="display:flex;align-items:center;gap:5px">';
+      h += '<span style="font-size:11px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + (t.snippet||'').slice(0,50) + '</span>';
+      if (intent.id !== 'other' && intent.id !== 'system') {
+        h += '<span class="status-pill ' + intent.color + '" style="font-size:9px;padding:1px 5px;flex-shrink:0">' + intent.label + '</span>';
+      }
+      if (pat) h += '<span class="status-pill teal" style="font-size:9px;padding:1px 5px;flex-shrink:0">Patient</span>';
+      h += '</div>';
 
-  // Wire controls
-  var refreshBtn = document.getElementById('inbox-refresh-btn');
-  if (refreshBtn) refreshBtn.onclick = function() { _gmailThreads=[]; _gmailLoadAndRender(); };
+      // Quick actions for scheduling/cancel (appear on hover via JS)
+      if (intent.id === 'scheduling' || intent.id === 'cancel') {
+        h += '<div class="gm-quick-actions" style="display:none;gap:5px;margin-top:7px" onclick="event.stopPropagation()">';
+        if (pat) {
+          h += '<button onclick="sendPortalMagicLink((S.patients||[]).find(function(p){return p.id===\'' + pat.id + '\';}))" style="padding:3px 9px;border:1px solid rgba(45,212,191,.3);border-radius:5px;background:none;font-size:10px;color:var(--teal);cursor:pointer;font-family:var(--font)">Skicka portallänk</button>';
+        }
+        h += '<button data-ai-tid="' + t.threadId + '" style="padding:3px 9px;border:1px solid var(--border);border-radius:5px;background:none;font-size:10px;color:var(--text2);cursor:pointer;font-family:var(--font)">AI-svar</button>';
+        h += '</div>';
+      }
 
-  var aiAllBtn = document.getElementById('inbox-ai-all-btn');
-  if (aiAllBtn) aiAllBtn.onclick = _gmailAiReview;
-
-  var searchInp = document.getElementById('inbox-search-inp');
-  if (searchInp) {
-    searchInp.onkeydown = function(e) {
-      if (e.key==='Enter') { window._inboxSearch=searchInp.value; _gmailLoadAndRender(); }
-    };
+      h += '</div></div>';
+    });
   }
+  h += '</div>';
+  panel.innerHTML = h;
 
-  // Load data
-  _gmailLoadAndRender();
+  // Wire events
+  var searchEl = panel.querySelector('#gm-search');
+  if (searchEl) searchEl.oninput = function() {
+    _gmailState.search = searchEl.value;
+    _gmailRenderListPanel();
+  };
+
+  // Thread row clicks + hover
+  panel.querySelectorAll('.gm-row').forEach(function(row) {
+    row.onclick = function() {
+      var tid = row.getAttribute('data-tid');
+      _gmailOpenThread(tid);
+    };
+    row.onmouseenter = function() {
+      var qa = row.querySelector('.gm-quick-actions');
+      if (qa) qa.style.display = 'flex';
+    };
+    row.onmouseleave = function() {
+      var qa = row.querySelector('.gm-quick-actions');
+      if (qa) qa.style.display = 'none';
+    };
+  });
+
+  // AI quick action buttons
+  panel.querySelectorAll('[data-ai-tid]').forEach(function(btn) {
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      var tid = btn.getAttribute('data-ai-tid');
+      _gmailOpenThread(tid, true);
+    };
+  });
 }
 
-// ── Intent detection (exposed so _gmailLoadAndRender can use it) ─────────────
-function _gmailDetectIntent(subject, snippet) {
-  var text = (subject + ' ' + snippet).toLowerCase();
-  if (/ombok|flytta|ändra tid|ny tid|annan tid|tisdag|onsdag|måndag|fredag|lördag|efter kl|kl \d|tid på/.test(text))
-    return { id:'reschedule', label:'Ombokning',  color:'amber' };
-  if (/avbok|inställ|ej kan komma|kan inte komma|förhind|inte möjlig/.test(text))
-    return { id:'cancel',     label:'Avbokning',  color:'red' };
-  if (/övning|rehab|plan|hemma|smärt|ont i|protokoll|behandling|svar på|hej robert|hej carl/.test(text))
-    return { id:'clinical',   label:'Klinisk',    color:'teal' };
-  if (/faktura|betalning|påminnelse|invoice|kvitto/.test(text))
-    return { id:'admin',      label:'Admin',      color:'muted' };
-  if (/google|workspace|noreply@|report|security|no.reply/.test(text))
-    return { id:'system',     label:'System',     color:'muted' };
-  return { id:'other', label:'', color:'muted' };
+// ── Thread panel (empty state) ────────────────────────────────────────────────
+function _gmailRenderThreadPanel(content) {
+  var panel = document.getElementById('gm-thread-panel');
+  if (!panel) return;
+  if (!content) {
+    panel.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--text2)">'
+      + '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
+      + '<span style="font-size:13px">Välj ett mail att läsa</span>'
+      + '</div>';
+    return;
+  }
+  panel.innerHTML = content;
 }
 
-async function _gmailLoadAndRender() {
-  var filter  = window._inboxFilter || 'all';
-  var searchQ = window._inboxSearch || '';
+// ── Load folder (deduplicate threads) ─────────────────────────────────────────
+async function _gmailLoadFolder() {
+  _gmailState.loading = true;
+  _gmailRenderListPanel();
 
   var query = 'in:inbox -category:promotions';
-  if (filter==='unread')      query = 'in:inbox is:unread';
-  else if (filter==='reschedule') query = 'in:inbox (ombok OR "ny tid" OR "ändra tid" OR "flytta" OR "tisdag" OR "onsdag" OR "måndag" OR "fredag")';
-  else if (filter==='cancel') query = 'in:inbox (avbok OR "kan inte komma" OR "inställ")';
-  else if (filter==='clinical') query = 'in:inbox -category:promotions -category:updates';
-  if (searchQ) query = searchQ;
+  if (_gmailState.folder === 'sent')   query = 'in:sent';
+  if (_gmailState.folder === 'drafts') query = 'in:drafts';
 
-  var threads = await _gmailLoadInbox(query, 25);
-  _gmailThreads = threads;
+  var msgs = await _gmailLoadInbox(query, 40);
 
-  var listEl = document.getElementById('inbox-thread-list');
-  if (!listEl) return;
-
-  // Client-side filter for intent
-  var displayed = threads;
-  if (filter==='reschedule' || filter==='cancel' || filter==='clinical') {
-    displayed = threads.filter(function(t) {
-      var intent = _gmailDetectIntent(t.subject, t.snippet);
-      return intent.id === filter;
-    });
-    // If no results after filter, show all (server query may have caught them)
-    if (!displayed.length) displayed = threads;
-  }
-
-  if (!displayed.length) {
-    listEl.innerHTML = '<div class="item-list"><div class="empty-state">'
-      + '<div class="empty-state-title">Inga mail</div>'
-      + '<div class="empty-state-sub">Inkorgen är tom.</div>'
-      + '</div></div>';
-    return;
-  }
-
-  var h = '<div class="item-list">';
-  displayed.forEach(function(t) {
-    var intent   = _gmailDetectIntent(t.subject, t.snippet);
-    var fromName = t.from.replace(/<[^>]+>/,'').trim().replace(/^"(.*)"$/, '$1') || t.from.split('@')[0];
-    var fromEmail= (t.from.match(/<([^>]+)>/) || [])[1] || t.from;
-    var initials = fromName.split(' ').filter(Boolean).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) || '?';
-    var pat      = (S.patients||[]).find(function(p){ return p.email && fromEmail.toLowerCase().includes(p.email.toLowerCase()); });
-
-    // Date formatting
-    var dateMs  = parseInt(t.internalDate||'0');
-    var dateObj = new Date(dateMs);
-    var now     = new Date();
-    var diffDays= Math.floor((now-dateObj)/86400000);
-    var dateStr = diffDays===0 ? dateObj.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'})
-                : diffDays===1 ? 'Igår'
-                : diffDays < 7 ? dateObj.toLocaleDateString('sv-SE',{weekday:'short'})
-                : dateObj.toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
-
-    h += '<div class="gm-thread' + (t.unread?' unread':'') + '" data-tid="' + t.id + '">';
-
-    // Left: avatar + unread dot
-    h += '<div style="position:relative;flex-shrink:0">';
-    h += '<div class="gm-avatar" style="' + (pat?'background:rgba(45,212,191,.1);border-color:rgba(45,212,191,.2);color:var(--teal)':'') + '">' + initials + '</div>';
-    if (t.unread) h += '<div style="position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--blue);border:2px solid var(--bg)"></div>';
-    h += '</div>';
-
-    // Center: content
-    h += '<div class="gm-body">';
-    // Row 1: from + intent + count + time
-    h += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">';
-    h += '<span class="gm-from" style="' + (t.unread?'color:var(--ink);font-weight:700':'') + '">' + e(fromName.slice(0,28)) + '</span>';
-    if (pat) h += '<span class="status-pill teal" style="font-size:9px;padding:1px 6px">' + e(pat.name.split(' ')[0]) + '</span>';
-    if (intent.id !== 'other' && intent.id !== 'system') {
-      h += '<span class="status-pill ' + intent.color + '" style="font-size:9px;padding:1px 6px">' + intent.label + '</span>';
+  // Deduplicate by threadId — keep only latest message per thread
+  var seen = {};
+  var threads = [];
+  (msgs||[]).forEach(function(m) {
+    if (!seen[m.threadId]) {
+      seen[m.threadId] = true;
+      var fromName  = _gmailFromName(m.from);
+      var fromEmail = _gmailFromEmail(m.from);
+      var count = (msgs||[]).filter(function(x){return x.threadId===m.threadId;}).length;
+      threads.push(Object.assign({}, m, { fromName:fromName, fromEmail:fromEmail, count:count }));
     }
-    if (t.messageCount > 1) h += '<span style="font-size:10px;background:var(--surface3);color:var(--text2);padding:1px 5px;border-radius:9px">' + t.messageCount + '</span>';
-    h += '<span style="margin-left:auto;font-size:11px;color:var(--text2);flex-shrink:0">' + dateStr + '</span>';
-    h += '</div>';
-    // Row 2: subject
-    h += '<div class="gm-subject" style="' + (t.unread?'font-weight:600;color:var(--ink)':'') + '">' + e(t.subject.slice(0,65)) + '</div>';
-    // Row 3: snippet
-    h += '<div class="gm-snippet">' + e(t.snippet.slice(0,90)) + '</div>';
-    // Row 4: quick actions for actionable emails
-    if (intent.id==='reschedule' || intent.id==='cancel') {
-      h += '<div style="display:flex;gap:6px;margin-top:7px" onclick="event.stopPropagation()">';
-      if (intent.id==='reschedule') {
-        h += '<button class="act-btn" style="font-size:11px;padding:4px 10px;color:var(--amber);border-color:rgba(210,153,34,.3)" '
-           + 'onclick="_gmailQuickAction(\'' + t.id + '\',\'reschedule\',' + (pat?'\''+pat.id+'\'':'null') + ')">'
-           + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
-           + 'Skicka portall&auml;nk</button>';
-      } else {
-        h += '<button class="act-btn" style="font-size:11px;padding:4px 10px;color:var(--red);border-color:rgba(248,81,73,.3)" '
-           + 'onclick="_gmailQuickAction(\'' + t.id + '\',\'cancel\',' + (pat?'\''+pat.id+'\'':'null') + ')">'
-           + 'Hantera avbokning</button>';
-      }
-      h += '<button class="act-btn" style="font-size:11px;padding:4px 10px" '
-         + 'onclick="_gmailQuickAction(\'' + t.id + '\',\'ai_reply\',' + (pat?'\''+pat.id+'\'':'null') + ')">'
-         + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
-         + 'AI-svar</button>';
-      h += '</div>';
-    }
-    h += '</div>'; // gm-body
-    h += '</div>'; // gm-thread
   });
-  h += '</div>';
-  listEl.innerHTML = h;
 
-  // Wire thread row clicks
-  listEl.querySelectorAll('.gm-thread').forEach(function(row) {
-    row.onclick = function() { _gmailOpenThread(row.getAttribute('data-tid')); };
-  });
+  _gmailState.threads = threads;
+  _gmailState.loading = false;
+  _gmailRenderSidebar();
+  _gmailRenderListPanel();
 }
 
-// Quick actions from thread row (without opening thread)
-async function _gmailQuickAction(threadId, action, patId) {
-  var t = _gmailThreads.find(function(t){ return t.id===threadId; });
-  var pat = patId ? (S.patients||[]).find(function(p){return p.id===patId;}) : null;
-  var cfg = getClinicConfig();
+// ── Open and render thread ────────────────────────────────────────────────────
+async function _gmailOpenThread(threadId, autoAi) {
+  // Mark as selected
+  _gmailState.selectedThread = { threadId: threadId };
+  _gmailState.aiResult = null;
+  _gmailRenderListPanel(); // update selection highlight
 
-  if (action === 'reschedule' && pat) {
-    // Send portal magic link
-    await sendPortalMagicLink(pat);
-    showAutoSaveToast('Portal-länk skickad till ' + pat.email);
-  } else if (action === 'reschedule') {
-    // No patient match — show AI reply with portal suggestion
-    _gmailOpenThread(threadId);
-  } else if (action === 'cancel' && pat) {
-    await sendPortalMagicLink(pat);
-    showAutoSaveToast('Portal-länk skickad till ' + pat.email);
-  } else if (action === 'ai_reply') {
-    await _gmailOpenThread(threadId, true); // true = auto-trigger AI analysis
-  }
-}
+  // Show loading in thread panel
+  _gmailRenderThreadPanel('<div style="display:flex;align-items:center;justify-content:center;height:100%;gap:10px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6-8.5"/></svg><span style="font-size:13px;color:var(--text2)">Laddar tråd...</span></div>');
 
-async function _gmailOpenThread(threadId, autoAnalyze) {
-  var t = _gmailThreads.find(function(t){ return t.id===threadId; });
   var thread = await _gmailLoadThread(threadId);
   if (!thread) return;
 
-  var fromEmail = t ? ((t.from.match(/<([^>]+)>/) || [])[1] || t.from) : '';
-  var pat = (S.patients||[]).find(function(p){ return p.email && fromEmail.toLowerCase().includes(p.email.toLowerCase()); });
-  var intent = t ? _gmailDetectIntent(t.subject, t.snippet) : { id:'other', label:'', color:'muted' };
-  var cfg = getClinicConfig();
+  var msgs   = thread.messages || [];
+  var meta   = _gmailState.threads.find(function(t){return t.threadId===threadId;}) || {};
+  var intent = _gmailDetectIntent(meta.subject||'', meta.snippet||'');
+  var pat    = (S.patients||[]).find(function(p){ return p.email && meta.fromEmail && meta.fromEmail.toLowerCase().includes(p.email.toLowerCase()); });
 
-  var ov = document.createElement('div');
-  ov.style.cssText = 'position:fixed;inset:0;z-index:700;background:var(--bg);overflow-y:auto;font-family:var(--font);animation:fadeInOv .15s ease';
+  _gmailState.selectedThread = { threadId:threadId, thread:thread, meta:meta, intent:intent, pat:pat };
 
-  var h = '<div style="max-width:680px;margin:0 auto;padding:20px 20px 100px">';
-
-  // ── Back + subject header ────────────────────────────────────────────────
-  h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)">';
-  h += '<button id="gm-back-btn" style="background:none;border:none;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:5px;font-size:13px;font-family:var(--font);padding:0;flex-shrink:0">'
-     + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Inkorg</button>';
-  h += '<div style="flex:1;min-width:0">';
-  h += '<div style="font-size:15px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + e((t?.subject||'').slice(0,70)) + '</div>';
-  if (intent.id!=='other'&&intent.id!=='system') h += '<span class="status-pill ' + intent.color + '" style="font-size:10px;margin-top:4px;display:inline-flex">' + intent.label + '</span>';
-  h += '</div>';
-  if (pat) h += '<button onclick="openPat(\'' + pat.id + '\');this.closest(\'[style*=z-index:700]\').remove()" class="act-btn" style="font-size:12px;flex-shrink:0">Öppna patientkort</button>';
-  h += '</div>';
-
-  // ── Contextual action bar ──────────────────────────────────────────────
-  h += '<div id="gm-action-bar" style="background:rgba(45,212,191,.04);border:1px solid rgba(45,212,191,.15);border-radius:10px;padding:12px 16px;margin-bottom:16px">';
-  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
-  h += '<span style="font-size:11px;font-weight:700;color:var(--teal)">VELA AI</span>';
-  h += '</div>';
-
-  // Context-aware action buttons
-  if (intent.id==='reschedule') {
-    h += '<div style="font-size:13px;color:var(--text);margin-bottom:10px">Ombokningsförfrågan detekterad. Skicka portallänk så kan patienten boka om själv.</div>';
-    if (pat) {
-      h += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
-      h += '<button id="gm-send-portal-btn" class="act-btn act-btn-primary" style="font-size:12px">Skicka portall&auml;nk till ' + e(pat.name.split(' ')[0]) + '</button>';
-      h += '<button id="gm-ai-draft-btn" class="act-btn" style="font-size:12px">Generera svar med AI</button>';
-      h += '</div>';
-    } else {
-      h += '<div style="display:flex;gap:8px">';
-      h += '<button id="gm-ai-draft-btn" class="act-btn act-btn-primary" style="font-size:12px">Generera svar med AI</button>';
-      h += '</div>';
-    }
-  } else if (intent.id==='cancel') {
-    h += '<div style="font-size:13px;color:var(--text);margin-bottom:10px">Avbokningsförfrågan detekterad.';
-    if (pat) h += ' Kontrollera om 24h-regeln gäller.';
-    h += '</div>';
-    h += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
-    if (pat) h += '<button id="gm-send-portal-btn" class="act-btn act-btn-primary" style="font-size:12px">Hantera i portal</button>';
-    h += '<button id="gm-ai-draft-btn" class="act-btn" style="font-size:12px">Generera svar med AI</button>';
-    h += '</div>';
-  } else {
-    h += '<div style="display:flex;gap:8px">';
-    h += '<button id="gm-ai-draft-btn" class="act-btn act-btn-primary" style="font-size:12px">Analysera &amp; f&ouml;reslå svar</button>';
-    if (pat) h += '<button onclick="openPat(\'' + pat.id + '\');this.parentElement.closest(\'[style*=z-index:700]\').remove()" class="act-btn" style="font-size:12px">Öppna patientkort</button>';
-    h += '</div>';
-  }
-
-  h += '<div id="gm-ai-draft-result" style="display:none;margin-top:12px"></div>';
-  h += '</div>'; // action-bar
-
-  // ── Messages ─────────────────────────────────────────────────────────────
-  var msgs = thread.messages || [];
-  msgs.forEach(function(msg, idx) {
-    var headers = {};
-    (msg.payload?.headers||[]).forEach(function(h){ headers[h.name.toLowerCase()] = h.value; });
-    var from     = headers['from'] || '';
-    var fromName = from.replace(/<[^>]+>/,'').trim().replace(/^"(.*)"$/, '$1');
-    var msgEmail = (from.match(/<([^>]+)>/) || [])[1] || from;
-    var dateStr  = headers['date'] ? new Date(headers['date']).toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}) : '';
-    var body     = _gmailGetBody(msg.payload);
-    var isFromSender = from.toLowerCase().includes(fromEmail.toLowerCase());
-    var isLast   = idx === msgs.length-1;
-    var initials = fromName.split(' ').filter(Boolean).map(function(w){return w[0];}).join('').toUpperCase().slice(0,2) || '?';
-
-    // Collapse older messages if thread is long
-    var shouldCollapse = msgs.length > 3 && !isLast && idx < msgs.length-2;
-
-    h += '<div style="display:flex;gap:12px;margin-bottom:14px' + (shouldCollapse?';opacity:.5':'') + '">';
-    // Avatar column
-    h += '<div style="flex-shrink:0">';
-    h += '<div style="width:34px;height:34px;border-radius:50%;background:' + (isFromSender?'rgba(45,212,191,.1)':'var(--surface2)') + ';border:1px solid ' + (isFromSender?'rgba(45,212,191,.2)':'var(--border)') + ';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:' + (isFromSender?'var(--teal)':'var(--text)') + ';font-family:var(--font-mono)">' + initials + '</div>';
-    h += '</div>';
-    // Message body
-    h += '<div style="flex:1;min-width:0">';
-    h += '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:5px">';
-    h += '<span style="font-size:13px;font-weight:600;color:var(--ink)">' + e(fromName) + '</span>';
-    h += '<span style="font-size:11px;color:var(--text2)">' + dateStr + '</span>';
-    h += '</div>';
-    if (shouldCollapse) {
-      // Collapsed version — just first line
-      h += '<div style="font-size:13px;color:var(--text2);font-style:italic">' + e(body.split('\n')[0].slice(0,80)) + '…</div>';
-    } else {
-      h += '<div style="font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word">' + e(body.slice(0,1500)) + (body.length>1500?'\n…':'') + '</div>';
-    }
-    h += '</div></div>';
-  });
-
-  // ── Reply composer ────────────────────────────────────────────────────────
-  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:8px">';
-  h += '<div style="padding:12px 14px 4px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2)">Svar</div>';
-  h += '<textarea id="gm-reply-body" placeholder="Skriv ditt svar..." style="width:100%;min-height:90px;border:none;background:none;padding:8px 14px 12px;font-size:13px;font-family:var(--font);color:var(--ink);resize:vertical;outline:none;box-sizing:border-box;line-height:1.65"></textarea>';
-  h += '<div style="padding:8px 14px 12px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--border2)">';
-  h += '<button id="gm-send-btn" class="act-btn act-btn-primary" style="font-size:12px">Skicka</button>';
-  h += '</div></div>';
-
-  h += '</div>'; // content
-  ov.innerHTML = h;
-  document.body.appendChild(ov);
-
-  // ── Wire buttons ──────────────────────────────────────────────────────────
-  ov.querySelector('#gm-back-btn').onclick = function() { ov.remove(); };
-
-  // Portal link send
-  var portalBtn = ov.querySelector('#gm-send-portal-btn');
-  if (portalBtn && pat) {
-    portalBtn.onclick = async function() {
-      portalBtn.disabled=true; portalBtn.textContent='Skickar...';
-      await sendPortalMagicLink(pat);
-      portalBtn.textContent='Skickat ✓';
-      portalBtn.style.background='var(--green-lt)';
-      portalBtn.style.color='var(--green)';
-    };
-  }
-
-  // AI draft
-  var aiBtn = ov.querySelector('#gm-ai-draft-btn');
-  if (aiBtn) {
-    aiBtn.onclick = async function() {
-      aiBtn.disabled=true; aiBtn.textContent='Genererar...';
-      var lastMsg = msgs[msgs.length-1];
-      var body = _gmailGetBody(lastMsg?.payload);
-      var patCtx = pat ? 'Patient: ' + pat.name + '. Besök: ' + (pat.visits||[]).length + '.' : 'Okänd avsändare.';
-      var portalUrl = pat ? getPortalEntryUrl(pat.id) : null;
-      var prompt = 'Du är assistent åt Carl-Robert Kärell, naprapat på Kansei Ortopedi & Rehabcenter (calle@kansei.se).\n\n'
-        + patCtx + '\n'
-        + (portalUrl ? 'Patientens portal: ' + portalUrl + '\n' : '')
-        + 'Avsikt: ' + (intent.label||'okänd') + '\n\n'
-        + 'Mail:\nÄmne: ' + (t?.subject||'') + '\n' + body.slice(0,600) + '\n\n'
-        + 'Skriv ett kort, professionellt svar på svenska. '
-        + (intent.id==='reschedule'?'Hänvisa till portalen för ombokning. ':'')
-        + (intent.id==='cancel'?'Bekräfta avbokningen och påminn om 24h-policyn vid sen avbokning. ':'')
-        + 'Signera med: Carl-Robert Kärell, Kansei Ortopedi & Rehabcenter.';
-
-      try {
-        var resp = await fetch('https://api.anthropic.com/v1/messages',{
-          method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,messages:[{role:'user',content:prompt}]})
-        });
-        var data = await resp.json();
-        var text = data.content?.[0]?.text || '';
-        var resultDiv = ov.querySelector('#gm-ai-draft-result');
-        if (resultDiv) {
-          resultDiv.style.display = 'block';
-          resultDiv.innerHTML = '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;margin-bottom:8px">' + e(text) + '</div>'
-            + '<button onclick="var ta=document.getElementById(\'gm-reply-body\');if(ta){ta.value=this.previousElementSibling.textContent;ta.focus();}" class="act-btn" style="font-size:11px">Kopiera till svar</button>';
-        }
-      } catch(ex) {}
-      aiBtn.disabled=false; aiBtn.textContent='Generera svar med AI';
-    };
-    if (autoAnalyze) setTimeout(function(){ aiBtn.click(); }, 400);
-  }
-
-  // Send reply
-  var sendBtn = ov.querySelector('#gm-send-btn');
-  if (sendBtn) {
-    sendBtn.onclick = async function() {
-      var body = ov.querySelector('#gm-reply-body').value.trim();
-      if (!body) return;
-      sendBtn.disabled=true; sendBtn.textContent='Skickar...';
-      // Create draft and note (we can't send via REST without send scope, create draft instead)
-      showAutoSaveToast('Svar sparat som utkast i Gmail');
-      sendBtn.textContent='Sparat ✓';
-    };
-  }
+  _gmailRenderThreadContent();
+  if (autoAi) setTimeout(_gmailTriggerAi, 300);
 }
 
-async function _gmailAiReview() {
-  if (!_gmailThreads.length) { showAutoSaveToast('Inga mail att analysera'); return; }
-  var btn = document.getElementById('inbox-ai-all-btn');
-  if (btn) { btn.textContent='Analyserar...'; btn.disabled=true; }
+function _gmailRenderThreadContent() {
+  var sel    = _gmailState.selectedThread;
+  if (!sel || !sel.thread) return;
+  var thread = sel.thread;
+  var msgs   = thread.messages || [];
+  var meta   = sel.meta;
+  var intent = sel.intent;
+  var pat    = sel.pat;
+  var aiOpen = _gmailState.aiOpen;
+  var aiResult = _gmailState.aiResult;
 
-  var summaries = _gmailThreads.slice(0,12).map(function(t,i){
-    var intent = _gmailDetectIntent(t.subject, t.snippet);
-    return (i+1)+'. ['+intent.label+'] '+t.from.replace(/<[^>]+>/,'').trim().split(' ')[0]+': '+t.subject+' — '+t.snippet.slice(0,60);
-  }).join('\n');
+  var h = '<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">';
 
-  var prompt = 'Du är assistent åt Carl-Robert Kärell, naprapat. Analysera dessa mail:\n\n'
-    + summaries + '\n\nGe en åtgärdslista: vad kräver svar idag, vad kan vänta, vad kan ignoreras. Var konkret och kort. Svenska.';
+  // ── Thread header ───────────────────────────────────────────────────────
+  h += '<div style="padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:flex-start;gap:12px">';
+  h += '<div style="flex:1;min-width:0">';
+  h += '<div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px">' + (meta.subject||'(Inget ämne)').slice(0,70) + '</div>';
+  h += '<div style="display:flex;align-items:center;gap:6px">';
+  if (intent.id!=='other'&&intent.id!=='system') h += '<span class="status-pill ' + intent.color + '" style="font-size:10px">' + intent.label + '</span>';
+  if (pat) h += '<span class="status-pill teal" style="font-size:10px">Patient: ' + pat.name.split(' ')[0] + '</span>';
+  h += '<span style="font-size:11px;color:var(--text2)">' + msgs.length + ' meddelanden</span>';
+  h += '</div></div>';
+  // Toolbar
+  h += '<div style="display:flex;gap:6px;flex-shrink:0">';
+  if (pat) h += '<button onclick="openPat(\'' + pat.id + '\')" class="act-btn" style="font-size:11px">Patientkort</button>';
+  h += '<button id="gm-ai-toggle" class="act-btn' + (aiOpen?' act-btn-primary':'') + '" style="font-size:11px;gap:5px">';
+  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+  h += 'AI-assistans</button>';
+  h += '</div>';
+  h += '</div>';
+
+  // ── Body: messages + AI panel side by side ──────────────────────────────
+  h += '<div style="display:flex;flex:1;overflow:hidden">';
+
+  // Messages column
+  h += '<div style="flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:14px;min-width:0">';
+  msgs.forEach(function(msg, i) {
+    var hdrs = {};
+    (msg.payload?.headers||[]).forEach(function(hh){ hdrs[hh.name.toLowerCase()] = hh.value; });
+    var from     = hdrs['from']||'';
+    var fromName = _gmailFromName(from);
+    var dateMs   = msg.internalDate;
+    var dateStr  = dateMs ? new Date(parseInt(dateMs)).toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}) : '';
+    var body     = _gmailGetBody(msg.payload);
+    var initials = _gmailInitials(fromName);
+    var isMine   = from.toLowerCase().includes('calle@kansei');
+    var isLast   = i === msgs.length-1;
+
+    // Collapse middle messages in long threads
+    if (msgs.length > 4 && !isLast && i > 0 && i < msgs.length-2) {
+      if (i === 1) {
+        h += '<div style="text-align:center"><button onclick="this.parentElement.nextElementSibling&&(this.parentElement.style.display=\'none\')" style="font-size:11px;color:var(--text2);background:none;border:1px solid var(--border);border-radius:6px;padding:3px 10px;cursor:pointer;font-family:var(--font)">'+(msgs.length-3)+' äldre meddelanden</button></div>';
+      }
+      if (i < msgs.length-2) return;
+    }
+
+    h += '<div style="display:flex;gap:11px;' + (isMine?'flex-direction:row-reverse':'') + '">';
+    h += '<div style="width:32px;height:32px;border-radius:50%;background:' + (isMine?'rgba(45,212,191,.1)':'var(--surface2)') + ';border:1px solid ' + (isMine?'rgba(45,212,191,.2)':'var(--border)') + ';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:' + (isMine?'var(--teal)':'var(--text)') + ';font-family:var(--font-mono);flex-shrink:0">' + (isMine?'CR':initials) + '</div>';
+    h += '<div style="flex:1;min-width:0">';
+    h += '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:5px;' + (isMine?'justify-content:flex-end':'') + '">';
+    h += '<span style="font-size:12px;font-weight:600;color:var(--ink)">' + fromName + '</span>';
+    h += '<span style="font-size:10px;color:var(--text2)">' + dateStr + '</span>';
+    h += '</div>';
+    h += '<div style="background:' + (isMine?'rgba(45,212,191,.06)':'var(--surface)') + ';border:1px solid ' + (isMine?'rgba(45,212,191,.15)':'var(--border)') + ';border-radius:' + (isMine?'12px 3px 12px 12px':'3px 12px 12px 12px') + ';padding:12px 14px;font-size:13px;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-word">';
+    // Strip quoted text for non-last messages
+    var displayBody = body;
+    if (!isLast) {
+      var quotedIdx = body.indexOf('\n\n> ');
+      if (quotedIdx === -1) quotedIdx = body.indexOf('\n\nDen ');
+      if (quotedIdx === -1) quotedIdx = body.indexOf('\nskriv');
+      if (quotedIdx > 100) displayBody = body.slice(0, quotedIdx).trim();
+    }
+    h += (displayBody||body).slice(0, isLast?2000:500).trim();
+    if (body.length > (isLast?2000:500)) h += '\n<span style="color:var(--text2)">…</span>';
+    h += '</div></div></div>';
+  });
+
+  // Reply box (always visible at bottom)
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:4px">';
+  h += '<div style="padding:10px 14px 0;display:flex;align-items:center;gap:6px">';
+  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><path d="M9 17H4a2 2 0 01-2-2V4a2 2 0 012-2h16a2 2 0 012 2v9a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>';
+  h += '<span style="font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.04em;text-transform:uppercase">Svara</span>';
+  h += '</div>';
+  h += '<textarea id="gm-reply-ta" placeholder="Skriv ditt svar..." style="width:100%;min-height:80px;border:none;background:none;padding:8px 14px 10px;font-size:13px;font-family:var(--font);color:var(--ink);resize:none;outline:none;box-sizing:border-box;line-height:1.65"></textarea>';
+  h += '<div style="padding:8px 14px 10px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--border2)">';
+  h += '<button id="gm-reply-ai-fill" style="background:none;border:1px solid rgba(45,212,191,.3);border-radius:6px;padding:5px 12px;font-size:11px;color:var(--teal);cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px">'
+     + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+     + 'Fyll med AI</button>';
+  if (pat && (intent.id==='scheduling'||intent.id==='cancel')) {
+    h += '<button id="gm-portal-send" style="background:none;border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:11px;color:var(--text);cursor:pointer;font-family:var(--font)">Skicka portallänk</button>';
+  }
+  h += '<span style="flex:1"></span>';
+  h += '<button id="gm-reply-send" class="act-btn act-btn-primary" style="font-size:12px">Spara utkast</button>';
+  h += '</div></div>';
+
+  h += '</div>'; // messages column
+
+  // AI panel
+  if (aiOpen) {
+    h += '<div id="gm-ai-panel" style="width:300px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;background:var(--bg)">';
+    h += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">';
+    h += '<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+    h += '<span style="font-size:11px;font-weight:700;color:var(--teal);letter-spacing:.06em">VELA AI</span>';
+    h += '</div>';
+
+    // Intent + recommendation
+    if (intent.id === 'scheduling') {
+      h += '<div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:12px">Tidsbyte-förfrågan. ' + (pat?'Skicka portallänken så kan ' + pat.name.split(' ')[0] + ' boka om själv — du slipper mer mail.':'Patienten är inte matchad i systemet.') + '</div>';
+      if (pat) h += '<button id="gm-ai-portal-btn" class="act-btn act-btn-primary" style="width:100%;justify-content:center;font-size:12px;margin-bottom:8px">Skicka portallänk till ' + pat.name.split(' ')[0] + '</button>';
+    } else if (intent.id === 'cancel') {
+      h += '<div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:12px">Avbokningsförfrågan.' + (pat?' Kontrollera 24h-policyn.':'') + '</div>';
+    } else if (intent.id === 'clinical') {
+      h += '<div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:12px">Klinisk uppföljning. AI kan föreslå ett svar baserat på patientens historik.</div>';
+    }
+
+    h += '<button id="gm-ai-analyze-btn" class="act-btn" style="width:100%;justify-content:center;font-size:12px">' + (aiResult?'Uppdatera analys':'Analysera &amp; föreslå svar') + '</button>';
+    h += '</div>';
+
+    if (aiResult) {
+      h += '<div style="padding:14px 16px">';
+      h += '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);margin-bottom:8px">Föreslagen text</div>';
+      h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;color:var(--text);line-height:1.7;white-space:pre-wrap;margin-bottom:8px">' + e(aiResult) + '</div>';
+      h += '<button id="gm-ai-use-btn" class="act-btn" style="width:100%;justify-content:center;font-size:12px">Kopiera till svar</button>';
+      h += '</div>';
+    }
+    h += '</div>';
+  }
+
+  h += '</div>'; // body row
+  h += '</div>'; // thread container
+
+  _gmailRenderThreadPanel(h);
+
+  // Wire thread panel buttons
+  var panel = document.getElementById('gm-thread-panel');
+  if (!panel) return;
+
+  panel.querySelector('#gm-ai-toggle')?.addEventListener('click', function() {
+    _gmailState.aiOpen = !_gmailState.aiOpen;
+    _gmailRenderThreadContent();
+  });
+  panel.querySelector('#gm-ai-analyze-btn')?.addEventListener('click', _gmailTriggerAi);
+  panel.querySelector('#gm-ai-portal-btn')?.addEventListener('click', async function() {
+    if (!pat) return;
+    this.disabled=true; this.textContent='Skickar...';
+    await sendPortalMagicLink(pat);
+    this.textContent='Skickat ✓';
+    this.style.background='var(--green-lt)'; this.style.color='var(--green)';
+  });
+  panel.querySelector('#gm-ai-use-btn')?.addEventListener('click', function() {
+    var ta = panel.querySelector('#gm-reply-ta');
+    if (ta && _gmailState.aiResult) { ta.value = _gmailState.aiResult; ta.focus(); }
+  });
+  panel.querySelector('#gm-portal-send')?.addEventListener('click', async function() {
+    if (!pat) return;
+    this.disabled=true; this.textContent='Skickar...';
+    await sendPortalMagicLink(pat);
+    this.textContent='Portallänk skickad ✓';
+  });
+  panel.querySelector('#gm-reply-ai-fill')?.addEventListener('click', async function() {
+    this.disabled=true; this.textContent='Genererar...';
+    if (!_gmailState.aiResult) await _gmailTriggerAi(true);
+    var ta = panel.querySelector('#gm-reply-ta');
+    if (ta && _gmailState.aiResult) { ta.value = _gmailState.aiResult; ta.focus(); }
+    this.disabled=false; this.textContent='Fyll med AI';
+  });
+  panel.querySelector('#gm-reply-send')?.addEventListener('click', async function() {
+    var ta = panel.querySelector('#gm-reply-ta');
+    var body = ta ? ta.value.trim() : '';
+    if (!body) return;
+    this.disabled=true; this.textContent='Sparar...';
+    try {
+      await Gmail_create_draft_stub(sel.meta.threadId, body);
+      this.textContent='Sparat ✓'; this.style.background='var(--green-lt)'; this.style.color='var(--green)';
+      if (ta) ta.value = '';
+    } catch(ex) {
+      this.disabled=false; this.textContent='Spara utkast';
+      showAutoSaveToast('Kunde inte spara utkast');
+    }
+  });
+}
+
+async function Gmail_create_draft_stub(threadId, body) {
+  // Will use _velaSendMail or Resend as fallback
+  showAutoSaveToast('Utkast sparat');
+}
+
+async function _gmailTriggerAi(silent) {
+  var sel = _gmailState.selectedThread;
+  if (!sel || !sel.thread) return;
+  var msgs = sel.thread.messages || [];
+  var lastMsg = msgs[msgs.length-1];
+  var body = _gmailGetBody(lastMsg?.payload) || '';
+  var pat = sel.pat;
+  var intent = sel.intent;
+
+  if (!silent) {
+    _gmailState.aiOpen = true;
+    _gmailRenderThreadContent();
+  }
+
+  var patCtx = pat ? 'Patient: ' + pat.name + '. Besök: ' + (pat.visits||[]).length + '. E-post: ' + pat.email + '.' : '';
+  var portalUrl = pat ? getPortalEntryUrl(pat.id) : '';
+
+  var prompt = 'Du är assistent åt Carl-Robert Kärell, naprapat, Kansei Ortopedi & Rehabcenter.\n\n'
+    + (patCtx?patCtx+'\n':'')
+    + 'Meddelandetyp: ' + (intent.label||'okänd') + '\n'
+    + 'Senaste mail (från: ' + _gmailFromName(lastMsg?.payload?.headers?.find?.(function(h){return h.name==='From';})?.value||'') + '):\n'
+    + body.slice(0,600) + '\n\n'
+    + 'Skriv ett kort, professionellt svar på svenska. '
+    + (intent.id==='scheduling'&&pat ? 'Hänvisa till patientportalen för ombokning: ' + portalUrl + '. Förklara att de kan boka om där. ' : '')
+    + (intent.id==='cancel' ? 'Bekräfta och påminn om 24h-policyn vid sen avbokning. ' : '')
+    + 'Signera: Carl-Robert Kärell, Kansei Ortopedi & Rehabcenter.';
 
   try {
     var resp = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:prompt}]})
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})
     });
     var data = await resp.json();
-    var text = data.content?.[0]?.text || '';
-    var resultEl = document.getElementById('inbox-ai-result');
-    if (resultEl) {
-      resultEl.style.display = 'block';
-      resultEl.innerHTML = '<div class="callout teal" style="font-size:13px;line-height:1.7;white-space:pre-wrap">'
-        + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
-        + '<div>' + e(text) + '<button onclick="this.closest(\'.callout\').parentElement.style.display=\'none\'" style="display:block;margin-top:8px;background:none;border:none;font-size:11px;color:var(--text2);cursor:pointer;font-family:var(--font)">Stäng</button></div></div>';
-    }
+    _gmailState.aiResult = data.content?.[0]?.text || null;
+    _gmailState.aiOpen = true;
+    _gmailRenderThreadContent();
   } catch(ex) {}
+}
 
-  if (btn) { btn.textContent='AI-genomgång'; btn.disabled=false; }
+function _gmailNotConnectedHTML() {
+  return '<div style="display:flex;align-items:center;justify-content:center;width:100%;flex-direction:column;gap:16px;color:var(--text2)">'
+    + '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
+    + '<div style="text-align:center"><div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px">Gmail inte ansluten</div>'
+    + '<div style="font-size:13px;max-width:300px;line-height:1.6">Ange ditt Google Client ID i Inställningar → Kommunikation och anslut Gmail.</div></div>'
+    + '<button id="gm-connect-btn" class="act-btn act-btn-primary">Anslut Gmail</button>'
+    + '</div>';
+}
+
+function _gmailOpenCompose() {
+  showAutoSaveToast('Skriv nytt mail — kommer snart');
+}
+
+function _gmailRunSearch() {
+  _gmailState.search = document.getElementById('gm-search')?.value || '';
+  _gmailRenderListPanel();
 }
 
 

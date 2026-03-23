@@ -54,10 +54,10 @@
 
   /* ── Typography — weight + size does the work, not color ── */
   --ink:      #e6edf3;   /* primary — headings, labels        */
-  --text:     #8b949e;   /* secondary — body, descriptions    */
+  --text:     #c9d1d9;   /* secondary — body, nav, descriptions */
   --text2:    #6e7681;   /* tertiary — timestamps, metadata   */
   --text3:    #484f58;   /* disabled, placeholder             */
-  --muted:    #6e7681;
+  --muted:    #8b949e;
 
   /* ── Borders — solid, not rgba ──────────────────────────── */
   --border:   #30363d;
@@ -606,13 +606,15 @@ button, input, textarea, select { font-family: inherit; }
 }
 .vela-gtb-row1 {
   height: 62px; display: flex; align-items: center; gap: 0;
-  border-bottom: 1px solid var(--border2);
+  background: var(--surface); /* #161b22 — elevated shelf like GitHub */
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 .vela-gtb-row2 {
   height: 48px; display: flex; align-items: stretch;
   padding: 0 8px; overflow-x: auto; overflow-y: hidden;
-  flex-shrink: 0; border-bottom: 1px solid var(--border);
+  flex-shrink: 0; background: var(--bg); /* #0d1117 — tabs flush with page */
+  border-bottom: 1px solid var(--border);
 }
 .vela-gtb-left {
   display: flex; align-items: center; gap: 10px;
@@ -7840,6 +7842,262 @@ function _navItemGhost(label, svg) {
 // ════════════════════════════════════════════════════════════════════════════
 // VELA USER MENU — GitHub-style avatar dropdown
 // ════════════════════════════════════════════════════════════════════════════
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  USER STATUS — "Set status" like GitHub
+// ══════════════════════════════════════════════════════════════════════════════
+
+var _statusPresets = [
+  { emoji:'🌴', text:'On vacation' },
+  { emoji:'🤒', text:'Out sick' },
+  { emoji:'🏠', text:'Working from home' },
+  { emoji:'🎯', text:'Focusing' },
+  { emoji:'🤝', text:'In a meeting' },
+  { emoji:'🚂', text:'Commuting' },
+  { emoji:'💪', text:'Exercising' },
+  { emoji:'🍕', text:'Out for lunch' },
+];
+
+var _statusExpiry = [
+  { value:'', label:'Never' },
+  { value:'30m', label:'In 30 minutes' },
+  { value:'1h', label:'In 1 hour' },
+  { value:'4h', label:'In 4 hours' },
+  { value:'today', label:'Today' },
+  { value:'week', label:'This week' },
+];
+
+function _getStatus() {
+  try {
+    var s = JSON.parse(localStorage.getItem('vela:user-status') || 'null');
+    if (!s) return null;
+    // Check expiry
+    if (s.expiresAt && new Date(s.expiresAt) < new Date()) {
+      localStorage.removeItem('vela:user-status');
+      return null;
+    }
+    return s;
+  } catch(e) { return null; }
+}
+
+function _setStatus(emoji, text, busy, expiryKey) {
+  var expiresAt = null;
+  var now = new Date();
+  if (expiryKey === '30m') { expiresAt = new Date(now.getTime() + 30*60000); }
+  else if (expiryKey === '1h') { expiresAt = new Date(now.getTime() + 60*60000); }
+  else if (expiryKey === '4h') { expiresAt = new Date(now.getTime() + 4*60*60000); }
+  else if (expiryKey === 'today') { expiresAt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59); }
+  else if (expiryKey === 'week') {
+    var sun = new Date(now);
+    sun.setDate(now.getDate() + (7 - now.getDay()));
+    sun.setHours(23,59,59,999);
+    expiresAt = sun;
+  }
+  var status = { emoji: emoji, text: text, busy: !!busy, setAt: now.toISOString() };
+  if (expiresAt) status.expiresAt = expiresAt.toISOString();
+  localStorage.setItem('vela:user-status', JSON.stringify(status));
+}
+
+function _clearStatus() {
+  localStorage.removeItem('vela:user-status');
+}
+
+function openStatusModal() {
+  document.getElementById('vela-status-modal')?.remove();
+
+  var current = _getStatus() || {};
+  var curEmoji = current.emoji || '';
+  var curText  = current.text  || '';
+  var curBusy  = current.busy  || false;
+
+  var modal = document.createElement('div');
+  modal.id = 'vela-status-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:900;display:flex;align-items:center;justify-content:center;background:rgba(7,16,30,.72);backdrop-filter:blur(4px);font-family:var(--font)';
+  modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
+
+  var h = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.5)">';
+
+  // Header
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)">';
+  h += '<span style="font-size:15px;font-weight:700;color:var(--ink)">Sätt status</span>';
+  h += '<button onclick="document.getElementById(\'vela-status-modal\').remove()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1;padding:0 2px">×</button>';
+  h += '</div>';
+
+  // Body
+  h += '<div style="padding:16px 20px">';
+
+  // Emoji + text input row
+  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">';
+  h += '<button id="status-emoji-btn" onclick="_statusEmojiPicker()" style="width:40px;height:40px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" title="Välj emoji">';
+  h += curEmoji || '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
+  h += '</button>';
+  h += '<div style="flex:1;position:relative">';
+  h += '<input id="status-text" type="text" maxlength="80" placeholder="Vad händer?" value="' + e(curText) + '" autocomplete="off" ';
+  h += 'style="width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--ink);font-family:var(--font);outline:none;box-sizing:border-box" ';
+  h += 'onfocus="this.style.borderColor=\'var(--teal)\'" onblur="this.style.borderColor=\'var(--border)\'" oninput="_statusUpdateCounter()">';
+  h += '<div id="status-counter" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text2)">80</div>';
+  h += '</div></div>';
+
+  // Preset chips
+  h += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px" id="status-presets">';
+  _statusPresets.forEach(function(p) {
+    var isActive = p.emoji === curEmoji && p.text === curText;
+    h += '<button class="status-preset' + (isActive?' active':'') + '" onclick="_statusSelectPreset(this,\'' + p.emoji + '\',\'' + p.text.replace(/'/g,"\\'") + '\')" ';
+    h += 'style="display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1px solid ' + (isActive?'var(--teal)':'var(--border)') + ';background:' + (isActive?'rgba(45,212,191,.08)':'none') + ';font-size:13px;color:' + (isActive?'var(--teal)':'var(--text)') + ';cursor:pointer;font-family:var(--font);transition:all .1s">';
+    h += '<span>' + p.emoji + '</span><span>' + p.text + '</span></button>';
+  });
+  h += '</div>';
+
+  // Busy checkbox
+  h += '<label style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;cursor:pointer;margin-bottom:16px">';
+  h += '<input type="checkbox" id="status-busy"' + (curBusy?' checked':'') + ' style="width:15px;height:15px;margin-top:1px;accent-color:var(--teal);cursor:pointer;flex-shrink:0">';
+  h += '<div>';
+  h += '<div style="font-size:14px;font-weight:600;color:var(--ink)">Upptagen</div>';
+  h += '<div style="font-size:12px;color:var(--text2);margin-top:2px">Begränsar notifieringar och visar dig som otillgänglig för kollegor</div>';
+  h += '</div></label>';
+
+  // Clear at
+  h += '<div style="margin-bottom:16px">';
+  h += '<label style="display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:6px">Rensa status</label>';
+  h += '<select id="status-expiry" style="width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--ink);font-family:var(--font);outline:none">';
+  _statusExpiry.forEach(function(opt) {
+    h += '<option value="' + opt.value + '">' + opt.label + '</option>';
+  });
+  h += '</select>';
+  h += '<div style="font-size:12px;color:var(--text2);margin-top:4px">Statusen rensas automatiskt vid valt tillfälle</div>';
+  h += '</div>';
+
+  h += '</div>'; // body
+
+  // Footer
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border);background:var(--bg)">';
+  h += '<button onclick="_statusClear()" style="padding:7px 14px;background:none;border:1px solid var(--border);border-radius:7px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Rensa status</button>';
+  h += '<div style="display:flex;gap:8px">';
+  h += '<button onclick="document.getElementById(\'vela-status-modal\').remove()" style="padding:7px 14px;background:none;border:1px solid var(--border);border-radius:7px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avbryt</button>';
+  h += '<button onclick="_statusSave()" style="padding:7px 14px;background:var(--teal);color:#0d1117;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Sätt status</button>';
+  h += '</div></div>';
+
+  h += '</div>';
+  modal.innerHTML = h;
+  document.body.appendChild(modal);
+
+  // Focus text input
+  setTimeout(function(){ var inp = document.getElementById('status-text'); if(inp) inp.focus(); }, 80);
+}
+
+function _statusUpdateCounter() {
+  var inp = document.getElementById('status-text');
+  var ctr = document.getElementById('status-counter');
+  if (inp && ctr) {
+    var rem = 80 - inp.value.length;
+    ctr.textContent = rem;
+    ctr.style.color = rem < 10 ? 'var(--amber)' : 'var(--text2)';
+  }
+}
+
+function _statusSelectPreset(btn, emoji, text) {
+  document.querySelectorAll('.status-preset').forEach(function(b){
+    b.style.borderColor = 'var(--border)';
+    b.style.background  = 'none';
+    b.style.color       = 'var(--text)';
+  });
+  btn.style.borderColor = 'var(--teal)';
+  btn.style.background  = 'rgba(45,212,191,.08)';
+  btn.style.color       = 'var(--teal)';
+
+  var emojiBtn = document.getElementById('status-emoji-btn');
+  var textInp  = document.getElementById('status-text');
+  if (emojiBtn) emojiBtn.textContent = emoji;
+  if (textInp)  { textInp.value = text; _statusUpdateCounter(); }
+}
+
+function _statusEmojiPicker() {
+  // Simple quick-pick row of common emojis
+  var existing = document.getElementById('status-emoji-pick');
+  if (existing) { existing.remove(); return; }
+
+  var emojis = ['😀','😂','🤔','😎','🥳','🤒','🤧','😴','🏠','🌴','🎯','💪','🚀','⚡','🔥','✅','❌','⏰','📚','💼'];
+  var pick = document.createElement('div');
+  pick.id = 'status-emoji-pick';
+  pick.style.cssText = 'position:absolute;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px;display:flex;flex-wrap:wrap;gap:4px;width:200px;box-shadow:0 8px 24px rgba(0,0,0,.4)';
+
+  emojis.forEach(function(em) {
+    var b = document.createElement('button');
+    b.textContent = em;
+    b.style.cssText = 'background:none;border:none;font-size:20px;cursor:pointer;padding:4px;border-radius:6px;line-height:1';
+    b.onmouseenter = function(){ b.style.background='var(--surface2)'; };
+    b.onmouseleave = function(){ b.style.background='none'; };
+    b.onclick = function(e) {
+      e.stopPropagation();
+      var emojiBtn = document.getElementById('status-emoji-btn');
+      if (emojiBtn) emojiBtn.textContent = em;
+      pick.remove();
+    };
+    pick.appendChild(b);
+  });
+
+  var emojiBtn = document.getElementById('status-emoji-btn');
+  if (emojiBtn) {
+    var rect = emojiBtn.getBoundingClientRect();
+    pick.style.left = rect.left + 'px';
+    pick.style.top  = (rect.bottom + 8) + 'px';
+    pick.style.position = 'fixed';
+  }
+  document.body.appendChild(pick);
+  setTimeout(function() {
+    document.addEventListener('click', function closePick(e) {
+      pick.remove();
+      document.removeEventListener('click', closePick);
+    });
+  }, 100);
+}
+
+function _statusSave() {
+  var emojiBtn = document.getElementById('status-emoji-btn');
+  var textInp  = document.getElementById('status-text');
+  var busyCb   = document.getElementById('status-busy');
+  var expirySel= document.getElementById('status-expiry');
+
+  var emoji   = (emojiBtn && emojiBtn.textContent.trim().length <= 2) ? emojiBtn.textContent.trim() : '';
+  var text    = textInp  ? textInp.value.trim()  : '';
+  var busy    = busyCb   ? busyCb.checked        : false;
+  var expiry  = expirySel? expirySel.value        : '';
+
+  _setStatus(emoji, text, busy, expiry);
+  document.getElementById('vela-status-modal')?.remove();
+
+  // Update avatar to show status emoji
+  _updateStatusBadge();
+  showAutoSaveToast(emoji ? emoji + ' Status satt' : 'Status satt');
+}
+
+function _statusClear() {
+  _clearStatus();
+  document.getElementById('vela-status-modal')?.remove();
+  _updateStatusBadge();
+  showAutoSaveToast('Status rensad');
+}
+
+function _updateStatusBadge() {
+  // Update the avatar button in topbar to show status emoji
+  var avatarBtn = document.getElementById('vela-gtb-avatar-btn');
+  var homeBadge = document.querySelector('[id*="avatar"]');
+
+  var status = _getStatus();
+  var existing = document.getElementById('vela-status-badge');
+  if (existing) existing.remove();
+
+  if (status && status.emoji && avatarBtn) {
+    var badge = document.createElement('div');
+    badge.id = 'vela-status-badge';
+    badge.textContent = status.emoji;
+    badge.style.cssText = 'position:absolute;bottom:-4px;right:-4px;font-size:12px;line-height:1;pointer-events:none;z-index:1';
+    avatarBtn.style.position = 'relative';
+    avatarBtn.appendChild(badge);
+  }
+}
+
 
 function _openUserMenu() {
   // Close if already open
@@ -31020,6 +31278,7 @@ function getAiProfileContext(userId) {
         const _ld = document.getElementById('page-loader');
         if (_ld) { _ld.style.opacity='0'; _ld.style.transition='opacity .2s'; setTimeout(()=>{ try{_ld.remove();}catch(e){} },250); }
         if (!_maybeLaunchPortal()) { go('home'); }
+        setTimeout(_updateStatusBadge, 500);
         initVelaAsk();
         setTimeout(() => rNavLogo(), 100);
         setTimeout(() => syncFromCloud(), 800);

@@ -4762,6 +4762,13 @@ function go(scr){
       var tb2p = document.querySelector('.topbar');
       if (tb2p) tb2p.style.display = 'none';
     } else {
+      // Make platform screen cover full viewport
+      var _platEl = document.getElementById('s-' + scr);
+      if (_platEl) { _platEl.style.cssText = 'display:block;position:fixed;inset:0;z-index:150;overflow-y:auto;background:var(--bg)'; }
+      // Hide other platform screens
+      ['home','workspace-new','ask-full'].forEach(function(ps) {
+        if (ps !== scr) { var pEl = document.getElementById('s-' + ps); if (pEl) { pEl.classList.remove('active'); pEl.style.cssText = ''; } }
+      });
       // Clinic-level screens: restore all clinic chrome
       if (_gtbWrap)    _gtbWrap.style.display    = '';
       if (_appShell)   _appShell.style.paddingTop = '52px';
@@ -4769,6 +4776,11 @@ function go(scr){
       if (_mainContent) _mainContent.style.marginLeft = '';
       var tb2 = document.querySelector('.topbar');
       if (tb2) tb2.style.display = '';
+      // Restore platform screens to normal (not fixed)
+      ['home','workspace-new','ask-full'].forEach(function(ps) {
+        var pEl = document.getElementById('s-' + ps);
+        if (pEl) { pEl.style.cssText = ''; pEl.classList.remove('active'); }
+      });
     }
   }
   if (!_isPlatformScreen) rTopbar();
@@ -10291,18 +10303,18 @@ function rAskFull(prompt) {
     + '</div>'
     + '<div style="display:flex;height:calc(100vh - 52px);margin-top:52px;font-family:var(--font)">'
     // ── Left sidebar ────────────────────────────────────────────────────
-    + '<div style="width:240px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column">'
-    + '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">'
+    + '<div style="width:260px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column">'
+    + '<div style="padding:12px 12px 8px">'
     + '<button onclick="_askFullNew()" style="display:flex;align-items:center;gap:7px;width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">'
-    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ny konversation</button>'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>&nbsp;Ny konversation</button>'
     + '</div>'
-    + '<div style="flex:1;padding:12px 8px;overflow-y:auto">'
-    + '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);padding:4px 8px;margin-bottom:4px">Idag</div>'
-    + (_askFullHistory.length ? '<div id="ask-history-list"></div>' : '')
+    + '<div style="flex:1;padding:4px 8px;overflow-y:auto">'
+    + '<div style="font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text2);padding:8px 8px 4px">Idag</div>'
+    + (_askFullHistory.length ? '<div id="ask-history-list"></div>' : '<div style="font-size:12px;color:var(--text2);padding:8px">Inga konversationer än</div>')
     + '</div>'
-    + '<div style="margin-top:auto;padding:12px 16px;border-top:1px solid var(--border)">'
-    + '<button onclick="go(\'home\')" style="display:flex;align-items:center;gap:7px;width:100%;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:500;color:var(--ink);cursor:pointer;font-family:var(--font)">'
-    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Tillbaka till hem</button>'
+    + '<div style="padding:12px">'
+    + '<button onclick="go(\'home\')" style="display:flex;align-items:center;gap:7px;width:100%;padding:9px 12px;background:none;border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:500;color:var(--text);cursor:pointer;font-family:var(--font)">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>&nbsp;Tillbaka till hem</button>'
     + '</div></div>'
     // ── Main chat area ──────────────────────────────────────────────────
     + '<div style="flex:1;display:flex;flex-direction:column;overflow:hidden">'
@@ -10318,11 +10330,11 @@ function rAskFull(prompt) {
     + '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>'
     + '</div></div>'
     // Messages
-    + '<div id="ask-full-msgs" style="flex:1;overflow-y:auto;padding:24px 20px;display:flex;flex-direction:column;gap:20px">'
+    + '<div id="ask-full-msgs" style="flex:1;overflow-y:auto;padding:32px 0;display:flex;flex-direction:column;gap:24px">'
     + '</div>'
     // Input
-    + '<div style="padding:14px 20px;border-top:1px solid var(--border);background:var(--bg)">'
-    + '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface)">'
+    + '<div style="padding:16px 20px;border-top:1px solid var(--border);background:var(--bg)">'
+    + '<div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--surface);max-width:760px;margin:0 auto">'
     + '<textarea id="ask-full-ta" placeholder="Skriv din fråga..." style="width:100%;min-height:56px;max-height:200px;border:none;background:none;padding:14px 16px 6px;font-size:14px;font-family:var(--font);color:var(--ink);resize:none;outline:none;box-sizing:border-box;line-height:1.6"></textarea>'
     + '<div style="display:flex;align-items:center;padding:6px 12px 10px;gap:8px">'
     + '<span style="font-size:11px;color:var(--text2)">claude-sonnet-4-20250514</span>'
@@ -10340,20 +10352,33 @@ function rAskFull(prompt) {
   function renderMsgs() {
     msgs.innerHTML = '';
     if (!_askFullHistory.length) {
-      msgs.innerHTML = '<div style="text-align:center;padding:60px 20px;color:var(--text2)">'
-        + '<div style="font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px">Hej, Carl-Robert!</div>'
-        + '<div style="font-size:14px;line-height:1.6">Jag kan svara på frågor om dina patienter, klinikens data och kliniska ämnen. Vad behöver du?</div>'
+      var firstName = ((_authUser&&_authUser.email)||'').split('@')[0].split('.')[0];
+      firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
+      msgs.innerHTML = '<div style="max-width:760px;margin:0 auto;padding:60px 24px;text-align:center">'
+        + '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:16px"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
+        + '<div style="font-size:22px;font-weight:700;color:var(--ink);margin-bottom:8px">Hej, ' + firstName + '!</div>'
+        + '<div style="font-size:15px;color:var(--text2);line-height:1.6;max-width:440px;margin:0 auto">Jag kan svara på frågor om dina patienter, klinikens data, kliniska ämnen och mycket mer.</div>'
         + '</div>';
       return;
     }
     _askFullHistory.forEach(function(m) {
       var isUser = m.role === 'user';
       var div = document.createElement('div');
-      div.style.cssText = 'display:flex;gap:12px;' + (isUser?'flex-direction:row-reverse':'');
-      div.innerHTML = '<div style="width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:' + (isUser?'rgba(45,212,191,.1)':'var(--surface2)') + ';border:1px solid ' + (isUser?'rgba(45,212,191,.2)':'var(--border)') + ';color:' + (isUser?'var(--teal)':'var(--text)') + ';font-family:var(--font-mono)">' + (isUser?'CR':'V') + '</div>'
-        + '<div style="flex:1;max-width:680px">'
-        + '<div style="background:' + (isUser?'var(--surface)':'transparent') + ';border:' + (isUser?'1px solid var(--border)':'none') + ';border-radius:' + (isUser?'3px 12px 12px 12px':'0') + ';padding:' + (isUser?'12px 16px':'4px 0') + ';font-size:14px;color:var(--text);line-height:1.75;white-space:pre-wrap">' + (m.content||'') + '</div>'
-        + '</div>';
+      // Claude-like: messages centered with max-width
+      div.style.cssText = 'max-width:760px;margin:0 auto;width:100%;padding:0 24px;box-sizing:border-box';
+      if (isUser) {
+        // User: right-aligned bubble
+        div.innerHTML = '<div style="display:flex;justify-content:flex-end">'
+          + '<div style="max-width:80%;background:var(--surface2);border:1px solid var(--border);border-radius:18px 18px 4px 18px;padding:12px 18px;font-size:15px;color:var(--ink);line-height:1.65;white-space:pre-wrap">' + e(m.content||'') + '</div>'
+          + '</div>';
+      } else {
+        // Assistant: left, no bubble like Claude
+        div.innerHTML = '<div style="display:flex;gap:12px;align-items:flex-start">'
+          + '<div style="width:28px;height:28px;border-radius:50%;flex-shrink:0;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.2);display:flex;align-items:center;justify-content:center;margin-top:3px">'
+          + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>'
+          + '<div style="flex:1;font-size:15px;color:var(--text);line-height:1.75;white-space:pre-wrap;padding-top:2px">' + e(m.content||'') + '</div>'
+          + '</div>';
+      }
       msgs.appendChild(div);
     });
     msgs.scrollTop = msgs.scrollHeight;
@@ -10449,168 +10474,175 @@ function rNewWorkspace() {
   el.classList.add('active');
   S.screen = 'workspace-new';
 
-  function field(label, required, id, placeholder, helpText) {
-    return '<div style="margin-bottom:18px">'
-      + '<label style="display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:5px">' + label + (required?'<span style="color:var(--red)"> *</span>':'') + '</label>'
-      + (helpText?'<div style="font-size:12px;color:var(--text2);margin-bottom:6px">' + helpText + '</div>':'')
-      + '<input id="' + id + '" type="text" placeholder="' + placeholder + '" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--font);outline:none;box-sizing:border-box;transition:border-color .15s" onfocus="this.style.borderColor=\'var(--teal)\'" onblur="this.style.borderColor=\'var(--border)\'">'
-      + '</div>';
-  }
+  var authEmail = (_authUser && _authUser.email) || 'carlrobert';
+  var ownerName = authEmail.split('@')[0];
+  var authInit  = authEmail.slice(0,2).toUpperCase() || 'CA';
+  var typeOptions = ['Klinik','Salong','Mottagning','Fysioterapi','Psykologi','Studio','Spa & Wellness','Annan'];
+  var nameSuggestions = ['kansei-rehab','min-klinik','vela-studio','naprapatmottagning'];
 
-  function sectionHeader(num, title) {
-    return '<div style="display:flex;align-items:center;gap:12px;margin:28px 0 16px">'
-      + '<div style="width:26px;height:26px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0d1117;flex-shrink:0">' + num + '</div>'
-      + '<span style="font-size:16px;font-weight:700;color:var(--ink)">' + title + '</span>'
-      + '</div>';
-  }
+  // ── Fixed platform topbar ─────────────────────────────────────────────────
+  var h = '<div style="min-height:100vh;background:var(--bg);font-family:var(--font)">';
+  h += '<div style="height:52px;background:#0d1117;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;position:fixed;top:0;left:0;right:0;z-index:200;box-sizing:border-box">';
+  h += '<button style="background:none;border:none;color:var(--text2);cursor:pointer;padding:4px" onclick="go(\'home\')">'
+     + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>';
+  h += '<div style="cursor:pointer" onclick="go(\'home\')">'
+     + '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>';
+  h += '<span style="font-size:14px;font-weight:700;color:var(--ink)">Ny arbetsyta</span>';
+  h += '<div style="margin-left:auto;width:30px;height:30px;border-radius:50%;background:rgba(45,212,191,.15);border:1px solid rgba(45,212,191,.3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--teal);font-family:var(--font-mono)">' + authInit + '</div>';
+  h += '</div>'; // topbar
 
-  var typeOptions = ['Klinik', 'Salong', 'Mottagning', 'Studio', 'Spa & Wellness', 'Fysioterapi', 'Psykologi', 'Annan'];
+  // ── Page content ──────────────────────────────────────────────────────────
+  h += '<div style="max-width:680px;margin:0 auto;padding:72px 24px 80px;box-sizing:border-box">';
 
-  var h = '<div style="max-width:680px;margin:0 auto;padding:40px 24px 80px;box-sizing:border-box">';
+  // Header
+  h += '<h1 style="font-size:24px;font-weight:700;color:var(--ink);margin:0 0 6px;letter-spacing:-.02em">Skapa en ny arbetsyta</h1>';
+  h += '<p style="font-size:14px;color:var(--text2);margin:0 0 4px;line-height:1.6">En arbetsyta samlar dina patienter, bokningar och klinisk data på ett ställe.'
+     + ' Har du en befintlig verksamhet? <span style="color:var(--teal);cursor:pointer;text-decoration:underline">Importera data</span></p>';
+  h += '<p style="font-size:12px;color:var(--text2);font-style:italic;margin:0 0 28px">Obligatoriska fält markeras med * </p>';
+  h += '<hr style="border:none;border-top:1px solid var(--border);margin-bottom:24px">';
 
-  // Breadcrumb
-  h += '<div style="font-size:13px;color:var(--text2);margin-bottom:20px">';
-  h += '<span onclick="go(\'home\')" style="cursor:pointer;color:var(--teal)">Hem</span>';
-  h += '<span style="margin:0 6px;opacity:.5">/</span>';
-  h += '<span>Ny arbetsyta</span></div>';
+  // ── Section 1: Allmänt ────────────────────────────────────────────────────
+  h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">';
+  h += '<div style="width:28px;height:28px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0d1117;flex-shrink:0">1</div>';
+  h += '<span style="font-size:18px;font-weight:700;color:var(--ink)">Allmänt</span></div>';
 
-  h += '<h1 style="font-size:22px;font-weight:700;color:var(--ink);margin:0 0 4px">Skapa en ny arbetsyta</h1>';
-  h += '<p style="font-size:14px;color:var(--text2);margin:0 0 6px">En arbetsyta innehåller dina patienter, bokningar och all klinisk data. <span style="color:var(--text2)">Har du en befintlig verksamhet?</span> <span style="color:var(--teal);cursor:pointer">Importera data →</span></p>';
-  h += '<p style="font-size:12px;color:var(--text2);margin:0 0 24px;font-style:italic">Obligatoriska fält markeras med asterisk (*).</p>';
-
-  h += '<div style="border-top:1px solid var(--border);padding-top:0">';
-
-  // Section 1
-  h += sectionHeader(1, 'Allmänt');
-
-  // Owner + name (like GitHub)
-  h += '<div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:18px">';
+  // Owner / name row — exactly like GitHub
+  h += '<div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:6px">';
+  // Owner box
   h += '<div style="flex:0 0 auto">';
   h += '<label style="display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:5px">Ägare <span style="color:var(--red)">*</span></label>';
-  h += '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:14px;color:var(--ink)">';
-  h += '<div style="width:22px;height:22px;border-radius:50%;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--teal)">CA</div>';
-  h += 'carlrobert &nbsp;<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div></div>';
-  h += '<div style="font-size:20px;color:var(--text2);padding-bottom:10px">/</div>';
+  h += '<div style="display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:14px;color:var(--ink);min-width:160px">';
+  h += '<div style="width:20px;height:20px;border-radius:50%;background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--teal)">' + authInit + '</div>';
+  h += '<span>' + e(ownerName) + '</span>';
+  h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
+  h += '</div></div>';
+  // Slash
+  h += '<div style="font-size:22px;color:var(--border);padding-bottom:8px;flex-shrink:0">/</div>';
+  // Name input
   h += '<div style="flex:1">';
   h += '<label style="display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:5px">Arbetsytans namn <span style="color:var(--red)">*</span></label>';
-  h += '<input id="ws-name" type="text" placeholder="min-klinik" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--font);outline:none;box-sizing:border-box;transition:border-color .15s" onfocus="this.style.borderColor=\'var(--teal)\'" onblur="this.style.borderColor=\'var(--border)\'">';
+  h += '<input id="ws-name" type="text" placeholder="" autocomplete="off" '
+     + 'style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-size:14px;color:var(--ink);font-family:var(--font);outline:none;box-sizing:border-box;transition:border-color .15s" '
+     + 'onfocus="this.style.borderColor=\'var(--teal)\'" onblur="this.style.borderColor=\'var(--border)\'">';
   h += '</div></div>';
-  h += '<div style="font-size:12px;color:var(--text2);margin-bottom:18px">Bra arbetsytenamn är korta och minnesvärda. Hur vore det med <span id="ws-suggestion" style="color:var(--teal);cursor:pointer">kansei-rehab</span>?</div>';
-  h += '<div id="ws-name-err" style="display:none;align-items:center;gap:6px;font-size:12px;color:var(--red);margin:-8px 0 10px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span id="ws-name-err-txt"></span></div>';
+  // Suggestion
+  h += '<div style="font-size:13px;color:var(--text2);margin-bottom:20px">Bra namn är korta och minnesvärda. Hur vore det med <span id="ws-sug" style="color:var(--teal);cursor:pointer;text-decoration:underline">' + nameSuggestions[0] + '</span>?</div>';
 
   // Description
-  h += '<div style="margin-bottom:18px">';
-  h += '<label style="display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:5px">Beskrivning <span style="color:var(--text2);font-weight:400">(valfritt)</span></label>';
-  h += '<input id="ws-desc" type="text" placeholder="Naprapatmottagning i Stockholm specialiserad på idrottsskador" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:14px;color:var(--ink);font-family:var(--font);outline:none;box-sizing:border-box" onfocus="this.style.borderColor=\'var(--teal)\'" onblur="this.style.borderColor=\'var(--border)\'">';
-  h += '<div style="font-size:11px;color:var(--text2);margin-top:4px" id="ws-desc-count">0 / 200 tecken</div>';
+  h += '<div style="margin-bottom:24px">';
+  h += '<label style="display:block;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:5px">Beskrivning <span style="font-size:13px;font-weight:400;color:var(--text2)">(valfritt)</span></label>';
+  h += '<input id="ws-desc" type="text" placeholder="T.ex. Naprapatmottagning i Stockholm" '
+     + 'style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-size:14px;color:var(--ink);font-family:var(--font);outline:none;box-sizing:border-box" '
+     + 'onfocus="this.style.borderColor=\'var(--teal)\'" onblur="this.style.borderColor=\'var(--border)\'">';
+  h += '<div style="font-size:12px;color:var(--text2);margin-top:4px" id="ws-desc-cnt">0 / 200 tecken</div>';
   h += '</div>';
 
-  // Section 2
-  h += sectionHeader(2, 'Konfiguration');
+  h += '<hr style="border:none;border-top:1px solid var(--border);margin-bottom:24px">';
 
-  // Type selector
+  // ── Section 2: Konfiguration ───────────────────────────────────────────────
+  h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">';
+  h += '<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--ink);flex-shrink:0">2</div>';
+  h += '<span style="font-size:18px;font-weight:700;color:var(--ink)">Konfiguration</span></div>';
+
+  // Config options box — exactly like GitHub's
+  function configRow(id, label, desc, control, isLast) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;' + (isLast?'':'border-bottom:1px solid var(--border2);') + '">'
+      + '<div style="max-width:480px">'
+      + '<div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:2px">' + label + '</div>'
+      + '<div style="font-size:12px;color:var(--text2);line-height:1.5">' + desc + '</div>'
+      + '</div>' + control + '</div>';
+  }
+
   h += '<div style="border:1px solid var(--border);border-radius:9px;overflow:hidden;margin-bottom:16px">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border2)">';
-  h += '<div><div style="font-size:14px;font-weight:600;color:var(--ink)">Typ av verksamhet <span style="color:var(--red)">*</span></div><div style="font-size:12px;color:var(--text2);margin-top:2px">Välj den kategori som bäst beskriver din verksamhet</div></div>';
-  h += '<select id="ws-type" style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-size:13px;color:var(--ink);font-family:var(--font);cursor:pointer;outline:none">';
-  typeOptions.forEach(function(t) {
-    h += '<option value="' + t.toLowerCase() + '">' + t + '</option>';
-  });
-  h += '</select></div>';
 
-  // Visibility toggle (like GitHub)
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border2)">';
-  h += '<div><div style="font-size:14px;font-weight:600;color:var(--ink)">Synlighet</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Vem kan se och arbeta i arbetsytan</div></div>';
-  h += '<div style="display:flex;gap:8px">';
-  h += '<label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--teal);border-radius:7px;background:rgba(45,212,191,.06);cursor:pointer;font-size:13px;color:var(--ink)">'
-     + '<input type="radio" name="ws-vis" value="private" checked style="accent-color:var(--teal)"> Privat</label>';
-  h += '<label style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:7px;cursor:pointer;font-size:13px;color:var(--text)">'
-     + '<input type="radio" name="ws-vis" value="team" style="accent-color:var(--teal)"> Team</label>';
+  // Type of business
+  h += configRow('ws-type', 'Typ av verksamhet <span style="color:var(--red)">*</span>', 'Välj den kategori som bäst beskriver din verksamhet.',
+    '<select id="ws-type" style="background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:6px 12px;font-size:13px;color:var(--ink);font-family:var(--font);cursor:pointer;outline:none">'
+    + typeOptions.map(function(t){ return '<option value="' + t.toLowerCase() + '">' + t + '</option>'; }).join('')
+    + '</select>', false);
+
+  // Visibility
+  h += '<div style="padding:14px 16px;border-bottom:1px solid var(--border2)">';
+  h += '<div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:10px">Synlighet <span style="color:var(--red)">*</span></div>';
+  h += '<div style="display:flex;gap:10px">';
+  // Private option
+  h += '<label style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid var(--teal);border-radius:8px;background:rgba(45,212,191,.04);cursor:pointer;flex:1">'
+     + '<input type="radio" name="ws-vis" value="private" checked style="margin-top:2px;accent-color:var(--teal)">'
+     + '<div><div style="font-size:13px;font-weight:600;color:var(--ink)">Privat</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Bara du (och ditt team) kan se arbetsytan</div></div></label>';
+  // Team option
+  h += '<label style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;cursor:pointer;flex:1" id="ws-team-lbl">'
+     + '<input type="radio" name="ws-vis" value="team" style="margin-top:2px;accent-color:var(--teal)" onchange="document.getElementById(\'ws-team-lbl\').style.borderColor=\'var(--teal)\'">'
+     + '<div><div style="font-size:13px;font-weight:600;color:var(--ink)">Team</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Flera behandlare kan logga in och dokumentera</div></div></label>';
   h += '</div></div>';
 
-  // AI retention toggle
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border2)">';
-  h += '<div><div style="font-size:14px;font-weight:600;color:var(--ink)">AI Retention</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Aktivera automatiska retention-utskick från dag ett</div></div>';
-  h += '<label style="display:flex;align-items:center;gap:8px;cursor:pointer">';
-  h += '<span style="font-size:12px;color:var(--text2)" id="ws-ret-label">Av</span>';
-  h += '<input type="checkbox" id="ws-retention" style="width:36px;height:20px;accent-color:var(--teal);cursor:pointer" onchange="document.getElementById(\'ws-ret-label\').textContent=this.checked?\'På\':\'Av\'">';
-  h += '</label></div>';
+  // AI Retention toggle
+  h += configRow('', 'AI Retention',
+    'Aktivera automatiska retention-utskick. AI kontaktar patienter som riskerar att hoppa av.',
+    '<label style="display:flex;align-items:center;gap:8px;cursor:pointer">'
+    + '<span style="font-size:12px;color:var(--text2)" id="ret-lbl">Av</span>'
+    + '<input type="checkbox" id="ws-ret" style="width:36px;height:20px;accent-color:var(--teal);cursor:pointer" onchange="document.getElementById(\'ret-lbl\').textContent=this.checked?\'P\u00e5\':\'Av\'">'
+    + '</label>', false);
 
-  // Intakeformulär toggle
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px">';
-  h += '<div><div style="font-size:14px;font-weight:600;color:var(--ink)">Intake-formulär</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Skicka hälsodeklaration automatiskt vid bokning</div></div>';
-  h += '<label style="display:flex;align-items:center;gap:8px;cursor:pointer">';
-  h += '<span style="font-size:12px;color:var(--text2)" id="ws-int-label">Av</span>';
-  h += '<input type="checkbox" id="ws-intake" style="width:36px;height:20px;accent-color:var(--teal);cursor:pointer" onchange="document.getElementById(\'ws-int-label\').textContent=this.checked?\'På\':\'Av\'">';
-  h += '</label></div>';
+  // Intake toggle
+  h += configRow('', 'Intake-formul\u00e4r',
+    'Skicka h\u00e4lsodeklaration automatiskt vid varje ny bokning.',
+    '<label style="display:flex;align-items:center;gap:8px;cursor:pointer">'
+    + '<span style="font-size:12px;color:var(--text2)" id="int-lbl">Av</span>'
+    + '<input type="checkbox" id="ws-int" style="width:36px;height:20px;accent-color:var(--teal);cursor:pointer" onchange="document.getElementById(\'int-lbl\').textContent=this.checked?\'P\u00e5\':\'Av\'">'
+    + '</label>', true);
+
   h += '</div>'; // config box
 
-  // Submit
-  h += '<div style="display:flex;justify-content:flex-end;margin-top:24px">';
-  h += '<button id="ws-create-btn" style="padding:10px 28px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Skapa arbetsyta</button>';
+  // ── Submit ─────────────────────────────────────────────────────────────────
+  h += '<hr style="border:none;border-top:1px solid var(--border);margin-bottom:20px">';
+  h += '<div style="display:flex;justify-content:flex-end">';
+  h += '<button id="ws-create" style="padding:10px 28px;background:#238636;color:#fff;border:1px solid rgba(240,246,252,.1);border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;font-family:var(--font);letter-spacing:-.01em">Skapa arbetsyta</button>';
   h += '</div>';
-  h += '</div></div>'; // form + outer
+
+  h += '</div></div>'; // content + page
 
   el.innerHTML = h;
 
   // Wire description counter
   var descEl = el.querySelector('#ws-desc');
   if (descEl) descEl.oninput = function() {
-    el.querySelector('#ws-desc-count').textContent = descEl.value.length + ' / 200 tecken';
+    el.querySelector('#ws-desc-cnt').textContent = descEl.value.length + ' / 200 tecken';
   };
 
-  // Wire name → suggestion
+  // Wire suggestion click
+  var sugEl = el.querySelector('#ws-sug');
   var nameEl = el.querySelector('#ws-name');
-  var sugEl  = el.querySelector('#ws-suggestion');
-  var suggestions = ['kansei-rehab', 'min-klinik', 'vela-klinik'];
-  if (sugEl) sugEl.onclick = function() {
-    if (nameEl) nameEl.value = suggestions[0];
+  if (sugEl && nameEl) {
+    sugEl.onclick = function() { nameEl.value = nameSuggestions[0]; nameEl.focus(); };
+  }
+
+  // Wire name → real-time slug preview
+  if (nameEl) nameEl.oninput = function() {
+    var slug = nameEl.value.toLowerCase().replace(/[^a-z0-9åäöÅÄÖ]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+    if (slug) sugEl.textContent = slug;
   };
 
-  // Wire create button
-  var createBtn = el.querySelector('#ws-create-btn');
-  // Live name validation
-  var nameInp = el.querySelector('#ws-name');
-  var nameErr = el.querySelector('#ws-name-err');
-  function validateName() {
-    var val = nameInp.value.trim().toLowerCase().replace(/\s+/g,'-');
-    nameInp.value = val;
-    var existing = JSON.parse(localStorage.getItem('vela:workspaces')||'[]');
-    var cfg = getClinicConfig ? getClinicConfig() : {};
-    var takenNames = existing.map(function(w){ return w.name.toLowerCase(); });
-    if (cfg.name) takenNames.push(cfg.name.toLowerCase());
-    if (val && takenNames.indexOf(val) !== -1) {
-      nameErr.textContent = 'Namnet “' + val + '” är redan använt. Välj ett annat.';
-      nameErr.style.display = 'flex';
-      nameInp.style.borderColor = 'var(--red)';
-      return false;
-    } else {
-      nameErr.style.display = 'none';
-      nameInp.style.borderColor = val ? 'var(--green)' : 'var(--border)';
-      return true;
-    }
-  }
-  if (nameInp) { nameInp.oninput = validateName; nameInp.onblur = validateName; }
-
+  // Wire create
+  var createBtn = el.querySelector('#ws-create');
   if (createBtn) createBtn.onclick = function() {
-    var name = (el.querySelector('#ws-name')||{}).value?.trim();
-    if (!name) { nameInp.focus(); showAutoSaveToast('Ange ett namn för arbetsytan'); return; }
-    if (!validateName()) return; // name collision
-    var desc = (el.querySelector('#ws-desc')||{}).value?.trim() || '';
-    var type = (el.querySelector('#ws-type')||{}).value || 'klinik';
-    var retention = el.querySelector('#ws-retention')?.checked || false;
-    var intake    = el.querySelector('#ws-intake')?.checked || false;
-
-    // Save workspace config
-    var workspaces = JSON.parse(localStorage.getItem('vela:workspaces')||'[]');
-    workspaces.push({ id:'ws_'+Date.now(), name:name, desc:desc, type:type, retention:retention, intake:intake, createdAt:new Date().toISOString() });
+    var name = (nameEl && nameEl.value.trim()) || '';
+    if (!name) { if(nameEl){ nameEl.focus(); nameEl.style.borderColor='var(--red)'; } showAutoSaveToast('Ange ett namn för arbetsytan'); return; }
+    var ws = {
+      id: 'ws_' + Date.now(),
+      name: name,
+      desc: (el.querySelector('#ws-desc') && el.querySelector('#ws-desc').value.trim()) || '',
+      type: (el.querySelector('#ws-type') && el.querySelector('#ws-type').value) || 'klinik',
+      retention: !!(el.querySelector('#ws-ret') && el.querySelector('#ws-ret').checked),
+      intake:    !!(el.querySelector('#ws-int') && el.querySelector('#ws-int').checked),
+      createdAt: new Date().toISOString(),
+    };
+    var workspaces = JSON.parse(localStorage.getItem('vela:workspaces') || '[]');
+    workspaces.push(ws);
     localStorage.setItem('vela:workspaces', JSON.stringify(workspaces));
-
-    showAutoSaveToast('Arbetsyta skapad!');
+    showAutoSaveToast('Arbetsyta \u201c' + name + '\u201d skapad!');
     setTimeout(function(){ go('home'); }, 600);
   };
 }
-
 
 
 function rHome() {
@@ -10629,13 +10661,15 @@ function rHome() {
     .concat(ws);
 
   // Getting started — GitHub accordion style
+  // GitHub-style: 3 simple getting-started items
+  var wsExists = ws.length > 0 || pats.length > 0;
   var checks = [
-    { label:'Skapa din första arbetsyta',   done: ws.length > 0,  action:"go('workspace-new')", actionLabel:'Skapa arbetsyta', sub:'En arbetsyta samlar alla dina patienter, bokningar och klinisk data på ett ställe.' },
-    { label:'Lägg till din första patient', done: pats.length > 0, action:"go('dashboard')",     actionLabel:'Gå till patienter', sub:'Importera en befintlig patientlista eller lägg till manuellt.' },
-    { label:'Anslut Anthropic API-nyckel',  done:!!(localStorage.getItem('vela:api-key')||'').length, action:"go('settings')", actionLabel:'Öppna inställningar', sub:'API-nyckeln aktiverar AI-journalföring, rehabplaner, retention och Vela Ask.' },
-    { label:'Anslut Gmail',                 done: typeof _gmailIsAuthed==='function'&&_gmailIsAuthed(), action:"go('activity')", actionLabel:'Anslut Gmail', sub:'Läs och svara på patientmail utan att lämna Vela. AI föreslår svar direkt.' },
-    { label:'Konfigurera e-postutskick',    done:!!(localStorage.getItem('vela:resend-key')||'').length, action:"go('settings')", actionLabel:'Konfigurera', sub:'Resend möjliggör automatiska bokningsbekräftelser och retention-utskick.' },
+    { label:'Skapa din första arbetsyta', done: wsExists, action:"go('workspace-new')", cta:'Skapa arbetsyta', sub:'En arbetsyta samlar alla dina patienter, bokningar och klinisk data på ett ställe.' },
+    { label:'Starta Vela Ask', done: false, action:"rAskFull()", cta:'Starta chat', sub:'Ställ frågor om dina patienter, generera rehabplaner och analysera din klinik med AI.' },
+    { label:'Slutför din profil', done: !!(cfg.address && cfg.name && cfg.name !== 'Min klinik'), action:"go('settings')", sub:'Lägg till klinikuppgifter, logotyp och kontaktinformation.' },
   ];
+
+
   var doneCnt = checks.filter(function(c){ return c.done; }).length;
 
   // Open issues for chip context
@@ -10661,14 +10695,14 @@ function rHome() {
   // Logo
   h += '<div style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px;border-radius:6px;margin-right:4px" onclick="rHome()" onmouseenter="this.style.opacity=\'.8\'" onmouseleave="this.style.opacity=\'1\'">'
      + '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e6edf3" stroke-width="2.2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>';
-  // Search bar
-  h += '<div style="flex:1;max-width:320px">'
-     + '<div style="display:flex;align-items:center;gap:8px;background:#161b22;border:1px solid #30363d;border-radius:6px;padding:5px 12px;cursor:text;transition:border-color .15s" '
-     + 'onclick="document.getElementById(\'home-ask-ta\').focus()" onmouseenter="this.style.borderColor=\'#58a6ff\'" onmouseleave="this.style.borderColor=\'#30363d\'">'
-     + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
-     + '<span style="font-size:13px;color:#6e7681;flex:1">Sök eller fråga Vela AI...</span>'
-     + '<kbd style="font-size:10px;background:#21262d;border:1px solid #30363d;border-radius:4px;padding:1px 5px;color:#6e7681;font-family:var(--font-mono)">⌘K</kbd>'
-     + '</div></div>';
+  // Dashboard label (like GitHub's topbar)
+  h += '<span style="font-size:15px;font-weight:600;color:#e6edf3">Dashboard</span>';
+
+
+
+
+
+
   // Right
   h += '<div style="margin-left:auto;display:flex;align-items:center;gap:6px">';
   // Settings icon
@@ -10686,9 +10720,11 @@ function rHome() {
 
   // Top repositories header (exactly like GitHub)
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
-  h += '<span style="font-size:13px;font-weight:600;color:#e6edf3">Arbetsytor</span>';
-  h += '<button onclick="go(\'workspace-new\')" style="display:flex;align-items:center;gap:4px;padding:3px 10px;background:#238636;color:#fff;border:1px solid rgba(240,246,252,.1);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">'
-     + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ny</button>';
+  h += '<span style="font-size:14px;font-weight:600;color:var(--ink)">Arbetsytor</span>';
+  h += '<button onclick="go(\'workspace-new\')" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:#238636;color:#fff;border:1px solid rgba(240,246,252,.1);border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">'
+     + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>'
+     + ' Ny</button>';
+
   h += '</div>';
 
   // Search (exactly like GitHub's "Find a repository...")

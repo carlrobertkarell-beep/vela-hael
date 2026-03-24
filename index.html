@@ -619,7 +619,7 @@ button, input, textarea, select { font-family: inherit; }
   flex-shrink: 0;
 }
 .vela-gtb-row2 {
-  height: 48px; display: flex; align-items: stretch;
+  height: 40px; display: flex; align-items: stretch;
   padding: 0 8px; overflow-x: auto; overflow-y: hidden;
   flex-shrink: 0; background: var(--topbar-bg);
   border-bottom: 1px solid rgba(255,255,255,.06);
@@ -2254,6 +2254,9 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
   .ws-subnav { gap:6px; }
   .ws-file-meta { display:none; }
 }
+
+.ws-doc-dropzone { display:block; padding:32px; text-align:center; cursor:pointer; border:2px dashed var(--border2); margin:12px; border-radius:8px; transition:border-color .15s; }
+.ws-doc-dropzone:hover { border-color:var(--teal); }
 </style>
 
 <div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0e1825;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
@@ -12811,31 +12814,58 @@ function rWorkspace() {
   }
   h += '</div>'; // filelist
 
-  // README / Om kliniken
+  // README — uploadable document for workspace
+  var wsDoc = cfg.wsDoc || null; // { name, type, data (base64), size, uploadedAt }
+
   h += '<div class="ws-readme">';
   h += '<div class="ws-readme-header">';
   h += '<div style="display:flex;align-items:center;gap:8px">';
-  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>';
-  h += '<span style="font-size:13px;font-weight:700;color:var(--ink)">Om kliniken</span>';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
+  h += '<span style="font-size:13px;font-weight:700;color:var(--ink)">Arbetsytans dokument</span>';
   h += '</div>';
-  h += '<button onclick="_wsToggleReadme()" class="ws-icon-btn" title="Redigera">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-  h += '</button>';
-  h += '</div>';
+  // Upload/replace button
+  h += '<label class="ws-icon-btn" title="Ladda upp dokument" style="cursor:pointer">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>';
+  h += '<input type="file" accept=".pdf,.doc,.docx,.txt,.md" onchange="_wsUploadDoc(this)" style="display:none">';
+  h += '</label>';
+  h += '</div>'; // readme-header
 
-  if (readmeEditMode) {
+  if (wsDoc) {
+    // Show uploaded document
+    var ext = wsDoc.name.split('.').pop().toLowerCase();
+    var extColors = { pdf:'#f85149', doc:'#58a6ff', docx:'#58a6ff', txt:'var(--text2)', md:'#3fb950' };
+    var extCol = extColors[ext] || 'var(--text2)';
     h += '<div style="padding:16px">';
-    h += '<textarea id="ws-readme-ta" rows="6" placeholder="Beskriv kliniken — specialisering, metod, vad patienter kan förvänta sig..." style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--teal);border-radius:8px;font-size:14px;color:var(--ink);font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.6">'+(readme?e(readme):'')+'</textarea>';
-    h += '<div style="display:flex;gap:8px;margin-top:10px">';
-    h += '<button onclick="_wsReadmeSave()" style="padding:6px 16px;background:var(--teal);color:#0d1117;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara</button>';
-    h += '<button onclick="_wsToggleReadme()" style="padding:6px 12px;background:none;border:1px solid var(--border);border-radius:7px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avbryt</button>';
-    h += '</div></div>';
-  } else if (readme) {
-    h += '<div style="padding:16px;font-size:14px;color:var(--text);line-height:1.8">' + e(readme).replace(/\n/g,'<br>') + '</div>';
-  } else {
-    h += '<div style="padding:24px;text-align:center">';
-    h += '<button onclick="_wsToggleReadme()" style="font-size:14px;color:var(--teal);background:rgba(224,118,40,.06);border:1px solid rgba(224,118,40,.2);border-radius:8px;padding:8px 20px;cursor:pointer;font-family:var(--font);font-weight:600">+ Lägg till beskrivning av kliniken</button>';
+    h += '<div style="display:flex;align-items:center;gap:12px;padding:14px;border:1px solid var(--border);border-radius:8px;background:var(--surface2)">';
+    // File icon
+    h += '<div style="width:40px;height:48px;border-radius:4px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+extCol+'" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+    h += '<span style="font-size:9px;font-weight:800;color:'+extCol+';margin-top:3px;letter-spacing:.05em">'+ext.toUpperCase()+'</span>';
     h += '</div>';
+    // File info
+    h += '<div style="flex:1;min-width:0">';
+    h += '<div style="font-size:14px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e(wsDoc.name)+'</div>';
+    var uploadDate = wsDoc.uploadedAt ? new Date(wsDoc.uploadedAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric'}) : '';
+    var sizeKb = wsDoc.size ? Math.round(wsDoc.size/1024)+' KB' : '';
+    h += '<div style="font-size:12px;color:var(--text2);margin-top:3px">' + [sizeKb, uploadDate ? 'Uppladdad '+uploadDate : ''].filter(Boolean).join(' · ') + '</div>';
+    h += '</div>';
+    // Actions
+    h += '<div style="display:flex;gap:8px;flex-shrink:0">';
+    if (wsDoc.data) {
+      h += '<a href="'+wsDoc.data+'" download="'+e(wsDoc.name)+'" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--text);text-decoration:none;background:var(--surface)">';
+      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+      h += 'Ladda ner</a>';
+    }
+    h += '<button onclick="_wsRemoveDoc()" style="display:flex;align-items:center;gap:4px;padding:5px 10px;border:1px solid rgba(248,81,73,.3);border-radius:6px;font-size:12px;font-weight:600;color:#f85149;background:none;cursor:pointer;font-family:var(--font)">Ta bort</button>';
+    h += '</div></div></div>';
+  } else {
+    // Empty state — drop zone
+    h += '<label class="ws-doc-dropzone">';
+    h += '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 10px;display:block"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
+    h += '<div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px">Ladda upp arbetsytans dokument</div>';
+    h += '<div style="font-size:13px;color:var(--text2)">PDF, Word, Markdown eller text · Visas här för snabb åtkomst</div>';
+    h += '<input type="file" accept=".pdf,.doc,.docx,.txt,.md" onchange="_wsUploadDoc(this)" style="display:none">';
+    h += '</label>';
   }
   h += '</div>'; // readme
 
@@ -12949,20 +12979,36 @@ function _wsRunAction(i) {
   var fn = window._wsActions && window._wsActions[i];
   if (typeof fn === 'function') fn();
 }
-function _wsToggleReadme() {
-  window._wsReadmeEdit = !window._wsReadmeEdit;
-  rWorkspace();
+function _wsUploadDoc(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var cfg = getClinicConfig ? getClinicConfig() : {};
+    cfg.wsDoc = {
+      name:       file.name,
+      type:       file.type,
+      size:       file.size,
+      data:       ev.target.result,
+      uploadedAt: new Date().toISOString(),
+    };
+    if (typeof saveClinicConfig === 'function') saveClinicConfig(cfg);
+    showAutoSaveToast(file.name + ' uppladdad ✓');
+    rWorkspace();
+  };
+  reader.readAsDataURL(file);
 }
-function _wsReadmeSave() {
-  var ta = document.getElementById('ws-readme-ta');
-  if (!ta) return;
+function _wsRemoveDoc() {
+  if (!confirm('Ta bort dokumentet?')) return;
   var cfg = getClinicConfig ? getClinicConfig() : {};
-  cfg.readme = ta.value.trim();
+  delete cfg.wsDoc;
   if (typeof saveClinicConfig === 'function') saveClinicConfig(cfg);
-  window._wsReadmeEdit = false;
-  showAutoSaveToast('Klinikbeskrivning sparad');
+  showAutoSaveToast('Dokument borttaget');
   rWorkspace();
 }
+// Keep old toggle/save as no-ops for safety
+function _wsToggleReadme() { rWorkspace(); }
+function _wsReadmeSave()   { rWorkspace(); }
 
 
 function rDashboard() {

@@ -31199,12 +31199,6 @@ function rProfile() {
   h += '<span style="font-size:11px;color:var(--text2)">Fler</span></div>';
   h += '</div>'; // section
 
-  if (cfg.bio) {
-    h += '<div class="prof-section">';
-    h += '<p style="font-size:14px;color:var(--text);line-height:1.7;margin:0">'+e(cfg.bio)+'</p>';
-    h += '</div>';
-  }
-
   // Specializations + meta row
   if (cfg.areas&&cfg.areas.length || cfg.years || (cfg.langs&&cfg.langs.length)) {
     h += '<div class="prof-section">';

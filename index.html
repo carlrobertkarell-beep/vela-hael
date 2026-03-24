@@ -2181,127 +2181,150 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .area-card-add:hover { border-color:var(--teal); color:var(--teal); }
 
 
-/* ══════════════════════════════════════════════════════════════════════════
-   VELA WORKSPACE — Exact GitHub repository page
-   ══════════════════════════════════════════════════════════════════════════ */
-.repo-wrap { max-width:1280px; margin:0 auto; padding:16px 24px 60px; font-family:var(--font); }
 
-/* Header */
-.repo-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; flex-wrap:wrap; }
-.repo-header-left { display:flex; align-items:center; gap:8px; min-width:0; }
-.repo-name { font-size:18px; font-weight:600; color:var(--teal); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.repo-vis-badge { font-size:12px; font-weight:500; padding:1px 9px; border-radius:20px; cursor:pointer; border:1px solid; transition:all .15s; flex-shrink:0; }
-.repo-vis-badge.public { color:#8b949e; border-color:#30363d; background:none; }
-.repo-vis-badge.public:hover { border-color:#e07628; color:var(--teal); }
-.repo-vis-badge.private { color:#d29922; border-color:rgba(210,153,34,.4); background:rgba(210,153,34,.06); }
-.repo-header-right { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-.repo-action-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-weight:500; color:var(--ink); background:var(--surface2); cursor:pointer; font-family:var(--font); }
-.repo-action-btn:hover { background:var(--surface3,#30363d); border-color:var(--text2); }
-.repo-action-count { font-size:12px; font-weight:600; padding:0 5px; border-radius:20px; background:rgba(177,186,196,.12); color:var(--text); }
-.repo-action-primary { background:rgba(63,185,80,.1) !important; border-color:rgba(63,185,80,.4) !important; color:#3fb950 !important; }
-.repo-action-primary:hover { background:rgba(63,185,80,.18) !important; }
+/* ══════════════════════════════════════════════════════════════
+   VELA WORKSPACE — Exact GitHub repository page v3
+   ══════════════════════════════════════════════════════════════ */
+.gh3-page { max-width:1280px; margin:0 auto; padding:16px 24px 80px; font-family:var(--font); }
 
-/* Sub-nav tabs — like GitHub's Code / Issues / Pull requests */
-.repo-tabs { display:flex; align-items:center; border-bottom:1px solid var(--border); margin-bottom:0; overflow-x:auto; gap:0; }
-.repo-tab { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:none; background:none; font-size:14px; font-weight:400; color:var(--text2); cursor:pointer; font-family:var(--font); border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; transition:color .1s; }
-.repo-tab:hover { color:var(--ink); border-bottom-color:var(--border); }
-.repo-tab.active { color:var(--ink); font-weight:600; border-bottom-color:var(--teal); }
-.repo-tab svg { opacity:.7; }
-.repo-tab.active svg { opacity:1; }
-.repo-tab-badge { font-size:12px; font-weight:500; padding:0 6px; border-radius:20px; background:rgba(177,186,196,.12); color:var(--text); }
+/* Row 1: name + visibility + actions */
+.gh3-namerow { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; gap:8px; flex-wrap:wrap; }
+.gh3-namerow-left { display:flex; align-items:center; gap:6px; min-width:0; }
+.gh3-repo-icon { color:var(--text2); flex-shrink:0; }
+.gh3-owner { font-size:18px; font-weight:400; color:var(--teal); cursor:pointer; text-decoration:none; }
+.gh3-owner:hover { text-decoration:underline; }
+.gh3-slash { font-size:18px; color:var(--text2); font-weight:300; padding:0 2px; }
+.gh3-reponame { font-size:18px; font-weight:600; color:var(--teal); cursor:pointer; }
+.gh3-reponame:hover { text-decoration:underline; }
+.gh3-visbadge { font-size:12px; padding:1px 9px; border-radius:20px; cursor:pointer; border:1px solid; font-weight:400; transition:all .15s; flex-shrink:0; }
+.gh3-visbadge.pub { color:#8b949e; border-color:#30363d; background:none; }
+.gh3-visbadge.pub:hover { border-color:var(--teal); color:var(--teal); }
+.gh3-visbadge.prv { color:#d29922; border-color:rgba(210,153,34,.4); background:rgba(210,153,34,.06); }
+.gh3-namerow-right { display:flex; align-items:center; gap:4px; flex-wrap:wrap; }
+.gh3-action-group { display:flex; align-items:center; }
+.gh3-action-btn { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border:1px solid var(--border); border-right:none; border-radius:6px 0 0 6px; font-size:12px; font-weight:500; color:var(--ink); background:var(--surface2); cursor:pointer; font-family:var(--font); }
+.gh3-action-btn:hover { background:var(--surface3,#30363d); }
+.gh3-action-split { display:inline-flex; align-items:center; padding:4px 6px; border:1px solid var(--border); border-radius:0 6px 6px 0; font-size:12px; color:var(--text2); background:var(--surface2); cursor:pointer; }
+.gh3-action-split:hover { background:var(--surface3,#30363d); }
+.gh3-action-count { font-size:11px; padding:0 5px; border-radius:20px; background:rgba(177,186,196,.1); color:var(--text); }
+.gh3-star { background:rgba(63,185,80,.08) !important; border-color:rgba(63,185,80,.3) !important; color:#3fb950 !important; }
 
-/* Body */
-.repo-body { display:flex; gap:24px; align-items:flex-start; padding-top:16px; }
-.repo-main { flex:1; min-width:0; }
-.repo-aside { width:256px; flex-shrink:0; }
+/* Tabs */
+.gh3-tabs { display:flex; border-bottom:1px solid var(--border); overflow-x:auto; gap:0; margin-bottom:16px; }
+.gh3-tab { display:inline-flex; align-items:center; gap:5px; padding:8px 12px; border:none; background:none; font-size:14px; font-weight:400; color:var(--text2); cursor:pointer; font-family:var(--font); border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; transition:color .1s; }
+.gh3-tab:hover { color:var(--ink); }
+.gh3-tab-active { color:var(--ink) !important; font-weight:600; border-bottom-color:var(--teal) !important; }
+.gh3-tab svg { fill:currentColor; opacity:.7; }
+.gh3-tab-active svg { opacity:1; }
+.gh3-tab-badge { font-size:12px; padding:1px 6px; border-radius:20px; background:rgba(177,186,196,.1); color:var(--text); font-weight:500; }
+
+/* Body layout */
+.gh3-body { display:flex; gap:24px; align-items:flex-start; }
+.gh3-main { flex:1; min-width:0; }
+.gh3-aside { width:256px; flex-shrink:0; }
 
 /* Branch bar */
-.repo-branch-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:0; gap:8px; flex-wrap:wrap; }
-.repo-branch-bar-left { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.repo-branch-bar-right { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-.repo-branch-btn { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-weight:500; color:var(--ink); background:var(--surface2); cursor:pointer; font-family:var(--font); }
-.repo-branch-btn:hover { background:var(--surface3,#30363d); }
-.repo-meta-link { display:inline-flex; align-items:center; gap:4px; font-size:13px; color:var(--text2); cursor:pointer; text-decoration:none; padding:4px 4px; }
-.repo-meta-link:hover { color:var(--teal); }
-.repo-go-file { display:flex; align-items:center; gap:6px; padding:4px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--text2); background:var(--surface2); cursor:pointer; min-width:160px; }
-.repo-go-file kbd { font-size:11px; padding:1px 5px; border:1px solid var(--border); border-radius:3px; color:var(--text2); background:var(--bg); font-family:var(--font-mono); margin-left:auto; }
-.repo-go-file:hover { border-color:var(--teal); }
-.repo-add-file-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border:1px solid var(--border); border-radius:6px 0 0 6px; font-size:13px; font-weight:500; color:var(--ink); background:var(--surface2); cursor:pointer; font-family:var(--font); }
-.repo-add-file-btn:hover { background:var(--surface3,#30363d); }
-.repo-code-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border:1px solid rgba(63,185,80,.4); border-radius:6px; font-size:13px; font-weight:600; color:#3fb950; background:rgba(63,185,80,.1); cursor:pointer; font-family:var(--font); }
-.repo-code-btn:hover { background:rgba(63,185,80,.18); }
+.gh3-branchbar { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:0; }
+.gh3-bb-left { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.gh3-bb-right { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.gh3-bb-group { display:flex; align-items:center; }
+.gh3-branch-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-weight:500; color:var(--ink); background:var(--surface2); cursor:pointer; font-family:var(--font); max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gh3-branch-btn:hover { background:var(--surface3,#30363d); }
+.gh3-meta-lnk { display:inline-flex; align-items:center; gap:4px; font-size:13px; color:var(--text2); cursor:pointer; text-decoration:none; white-space:nowrap; }
+.gh3-meta-lnk:hover { color:var(--teal); }
+.gh3-gofile { display:flex; align-items:center; gap:6px; padding:4px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--text2); background:var(--surface2); cursor:pointer; min-width:200px; }
+.gh3-gofile kbd { margin-left:auto; font-size:11px; padding:0 4px; border:1px solid var(--border); border-radius:3px; color:var(--text2); background:var(--bg); font-family:var(--font-mono); }
+.gh3-gofile:hover { border-color:var(--teal); }
+.gh3-bb-btngroup { display:flex; }
+.gh3-addfile-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-weight:500; color:var(--ink); background:var(--surface2); cursor:pointer; font-family:var(--font); }
+.gh3-addfile-btn:hover { background:var(--surface3,#30363d); }
+.gh3-codebtn { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border:1px solid rgba(63,185,80,.4); border-radius:6px; font-size:13px; font-weight:600; color:#3fb950; background:rgba(63,185,80,.1); cursor:pointer; font-family:var(--font); }
+.gh3-codebtn:hover { background:rgba(63,185,80,.18); }
 
 /* Commit row */
-.repo-commit-row { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface); border:1px solid var(--border); border-bottom:none; border-radius:6px 6px 0 0; margin-top:8px; flex-wrap:wrap; }
-.repo-commit-av-img { width:20px; height:20px; border-radius:50%; object-fit:cover; flex-shrink:0; }
-.repo-commit-av-init { width:20px; height:20px; border-radius:50%; background:rgba(224,118,40,.15); border:1px solid rgba(224,118,40,.25); display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:var(--teal); flex-shrink:0; }
-.repo-commit-author { font-size:13px; font-weight:600; color:var(--ink); }
-.repo-commit-msg { font-size:13px; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px; }
-.repo-commit-hash { font-size:12px; font-family:var(--font-mono); color:var(--teal); }
-.repo-commit-time { font-size:12px; color:var(--text2); }
-.repo-commits-link { display:inline-flex; align-items:center; gap:4px; font-size:13px; color:var(--text); text-decoration:none; cursor:pointer; white-space:nowrap; }
-.repo-commits-link:hover { color:var(--teal); }
+.gh3-commitrow { display:flex; align-items:center; gap:7px; padding:8px 16px; background:var(--surface); border:1px solid var(--border); border-bottom:none; border-radius:6px 6px 0 0; margin-top:12px; flex-wrap:wrap; }
+.gh3-commit-av { width:20px; height:20px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+.gh3-commit-av-init { width:20px; height:20px; border-radius:50%; background:rgba(224,118,40,.12); border:1px solid rgba(224,118,40,.2); display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:var(--teal); flex-shrink:0; }
+.gh3-commit-author { font-size:13px; font-weight:600; color:var(--ink); cursor:pointer; flex-shrink:0; }
+.gh3-commit-msg { font-size:13px; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:280px; }
+.gh3-commit-sha { font-size:12px; font-family:var(--font-mono); color:var(--teal); cursor:pointer; padding:1px 5px; border:1px solid var(--border); border-radius:4px; background:var(--surface2); }
+.gh3-commit-sep { color:var(--text2); font-size:12px; }
+.gh3-commit-time { font-size:12px; color:var(--text2); white-space:nowrap; }
+.gh3-commits-link { display:inline-flex; align-items:center; gap:4px; font-size:13px; color:var(--text); cursor:pointer; margin-left:auto; white-space:nowrap; }
+.gh3-commits-link:hover { color:var(--teal); }
 
 /* File list */
-.repo-files { border:1px solid var(--border); border-top:none; border-radius:0 0 6px 6px; overflow:hidden; margin-bottom:16px; }
-.repo-file-row { display:flex; align-items:center; gap:10px; padding:7px 12px; border-bottom:1px solid var(--border2); cursor:pointer; transition:background .08s; }
-.repo-file-row:last-child { border-bottom:none; }
-.repo-file-row:hover { background:rgba(177,186,196,.05); }
-.repo-file-icon { flex-shrink:0; }
-.repo-file-name { font-size:14px; color:var(--ink); flex:0 0 180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.repo-file-name:hover { color:var(--teal); text-decoration:underline; }
-.repo-file-desc { font-size:13px; color:var(--text2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.repo-file-time { font-size:12px; color:var(--text2); flex-shrink:0; white-space:nowrap; }
-.repo-files-empty { padding:24px 16px; font-size:13px; color:var(--text2); }
+.gh3-files { border:1px solid var(--border); border-top:none; border-radius:0 0 6px 6px; overflow:hidden; margin-bottom:16px; }
+.gh3-file-row { display:flex; align-items:center; gap:10px; padding:7px 16px; border-top:1px solid var(--border2); cursor:pointer; transition:background .08s; }
+.gh3-file-row:hover { background:rgba(177,186,196,.04); }
+.gh3-file-icon { flex-shrink:0; }
+.gh3-file-name { font-size:14px; color:var(--ink); flex:0 0 200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gh3-file-row:hover .gh3-file-name { color:var(--teal); }
+.gh3-file-msg { font-size:13px; color:var(--text2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.gh3-file-time { font-size:12px; color:var(--text2); white-space:nowrap; margin-left:auto; }
+.gh3-files-empty { padding:16px; font-size:13px; color:var(--text2); }
 
 /* README / Document */
-.repo-readme { border:1px solid var(--border); border-radius:6px; overflow:hidden; }
-.repo-readme-header { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface); border-bottom:1px solid var(--border); font-size:13px; font-weight:600; color:var(--ink); }
-.repo-readme-header span { flex:1; }
-.repo-readme-upload { background:none; border:none; color:var(--text2); cursor:pointer; padding:2px 4px; border-radius:4px; display:flex; align-items:center; }
-.repo-readme-upload:hover { color:var(--ink); background:var(--surface2); }
-.repo-readme-empty { padding:32px; text-align:center; }
-.repo-readme-add-btn { display:inline-block; padding:6px 16px; background:#238636; color:#fff; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font); }
-.repo-readme-doc { display:flex; align-items:center; gap:14px; padding:16px; }
-.repo-readme-doc-info { flex:1; min-width:0; }
-.repo-readme-doc-name { display:block; font-size:14px; font-weight:600; color:var(--ink); }
-.repo-readme-doc-meta { display:block; font-size:12px; color:var(--text2); margin-top:2px; }
-.repo-readme-doc-actions { display:flex; gap:6px; flex-shrink:0; }
-.repo-doc-btn { display:inline-flex; align-items:center; padding:4px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; font-weight:600; color:var(--text); background:var(--surface2); cursor:pointer; font-family:var(--font); text-decoration:none; }
-.repo-doc-btn-red { border-color:rgba(248,81,73,.3) !important; color:#f85149 !important; }
+.gh3-readme { border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+.gh3-readme-hdr { display:flex; align-items:center; gap:7px; padding:8px 16px; background:var(--surface); border-bottom:1px solid var(--border); font-size:13px; font-weight:600; color:var(--ink); }
+.gh3-readme-hdr::before { content:''; display:block; width:3px; height:14px; background:var(--teal); border-radius:2px; }
+.gh3-readme-hdr span { flex:1; }
+.gh3-readme-uploadbtn { background:none; border:none; color:var(--text2); cursor:pointer; padding:2px 4px; border-radius:4px; display:flex; align-items:center; }
+.gh3-readme-uploadbtn:hover { color:var(--ink); background:var(--surface2); }
+.gh3-readme-empty { padding:32px; text-align:center; }
+.gh3-readme-empty strong { display:block; font-size:20px; font-weight:400; color:var(--ink); margin-bottom:8px; }
+.gh3-readme-empty p { font-size:14px; color:var(--text2); margin:0 0 16px; }
+.gh3-green-btn { display:inline-flex; align-items:center; padding:7px 16px; background:#238636; color:#fff; border:none; border-radius:6px; font-size:14px; font-weight:600; cursor:pointer; font-family:var(--font); }
+.gh3-doc { display:flex; align-items:center; gap:16px; padding:16px; }
+.gh3-doc-info { flex:1; min-width:0; }
+.gh3-doc-info b { display:block; font-size:14px; color:var(--ink); margin-bottom:3px; }
+.gh3-doc-info span { font-size:12px; color:var(--text2); }
+.gh3-doc-btns { display:flex; gap:6px; }
+.gh3-outline-btn { display:inline-flex; align-items:center; padding:4px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; font-weight:500; color:var(--ink); background:var(--surface2); cursor:pointer; font-family:var(--font); text-decoration:none; }
+.gh3-outline-btn:hover { background:var(--surface3,#30363d); }
+.gh3-outline-btn-red { border-color:rgba(248,81,73,.3) !important; color:#f85149 !important; }
 
-/* Sidebar */
-.repo-aside { display:flex; flex-direction:column; gap:16px; }
-.repo-aside-section { border-bottom:1px solid var(--border); padding-bottom:16px; }
-.repo-aside-section:last-child { border-bottom:none; }
-.repo-aside-heading { display:flex; align-items:center; justify-content:space-between; font-size:14px; font-weight:600; color:var(--ink); margin-bottom:8px; }
-.repo-aside-edit { background:none; border:none; color:var(--text2); cursor:pointer; padding:2px; border-radius:4px; display:flex; align-items:center; }
-.repo-aside-edit:hover { color:var(--ink); }
-.repo-aside-badge { font-size:12px; font-weight:500; padding:1px 7px; border-radius:20px; background:rgba(63,185,80,.1); color:#3fb950; border:1px solid rgba(63,185,80,.3); }
-.repo-aside-count { font-size:13px; font-weight:400; color:var(--text2); }
-.repo-about-desc { font-size:14px; color:var(--text2); line-height:1.5; margin:0 0 8px; }
-.repo-about-empty { font-style:italic; }
-.repo-about-link { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
-.repo-about-link a { font-size:14px; color:var(--teal); text-decoration:none; }
-.repo-about-link a:hover { text-decoration:underline; }
-.repo-aside-stats { margin-top:8px; display:flex; flex-direction:column; gap:4px; }
-.repo-aside-stat { display:flex; align-items:center; gap:7px; font-size:14px; color:var(--text2); cursor:pointer; padding:2px 0; }
-.repo-aside-stat:hover { color:var(--teal); }
-.repo-deploy-row { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink); }
-.repo-deploy-link { color:var(--ink); text-decoration:none; font-weight:600; }
-.repo-contributor { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-.repo-contrib-img { width:32px; height:32px; border-radius:50%; object-fit:cover; }
-.repo-contrib-init { width:32px; height:32px; border-radius:50%; background:var(--surface2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--teal); }
-.repo-contrib-name { font-size:14px; color:var(--teal); font-weight:500; }
-.repo-lang-bar { display:flex; height:8px; border-radius:4px; overflow:hidden; gap:1px; margin-bottom:8px; }
-.repo-lang-bar > div { height:100%; }
-.repo-lang-row { display:flex; align-items:center; gap:7px; margin-bottom:5px; }
-.repo-lang-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-.repo-lang-name { font-size:12px; color:var(--text); flex:1; }
-.repo-lang-pct { font-size:12px; color:var(--text2); }
+/* Sidebar — NO boxes, sections separated by border-bottom */
+.gh3-aside { display:flex; flex-direction:column; }
+.gh3-aside-sec { padding-bottom:16px; margin-bottom:16px; border-bottom:1px solid var(--border); }
+.gh3-aside-sec:last-child { border-bottom:none; margin-bottom:0; }
+.gh3-aside-heading { font-size:14px; font-weight:600; color:var(--ink); margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; }
+.gh3-aside-gear { background:none; border:none; color:var(--text2); cursor:pointer; padding:2px; border-radius:4px; display:flex; align-items:center; }
+.gh3-aside-gear:hover { color:var(--ink); background:var(--surface2); }
+.gh3-about-desc { font-size:14px; color:var(--text2); line-height:1.5; margin:0 0 8px; }
+.gh3-about-nodesc { font-size:14px; color:var(--text2); font-style:italic; margin:0 0 8px; }
+.gh3-about-link { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+.gh3-about-link a { font-size:14px; color:var(--teal); text-decoration:none; }
+.gh3-about-link a:hover { text-decoration:underline; }
+.gh3-about-stats { margin-top:8px; display:flex; flex-direction:column; gap:4px; }
+.gh3-astat { display:flex; align-items:center; gap:7px; font-size:14px; color:var(--text2); cursor:pointer; padding:2px 0; }
+.gh3-astat:hover { color:var(--teal); }
+.gh3-aside-h2 { font-size:14px; font-weight:600; color:var(--ink); margin:0 0 8px; }
+.gh3-aside-count { font-size:13px; font-weight:400; color:var(--text2); margin-left:4px; }
+.gh3-aside-sub { font-size:13px; color:var(--text2); margin:0; line-height:1.5; }
+.gh3-aside-lnk { color:var(--teal); text-decoration:none; }
+.gh3-aside-lnk:hover { text-decoration:underline; }
+.gh3-deploy-row { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink); margin-bottom:4px; }
+.gh3-deploy-lnk { font-weight:600; color:var(--ink); cursor:pointer; }
+.gh3-deploy-lnk:hover { color:var(--teal); }
+.gh3-deploy-time { font-size:12px; color:var(--text2); }
+.gh3-langbar { display:flex; height:8px; border-radius:4px; overflow:hidden; gap:1px; margin-bottom:8px; }
+.gh3-langbar > div { height:100%; }
+.gh3-langs { display:flex; flex-wrap:wrap; gap:2px 10px; }
+.gh3-lang-item { display:inline-flex; align-items:center; gap:4px; font-size:12px; color:var(--text); white-space:nowrap; }
+.gh3-lang-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.gh3-lang-pct { color:var(--text2); }
+.gh3-contribs-avatars { display:flex; gap:2px; margin-bottom:8px; flex-wrap:wrap; }
+.gh3-contrib-av-lg { width:32px; height:32px; border-radius:50%; object-fit:cover; border:1px solid var(--border); }
+.gh3-contrib-av-init { width:32px; height:32px; border-radius:50%; background:var(--surface2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--teal); }
+.gh3-contrib-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.gh3-contrib-av-sm { width:20px; height:20px; border-radius:50%; object-fit:cover; }
+.gh3-contrib-av-init-sm { width:20px; height:20px; border-radius:50%; background:var(--surface2); display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:var(--teal); }
+.gh3-contrib-name { font-size:14px; color:var(--teal); cursor:pointer; }
+.gh3-contrib-name:hover { text-decoration:underline; }
 
-@media (max-width:900px) { .repo-body{flex-direction:column} .repo-aside{width:100%} }
-@media (max-width:640px) { .repo-wrap{padding:12px 12px 40px} .repo-file-desc{display:none} .repo-go-file{min-width:0} }
+@media(max-width:900px){ .gh3-body{flex-direction:column} .gh3-aside{width:100%} }
+@media(max-width:640px){ .gh3-page{padding:12px 12px 60px} .gh3-file-msg{display:none} }
 
 </style>
 
@@ -12635,16 +12658,15 @@ function rWorkspace() {
   el.classList.add('active');
   S.screen = 'home';
 
-  var cfg  = getClinicConfig ? getClinicConfig() : {};
-  var pats = S.patients || [];
-  var bks  = getBookings ? getBookings() : [];
-  var svcs = getServices ? getServices() : [];
-  var now  = new Date();
-  var isPublic = cfg.wsPublic !== false; // default public
+  var cfg      = getClinicConfig ? getClinicConfig() : {};
+  var pats     = S.patients || [];
+  var bks      = getBookings ? getBookings() : [];
+  var svcs     = getServices ? getServices() : [];
+  var now      = new Date();
+  var isPublic = cfg.wsPublic !== false;
 
-  // ── Data ─────────────────────────────────────────────────────────────────
-  var completedBks = bks.filter(function(b){ return b.status==='completed'; }).length;
-  var activePlans  = 0;
+  var doneBks = bks.filter(function(b){ return b.status==='completed'; }).length;
+  var activePlans = 0;
   pats.forEach(function(p){
     (p.visits||[]).forEach(function(v){
       if (!v.plan) return;
@@ -12654,286 +12676,257 @@ function rWorkspace() {
     });
   });
 
-  // File rows (repo file list)
-  var fileRows = [];
+  // File rows
+  var rows = [];
   bks.filter(function(b){ return b.status==='completed'; })
     .sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; })
-    .slice(0,3).forEach(function(b){
-      fileRows.push({ name:(b.patientName||'Patient'), desc:b.serviceName||'Besök', time:b.date||'', type:'journal', id:b.patientId });
+    .slice(0,4).forEach(function(b){
+      rows.push({ name:b.patientName||'Patient', msg:b.serviceName||'Besök', time:b.date||'', id:b.patientId, type:'journal' });
     });
-  pats.slice().sort(function(a,b){ return (b.createdAt||'')>(a.createdAt||'')?1:-1; }).slice(0,3).forEach(function(p){
-    if (!fileRows.find(function(r){ return r.id===p.id; }))
-      fileRows.push({ name:p.name, desc:'Patient', time:p.createdAt||'', type:'patient', id:p.id });
+  pats.slice().sort(function(a,b){ return (b.createdAt||'')>(a.createdAt||'')?1:-1; }).slice(0,4).forEach(function(p){
+    if (!rows.find(function(r){ return r.id===p.id; }))
+      rows.push({ name:p.name, msg:'Patient', time:p.createdAt||'', id:p.id, type:'patient' });
   });
-  fileRows.sort(function(a,b){ return (b.time||'')>(a.time||'')?1:-1; }).splice(8);
+  rows.sort(function(a,b){ return (b.time||'')>(a.time||'')?1:-1; }).splice(8);
 
-  // Last activity
+  // Last commit
   var lastBk = bks.slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; })[0];
-  var lastMsg = lastBk ? (lastBk.patientName||'')+' — '+(lastBk.serviceName||'Bokning') : 'Inga bokningar ännu';
-  var lastTime = lastBk ? _wsTimeAgo(new Date((lastBk.date||'')+'T12:00')) : '';
-  var commitHash = bks.length ? String(bks.length)+'bkn' : '0bkn';
+  var commitMsg  = lastBk ? (lastBk.patientName||'')+(lastBk.serviceName?' — '+lastBk.serviceName:'') : 'Inga aktiviteter ännu';
+  var commitTime = lastBk ? _wsTimeAgo(new Date((lastBk.date||new Date().toISOString().slice(0,10))+'T12:00')) : '';
+  var commitHash = String(bks.length).toString(16).padStart(7,'0').slice(-7);
 
-  // Service breakdown
-  var svcMap={}, totalSvcBks=0;
-  bks.forEach(function(b){ if(b.serviceName){svcMap[b.serviceName]=(svcMap[b.serviceName]||0)+1; totalSvcBks++;} });
-  var svcArr=Object.keys(svcMap).map(function(k){return{name:k,n:svcMap[k],pct:Math.round(svcMap[k]/totalSvcBks*100)};}).sort(function(a,b){return b.n-a.n;}).slice(0,5);
-  var svcColors=['#58a6ff','#3fb950','#d29922','#a371f7','#f85149'];
+  // Language bar
+  var svcMap={}, svcTotal=0;
+  bks.forEach(function(b){ if(b.serviceName){svcMap[b.serviceName]=(svcMap[b.serviceName]||0)+1; svcTotal++;} });
+  var svcArr=Object.keys(svcMap).map(function(k){return{name:k,n:svcMap[k],pct:Math.round(svcMap[k]/svcTotal*100)};}).sort(function(a,b){return b.n-a.n;}).slice(0,5);
+  var svcColors=['#f0883e','#58a6ff','#3fb950','#d29922','#a371f7'];
 
-  // Therapists
   var therapists = getTherapists ? getTherapists() : [];
-  if (!therapists.length && cfg.signature) therapists=[{id:'t1',name:cfg.signature,role:cfg.title||'Behandlare'}];
+  if (!therapists.length && cfg.signature) therapists=[{name:cfg.signature,role:cfg.title||'Behandlare'}];
 
-  var bookingUrl = window.location.origin+window.location.pathname+'#boka';
-  var wsDoc = cfg.wsDoc||null;
-  var wsName = cfg.name||'Min arbetsyta';
+  var savedAv=null; try{savedAv=localStorage.getItem('vela:profile-avatar');}catch(e){}
+  var ownerInit=(cfg.signature||'CA').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  var wsName=cfg.name||'Min arbetsyta';
+  var ownerSlug=(cfg.signature||'behandlare').toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  var bookingUrl=window.location.origin+window.location.pathname+'#boka';
+  var wsDoc=cfg.wsDoc||null;
 
-  var h = '<div class="repo-wrap">';
+  var h='<div class="gh3-page">';
 
-  // ══════════════════════════════════════════════════════════════════════
-  //  HEADER — exactly GitHub's repo header
-  // ══════════════════════════════════════════════════════════════════════
-  h += '<div class="repo-header">';
-  h += '<div class="repo-header-left">';
-  // Workspace icon
-  h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
-  h += '<span class="repo-name">'+e(wsName)+'</span>';
-  // Public/Privat toggle — like GitHub's "Public" badge
-  h += '<button class="repo-vis-badge '+(isPublic?'public':'private')+'" onclick="_wsTogglePublic()" title="'+(isPublic?'Klicka för att göra privat':'Klicka för att göra offentlig')+'">';
-  h += isPublic ? 'Offentlig' : 'Privat';
-  h += '</button>';
-  h += '</div>';
-  // Right actions — Pin Watch Fork Star
-  h += '<div class="repo-header-right">';
-  h += '<button class="repo-action-btn" onclick="navigator.clipboard?.writeText(\''+bookingUrl+'\').then(function(){showAutoSaveToast(\'Bokningslänk kopierad ✓\')})">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>';
-  h += 'Bokningslänk &nbsp;<span class="repo-action-count">'+e(wsName)+'</span></button>';
-  h += '<button class="repo-action-btn" onclick="go(\'list\')">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
-  h += 'Patienter &nbsp;<span class="repo-action-count">'+pats.length+'</span></button>';
-  h += '<button class="repo-action-btn repo-action-primary" onclick="openBookingDialog()">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
-  h += ' Ny bokning</button>';
-  h += '</div></div>'; // repo-header
+  // ══════════════════════════════════════════════
+  // ROW 1: name + visibility + actions
+  // ══════════════════════════════════════════════
+  h+='<div class="gh3-namerow">';
+  h+='<div class="gh3-namerow-left">';
+  // Repo icon
+  h+='<svg class="gh3-repo-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 0 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 0 1 1-1h8ZM5 12.25v3.25a.25.25 0 0 0 .4.2l1.45-1.087a.25.25 0 0 1 .3 0L8.6 15.7a.25.25 0 0 0 .4-.2v-3.25a.25.25 0 0 0-.25-.25h-3.5a.25.25 0 0 0-.25.25Z"/></svg>';
+  h+='<a class="gh3-owner" onclick="go(\'profile\')">'+e(ownerSlug)+'</a>';
+  h+='<span class="gh3-slash">/</span>';
+  h+='<a class="gh3-reponame">'+e(wsName)+'</a>';
+  h+='<button class="gh3-visbadge '+(isPublic?'pub':'prv')+'" onclick="_wsTogglePublic()">'+(isPublic?'Offentlig':'Privat')+'</button>';
+  h+='</div>';
+  h+='<div class="gh3-namerow-right">';
+  h+='<div class="gh3-action-group"><button class="gh3-action-btn"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M1.679 7.932c.412-.621 1.242-1.75 2.366-2.717C5.175 4.242 6.527 3.5 8 3.5c1.473 0 2.824.742 3.955 1.715 1.124.967 1.954 2.096 2.366 2.717a.119.119 0 0 1 0 .136c-.412.621-1.242 1.75-2.366 2.717C10.825 11.758 9.473 12.5 8 12.5c-1.473 0-2.824-.742-3.955-1.715C2.92 9.818 2.09 8.69 1.679 8.068a.119.119 0 0 1 0-.136ZM8 2c-1.981 0-3.67.992-4.933 2.078C1.797 5.169.88 6.423.43 7.1a1.619 1.619 0 0 0 0 1.798c.45.678 1.367 1.932 2.637 3.024C4.33 13.008 6.019 14 8 14c1.981 0 3.67-.992 4.933-2.078 1.27-1.092 2.187-2.346 2.637-3.023a1.619 1.619 0 0 0 0-1.798c-.45-.678-1.367-1.932-2.637-3.023C11.67 2.992 9.981 2 8 2Zm0 8a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"/></svg> Bevaka <span class="gh3-action-count">0</span></button><button class="gh3-action-split"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button></div>';
+  h+='<div class="gh3-action-group"><button class="gh3-action-btn"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5.001A.75.75 0 0 0 5 3.25Zm6.75.75a.75.75 0 1 0 .001-1.5.75.75 0 0 0-.001 1.5Zm-3 8.75a.75.75 0 1 0-1.5.001.75.75 0 0 0 1.5-.001Z"/></svg> Dela <span class="gh3-action-count">0</span></button><button class="gh3-action-split"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button></div>';
+  h+='<div class="gh3-action-group"><button class="gh3-action-btn gh3-star"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg> Spara <span class="gh3-action-count">0</span></button><button class="gh3-action-split"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button></div>';
+  h+='</div></div>'; // namerow
 
-  // ══════════════════════════════════════════════════════════════════════
-  //  SUB-NAV TABS — Code / Issues / Actions / Settings
-  // ══════════════════════════════════════════════════════════════════════
-  h += '<div class="repo-tabs">';
-  var rTabs = [
-    { id:'code',       label:'Klinik',        icon:'<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',          active:true },
-    { id:'patients',   label:'Patienter',      icon:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>',         badge:pats.length||null },
-    { id:'hael',       label:'Hael',           icon:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',                      badge:activePlans||null },
-    { id:'activity',   label:'Aktivitet',      icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',                            badge:null },
-    { id:'settings',   label:'Inställningar',  icon:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',     badge:null },
+  // ══════════════════════════════════════════════
+  // ROW 2: tab nav (Code | Issues | ...)
+  // ══════════════════════════════════════════════
+  h+='<nav class="gh3-tabs">';
+  var TABS=[
+    {id:'code',     txt:'Kod',           svg:'<path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.457 1.457 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Z"/>',    active:true,  dest:'rWorkspace()',           badge:null },
+    {id:'patients', txt:'Patienter',     svg:'<path d="M2 5.5a3.5 3.5 0 1 1 5.898 2.549 5.508 5.508 0 0 1 3.034 4.084.75.75 0 1 1-1.482.235 4 4 0 0 0-7.9 0 .75.75 0 0 1-1.482-.236A5.507 5.507 0 0 1 3.102 8.05 3.493 3.493 0 0 1 2 5.5ZM11 4a3.001 3.001 0 0 1 2.22 5.018 5.01 5.01 0 0 1 2.56 3.012.749.749 0 0 1-.885.954.752.752 0 0 1-.549-.514 3.507 3.507 0 0 0-2.522-2.372.75.75 0 0 1-.574-.73v-.352a.75.75 0 0 1 .416-.672A1.5 1.5 0 0 0 11 5.5.75.75 0 0 1 11 4Zm-5.5-.5a2 2 0 1 0-.001 3.999A2 2 0 0 0 5.5 3.5Z"/>',  active:false, dest:"go('list')",              badge:pats.length||null },
+    {id:'hael',     txt:'Hael',          svg:'<path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/>',     active:false, dest:"go('hael')",             badge:activePlans||null },
+    {id:'activity', txt:'Aktivitet',     svg:'<path d="M1 2.5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1-5 0Zm-1 0a3.5 3.5 0 0 0 6 2.449 3.5 3.5 0 0 0 3 1.551h3.5v1h-3.5A3.5 3.5 0 0 1 6 5.95v6.6A1.5 1.5 0 1 1 4.5 11V8.95a3.5 3.5 0 0 1-3-1.551A3.5 3.5 0 0 0 0 2.5Z"/>',     active:false, dest:"go('activity')",          badge:null },
+    {id:'insights', txt:'Insikter',      svg:'<path d="M1.5 1.75V13.5h13.75a.75.75 0 0 1 0 1.5H.75a.75.75 0 0 1-.75-.75V1.75a.75.75 0 0 1 1.5 0Zm14.28 2.53-5.25 5.25a.75.75 0 0 1-1.06 0L7 7.06 4.28 9.78a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042l3.25-3.25a.75.75 0 0 1 1.06 0L9 7.94l4.72-4.72a.751.751 0 0 1 1.042.018.751.751 0 0 1 .018 1.042Z"/>',     active:false, dest:"go('intelligence')",      badge:null },
+    {id:'settings', txt:'Inställningar', svg:'<path d="M8 0a8.2 8.2 0 0 1 .701.031C9.444.095 9.99.645 10.16 1.29l.288 1.107c.018.066.079.158.212.224.231.114.454.243.668.386.123.082.233.09.299.071l1.103-.303c.644-.176 1.392.021 1.82.63.27.385.506.792.704 1.218.315.675.111 1.422-.364 1.891l-.814.806c-.049.048-.098.147-.088.294.016.257.016.515 0 .772-.01.147.038.246.088.294l.814.806c.475.469.679 1.216.364 1.891a7.977 7.977 0 0 1-.704 1.217c-.428.61-1.176.807-1.82.63l-1.103-.303c-.066-.019-.176-.011-.299.071a5.909 5.909 0 0 1-.668.386c-.133.066-.194.158-.212.224l-.288 1.107c-.17.645-.715 1.195-1.458 1.26a8.006 8.006 0 0 1-1.402 0c-.743-.065-1.289-.615-1.458-1.26l-.288-1.107c-.018-.066-.079-.158-.212-.224a5.738 5.738 0 0 1-.668-.386c-.123-.082-.233-.09-.299-.071l-1.103.303c-.644.176-1.392-.021-1.82-.63a8.12 8.12 0 0 1-.704-1.218c-.315-.675-.111-1.422.363-1.891l.815-.806c.05-.048.098-.147.088-.294a6.214 6.214 0 0 1 0-.772c.01-.147-.038-.246-.088-.294l-.815-.806C.635 6.045.431 5.298.746 4.623a7.92 7.92 0 0 1 .704-1.217c.428-.61 1.176-.807 1.82-.63l1.102.302c.067.019.177.011.3-.071.214-.143.437-.272.668-.386.133-.066.194-.158.212-.224l.288-1.107C5.37.645 5.916.095 6.699.03 7.1.01 7.35 0 8 0Zm-.571 1.525c-.036.006-.108.036-.137.146l-.289 1.105c-.147.561-.549.967-.998 1.189-.173.086-.34.183-.5.29-.417.278-.97.277-1.398.006l-.606-.595c-.01-.01-.072-.03-.112-.003a7.011 7.011 0 0 0-.618 1.072.115.115 0 0 0 .049.148l.815.806c.014.014.066.078.066.172v.572c0 .094-.052.158-.066.172l-.815.806a.115.115 0 0 0-.049.148 7.01 7.01 0 0 0 .618 1.072c.04.027.102.007.112-.003l.606-.595c.428-.271.981-.272 1.398.006.16.107.327.204.501.29.447.222.85.629.997 1.189l.289 1.105c.029.11.101.14.137.146a6.6 6.6 0 0 0 1.142 0c.036-.006.108-.036.137-.146l.289-1.105c.147-.560.549-.967.998-1.189.173-.086.34-.183.5-.29.417-.278.97-.277 1.397-.006l.607.595c.01.01.072.03.112.003a7.011 7.011 0 0 0 .618-1.072.115.115 0 0 0-.049-.148l-.815-.806c-.014-.014-.066-.078-.066-.172v-.572c0-.094.052-.158.066-.172l.815-.806a.115.115 0 0 0 .049-.148 7.01 7.01 0 0 0-.618-1.072c-.04-.027-.102-.007-.112.003l-.607.595c-.427.271-.98.272-1.397-.006a5.261 5.261 0 0 0-.501-.29c-.447-.222-.85-.629-.997-1.189l-.289-1.105c-.029-.11-.101-.14-.137-.146a6.6 6.6 0 0 0-1.142 0ZM8 6a2 2 0 1 1-.001 4.001A2 2 0 0 1 8 6Z"/>',     active:false, dest:"go('settings')",          badge:null },
   ];
-  rTabs.forEach(function(tab){
-    h += '<button class="repo-tab'+(tab.active?' active':'')+'" onclick="'+(tab.id==='code'?'rWorkspace()':tab.id==='settings'?"go('settings')":tab.id==='activity'?"go('activity')":"go('"+tab.id+"')")+'">';
-    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">'+tab.icon+'</svg>';
-    h += ' '+tab.label;
-    if (tab.badge) h += ' <span class="repo-tab-badge">'+tab.badge+'</span>';
-    h += '</button>';
+  TABS.forEach(function(tab){
+    h+='<button class="gh3-tab'+(tab.active?' gh3-tab-active':'')+'" onclick="'+tab.dest+'">';
+    h+='<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">'+tab.svg+'</svg>';
+    h+=' '+tab.txt;
+    if(tab.badge) h+=' <span class="gh3-tab-badge">'+tab.badge+'</span>';
+    h+='</button>';
   });
-  h += '</div>';
+  h+='</nav>';
 
-  // ══════════════════════════════════════════════════════════════════════
-  //  BODY
-  // ══════════════════════════════════════════════════════════════════════
-  h += '<div class="repo-body">';
+  // ══════════════════════════════════════════════
+  // BODY
+  // ══════════════════════════════════════════════
+  h+='<div class="gh3-body">';
 
-  // ── MAIN COLUMN ──────────────────────────────────────────────────────
-  h += '<div class="repo-main">';
+  // ── MAIN ─────────────────────────────────────
+  h+='<div class="gh3-main">';
 
-  // Branch bar (main ▾ | 1 Branch | 0 Tags | [search] | Add file | Code▾)
-  h += '<div class="repo-branch-bar">';
-  h += '<div class="repo-branch-bar-left">';
-  h += '<button class="repo-branch-btn">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 01-9 9"/></svg>';
-  h += e(cfg.signature||'Behandlare')+' <span style="opacity:.7">▾</span></button>';
-  h += '<a class="repo-meta-link" onclick="go(\'settings\');window._settingsActiveTab=\'services\'">';
-  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>';
-  h += ' <b>'+svcs.length+'</b> tjänster</a>';
-  h += '<a class="repo-meta-link" onclick="go(\'list\')">';
-  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>';
-  h += ' <b>'+pats.length+'</b> patienter</a>';
-  h += '</div>';
-  h += '<div class="repo-branch-bar-right">';
-  h += '<div class="repo-go-file" onclick="openCommandPalette()">';
-  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-  h += ' Sök patient... <kbd>⌘K</kbd></div>';
-  h += '<button class="repo-add-file-btn" onclick="go(\'list\')">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
-  h += ' Patienter <span style="opacity:.6">▾</span></button>';
-  h += '<button class="repo-code-btn" onclick="openBookingDialog()">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
-  h += ' Ny bokning <span style="opacity:.7">▾</span></button>';
-  h += '</div></div>'; // branch-bar
+  // Branch bar
+  h+='<div class="gh3-branchbar">';
+  h+='<div class="gh3-bb-left">';
+  h+='<div class="gh3-bb-group">';
+  h+='<button class="gh3-branch-btn"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.492 2.492 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-2.25 0a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm4.75.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm-9 8.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg> '+e(cfg.signature||'Behandlare')+' <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button>';
+  h+='</div>';
+  h+='<a class="gh3-meta-lnk" onclick="go(\'settings\');window._settingsActiveTab=\'services\'"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.492 2.492 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-2.25 0a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm4.75.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm-9 8.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg> <b>'+svcs.length+'</b> tjänster</a>';
+  h+='<a class="gh3-meta-lnk" onclick="go(\'list\')"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M0 1.75C0 .784.784 0 1.75 0h7.586a.25.25 0 0 1 .177.073l2.914 2.914a.25.25 0 0 1 .073.177v7.586A1.75 1.75 0 0 1 10.75 12H1.75A1.75 1.75 0 0 1 0 10.25Zm1.75-.25a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h9a.25.25 0 0 0 .25-.25V3.5H8.25a.75.75 0 0 1-.75-.75ZM9 1.99l2.001 2H9Z"/></svg> <b>'+pats.length+'</b> patienter</a>';
+  h+='</div>';
+  h+='<div class="gh3-bb-right">';
+  h+='<div class="gh3-gofile" onclick="openCommandPalette()"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg> Sök patient... <kbd>t</kbd></div>';
+  h+='<div class="gh3-bb-btngroup">';
+  h+='<button class="gh3-addfile-btn" onclick="go(\'list\')">Lägg till patient <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button>';
+  h+='</div>';
+  h+='<div class="gh3-bb-btngroup">';
+  h+='<button class="gh3-codebtn" onclick="openBookingDialog()"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"/></svg> Ny bokning <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button>';
+  h+='</div>';
+  h+='</div></div>'; // branchbar
 
-  // Commit row (latest activity)
-  h += '<div class="repo-commit-row">';
-  var savedAv = null; try{ savedAv=localStorage.getItem('vela:profile-avatar'); }catch(e){}
-  if (savedAv) h += '<img src="'+savedAv+'" class="repo-commit-av-img" alt="avatar">';
-  else {
-    var ini = (cfg.signature||'CA').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-    h += '<div class="repo-commit-av-init">'+ini+'</div>';
-  }
-  h += '<span class="repo-commit-author">'+e(cfg.signature||'Behandlare')+'</span>';
-  h += '<span class="repo-commit-msg">'+e(lastMsg)+'</span>';
-  h += '<div style="flex:1"></div>';
-  h += '<span class="repo-commit-hash">'+commitHash+'</span>';
-  if (lastTime) h += '<span class="repo-commit-time">'+lastTime+'</span>';
-  h += '<a class="repo-commits-link" onclick="go(\'calendar\')">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/></svg>';
-  h += ' <b>'+completedBks+'</b> besök</a>';
-  h += '</div>'; // commit-row
+  // Commit row
+  h+='<div class="gh3-commitrow">';
+  if(savedAv) h+='<img src="'+savedAv+'" class="gh3-commit-av" alt="">';
+  else h+='<div class="gh3-commit-av gh3-commit-av-init">'+ownerInit+'</div>';
+  h+='<a class="gh3-commit-author">'+e(cfg.signature||'Behandlare')+'</a>';
+  h+='<span class="gh3-commit-msg">'+e(commitMsg)+'</span>';
+  h+='<div style="flex:1"></div>';
+  h+='<code class="gh3-commit-sha">'+commitHash+'</code>';
+  h+='<span class="gh3-commit-sep">·</span>';
+  h+='<span class="gh3-commit-time">'+commitTime+'</span>';
+  h+='<a class="gh3-commits-link" onclick="go(\'calendar\')">';
+  h+='<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M11.93 8.5a4.002 4.002 0 0 1-7.86 0H.75a.75.75 0 0 1 0-1.5h3.32a4.002 4.002 0 0 1 7.86 0h3.32a.75.75 0 0 1 0 1.5Z"/></svg>';
+  h+=' <b>'+doneBks+'</b> besök</a>';
+  h+='</div>';
 
-  // File list
-  h += '<div class="repo-files">';
-  var TYPE_ICONS = {
-    patient: '<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>',
-    journal: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
-    hael:    '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
-  };
-  var TYPE_COLORS = { patient:'#58a6ff', journal:'var(--teal)', hael:'#a371f7' };
-  if (!fileRows.length) {
-    h += '<div class="repo-files-empty">Lägg till patienter och bokningar för att se aktivitet här.</div>';
+  // File table
+  h+='<div class="gh3-files">';
+  if(!rows.length){
+    h+='<div class="gh3-files-empty">Lägg till patienter och bokningar för att se aktivitet här.</div>';
   } else {
-    fileRows.forEach(function(row){
-      var ic = TYPE_ICONS[row.type]||TYPE_ICONS.journal;
-      var col = TYPE_COLORS[row.type]||'var(--text2)';
-      h += '<div class="repo-file-row" onclick="_wsOpen(\''+row.type+'\',\''+e(row.id||'')+'\')">'; 
-      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+col+'" stroke-width="1.6" stroke-linecap="round" class="repo-file-icon">'+ic+'</svg>';
-      h += '<span class="repo-file-name">'+e(row.name)+'</span>';
-      h += '<span class="repo-file-desc">'+e(row.desc)+'</span>';
-      h += '<span class="repo-file-time">'+(row.time?_wsTimeAgo(new Date(row.time+'T12:00')):'')+'</span>';
-      h += '</div>';
+    rows.forEach(function(row){
+      var fileIcon='<path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688Z"/>';
+      var col = row.type==='patient'?'#58a6ff':row.type==='hael'?'#a371f7':'var(--teal)';
+      h+='<div class="gh3-file-row" onclick="_wsOpen(\''+row.type+'\',\''+e(row.id||'')+'\')">'; 
+      h+='<svg class="gh3-file-icon" style="color:'+col+'" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">'+fileIcon+'</svg>';
+      h+='<a class="gh3-file-name">'+e(row.name)+'</a>';
+      h+='<span class="gh3-file-msg">'+e(row.msg)+'</span>';
+      h+='<span class="gh3-file-time">'+_wsTimeAgo(new Date((row.time||new Date().toISOString().slice(0,10))+'T12:00'))+'</span>';
+      h+='</div>';
     });
   }
-  h += '</div>'; // repo-files
+  h+='</div>'; // files
 
-  // README / Document section
-  h += '<div class="repo-readme">';
-  h += '<div class="repo-readme-header">';
-  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>';
-  h += '<span>Dokument</span>';
-  h += '<label class="repo-readme-upload" title="Ladda upp">';
-  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>';
-  h += '<input type="file" accept=".pdf,.doc,.docx,.txt,.md" onchange="_wsUploadDoc(this)" style="display:none"></label>';
-  h += '</div>';
-  if (wsDoc) {
-    var ext2 = wsDoc.name.split('.').pop().toLowerCase();
-    var extC = {pdf:'#f85149',doc:'#58a6ff',docx:'#58a6ff',txt:'var(--text2)',md:'#3fb950'}[ext2]||'var(--text2)';
-    var kb = wsDoc.size?Math.round(wsDoc.size/1024)+' KB':'';
-    var ud = wsDoc.uploadedAt?new Date(wsDoc.uploadedAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric'}):'';
-    h += '<div class="repo-readme-doc">';
-    h += '<svg width="32" height="40" viewBox="0 0 32 40"><rect x="0" y="0" width="32" height="40" rx="3" fill="var(--surface2)" stroke="var(--border)" stroke-width="1"/><path d="M20 0v10h10" fill="none" stroke="var(--border)" stroke-width="1"/><text x="16" y="30" font-size="8" font-weight="800" fill="'+extC+'" text-anchor="middle" font-family="monospace">'+ext2.toUpperCase()+'</text></svg>';
-    h += '<div class="repo-readme-doc-info">';
-    h += '<span class="repo-readme-doc-name">'+e(wsDoc.name)+'</span>';
-    h += '<span class="repo-readme-doc-meta">'+[kb,ud?'Uppladdad '+ud:''].filter(Boolean).join(' · ')+'</span>';
-    h += '</div>';
-    h += '<div class="repo-readme-doc-actions">';
-    if (wsDoc.data) h += '<a href="'+wsDoc.data+'" download="'+e(wsDoc.name)+'" class="repo-doc-btn">Ladda ner</a>';
-    h += '<button onclick="_wsRemoveDoc()" class="repo-doc-btn repo-doc-btn-red">Ta bort</button>';
-    h += '</div></div>';
+  // README / Document section — exact GitHub style
+  h+='<div class="gh3-readme">';
+  h+='<div class="gh3-readme-hdr">';
+  h+='<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.457 1.457 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Z"/></svg>';
+  h+='<span>Dokument</span>';
+  h+='<label class="gh3-readme-uploadbtn" title="Ladda upp dokument">';
+  h+='<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M7.47 1.97a.75.75 0 0 1 1.06 0l3.75 3.75a.75.75 0 0 1-1.06 1.06L8.75 4.31v7.44a.75.75 0 0 1-1.5 0V4.31L4.78 6.78a.75.75 0 0 1-1.06-1.06ZM3.75 13a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5Z"/></svg>';
+  h+='<input type="file" accept=".pdf,.doc,.docx,.txt,.md" onchange="_wsUploadDoc(this)" style="display:none"></label>';
+  h+='</div>';
+
+  if(wsDoc){
+    var ext2=wsDoc.name.split('.').pop().toLowerCase();
+    var extC={pdf:'#f85149',doc:'#58a6ff',docx:'#58a6ff',txt:'var(--text2)',md:'#3fb950'}[ext2]||'var(--text2)';
+    var kb=wsDoc.size?Math.round(wsDoc.size/1024)+' KB':'';
+    var ud=wsDoc.uploadedAt?new Date(wsDoc.uploadedAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric'}):'';
+    h+='<div class="gh3-doc">';
+    h+='<svg width="36" height="44" viewBox="0 0 36 44"><rect x=".5" y=".5" width="35" height="43" rx="3" fill="var(--surface2)" stroke="var(--border)"/><path d="M22 .5V12h12" fill="none" stroke="var(--border)"/><text x="18" y="32" font-size="9" font-weight="800" fill="'+extC+'" text-anchor="middle" font-family="monospace">'+ext2.toUpperCase()+'</text></svg>';
+    h+='<div class="gh3-doc-info"><b>'+e(wsDoc.name)+'</b><span>'+[kb,ud?'Upp. '+ud:''].filter(Boolean).join(' · ')+'</span></div>';
+    h+='<div class="gh3-doc-btns">';
+    if(wsDoc.data) h+='<a href="'+wsDoc.data+'" download="'+e(wsDoc.name)+'" class="gh3-outline-btn">Ladda ner</a>';
+    h+='<button onclick="_wsRemoveDoc()" class="gh3-outline-btn gh3-outline-btn-red">Ta bort</button>';
+    h+='</div></div>';
   } else {
-    h += '<div class="repo-readme-empty">';
-    h += '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.2" stroke-linecap="round" style="margin:0 auto 12px;display:block"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>';
-    h += '<div style="font-size:16px;font-weight:600;color:var(--ink);margin-bottom:6px">Lägg till ett dokument</div>';
-    h += '<div style="font-size:13px;color:var(--text2);margin-bottom:16px">Hjälp andra förstå ditt arbetsområde</div>';
-    h += '<label class="repo-readme-add-btn">Lägg till dokument<input type="file" accept=".pdf,.doc,.docx,.txt,.md" onchange="_wsUploadDoc(this)" style="display:none"></label>';
-    h += '</div>';
+    h+='<div class="gh3-readme-empty">';
+    h+='<svg viewBox="0 0 16 16" width="48" height="48" fill="var(--text2)" style="display:block;margin:0 auto 12px"><path d="M0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v9.5A1.75 1.75 0 0 1 14.25 13H8.06l-2.573 2.573A1.457 1.457 0 0 1 3 14.543V13H1.75A1.75 1.75 0 0 1 0 11.25Zm1.75-.25a.25.25 0 0 0-.25.25v9.5c0 .138.112.25.25.25h2a.75.75 0 0 1 .75.75v2.19l2.72-2.72a.749.749 0 0 1 .53-.22h6.5a.25.25 0 0 0 .25-.25v-9.5a.25.25 0 0 0-.25-.25Z"/></svg>';
+    h+='<strong>Lägg till ett dokument</strong>';
+    h+='<p>Hjälp andra förstå ditt arbetsområde</p>';
+    h+='<label class="gh3-green-btn">Lägg till dokument<input type="file" accept=".pdf,.doc,.docx,.txt,.md" onchange="_wsUploadDoc(this)" style="display:none"></label>';
+    h+='</div>';
   }
-  h += '</div>'; // repo-readme
+  h+='</div>'; // readme
 
-  h += '</div>'; // repo-main
+  h+='</div>'; // gh3-main
 
-  // ── SIDEBAR ───────────────────────────────────────────────────────────
-  h += '<div class="repo-aside">';
+  // ── SIDEBAR — no boxes, just sections with border-bottom ──────────
+  h+='<div class="gh3-aside">';
 
   // About
-  h += '<div class="repo-aside-section">';
-  h += '<div class="repo-aside-heading">';
-  h += 'Om';
-  h += '<button onclick="go(\'settings\');window._settingsActiveTab=\'general\'" class="repo-aside-edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>';
-  h += '</div>';
-  if (cfg.bio) h += '<p class="repo-about-desc">'+e(cfg.bio)+'</p>';
-  else h += '<p class="repo-about-desc repo-about-empty">Ingen beskrivning, webbplats eller ämnen.</p>';
-  if (cfg.website) {
-    h += '<div class="repo-about-link">';
-    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>';
-    h += '<a href="'+e(cfg.website)+'" target="_blank">'+e(cfg.website.replace(/^https?:\/\//,''))+'</a>';
-    h += '</div>';
-  }
-  // Stats like Activity / Stars / Watching / Forks
-  h += '<div class="repo-aside-stats">';
-  h += '<div class="repo-aside-stat" onclick="go(\'activity\')">';
-  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Aktivitet</div>';
-  h += '<div class="repo-aside-stat" onclick="go(\'list\')">';
-  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
-  h += ' <b>'+pats.length+'</b> patienter</div>';
-  h += '<div class="repo-aside-stat" onclick="go(\'calendar\')">';
-  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
-  h += ' <b>'+completedBks+'</b> besök genomförda</div>';
-  h += '<div class="repo-aside-stat" onclick="go(\'hael\')">';
-  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
-  h += ' <b>'+activePlans+'</b> aktiva planer</div>';
-  h += '</div></div>'; // aside-section
+  h+='<div class="gh3-aside-sec">';
+  h+='<div class="gh3-aside-heading">Om <button class="gh3-aside-gear" onclick="go(\'settings\');window._settingsActiveTab=\'general\'"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 0a8.2 8.2 0 0 1 .701.031C9.444.095 9.99.645 10.16 1.29l.288 1.107c.018.066.079.158.212.224.231.114.454.243.668.386.123.082.233.09.299.071l1.103-.303c.644-.176 1.392.021 1.82.63.27.385.506.792.704 1.218.315.675.111 1.422-.364 1.891l-.814.806c-.049.048-.098.147-.088.294.016.257.016.515 0 .772-.01.147.038.246.088.294l.814.806c.475.469.679 1.216.364 1.891a7.977 7.977 0 0 1-.704 1.217c-.428.61-1.176.807-1.82.63l-1.103-.303c-.066-.019-.176-.011-.299.071a5.909 5.909 0 0 1-.668.386c-.133.066-.194.158-.212.224l-.288 1.107c-.17.645-.715 1.195-1.458 1.26a8.006 8.006 0 0 1-1.402 0c-.743-.065-1.289-.615-1.458-1.26l-.288-1.107c-.018-.066-.079-.158-.212-.224a5.738 5.738 0 0 1-.668-.386c-.123-.082-.233-.09-.299-.071l-1.103.303c-.644.176-1.392-.021-1.82-.63a8.12 8.12 0 0 1-.704-1.218c-.315-.675-.111-1.422.363-1.891l.815-.806c.05-.048.098-.147.088-.294a6.214 6.214 0 0 1 0-.772c.01-.147-.038-.246-.088-.294l-.815-.806C.635 6.045.431 5.298.746 4.623a7.92 7.92 0 0 1 .704-1.217c.428-.61 1.176-.807 1.82-.63l1.102.302c.067.019.177.011.3-.071.214-.143.437-.272.668-.386.133-.066.194-.158.212-.224l.288-1.107C5.37.645 5.916.095 6.699.03 7.1.01 7.35 0 8 0Zm-.571 1.525c-.036.006-.108.036-.137.146l-.289 1.105c-.147.561-.549.967-.998 1.189-.173.086-.34.183-.5.29-.417.278-.97.277-1.398.006l-.606-.595c-.01-.01-.072-.03-.112-.003a7.011 7.011 0 0 0-.618 1.072.115.115 0 0 0 .049.148l.815.806c.014.014.066.078.066.172v.572c0 .094-.052.158-.066.172l-.815.806a.115.115 0 0 0-.049.148 7.01 7.01 0 0 0 .618 1.072c.04.027.102.007.112-.003l.606-.595c.428-.271.981-.272 1.398.006.16.107.327.204.501.29.447.222.85.629.997 1.189l.289 1.105c.029.11.101.14.137.146a6.6 6.6 0 0 0 1.142 0c.036-.006.108-.036.137-.146l.289-1.105c.147-.560.549-.967.998-1.189.173-.086.34-.183.5-.29.417-.278.97-.277 1.397-.006l.607.595c.01.01.072.03.112.003a7.011 7.011 0 0 0 .618-1.072.115.115 0 0 0-.049-.148l-.815-.806c-.014-.014-.066-.078-.066-.172v-.572c0-.094.052-.158.066-.172l.815-.806a.115.115 0 0 0 .049-.148 7.01 7.01 0 0 0-.618-1.072c-.04-.027-.102-.007-.112.003l-.607.595c-.427.271-.98.272-1.397-.006a5.261 5.261 0 0 0-.501-.29c-.447-.222-.85-.629-.997-1.189l-.289-1.105c-.029-.11-.101-.14-.137-.146a6.6 6.6 0 0 0-1.142 0ZM8 6a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z"/></svg></button></div>';
+  if(cfg.bio) h+='<p class="gh3-about-desc">'+e(cfg.bio)+'</p>';
+  else h+='<p class="gh3-about-nodesc">Ingen beskrivning, webbplats eller ämnen.</p>';
+  if(cfg.website) h+='<div class="gh3-about-link"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25Zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0Z"/></svg><a href="'+e(cfg.website)+'" target="_blank">'+e(cfg.website.replace(/^https?:\/\//,''))+'</a></div>';
+  h+='<div class="gh3-about-stats">';
+  function astat(svg,txt,dest){ return '<div class="gh3-astat" onclick="'+dest+'"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">'+svg+'</svg> '+txt+'</div>'; }
+  h+=astat('<path d="M1 2.5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1-5 0Zm-1 0a3.5 3.5 0 0 0 6 2.449 3.5 3.5 0 0 0 3 1.551h3.5v1h-3.5A3.5 3.5 0 0 1 6 5.95v6.6A1.5 1.5 0 1 1 4.5 11V8.95a3.5 3.5 0 0 1-3-1.551A3.5 3.5 0 0 0 0 2.5Z"/>','Aktivitet',"go('activity')");
+  h+=astat('<path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/>',pats.length+' patienter',"go('list')");
+  h+=astat('<path d="M8 2c1.981 0 3.671.992 4.933 2.078 1.27 1.091 2.187 2.345 2.637 3.023a1.62 1.62 0 0 1 0 1.798c-.45.678-1.367 1.932-2.637 3.023C11.67 13.008 9.981 14 8 14c-1.981 0-3.671-.992-4.933-2.078C1.797 10.83.88 9.576.43 8.898a1.62 1.62 0 0 1 0-1.798c.45-.677 1.366-1.931 2.637-3.022C4.33 2.992 6.019 2 8 2Zm0 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13Zm0 2a2 2 0 1 1-.001 4.001A2 2 0 0 1 8 5.5Z"/>',doneBks+' besök',"go('calendar')");
+  h+=astat('<path d="M5 3.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm0 2.122a2.25 2.25 0 1 0-1.5 0v.878A2.25 2.25 0 0 0 5.75 8.5h4.5A2.25 2.25 0 0 0 12.5 6.25v-.878a2.25 2.25 0 1 0-1.5 0v.878a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75Zm3.75 7.378a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm3-8.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"/>',activePlans+' aktiva planer',"go('hael')");
+  h+='</div></div>';
 
-  // Deployments = Bokningssida (like GitHub's Deployments)
-  h += '<div class="repo-aside-section">';
-  h += '<div class="repo-aside-heading">Bokningssida <span class="repo-aside-badge">Live</span></div>';
-  h += '<div class="repo-deploy-row">';
-  h += '<svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#3fb950"/></svg>';
-  h += '<a href="'+bookingUrl+'" target="_blank" class="repo-deploy-link">github-pages <span style="color:var(--text2);font-weight:400">'+_wsTimeAgo(now)+'</span></a>';
-  h += '</div>';
-  h += '<div style="margin-top:6px"><a href="'+bookingUrl+'" target="_blank" style="font-size:12px;color:var(--teal);text-decoration:none">+ Öppna bokningssida ↗</a></div>';
-  h += '</div>';
+  // Releases (= Bokningssida)
+  h+='<div class="gh3-aside-sec">';
+  h+='<h2 class="gh3-aside-h2">Bokningssida</h2>';
+  h+='<p class="gh3-aside-sub">Bokningssidan är aktiv.<br><a href="'+bookingUrl+'" target="_blank" class="gh3-aside-lnk">Öppna bokningssida ↗</a></p>';
+  h+='</div>';
 
-  // Contributors (like GitHub)
-  if (therapists.length) {
-    h += '<div class="repo-aside-section">';
-    h += '<div class="repo-aside-heading">Behandlare <span class="repo-aside-count">'+therapists.length+'</span></div>';
-    therapists.forEach(function(t,i){
-      var ti = (t.name||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-      var av = null; try{ if(i===0) av=localStorage.getItem('vela:profile-avatar'); }catch(e){}
-      h += '<div class="repo-contributor">';
-      if (av) h += '<img src="'+av+'" class="repo-contrib-img" alt="'+e(t.name)+'">';
-      else h += '<div class="repo-contrib-init">'+ti+'</div>';
-      h += '<span class="repo-contrib-name">'+e(t.name)+'</span>';
-      h += '</div>';
-    });
-    h += '</div>';
-  }
+  // Deployments count
+  h+='<div class="gh3-aside-sec">';
+  h+='<h2 class="gh3-aside-h2">Besök <span class="gh3-aside-count">'+doneBks+'</span></h2>';
+  h+='<div class="gh3-deploy-row"><svg viewBox="0 0 16 16" width="12" height="12" fill="#3fb950"><circle cx="8" cy="8" r="8"/></svg><a class="gh3-deploy-lnk" onclick="go(\'calendar\')">Senaste besöken</a><span class="gh3-deploy-time">'+commitTime+'</span></div>';
+  if(doneBks>0) h+='<div style="margin-top:4px"><a onclick="go(\'calendar\')" style="font-size:13px;color:var(--teal);cursor:pointer">+ '+doneBks+' besök totalt</a></div>';
+  h+='</div>';
 
-  // Languages = Services (like GitHub)
-  if (svcArr.length && totalSvcBks>0) {
-    h += '<div class="repo-aside-section">';
-    h += '<div class="repo-aside-heading">Tjänster</div>';
-    h += '<div class="repo-lang-bar">';
-    svcArr.forEach(function(s,i){ h += '<div style="width:'+s.pct+'%;background:'+svcColors[i]+'" title="'+e(s.name)+' '+s.pct+'%"></div>'; });
-    h += '</div>';
+  // Packages = Tjänster
+  h+='<div class="gh3-aside-sec">';
+  h+='<h2 class="gh3-aside-h2">Tjänster</h2>';
+  if(!svcArr.length||!svcTotal){
+    h+='<p class="gh3-aside-sub">Inga tjänster bokade ännu.<br><a onclick="go(\'settings\');window._settingsActiveTab=\'services\'" class="gh3-aside-lnk">Hantera tjänster</a></p>';
+  } else {
+    h+='<div class="gh3-langbar">';
+    svcArr.forEach(function(s,i){ h+='<div style="width:'+s.pct+'%;background:'+svcColors[i]+'" title="'+e(s.name)+' '+s.pct+'%"></div>'; });
+    h+='</div>';
+    h+='<div class="gh3-langs">';
     svcArr.forEach(function(s,i){
-      h += '<div class="repo-lang-row">';
-      h += '<span class="repo-lang-dot" style="background:'+svcColors[i]+'"></span>';
-      h += '<span class="repo-lang-name">'+e(s.name)+'</span>';
-      h += '<span class="repo-lang-pct">'+s.pct+'%</span>';
-      h += '</div>';
+      h+='<span class="gh3-lang-item"><span class="gh3-lang-dot" style="background:'+svcColors[i]+'"></span>'+e(s.name)+' <span class="gh3-lang-pct">'+s.pct+'%</span></span>';
     });
-    h += '</div>';
+    h+='</div>';
   }
+  h+='</div>';
 
-  h += '</div>'; // repo-aside
-  h += '</div>'; // repo-body
-  h += '</div>'; // repo-wrap
-  el.innerHTML = h;
-  window._wsFileRows = fileRows;
+  // Contributors
+  h+='<div class="gh3-aside-sec">';
+  h+='<h2 class="gh3-aside-h2">Behandlare <span class="gh3-aside-count">'+therapists.length+'</span></h2>';
+  // Avatar row (stacked)
+  h+='<div class="gh3-contribs-avatars">';
+  therapists.forEach(function(t,i){
+    var ti=(t.name||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    if(savedAv&&i===0) h+='<img src="'+savedAv+'" class="gh3-contrib-av-lg" title="'+e(t.name)+'" alt="'+e(t.name)+'">';
+    else h+='<div class="gh3-contrib-av-lg gh3-contrib-av-init">'+ti+'</div>';
+  });
+  h+='</div>';
+  // Name rows
+  therapists.forEach(function(t,i){
+    var ti=(t.name||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    h+='<div class="gh3-contrib-row">';
+    if(savedAv&&i===0) h+='<img src="'+savedAv+'" class="gh3-contrib-av-sm" alt="'+e(t.name)+'">';
+    else h+='<div class="gh3-contrib-av-sm gh3-contrib-av-init-sm">'+ti+'</div>';
+    h+='<a class="gh3-contrib-name" onclick="go(\'profile\')">'+e(t.name)+'</a>';
+    h+='</div>';
+  });
+  h+='</div>'; // contributors
+
+  h+='</div>'; // gh3-aside
+  h+='</div>'; // gh3-body
+  h+='</div>'; // gh3-page
+  el.innerHTML=h;
 }
 
-function _wsOpen(type, id) { if (id) { if (type==='patient'||type==='journal'||type==='hael') openPat(id); } }
+function _wsOpen(type, id) { if(id) openPat(id); }
 function _wsTogglePublic() {
-  var cfg = getClinicConfig ? getClinicConfig() : {};
-  cfg.wsPublic = cfg.wsPublic === false ? true : false;
-  if (typeof saveClinicConfig==='function') saveClinicConfig(cfg);
-  showAutoSaveToast(cfg.wsPublic ? 'Arbetsyta offentliggjord' : 'Arbetsyta gjord privat');
+  var cfg=getClinicConfig?getClinicConfig():{};
+  cfg.wsPublic=cfg.wsPublic===false?true:false;
+  if(typeof saveClinicConfig==='function') saveClinicConfig(cfg);
+  showAutoSaveToast(cfg.wsPublic?'Arbetsyta är nu offentlig':'Arbetsyta är nu privat');
   rWorkspace();
 }
 

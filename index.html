@@ -2179,6 +2179,81 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .area-card:hover { border-color: var(--teal); }
 .area-card-add { border:1px dashed var(--border2); border-radius:10px; padding:14px 16px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; color:var(--text2); font-size:13px; transition:all .15s; }
 .area-card-add:hover { border-color:var(--teal); color:var(--teal); }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   VELA WORKSPACE — GitHub repo-style clinic overview
+   ══════════════════════════════════════════════════════════════════════════════ */
+.ws-shell { max-width: 1280px; margin: 0 auto; padding: 20px 24px 60px; font-family: var(--font); }
+
+/* Header */
+.ws-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+.ws-header-left { display:flex; align-items:center; gap:8px; }
+.ws-clinic-name { font-size:18px; font-weight:700; color:var(--teal); }
+.ws-badge { font-size:11px; font-weight:600; padding:2px 8px; border-radius:20px; border:1px solid var(--teal); color:var(--teal); }
+.ws-header-actions { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.ws-action-btn { display:flex; align-items:center; gap:5px; padding:5px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:7px; font-size:13px; font-weight:600; color:var(--text); cursor:pointer; font-family:var(--font); white-space:nowrap; }
+.ws-action-btn:hover { background:var(--surface3,#32333f); border-color:var(--text2); }
+.ws-action-primary { background:rgba(224,118,40,.1) !important; border-color:var(--teal) !important; color:var(--teal) !important; }
+.ws-action-primary:hover { background:rgba(224,118,40,.18) !important; }
+
+/* Subnav */
+.ws-subnav { display:flex; align-items:center; justify-content:space-between; border:1px solid var(--border); border-radius:8px; padding:8px 14px; margin-bottom:16px; background:var(--surface); gap:10px; flex-wrap:wrap; }
+.ws-subnav-left { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.ws-subnav-right { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.ws-branch-btn { display:flex; align-items:center; gap:6px; padding:4px 10px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; font-size:13px; font-weight:600; color:var(--ink); cursor:pointer; font-family:var(--font); }
+.ws-branch-btn:hover { background:var(--surface3,#32333f); }
+.ws-subnav-divider { width:1px; height:18px; background:var(--border); flex-shrink:0; }
+.ws-count-link { display:flex; align-items:center; gap:5px; font-size:13px; color:var(--text); cursor:pointer; text-decoration:none; padding:2px 4px; border-radius:4px; }
+.ws-count-link:hover { color:var(--teal); }
+.ws-search-mini { display:flex; align-items:center; gap:6px; padding:5px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--text2); cursor:pointer; }
+.ws-search-mini:hover { border-color:var(--teal); }
+.ws-subnav-btn { display:flex; align-items:center; gap:5px; padding:5px 10px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; font-size:13px; font-weight:600; color:var(--text); cursor:pointer; font-family:var(--font); }
+.ws-subnav-btn:hover { background:var(--surface3,#32333f); color:var(--ink); }
+
+/* Body */
+.ws-body { display:flex; gap:20px; align-items:flex-start; }
+.ws-main { flex:1; min-width:0; }
+.ws-sidebar { width:260px; flex-shrink:0; }
+
+/* Commit bar */
+.ws-commit-bar { display:flex; align-items:center; gap:8px; padding:8px 14px; background:var(--surface); border:1px solid var(--border); border-radius:8px 8px 0 0; border-bottom:none; flex-wrap:wrap; }
+.ws-commit-avatar { width:22px; height:22px; border-radius:50%; background:var(--surface2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:var(--teal); flex-shrink:0; }
+.ws-commit-msg { font-size:13px; font-weight:600; color:var(--ink); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ws-commit-meta { font-size:12px; color:var(--text2); white-space:nowrap; }
+.ws-commit-sep { width:1px; height:14px; background:var(--border); flex-shrink:0; }
+.ws-commit-count { display:flex; align-items:center; gap:4px; font-size:12px; color:var(--text2); white-space:nowrap; }
+
+/* File list */
+.ws-filelist { border:1px solid var(--border); border-radius:0 0 8px 8px; overflow:hidden; margin-bottom:16px; }
+.ws-file-row { display:flex; align-items:center; gap:10px; padding:9px 14px; border-bottom:1px solid var(--border2); transition:background .08s; }
+.ws-file-row:last-child { border-bottom:none; }
+.ws-file-row:hover { background:var(--surface2); }
+.ws-file-icon { flex-shrink:0; display:flex; }
+.ws-file-name { font-size:13px; color:var(--teal); font-weight:500; flex:0 0 220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ws-file-name:hover { text-decoration:underline; }
+.ws-file-meta { font-size:13px; color:var(--text2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ws-file-time { font-size:12px; color:var(--text2); white-space:nowrap; flex-shrink:0; }
+
+/* README */
+.ws-readme { border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+.ws-readme-header { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--surface); border-bottom:1px solid var(--border); }
+.ws-icon-btn { background:none; border:none; color:var(--text2); cursor:pointer; padding:4px; border-radius:4px; display:flex; align-items:center; justify-content:center; }
+.ws-icon-btn:hover { color:var(--ink); background:var(--surface2); }
+
+/* Sidebar */
+.ws-sidebar-section { border:1px solid var(--border); border-radius:8px; padding:14px 16px; margin-bottom:12px; background:var(--surface); }
+.ws-sidebar-heading { display:flex; align-items:center; justify-content:space-between; font-size:13px; font-weight:700; color:var(--ink); margin-bottom:12px; }
+
+@media (max-width: 900px) {
+  .ws-body { flex-direction:column; }
+  .ws-sidebar { width:100%; }
+  .ws-file-name { flex:0 0 140px; }
+}
+@media (max-width: 640px) {
+  .ws-shell { padding:12px 14px 40px; }
+  .ws-subnav { gap:6px; }
+  .ws-file-meta { display:none; }
+}
 </style>
 
 <div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0e1825;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
@@ -12499,13 +12574,399 @@ function _homeAsk(prompt) {
 
 
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  VELA WORKSPACE — GitHub repository-style clinic overview
+// ══════════════════════════════════════════════════════════════════════════════
+
+function rWorkspace() {
+  var el = document.getElementById('s-home');
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  el.classList.add('active');
+  S.screen = 'home';
+
+  var cfg     = getClinicConfig ? getClinicConfig() : {};
+  var pats    = S.patients || [];
+  var bks     = getBookings ? getBookings() : [];
+  var svcs    = getServices ? getServices() : [];
+  var now     = new Date();
+
+  // ── Stats ─────────────────────────────────────────────────────────────────
+  var totalPats   = pats.length;
+  var totalBks    = bks.length;
+  var completedBks = bks.filter(function(b){ return b.status === 'completed'; }).length;
+  var thisMon     = bks.filter(function(b){
+    var d = new Date(b.date||'');
+    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear() && b.status!=='cancelled';
+  }).length;
+
+  // All bookings sorted by date desc for "commit log"
+  var recentBks = bks.slice().sort(function(a,b){
+    return (b.date||'') > (a.date||'') ? 1 : -1;
+  }).slice(0,1);
+  var lastBk = recentBks[0];
+  var lastBkDate = lastBk ? new Date(lastBk.date+'T12:00') : null;
+  var lastBkAgo  = lastBkDate ? _wsTimeAgo(lastBkDate) : 'aldrig';
+
+  // Recent "files" — last 8 activities (patients, journals, plans, bookings)
+  var recentItems = [];
+
+  // Recent patients
+  pats.slice(-5).reverse().forEach(function(p) {
+    recentItems.push({
+      type: 'patient',
+      icon: '<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+      name: p.name,
+      action: function(pid){ return function(){ openPat(pid); }; }(p.id),
+      meta: 'Patient tillagd',
+      time: p.createdAt || '',
+    });
+  });
+
+  // Recent bookings with journal
+  bks.filter(function(b){ return b.status === 'completed'; })
+    .sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; })
+    .slice(0,3)
+    .forEach(function(b) {
+      recentItems.push({
+        type: 'journal',
+        icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+        name: (b.patientName||'') + ' — ' + (b.serviceName||'Besök'),
+        action: null,
+        meta: 'Journalpost · ' + (b.date||''),
+        time: b.date||'',
+      });
+    });
+
+  // Hael plans
+  pats.forEach(function(p) {
+    (p.visits||[]).filter(function(v){ return v.plan; }).slice(-2).forEach(function(v) {
+      recentItems.push({
+        type: 'hael',
+        icon: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+        name: (p.name||'') + ' — Hael-plan',
+        action: function(pid){ return function(){ openPat(pid); }; }(p.id),
+        meta: 'Rehabplan skapad · ' + (v.date||''),
+        time: v.date||'',
+      });
+    });
+  });
+
+  // Sort by time desc, dedupe
+  recentItems.sort(function(a,b){ return (b.time||'')>(a.time||'')?1:-1; });
+  recentItems = recentItems.slice(0,8);
+
+  // ── Services breakdown (like GitHub "Languages") ──────────────────────────
+  var svcCounts = {};
+  var totalSvcBks = 0;
+  bks.forEach(function(b){
+    if (b.serviceName) {
+      svcCounts[b.serviceName] = (svcCounts[b.serviceName]||0) + 1;
+      totalSvcBks++;
+    }
+  });
+  var svcArr = Object.keys(svcCounts).map(function(k){
+    return { name:k, count:svcCounts[k], pct: Math.round(svcCounts[k]/totalSvcBks*100) };
+  }).sort(function(a,b){return b.count-a.count;}).slice(0,6);
+
+  // Color palette for service bars (not orange — distinct per service)
+  var svcColors = ['#58a6ff','#3fb950','#d29922','#a371f7','#f85149','#e07628'];
+
+  // ── Behandlare (Contributors) ─────────────────────────────────────────────
+  var therapists = getTherapists ? getTherapists() : [];
+  if (!therapists.length && cfg.signature) {
+    therapists = [{ id:'t1', name: cfg.signature, role: cfg.title || 'Behandlare' }];
+  }
+
+  // ── Active plans (like Deployments) ──────────────────────────────────────
+  var activePlans = 0;
+  pats.forEach(function(p){
+    (p.visits||[]).forEach(function(v){
+      if (!v.plan) return;
+      var tw = v.plan.totalWeeks || v.plan.form?.followup || 4;
+      var sd = v.date ? new Date(v.date) : null;
+      if (sd && new Date(sd.getTime()+tw*7*86400000) > now) activePlans++;
+    });
+  });
+
+  var bookingUrl = window.location.origin + window.location.pathname + '#boka';
+
+  // ── Clinic README ─────────────────────────────────────────────────────────
+  var readme = cfg.readme || cfg.bio || null;
+  var readmeEditMode = window._wsReadmeEdit || false;
+
+  // ── BUILD HTML ────────────────────────────────────────────────────────────
+  var h = '<div class="ws-shell">';
+
+  // ── HEADER: clinic name + actions ─────────────────────────────────────────
+  h += '<div class="ws-header">';
+  h += '<div class="ws-header-left">';
+  h += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round">';
+  h += '<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>';
+  h += '</svg>';
+  h += '<span class="ws-clinic-name">' + e(cfg.name || 'Min klinik') + '</span>';
+  h += '<span class="ws-badge">Pro</span>';
+  h += '</div>';
+
+  // Action buttons
+  h += '<div class="ws-header-actions">';
+  h += '<button onclick="openStatusModal()" class="ws-action-btn">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  h += 'Status';
+  h += '</button>';
+  h += '<button onclick="navigator.clipboard?.writeText(\''+bookingUrl+'\').then(function(){showAutoSaveToast(\'Länk kopierad ✓\')})" class="ws-action-btn">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>';
+  h += 'Bokningslänk';
+  h += '</button>';
+  h += '<button onclick="openBookingDialog()" class="ws-action-btn ws-action-primary">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+  h += 'Ny bokning';
+  h += '</button>';
+  h += '</div></div>'; // header
+
+  // ── SUBNAV: branch + counts + search + buttons ────────────────────────────
+  h += '<div class="ws-subnav">';
+  h += '<div class="ws-subnav-left">';
+
+  // "Branch selector" = aktiv behandlare
+  h += '<button class="ws-branch-btn">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 01-9 9"/></svg>';
+  h += (cfg.signature || 'Behandlare') + ' ▾';
+  h += '</button>';
+
+  // Divider
+  h += '<span class="ws-subnav-divider"></span>';
+
+  // Counts (Branch=tjänster, Tag=behandlare)
+  h += '<a onclick="go(\'settings\');window._settingsActiveTab=\'services\'" class="ws-count-link">';
+  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>';
+  h += '<strong>' + svcs.length + '</strong> tjänster';
+  h += '</a>';
+
+  h += '<a onclick="go(\'settings\');window._settingsActiveTab=\'users\'" class="ws-count-link">';
+  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>';
+  h += '<strong>' + Math.max(1, therapists.length) + '</strong> behandlare';
+  h += '</a>';
+
+  h += '</div>';
+
+  // Search + buttons
+  h += '<div class="ws-subnav-right">';
+  h += '<div class="ws-search-mini" onclick="openCommandPalette()">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += '<span>Sök patient...</span>';
+  h += '</div>';
+  h += '<button onclick="go(\'list\')" class="ws-subnav-btn">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+  h += 'Patienter';
+  h += '</button>';
+  h += '<button onclick="go(\'hael\')" class="ws-subnav-btn">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+  h += 'Hael';
+  h += '</button>';
+  h += '</div></div>'; // subnav
+
+  // ── MAIN BODY: file list + sidebar ────────────────────────────────────────
+  h += '<div class="ws-body">';
+
+  // ── MAIN COLUMN ───────────────────────────────────────────────────────────
+  h += '<div class="ws-main">';
+
+  // Latest commit bar
+  h += '<div class="ws-commit-bar">';
+  if (lastBk) {
+    var lbInit = (lastBk.patientName||'').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase() || 'BK';
+    h += '<div class="ws-commit-avatar">' + lbInit + '</div>';
+    h += '<span class="ws-commit-msg">' + e(lastBk.patientName||'') + ' — ' + e(lastBk.serviceName||'Bokning') + '</span>';
+    h += '<span class="ws-commit-meta">' + lastBkAgo + '</span>';
+    h += '<span class="ws-commit-sep"></span>';
+    h += '<span class="ws-commit-count">';
+    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17.01" y1="12" x2="22.96" y2="12"/></svg>';
+    h += totalBks + ' bokningar';
+    h += '</span>';
+  } else {
+    h += '<span class="ws-commit-msg" style="color:var(--text2)">Inga bokningar ännu</span>';
+  }
+  h += '</div>';
+
+  // File list
+  h += '<div class="ws-filelist">';
+
+  if (!recentItems.length) {
+    h += '<div style="padding:32px;text-align:center;color:var(--text2);font-size:14px">Inga aktiviteter ännu — lägg till patienter och bokningar för att se dem här.</div>';
+  } else {
+    var typeColors = { patient:'#58a6ff', journal:'var(--teal)', hael:'#a371f7' };
+    recentItems.forEach(function(item, i) {
+      var col = typeColors[item.type] || 'var(--text2)';
+      h += '<div class="ws-file-row" ' + (item.action ? 'onclick="_wsRunAction('+i+')" style="cursor:pointer"' : '') + ' data-idx="'+i+'">';
+      h += '<div class="ws-file-icon" style="color:'+col+'">';
+      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">'+item.icon+'</svg>';
+      h += '</div>';
+      h += '<span class="ws-file-name">' + e(item.name) + '</span>';
+      h += '<span class="ws-file-meta">' + e(item.meta) + '</span>';
+      h += '<span class="ws-file-time">' + (item.time ? _wsTimeAgo(new Date(item.time+'T12:00')) : '') + '</span>';
+      h += '</div>';
+    });
+  }
+  h += '</div>'; // filelist
+
+  // README / Om kliniken
+  h += '<div class="ws-readme">';
+  h += '<div class="ws-readme-header">';
+  h += '<div style="display:flex;align-items:center;gap:8px">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>';
+  h += '<span style="font-size:13px;font-weight:700;color:var(--ink)">Om kliniken</span>';
+  h += '</div>';
+  h += '<button onclick="_wsToggleReadme()" class="ws-icon-btn" title="Redigera">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  h += '</button>';
+  h += '</div>';
+
+  if (readmeEditMode) {
+    h += '<div style="padding:16px">';
+    h += '<textarea id="ws-readme-ta" rows="6" placeholder="Beskriv kliniken — specialisering, metod, vad patienter kan förvänta sig..." style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--teal);border-radius:8px;font-size:14px;color:var(--ink);font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.6">'+(readme?e(readme):'')+'</textarea>';
+    h += '<div style="display:flex;gap:8px;margin-top:10px">';
+    h += '<button onclick="_wsReadmeSave()" style="padding:6px 16px;background:var(--teal);color:#0d1117;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara</button>';
+    h += '<button onclick="_wsToggleReadme()" style="padding:6px 12px;background:none;border:1px solid var(--border);border-radius:7px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avbryt</button>';
+    h += '</div></div>';
+  } else if (readme) {
+    h += '<div style="padding:16px;font-size:14px;color:var(--text);line-height:1.8">' + e(readme).replace(/\n/g,'<br>') + '</div>';
+  } else {
+    h += '<div style="padding:24px;text-align:center">';
+    h += '<button onclick="_wsToggleReadme()" style="font-size:14px;color:var(--teal);background:rgba(224,118,40,.06);border:1px solid rgba(224,118,40,.2);border-radius:8px;padding:8px 20px;cursor:pointer;font-family:var(--font);font-weight:600">+ Lägg till beskrivning av kliniken</button>';
+    h += '</div>';
+  }
+  h += '</div>'; // readme
+
+  h += '</div>'; // ws-main
+
+  // ── SIDEBAR ───────────────────────────────────────────────────────────────
+  h += '<div class="ws-sidebar">';
+
+  // About
+  h += '<div class="ws-sidebar-section">';
+  h += '<div class="ws-sidebar-heading">';
+  h += '<span>Om</span>';
+  h += '<button onclick="go(\'settings\');window._settingsActiveTab=\'general\'" class="ws-icon-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>';
+  h += '</div>';
+  if (cfg.bio) h += '<p style="font-size:13px;color:var(--text);line-height:1.6;margin:0 0 10px">' + e(cfg.bio) + '</p>';
+  else h += '<p style="font-size:13px;color:var(--text2);margin:0 0 10px">Ingen beskrivning ännu.</p>';
+  if (cfg.website) {
+    h += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>';
+    h += '<a href="'+e(cfg.website)+'" target="_blank" style="font-size:13px;color:var(--teal);text-decoration:none">'+e(cfg.website.replace(/^https?:\/\//,''))+'</a>';
+    h += '</div>';
+  }
+  if (cfg.phone) {
+    h += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>';
+    h += '<span style="font-size:13px;color:var(--text)">'+e(cfg.phone)+'</span>';
+    h += '</div>';
+  }
+
+  // Stat rows (like Stars / Watching / Forks)
+  h += '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">';
+  function sbStat(icon, label, val, dest) {
+    return '<a onclick="'+dest+'" style="display:flex;align-items:center;gap:7px;font-size:13px;color:var(--text);cursor:pointer;text-decoration:none">'
+      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round">'+icon+'</svg>'
+      + '<strong>'+val+'</strong>&nbsp;'+label+'</a>';
+  }
+  h += sbStat('<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>', 'patienter', totalPats, "go('list')");
+  h += sbStat('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', 'besök genomförda', completedBks, "go('calendar')");
+  h += sbStat('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>', 'aktiva Hael-planer', activePlans, "go('hael')");
+  h += '</div>';
+  h += '</div>'; // about section
+
+  // Deployments = Bokningssida
+  h += '<div class="ws-sidebar-section">';
+  h += '<div class="ws-sidebar-heading"><span>Bokningssida</span></div>';
+  h += '<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">';
+  h += '<svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#3fb950"/></svg>';
+  h += '<span style="font-size:13px;color:var(--ink);font-weight:600">Live</span>';
+  h += '</div>';
+  h += '<a href="'+bookingUrl+'" target="_blank" style="display:flex;align-items:center;gap:5px;font-size:13px;color:var(--teal);text-decoration:none">';
+  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+  h += 'Öppna bokningssida ↗</a>';
+  h += '</div>';
+
+  // Contributors = behandlare
+  if (therapists.length) {
+    h += '<div class="ws-sidebar-section">';
+    h += '<div class="ws-sidebar-heading"><span>Behandlare</span><span style="font-size:12px;color:var(--text2)">'+therapists.length+'</span></div>';
+    h += '<div style="display:flex;flex-wrap:wrap;gap:5px">';
+    therapists.forEach(function(t) {
+      var ti = (t.name||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+      h += '<div title="'+e(t.name)+'" style="width:30px;height:30px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text)" onclick="go(\'settings\');window._settingsActiveTab=\'users\'">'+ti+'</div>';
+    });
+    h += '</div></div>';
+  }
+
+  // Languages = service breakdown
+  if (svcArr.length && totalSvcBks > 0) {
+    h += '<div class="ws-sidebar-section">';
+    h += '<div class="ws-sidebar-heading"><span>Tjänster</span></div>';
+    // Bar
+    h += '<div style="height:8px;border-radius:4px;overflow:hidden;display:flex;margin-bottom:10px">';
+    svcArr.forEach(function(s,i){
+      h += '<div style="width:'+s.pct+'%;background:'+svcColors[i]+';height:100%"></div>';
+    });
+    h += '</div>';
+    // Legend
+    svcArr.forEach(function(s,i){
+      h += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">';
+      h += '<span style="width:10px;height:10px;border-radius:50%;background:'+svcColors[i]+';flex-shrink:0"></span>';
+      h += '<span style="font-size:12px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e(s.name)+'</span>';
+      h += '<span style="font-size:12px;color:var(--text2)">'+s.pct+'%</span>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  h += '</div>'; // sidebar
+
+  h += '</div>'; // body
+  h += '</div>'; // shell
+
+  el.innerHTML = h;
+
+  // Store actions for click handler
+  window._wsActions = recentItems.map(function(i){ return i.action; });
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function _wsTimeAgo(date) {
+  if (!date || isNaN(date)) return '';
+  var diff = (new Date() - date) / 1000;
+  if (diff < 60)   return 'just nu';
+  if (diff < 3600) return Math.floor(diff/60) + ' min sedan';
+  if (diff < 86400) return Math.floor(diff/3600) + ' tim sedan';
+  if (diff < 604800) return Math.floor(diff/86400) + ' dag' + (Math.floor(diff/86400)===1?'':'ar') + ' sedan';
+  if (diff < 2592000) return Math.floor(diff/604800) + ' vecka' + (Math.floor(diff/604800)===1?'':'or') + ' sedan';
+  return date.toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
+}
+function _wsRunAction(i) {
+  var fn = window._wsActions && window._wsActions[i];
+  if (typeof fn === 'function') fn();
+}
+function _wsToggleReadme() {
+  window._wsReadmeEdit = !window._wsReadmeEdit;
+  rWorkspace();
+}
+function _wsReadmeSave() {
+  var ta = document.getElementById('ws-readme-ta');
+  if (!ta) return;
+  var cfg = getClinicConfig ? getClinicConfig() : {};
+  cfg.readme = ta.value.trim();
+  if (typeof saveClinicConfig === 'function') saveClinicConfig(cfg);
+  window._wsReadmeEdit = false;
+  showAutoSaveToast('Klinikbeskrivning sparad');
+  rWorkspace();
+}
+
+
 function rDashboard() {
-  // Show today's day view using the calendar engine
-  window._calState = window._calState || {};
-  window._calState.view = 'week';
-  window._calState.week = getMondayOf(new Date());
-  window._calState.dayDate = new Date();
-  rCalendar();
+  rWorkspace();
 }
 
 

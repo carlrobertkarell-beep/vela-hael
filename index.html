@@ -8574,17 +8574,7 @@ function _openUserMenu(evt) {
   h += '<div style="display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(224,118,40,.1);color:var(--teal);border:1px solid rgba(224,118,40,.2)">' + tierLabel + '</div>';
   h += '</div>';
 
-  // ── Set status ────────────────────────────────────────────────────────────
-  h += '<div style="padding:4px 8px;border-bottom:1px solid var(--border)">';
-  h += '<button onclick="_closeUserMenu();openStatusModal()" style="width:100%;display:flex;align-items:center;gap:10px;padding:7px 8px;background:none;border:none;border-radius:7px;cursor:pointer;font-family:var(--font);text-align:left" onmouseover="this.style.background=\'var(--surface3,#30363d)\'" onmouseout="this.style.background=\'none\'">';
-  h += '<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">';
-  h += curStatus && curStatus.emoji ? curStatus.emoji : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
-  h += '</div>';
-  h += '<div style="flex:1;min-width:0">';
-  h += '<div style="font-size:13px;color:var(--text)">Sätt status</div>';
-  if (curStatus && curStatus.text) h += '<div style="font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e(curStatus.text) + '</div>';
-  h += '</div></button>';
-  h += '</div>';
+
 
   // ── Group: Arbetsyta ──────────────────────────────────────────────────────
   h += '<div style="padding:4px 8px;border-bottom:1px solid var(--border)">';
@@ -8608,7 +8598,7 @@ function _openUserMenu(evt) {
   // ── Group: Konto ──────────────────────────────────────────────────────────
   h += '<div style="padding:4px 8px;border-bottom:1px solid var(--border)">';
   h += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);padding:8px 8px 4px">Konto</div>';
-  h += menuItem('<circle cx="12" cy="12" r="3"/><path d="M3 12h1M12 3v1M20.66 7l-.87.5M20.66 17l-.87-.5M3.34 17l.87-.5M3.34 7l.87.5"/>', 'Profil & status', 'um-profile');
+  h += menuItem('<circle cx="12" cy="12" r="3"/><path d="M3 12h1M12 3v1M20.66 7l-.87.5M20.66 17l-.87-.5M3.34 17l.87-.5M3.34 7l.87.5"/>', 'Profil', 'um-profile');
 
   // Theme toggle row
   h += '<div style="display:flex;align-items:center;gap:10px;padding:7px 8px">';
@@ -30947,22 +30937,88 @@ function rProfile() {
   h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
   h += '<input type="file" accept="image/*" onchange="_profileUploadAvatar(this)" style="display:none"></label>';
   h += '</div>';
-  h += '<div style="font-size:20px;font-weight:800;color:var(--ink);letter-spacing:-.02em;margin-bottom:2px">'+e(name)+'</div>';
+  h += '<div class="prof-left-info">';  h += '<div style="font-size:20px;font-weight:800;color:var(--ink);letter-spacing:-.02em;margin-bottom:2px">'+e(name)+'</div>';
   if (cfg.title) h += '<div style="font-size:14px;color:var(--text2);margin-bottom:4px">'+e(cfg.title)+'</div>';
-  h += '<div style="font-size:13px;color:var(--text2);margin-bottom:16px">'+e(email)+'</div>';
-  h += '<button onclick="_profileEdit()" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font);margin-bottom:12px">Redigera profil</button>';
-  h += '<div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:16px;cursor:pointer;background:var(--surface)" onclick="openStatusModal()">';
-  if (curStatus&&curStatus.text) {
-    h += '<div style="display:flex;align-items:center;gap:7px"><span style="font-size:15px">'+(curStatus.emoji||'')+'</span><span style="font-size:13px;color:var(--text)">'+e(curStatus.text)+'</span></div>';
-  } else {
-    h += '<span style="font-size:13px;color:var(--text2)">+ Sätt status</span>';
+  h += '<div style="font-size:13px;color:var(--text2);margin-bottom:16px">'+e(email)+'</div>'; h += '</div>'; // prof-left-info
+  h += '<div class="prof-left-btn"><button onclick="_profileEdit()" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font);margin-bottom:12px">Redigera profil</button></div>';
+
+  // ── Inline edit form ──
+    // Edit form — GitHub style, compact
+  var certs = cfg.certs || [];
+  var bioLen = (cfg.bio||'').length;
+  h += '<div id="prof-edit-section" style="display:none;padding:4px 0">';
+  // No header needed — avatar stays visible above, form is compact
+
+  // Name + Title side by side
+  h += '<div class="prof-edit-row">';
+  h += '<div class="prof-edit-field"><label class="prof-field-label">Namn</label>';
+  h += '<input id="prof-f-name" class="field" placeholder="Ditt namn" value="'+e(cfg.signature||name)+'" style="width:100%;box-sizing:border-box"></div>';
+  h += '<div class="prof-edit-field"><label class="prof-field-label">Titel <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">— visas på bokningssidan</span></label>';
+  h += '<input id="prof-f-title" class="field" placeholder="T.ex. Leg. Naprapat, Certifierad frisör" value="'+e(cfg.title||'')+'" style="width:100%;box-sizing:border-box"></div>';
+  h += '</div>';
+
+  // Bio — 160 char limit like GitHub/Twitter
+  h += '<div style="margin-bottom:14px"><label class="prof-field-label">Bio <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">— max 160 tecken</span></label>';
+  h += '<div style="position:relative">';
+  h += '<textarea id="prof-f-bio" maxlength="160" rows="2" placeholder="Kort om dig och din approach. Vad gör dig unik?" style="width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--ink);font-family:var(--font);resize:none;outline:none;box-sizing:border-box" oninput="document.getElementById(\'bio-count\').textContent=160-this.value.length">'+e(cfg.bio||'')+'</textarea>';
+  h += '<span id="bio-count" style="position:absolute;bottom:8px;right:10px;font-size:11px;color:var(--text2)">'+(160-bioLen)+'</span>';
+  h += '</div></div>';
+
+  // Specializations + Years
+  h += '<div class="prof-edit-row">';
+  h += '<div class="prof-edit-field"><label class="prof-field-label">Specialiseringar</label>';
+  h += '<input id="prof-f-areas" class="field" placeholder="Rygg, Axel, Idrottsskador, PRP" value="'+e((cfg.areas||[]).join(', '))+'" style="width:100%;box-sizing:border-box">';
+  h += '<div style="font-size:11px;color:var(--text2);margin-top:3px">Kommaseparerade — visas som taggar</div></div>';
+  h += '<div class="prof-edit-field"><label class="prof-field-label">År i yrket</label>';
+  h += '<input id="prof-f-years" type="number" min="0" max="50" class="field" placeholder="T.ex. 8" value="'+e(cfg.years||'')+'" style="width:100%;box-sizing:border-box"></div>';
+  h += '</div>';
+
+  // Languages
+  h += '<div style="margin-bottom:14px"><label class="prof-field-label">Språk</label>';
+  h += '<input id="prof-f-langs" class="field" placeholder="Svenska, Engelska, Arabiska" value="'+e((cfg.langs||[]).join(', '))+'" style="width:100%;box-sizing:border-box">';
+  h += '</div>';
+
+  // Website + LinkedIn
+  h += '<div class="prof-edit-row">';
+  h += '<div class="prof-edit-field"><label class="prof-field-label">Webbplats</label>';
+  h += '<div style="position:relative">';
+  h += '<div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text2)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>';
+  h += '<input id="prof-f-web" class="field" placeholder="www.klinik.se" value="'+e(cfg.website||'')+'" style="width:100%;box-sizing:border-box;padding-left:30px"></div></div>';
+  h += '<div class="prof-edit-field"><label class="prof-field-label">LinkedIn / Instagram</label>';
+  h += '<input id="prof-f-social" class="field" placeholder="linkedin.com/in/ditt-namn" value="'+e(cfg.social||'')+'" style="width:100%;box-sizing:border-box"></div>';
+  h += '</div>';
+
+  // Certificate upload
+  h += '<div style="margin-bottom:16px"><label class="prof-field-label">Legitimation & Certifikat <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">— visas som verifierat på bokningssidan</span></label>';
+  h += '<div class="prof-cert-drop" id="prof-cert-drop" style="padding:8px 12px;gap:6px">';
+  h += '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+  h += '<span style="font-size:13px;color:var(--text2)">Ladda upp PDF eller bild</span>';
+  h += '<label style="font-size:13px;font-weight:600;color:var(--teal);cursor:pointer">Välj fil<input type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="_profileUploadCert(this)" style="display:none"></label>';
+  h += '</div>';
+  // Show existing certs
+  if (certs.length) {
+    h += '<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">';
+    certs.forEach(function(c, ci) {
+      h += '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:7px">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      h += '<span style="font-size:13px;color:var(--ink);flex:1">'+e(c.name)+'</span>';
+      h += '<button onclick="_profileRemoveCert('+ci+')" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px;padding:0;line-height:1">×</button>';
+      h += '</div>';
+    });
+    h += '</div>';
   }
   h += '</div>';
-  function sRow(icon,html){ return '<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:7px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round">'+icon+'</svg>'+html+'</div>'; }
-  h += sRow('<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>','<strong>'+(patients.length)+'</strong>&nbsp;patienter');
-  h += sRow('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>','<strong>'+completedBks+'</strong>&nbsp;besök genomförda');
-  if (cfg.name) h += sRow('<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>',e(cfg.name));
-  if (daysSince>0) h += sRow('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>','Aktiv i&nbsp;<strong>'+daysSince+'</strong>&nbsp;dagar');
+
+  // Save / Cancel
+  h += '<div style="display:flex;gap:8px;margin-top:16px">';
+  h += '<button onclick="_profileSave()" style="flex:1;padding:8px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara</button>';
+  h += '<button onclick="_profileEditCancel()" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avbryt</button>';
+  h += '</div>';
+  h += '</div>';
+
+  // Bio
+
+  h += '</div>'; // end prof-left-stats
   h += '</div>'; // left
 
   // ── Right ──
@@ -31019,12 +31075,25 @@ function rProfile() {
   }
 
   var showAreas = areas.length > 0;
+  h += '<div class="prof-left-status" style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:16px;cursor:pointer;background:var(--surface)" onclick="openStatusModal()">';
+  if (curStatus&&curStatus.text) {
+    h += '<div style="display:flex;align-items:center;gap:7px"><span style="font-size:15px">'+(curStatus.emoji||'')+'</span><span style="font-size:13px;color:var(--text)">'+e(curStatus.text)+'</span></div>';
+  } else {
+    h += '<span style="font-size:13px;color:var(--text2)">+ Sätt status</span>';
+  }
+  h += '</div>';
+  h += '<div class="prof-left-stats">'; function sRow(icon,html){ return '<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:7px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round">'+icon+'</svg>'+html+'</div>'; }
+  h += sRow('<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>','<strong>'+(patients.length)+'</strong>&nbsp;patienter');
+  h += sRow('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>','<strong>'+completedBks+'</strong>&nbsp;besök genomförda');
+  if (cfg.name) h += sRow('<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>',e(cfg.name));
+  if (daysSince>0) h += sRow('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>','Aktiv i&nbsp;<strong>'+daysSince+'</strong>&nbsp;dagar');
+
+
 
   if (showAreas) {
     h += '<div style="margin-bottom:20px">';
-    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+    h += '<div style="margin-bottom:12px">';
     h += '<span style="font-size:14px;font-weight:700;color:var(--ink)">Arbetsområden</span>';
-    h += '<button onclick="_profileEdit()" style="font-size:13px;color:var(--teal);background:none;border:none;cursor:pointer;font-family:var(--font)">Redigera →</button>';
     h += '</div>';
     h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
 
@@ -31130,83 +31199,6 @@ function rProfile() {
   h += '<span style="font-size:11px;color:var(--text2)">Fler</span></div>';
   h += '</div>'; // section
 
-  // Edit form — GitHub style, compact
-  var certs = cfg.certs || [];
-  var bioLen = (cfg.bio||'').length;
-  h += '<div class="prof-section" id="prof-edit-section" style="display:none">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">';
-  h += '<h3 style="font-size:14px;font-weight:700;color:var(--ink);margin:0">Redigera profil</h3>';
-  h += '<button onclick="_profileEditCancel()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1;padding:0">×</button>';
-  h += '</div>';
-
-  // Name + Title side by side
-  h += '<div class="prof-edit-row">';
-  h += '<div class="prof-edit-field"><label class="prof-field-label">Namn</label>';
-  h += '<input id="prof-f-name" class="field" placeholder="Ditt namn" value="'+e(cfg.signature||name)+'" style="width:100%;box-sizing:border-box"></div>';
-  h += '<div class="prof-edit-field"><label class="prof-field-label">Titel <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">— visas på bokningssidan</span></label>';
-  h += '<input id="prof-f-title" class="field" placeholder="T.ex. Leg. Naprapat, Certifierad frisör" value="'+e(cfg.title||'')+'" style="width:100%;box-sizing:border-box"></div>';
-  h += '</div>';
-
-  // Bio — 160 char limit like GitHub/Twitter
-  h += '<div style="margin-bottom:14px"><label class="prof-field-label">Bio <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">— max 160 tecken</span></label>';
-  h += '<div style="position:relative">';
-  h += '<textarea id="prof-f-bio" maxlength="160" rows="2" placeholder="Kort om dig och din approach. Vad gör dig unik?" style="width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--ink);font-family:var(--font);resize:none;outline:none;box-sizing:border-box" oninput="document.getElementById(\'bio-count\').textContent=160-this.value.length">'+e(cfg.bio||'')+'</textarea>';
-  h += '<span id="bio-count" style="position:absolute;bottom:8px;right:10px;font-size:11px;color:var(--text2)">'+(160-bioLen)+'</span>';
-  h += '</div></div>';
-
-  // Specializations + Years
-  h += '<div class="prof-edit-row">';
-  h += '<div class="prof-edit-field"><label class="prof-field-label">Specialiseringar</label>';
-  h += '<input id="prof-f-areas" class="field" placeholder="Rygg, Axel, Idrottsskador, PRP" value="'+e((cfg.areas||[]).join(', '))+'" style="width:100%;box-sizing:border-box">';
-  h += '<div style="font-size:11px;color:var(--text2);margin-top:3px">Kommaseparerade — visas som taggar</div></div>';
-  h += '<div class="prof-edit-field"><label class="prof-field-label">År i yrket</label>';
-  h += '<input id="prof-f-years" type="number" min="0" max="50" class="field" placeholder="T.ex. 8" value="'+e(cfg.years||'')+'" style="width:100%;box-sizing:border-box"></div>';
-  h += '</div>';
-
-  // Languages
-  h += '<div style="margin-bottom:14px"><label class="prof-field-label">Språk</label>';
-  h += '<input id="prof-f-langs" class="field" placeholder="Svenska, Engelska, Arabiska" value="'+e((cfg.langs||[]).join(', '))+'" style="width:100%;box-sizing:border-box">';
-  h += '</div>';
-
-  // Website + LinkedIn
-  h += '<div class="prof-edit-row">';
-  h += '<div class="prof-edit-field"><label class="prof-field-label">Webbplats</label>';
-  h += '<div style="position:relative">';
-  h += '<div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text2)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>';
-  h += '<input id="prof-f-web" class="field" placeholder="www.klinik.se" value="'+e(cfg.website||'')+'" style="width:100%;box-sizing:border-box;padding-left:30px"></div></div>';
-  h += '<div class="prof-edit-field"><label class="prof-field-label">LinkedIn / Instagram</label>';
-  h += '<input id="prof-f-social" class="field" placeholder="linkedin.com/in/ditt-namn" value="'+e(cfg.social||'')+'" style="width:100%;box-sizing:border-box"></div>';
-  h += '</div>';
-
-  // Certificate upload
-  h += '<div style="margin-bottom:16px"><label class="prof-field-label">Legitimation & Certifikat <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">— visas som verifierat på bokningssidan</span></label>';
-  h += '<div class="prof-cert-drop" id="prof-cert-drop">';
-  h += '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
-  h += '<span style="font-size:13px;color:var(--text2)">Ladda upp PDF eller bild</span>';
-  h += '<label style="font-size:13px;font-weight:600;color:var(--teal);cursor:pointer">Välj fil<input type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="_profileUploadCert(this)" style="display:none"></label>';
-  h += '</div>';
-  // Show existing certs
-  if (certs.length) {
-    h += '<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">';
-    certs.forEach(function(c, ci) {
-      h += '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:7px">';
-      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
-      h += '<span style="font-size:13px;color:var(--ink);flex:1">'+e(c.name)+'</span>';
-      h += '<button onclick="_profileRemoveCert('+ci+')" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px;padding:0;line-height:1">×</button>';
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  h += '</div>';
-
-  // Save / Cancel
-  h += '<div style="display:flex;gap:8px;padding-top:4px">';
-  h += '<button onclick="_profileSave()" style="padding:8px 20px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara</button>';
-  h += '<button onclick="_profileEditCancel()" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avbryt</button>';
-  h += '</div>';
-  h += '</div>';
-
-  // Bio
   if (cfg.bio) {
     h += '<div class="prof-section">';
     h += '<p style="font-size:14px;color:var(--text);line-height:1.7;margin:0">'+e(cfg.bio)+'</p>';
@@ -31265,25 +31257,30 @@ function rProfile() {
 }
 
 function _profileEdit() {
-  var s=document.getElementById('prof-edit-section');
+  var s = document.getElementById('prof-edit-section');
   if (!s) return;
+  // Show edit form
   s.style.display = '';
-  // Hide stat cards and graph while editing
-  var main = s.closest('.prof-main') || s.parentElement;
-  if (main) {
-    main.querySelectorAll('.prof-stats-row,.prof-section').forEach(function(el){
-      if (el !== s) el.style.display='none';
+  // Hide left-column profile info (name, button, status, stats)
+  var profLeft = s.closest('.prof-left') || s.parentElement;
+  if (profLeft) {
+    profLeft.querySelectorAll('.prof-avatar-wrap, .prof-left-info, .prof-left-btn, .prof-left-status, .prof-left-stats').forEach(function(el){
+      el.style.display = 'none';
     });
   }
-  s.scrollIntoView({behavior:'smooth',block:'start'});
+  s.scrollIntoView({behavior:'smooth', block:'start'});
 }
 function _profileEditCancel() {
-  var s=document.getElementById('prof-edit-section');
+  var s = document.getElementById('prof-edit-section');
   if (!s) return;
   s.style.display = 'none';
-  // Restore stat cards and graph
-  var main = s.closest('.prof-main') || s.parentElement;
-  if (main) main.querySelectorAll('.prof-stats-row,.prof-section').forEach(function(el){ el.style.display=''; });
+  // Restore left-column profile info
+  var profLeft = s.closest('.prof-left') || s.parentElement;
+  if (profLeft) {
+    profLeft.querySelectorAll('.prof-avatar-wrap, .prof-left-info, .prof-left-btn, .prof-left-status, .prof-left-stats').forEach(function(el){
+      el.style.display = '';
+    });
+  }
 }
 function _profileSave() {
   var cfg=getClinicConfig?getClinicConfig():{};
@@ -31299,6 +31296,7 @@ function _profileSave() {
   if(typeof saveClinicConfig==='function') saveClinicConfig(cfg);
   showAutoSaveToast('Profil sparad');
   rProfile();
+  // rProfile re-renders so edit form is hidden by default — done
 }
 
 function _profileUploadCert(input) {

@@ -2134,6 +2134,36 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
   .akt-item { padding: 12px 14px; }
   .akt-group-header { padding: 10px 14px 5px; }
 }
+
+/* ── Profile ──────────────────────────────────────────────────────────────── */
+.prof-shell { display:flex; gap:28px; padding:32px 28px; max-width:1100px; margin:0 auto; font-family:var(--font); min-height:calc(100vh - 110px); box-sizing:border-box; }
+.prof-left { width:260px; flex-shrink:0; }
+.prof-avatar-wrap { position:relative; width:80px; height:80px; margin-bottom:14px; }
+.prof-avatar-img { width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid var(--border); }
+.prof-avatar-initials { width:80px; height:80px; border-radius:50%; background:rgba(45,212,191,.12); border:2px solid rgba(45,212,191,.25); display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:800; color:var(--teal); }
+.prof-avatar-edit { position:absolute; bottom:0; right:0; width:24px; height:24px; border-radius:50%; background:var(--surface2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text); }
+.prof-avatar-edit:hover { background:var(--surface3,var(--surface)); }
+.prof-main { flex:1; min-width:0; }
+.prof-stats-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:10px; margin-bottom:20px; }
+.prof-stat-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px; }
+.prof-stat-val { font-size:22px; font-weight:800; color:var(--ink); letter-spacing:-.02em; line-height:1; margin-bottom:3px; }
+.prof-stat-label { font-size:13px; font-weight:600; color:var(--ink); }
+.prof-stat-sub { font-size:11px; color:var(--text2); margin-top:2px; }
+.prof-section { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px 20px; margin-bottom:16px; }
+.prof-graph { display:grid; grid-template-columns:repeat(52,1fr); gap:3px; }
+.prof-graph-cell { aspect-ratio:1; border-radius:2px; transition:opacity .1s; }
+.prof-graph-cell:hover { opacity:.8; }
+.prof-field-label { display:block; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text2); margin-bottom:5px; }
+@media(max-width:768px) {
+  .prof-shell { flex-direction:column; padding:20px 16px; }
+  .prof-left { width:100%; }
+  .prof-stats-row { grid-template-columns:repeat(3,1fr); }
+}
+
+.prof-edit-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+.prof-edit-field {}
+.prof-cert-drop { display:flex; align-items:center; gap:10px; padding:12px 16px; border:1px dashed var(--border); border-radius:8px; background:var(--surface2); margin-top:4px; }
+@media(max-width:600px) { .prof-edit-row { grid-template-columns:1fr; } }
 </style>
 
 <div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0e1825;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
@@ -2206,6 +2236,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
         <div id="s-patient-portal" class="screen"></div></div>
         <div id="s-calendar" class="screen"></div>
     <div id="s-availability" class="screen"></div>
+    <div id="s-profile" class="screen"></div>
     <div id="s-intake" class="screen"></div>
     <div id="s-economy" class="screen"></div>
     <div id="s-invoices" class="screen"></div>
@@ -4809,7 +4840,7 @@ function go(scr){
   }
 
   if (!_isPlatformScreen) rTopbar();
-  const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,availability:rAvailability,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
+  const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,availability:rAvailability,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,profile:rProfile,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
 }
@@ -8562,6 +8593,7 @@ function _openUserMenu(evt) {
   // ── Group: Konto ──────────────────────────────────────────────────────────
   h += '<div style="padding:4px 8px;border-bottom:1px solid var(--border)">';
   h += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);padding:8px 8px 4px">Konto</div>';
+  h += menuItem('<circle cx="12" cy="12" r="3"/><path d="M3 12h1M12 3v1M20.66 7l-.87.5M20.66 17l-.87-.5M3.34 17l.87-.5M3.34 7l.87.5"/>', 'Profil & status', 'um-profile');
 
   // Theme toggle row
   h += '<div style="display:flex;align-items:center;gap:10px;padding:7px 8px">';
@@ -8572,6 +8604,7 @@ function _openUserMenu(evt) {
   h += '<button id="um-theme-light" style="padding:4px 10px;background:' + (!isDark?'var(--surface3,#30363d)':'none') + ';border:none;color:' + (!isDark?'var(--ink)':'var(--text2)') + ';font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">Ljust</button>';
   h += '</div></div>';
 
+  h += menuItem('<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>', 'Kopplingar', 'um-integrations');
   h += menuItem('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>', 'API-nycklar', 'um-apikey');
   h += '</div>';
 
@@ -8587,9 +8620,10 @@ function _openUserMenu(evt) {
   function wire(id, fn2) { var el = document.getElementById(id); if (el) el.onclick = fn2; }
 
   wire('um-settings', function(){ _closeUserMenu(); window._settingsActiveTab='general'; go('settings'); });
-  wire('um-users',    function(){ _closeUserMenu(); window._settingsActiveTab='users'; go('settings'); });
+  wire('um-profile',  function(){ _closeUserMenu(); go('profile'); });
   wire('um-billing',  function(){ _closeUserMenu(); window._settingsActiveTab='billing'; go('settings'); });
   wire('um-apikey',   function(){ _closeUserMenu(); window._settingsActiveTab='apikey'; go('settings'); });
+  wire('um-integrations', function(){ _closeUserMenu(); window._settingsActiveTab='integrations'; go('settings'); });
   wire('um-signout',  function(){ _closeUserMenu(); sbSignOut(); });
 
   var darkBtn  = document.getElementById('um-theme-dark');
@@ -10949,9 +10983,9 @@ function rInbox() {
     if (mailCount) h += '<span class="akt-badge">' + mailCount + '</span>';
     h += '</button>';
   } else {
-    h += '<button class="akt-nav-btn" onclick="_gmailAuth(function(){rInbox()})" style="color:var(--teal)">';
+    h += '<button class="akt-nav-btn" onclick="_openUserMenu();setTimeout(function(){_openKopplingar()},100)" style="color:var(--teal)">';
     h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
-    h += '<span>Koppla Gmail</span></button>';
+    h += '<span>Koppla e-post</span></button>';
   }
 
   h += '</div></div>'; // sidebar-inner + sidebar
@@ -23988,6 +24022,8 @@ function _renderSettingsNav() {
   h += tab('billing',   'Abonnemang',         '<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>');
   h += tab('sync',      'Synk & data',        '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>');
 
+    h += tab('integrations', 'Kopplingar', '<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>');
+
   nav.innerHTML = h;
 
   nav.querySelectorAll('.vela-stab').forEach(function(btn) {
@@ -24017,7 +24053,8 @@ function _renderSettingsContent(tab) {
   else if (tab === 'billing')  el.innerHTML = _stBilling();
   else if (tab === 'sync')     el.innerHTML = _stSync();
   else if (tab === 'workflow')  el.innerHTML = _stWorkflow();
-  else if (tab === 'schedule')  el.innerHTML = _stSchedule();
+  else if (tab === 'schedule')      el.innerHTML = _stSchedule();
+  else if (tab === 'integrations')  el.innerHTML = _stIntegrations();
 }
 
 
@@ -24387,6 +24424,96 @@ function _stBilling() {
 function _e(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 // ── SYNK & DATA TAB ───────────────────────────────────────────
+function _stIntegrations() {
+  var gmailAuthed = typeof _gmailIsAuthed === 'function' && _gmailIsAuthed();
+  var gmailEmail  = gmailAuthed ? ((typeof _authUser !== 'undefined' && _authUser && _authUser.email) || 'Gmail kopplat') : null;
+  var hasResend   = typeof _velaGetApiKey === 'function' && !!_velaGetApiKey('resend');
+
+  function card(iconPath, name, desc, connected, actionHtml, extraInfo) {
+    return '<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border2)">'
+      + '<div style="display:flex;align-items:flex-start;gap:14px">'
+      + '<div style="width:40px;height:40px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+      + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' + iconPath + '</svg>'
+      + '</div>'
+      + '<div>'
+      + '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px">' + name + '</div>'
+      + '<div style="font-size:13px;color:var(--text2);margin-bottom:6px">' + desc + '</div>'
+      + '<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:20px;background:' + (connected?'rgba(63,185,80,.1)':'var(--surface2)') + ';color:' + (connected?'#3fb950':'var(--text2)') + '">'
+      + '<span style="width:6px;height:6px;border-radius:50%;background:' + (connected?'#3fb950':'var(--text2)') + '"></span>'
+      + (connected ? 'Ansluten' : 'Ej ansluten') + '</span>'
+      + (extraInfo ? '<div style="font-size:12px;color:var(--text2);margin-top:3px">' + extraInfo + '</div>' : '')
+      + '</div></div>'
+      + '<div style="flex-shrink:0;margin-top:2px">' + actionHtml + '</div>'
+      + '</div>';
+  }
+
+  function btn(label, onclick, primary) {
+    return '<button onclick="' + onclick + '" style="padding:6px 14px;border:1px solid ' + (primary?'var(--teal)':'var(--border)') + ';border-radius:7px;background:' + (primary?'rgba(45,212,191,.08)':'none') + ';font-size:13px;font-weight:' + (primary?'700':'600') + ';color:' + (primary?'var(--teal)':'var(--text)') + ';cursor:pointer;font-family:var(--font)">' + label + '</button>';
+  }
+  function soon() {
+    return '<span style="font-size:12px;font-weight:600;padding:5px 10px;border-radius:7px;background:var(--surface2);color:var(--text2)">Kommer snart</span>';
+  }
+
+  var h = '<div style="max-width:700px">';
+  h += '<h2 style="font-size:20px;font-weight:700;color:var(--ink);margin:0 0 6px">Kopplingar</h2>';
+  h += '<p style="font-size:14px;color:var(--text2);margin:0 0 24px">Koppla externa tjänster till ditt konto. Personliga inställningar.</p>';
+
+  h += '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:24px">';
+
+  h += card(
+    '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+    'Gmail',
+    'Hantera patientmail direkt i Vela med AI-assistans.',
+    gmailAuthed,
+    gmailAuthed
+      ? btn('Koppla från', '_gmailDisconnect()')
+      : btn('Anslut Gmail', '_gmailAuth(function(){_renderSettingsContent(\'integrations\')})', true),
+    gmailEmail ? e(gmailEmail) : null
+  );
+
+  h += card(
+    '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+    'Resend',
+    'Skickar patientmail och bekräftelser via din domän.',
+    hasResend,
+    btn(hasResend ? 'Hantera' : 'Konfigurera', 'window._settingsActiveTab=\'apikey\';_renderSettingsNav();_renderSettingsContent(\'apikey\')')
+  );
+
+  h += card(
+    '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    'Google Kalender',
+    'Synkronisera Vela-bokningar med din Google Kalender.',
+    false, soon()
+  );
+
+  h += card(
+    '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+    'Fortnox',
+    'Exportera fakturor och betalningar automatiskt.',
+    false, soon()
+  );
+
+  h += '</div></div>';
+  return h;
+}
+
+function _openKopplingar() {
+  window._settingsActiveTab = 'integrations';
+  go('settings');
+  setTimeout(function(){
+    if (typeof _renderSettingsNav === 'function') _renderSettingsNav();
+    if (typeof _renderSettingsContent === 'function') _renderSettingsContent('integrations');
+  }, 100);
+}
+
+function _gmailDisconnect() {
+  try { localStorage.removeItem('vela:gmail-token'); } catch(e) {}
+  if (window._gmailState) { window._gmailState.threads = []; }
+  showAutoSaveToast('Gmail frånkopplad');
+  if (typeof _renderSettingsContent === 'function') _renderSettingsContent('integrations');
+}
+
+
 function _stSync() {
   var cfg = getClinicConfig();
   var h = '<div class="vela-st-section" style="max-width:680px">';
@@ -30707,6 +30834,316 @@ function _saveRecurringBookings(patId) {
 // ══════════════════════════════════════════════════════════════════════════════
 //  AVAILABILITY / SCHEMA SCREEN
 // ══════════════════════════════════════════════════════════════════════════════
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  VELA PROFIL — GitHub-style user profile with activity graph
+// ══════════════════════════════════════════════════════════════════════════════
+
+function rProfile() {
+  var el = document.getElementById('s-profile');
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  el.classList.add('active');
+  S.screen = 'profile';
+
+  var email    = (typeof _authUser !== 'undefined' && _authUser && _authUser.email) || '';
+  var cfg      = getClinicConfig ? getClinicConfig() : {};
+  var name     = cfg.signature || cfg.name || email.split('@')[0] || 'Användare';
+  var initials = name.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+  var patients = S.patients || [];
+  var bks      = getBookings ? getBookings() : [];
+  var now      = new Date();
+
+  var completedBks = bks.filter(function(b){ return b.status === 'completed'; }).length;
+  var thisMonthBks = bks.filter(function(b){
+    var d = new Date(b.date||'');
+    return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear() && b.status!=='cancelled';
+  }).length;
+  var allDates  = bks.map(function(b){ return b.date; }).filter(Boolean).sort();
+  var firstDate = allDates[0] ? new Date(allDates[0]) : now;
+  var daysSince = Math.floor((now - firstDate) / 86400000);
+
+  var services = {};
+  bks.forEach(function(b){ if(b.serviceName) services[b.serviceName]=(services[b.serviceName]||0)+1; });
+  var svcArr = Object.keys(services).map(function(k){ return [k,services[k]]; }).sort(function(a,b){return b[1]-a[1];});
+  var topService = svcArr[0];
+
+  var nrsValues = [];
+  patients.forEach(function(p){
+    (p.visits||[]).forEach(function(v){
+      (v.logs||[]).forEach(function(l){ if(l.nrs!=null) nrsValues.push(l.nrs); });
+    });
+  });
+  var avgNrs = nrsValues.length ? (nrsValues.reduce(function(a,b){return a+b;},0)/nrsValues.length).toFixed(1) : null;
+
+  // 52-week activity graph
+  var weeks = 52;
+  var weekData = [];
+  for (var i=0;i<weeks;i++) weekData.push(0);
+  bks.forEach(function(b){
+    if (!b.date||b.status==='cancelled') return;
+    var d = new Date(b.date+'T12:00');
+    var wa = Math.floor((now-d)/(7*86400000));
+    if (wa>=0&&wa<weeks) weekData[weeks-1-wa]++;
+  });
+  var maxWeek = Math.max.apply(null,weekData)||1;
+
+  var monthLabels=[];
+  for (var w=0;w<weeks;w+=4) {
+    var ld = new Date(now.getTime()-(weeks-w)*7*86400000);
+    monthLabels.push({w:w,label:ld.toLocaleDateString('sv-SE',{month:'short'})});
+  }
+
+  var savedAvatar=null;
+  try{savedAvatar=localStorage.getItem('vela:profile-avatar');}catch(e){}
+  var curStatus = typeof _getStatus==='function' ? _getStatus() : null;
+  var totalActivity = weekData.reduce(function(a,b){return a+b;},0);
+
+  var h = '<div class="prof-shell">';
+
+  // ── Left ──
+  h += '<div class="prof-left">';
+  h += '<div class="prof-avatar-wrap">';
+  if (savedAvatar) {
+    h += '<img src="'+savedAvatar+'" class="prof-avatar-img" alt="Profilbild">';
+  } else {
+    h += '<div class="prof-avatar-initials">'+initials+'</div>';
+  }
+  h += '<label class="prof-avatar-edit" title="Byt profilbild">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  h += '<input type="file" accept="image/*" onchange="_profileUploadAvatar(this)" style="display:none"></label>';
+  h += '</div>';
+  h += '<div style="font-size:20px;font-weight:800;color:var(--ink);letter-spacing:-.02em;margin-bottom:2px">'+e(name)+'</div>';
+  if (cfg.title) h += '<div style="font-size:14px;color:var(--text2);margin-bottom:4px">'+e(cfg.title)+'</div>';
+  h += '<div style="font-size:13px;color:var(--text2);margin-bottom:16px">'+e(email)+'</div>';
+  h += '<button onclick="_profileEdit()" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font);margin-bottom:12px">Redigera profil</button>';
+  h += '<div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:16px;cursor:pointer;background:var(--surface)" onclick="openStatusModal()">';
+  if (curStatus&&curStatus.text) {
+    h += '<div style="display:flex;align-items:center;gap:7px"><span style="font-size:15px">'+(curStatus.emoji||'')+'</span><span style="font-size:13px;color:var(--text)">'+e(curStatus.text)+'</span></div>';
+  } else {
+    h += '<span style="font-size:13px;color:var(--text2)">+ Sätt status</span>';
+  }
+  h += '</div>';
+  function sRow(icon,html){ return '<div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:7px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round">'+icon+'</svg>'+html+'</div>'; }
+  h += sRow('<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>','<strong>'+(patients.length)+'</strong>&nbsp;patienter');
+  h += sRow('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>','<strong>'+completedBks+'</strong>&nbsp;besök genomförda');
+  if (cfg.name) h += sRow('<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>',e(cfg.name));
+  if (daysSince>0) h += sRow('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>','Aktiv i&nbsp;<strong>'+daysSince+'</strong>&nbsp;dagar');
+  h += '</div>'; // left
+
+  // ── Right ──
+  h += '<div class="prof-main">';
+
+  // Stat cards
+  h += '<div class="prof-stats-row">';
+  function sCard(val,label,sub,color){ return '<div class="prof-stat-card"><div class="prof-stat-val" style="color:'+(color||'var(--ink)')+'">'+val+'</div><div class="prof-stat-label">'+label+'</div>'+(sub?'<div class="prof-stat-sub">'+sub+'</div>':'')+'</div>'; }
+  h += sCard(patients.length,'Patienter','totalt','var(--teal)');
+  h += sCard(completedBks,'Besök','genomförda');
+  h += sCard(thisMonthBks,'Besök','denna månad');
+  if (avgNrs) h += sCard(avgNrs,'Snitt NRS','alla patienter',parseFloat(avgNrs)>=7?'#f85149':parseFloat(avgNrs)>=4?'#d29922':'#3fb950');
+  if (topService) h += sCard(topService[1],topService[0],'vanligaste tjänst');
+  h += '</div>';
+
+  // Activity graph
+  h += '<div class="prof-section">';
+  h += '<h3 style="font-size:14px;font-weight:700;color:var(--ink);margin:0 0 10px">'+totalActivity+' besök de senaste 52 veckorna</h3>';
+  h += '<div style="display:flex;margin-bottom:3px">';
+  for (var mi=0;mi<monthLabels.length;mi++) h += '<div style="flex:4;font-size:10px;color:var(--text2);text-transform:capitalize">'+monthLabels[mi].label+'</div>';
+  h += '</div>';
+  h += '<div class="prof-graph">';
+  for (var wi=0;wi<weekData.length;wi++) {
+    var cnt=weekData[wi];
+    var intensity=cnt===0?0:Math.min(4,Math.ceil((cnt/maxWeek)*4));
+    var colors=['var(--surface2)','rgba(45,212,191,.15)','rgba(45,212,191,.35)','rgba(45,212,191,.6)','var(--teal)'];
+    h += '<div class="prof-graph-cell" style="background:'+colors[intensity]+'" title="'+cnt+' besök"></div>';
+  }
+  h += '</div>';
+  h += '<div style="display:flex;align-items:center;gap:5px;margin-top:8px;justify-content:flex-end">';
+  h += '<span style="font-size:11px;color:var(--text2)">Färre</span>';
+  ['var(--surface2)','rgba(45,212,191,.15)','rgba(45,212,191,.35)','rgba(45,212,191,.6)','var(--teal)'].forEach(function(c){ h += '<div style="width:11px;height:11px;border-radius:2px;background:'+c+'"></div>'; });
+  h += '<span style="font-size:11px;color:var(--text2)">Fler</span></div>';
+  h += '</div>'; // section
+
+  // Edit form — GitHub style, compact
+  var certs = cfg.certs || [];
+  var bioLen = (cfg.bio||'').length;
+  h += '<div class="prof-section" id="prof-edit-section" style="display:none">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">';
+  h += '<h3 style="font-size:14px;font-weight:700;color:var(--ink);margin:0">Redigera profil</h3>';
+  h += '<button onclick="_profileEditCancel()" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;line-height:1;padding:0">×</button>';
+  h += '</div>';
+
+  // Name + Title side by side
+  h += '<div class="prof-edit-row">';
+  h += '<div class="prof-edit-field"><label class="prof-field-label">Namn</label>';
+  h += '<input id="prof-f-name" class="field" placeholder="Ditt namn" value="'+e(cfg.signature||name)+'" style="width:100%;box-sizing:border-box"></div>';
+  h += '<div class="prof-edit-field"><label class="prof-field-label">Titel <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">— visas på bokningssidan</span></label>';
+  h += '<input id="prof-f-title" class="field" placeholder="T.ex. Leg. Naprapat, Certifierad frisör" value="'+e(cfg.title||'')+'" style="width:100%;box-sizing:border-box"></div>';
+  h += '</div>';
+
+  // Bio — 160 char limit like GitHub/Twitter
+  h += '<div style="margin-bottom:14px"><label class="prof-field-label">Bio <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">— max 160 tecken</span></label>';
+  h += '<div style="position:relative">';
+  h += '<textarea id="prof-f-bio" maxlength="160" rows="2" placeholder="Kort om dig och din approach. Vad gör dig unik?" style="width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--ink);font-family:var(--font);resize:none;outline:none;box-sizing:border-box" oninput="document.getElementById(\'bio-count\').textContent=160-this.value.length">'+e(cfg.bio||'')+'</textarea>';
+  h += '<span id="bio-count" style="position:absolute;bottom:8px;right:10px;font-size:11px;color:var(--text2)">'+(160-bioLen)+'</span>';
+  h += '</div></div>';
+
+  // Specializations + Years
+  h += '<div class="prof-edit-row">';
+  h += '<div class="prof-edit-field"><label class="prof-field-label">Specialiseringar</label>';
+  h += '<input id="prof-f-areas" class="field" placeholder="Rygg, Axel, Idrottsskador, PRP" value="'+e((cfg.areas||[]).join(', '))+'" style="width:100%;box-sizing:border-box">';
+  h += '<div style="font-size:11px;color:var(--text2);margin-top:3px">Kommaseparerade — visas som taggar</div></div>';
+  h += '<div class="prof-edit-field"><label class="prof-field-label">År i yrket</label>';
+  h += '<input id="prof-f-years" type="number" min="0" max="50" class="field" placeholder="T.ex. 8" value="'+e(cfg.years||'')+'" style="width:100%;box-sizing:border-box"></div>';
+  h += '</div>';
+
+  // Languages
+  h += '<div style="margin-bottom:14px"><label class="prof-field-label">Språk</label>';
+  h += '<input id="prof-f-langs" class="field" placeholder="Svenska, Engelska, Arabiska" value="'+e((cfg.langs||[]).join(', '))+'" style="width:100%;box-sizing:border-box">';
+  h += '</div>';
+
+  // Website + LinkedIn
+  h += '<div class="prof-edit-row">';
+  h += '<div class="prof-edit-field"><label class="prof-field-label">Webbplats</label>';
+  h += '<div style="position:relative">';
+  h += '<div style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text2)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg></div>';
+  h += '<input id="prof-f-web" class="field" placeholder="www.klinik.se" value="'+e(cfg.website||'')+'" style="width:100%;box-sizing:border-box;padding-left:30px"></div></div>';
+  h += '<div class="prof-edit-field"><label class="prof-field-label">LinkedIn / Instagram</label>';
+  h += '<input id="prof-f-social" class="field" placeholder="linkedin.com/in/ditt-namn" value="'+e(cfg.social||'')+'" style="width:100%;box-sizing:border-box"></div>';
+  h += '</div>';
+
+  // Certificate upload
+  h += '<div style="margin-bottom:16px"><label class="prof-field-label">Legitimation & Certifikat <span style="color:var(--text2);font-weight:400;text-transform:none;letter-spacing:0">— visas som verifierat på bokningssidan</span></label>';
+  h += '<div class="prof-cert-drop" id="prof-cert-drop">';
+  h += '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+  h += '<span style="font-size:13px;color:var(--text2)">Ladda upp PDF eller bild</span>';
+  h += '<label style="font-size:13px;font-weight:600;color:var(--teal);cursor:pointer">Välj fil<input type="file" accept=".pdf,.jpg,.jpeg,.png" onchange="_profileUploadCert(this)" style="display:none"></label>';
+  h += '</div>';
+  // Show existing certs
+  if (certs.length) {
+    h += '<div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">';
+    certs.forEach(function(c, ci) {
+      h += '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:7px">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      h += '<span style="font-size:13px;color:var(--ink);flex:1">'+e(c.name)+'</span>';
+      h += '<button onclick="_profileRemoveCert('+ci+')" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px;padding:0;line-height:1">×</button>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+  h += '</div>';
+
+  // Save / Cancel
+  h += '<div style="display:flex;gap:8px;padding-top:4px">';
+  h += '<button onclick="_profileSave()" style="padding:8px 20px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara</button>';
+  h += '<button onclick="_profileEditCancel()" style="padding:8px 14px;background:none;border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avbryt</button>';
+  h += '</div>';
+  h += '</div>';
+
+  // Bio
+  if (cfg.bio) {
+    h += '<div class="prof-section">';
+    h += '<p style="font-size:14px;color:var(--text);line-height:1.7;margin:0">'+e(cfg.bio)+'</p>';
+    h += '</div>';
+  }
+
+  // Specializations + meta row
+  if (cfg.areas&&cfg.areas.length || cfg.years || (cfg.langs&&cfg.langs.length)) {
+    h += '<div class="prof-section">';
+    if (cfg.areas&&cfg.areas.length) {
+      h += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">';
+      cfg.areas.forEach(function(a){ if(a.trim()) h+='<span style="padding:4px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:13px;color:var(--text)">'+e(a.trim())+'</span>'; });
+      h += '</div>';
+    }
+    h += '<div style="display:flex;flex-wrap:wrap;gap:16px">';
+    if (cfg.years) h += '<span style="font-size:13px;color:var(--text2)"><strong style="color:var(--ink)">'+e(cfg.years)+'</strong> år i yrket</span>';
+    if (cfg.langs&&cfg.langs.length) h += '<span style="font-size:13px;color:var(--text2)">Talar: <strong style="color:var(--ink)">'+cfg.langs.map(e).join(', ')+'</strong></span>';
+    h += '</div>';
+    h += '</div>';
+  }
+
+  // Certs — verified badges
+  if (cfg.certs&&cfg.certs.length) {
+    h += '<div class="prof-section">';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:10px">Verifierade dokument</div>';
+    cfg.certs.forEach(function(c) {
+      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">';
+      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+      h += '<span style="font-size:13px;color:var(--ink)">'+e(c.name)+'</span>';
+      var d = c.ts ? new Date(c.ts).toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric'}) : '';
+      if (d) h += '<span style="font-size:11px;color:var(--text2)">Uppladdad '+d+'</span>';
+      if (c.data) h += '<a href="'+c.data+'" target="_blank" style="font-size:12px;color:var(--teal);text-decoration:none;margin-left:auto">Visa</a>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  // Social links
+  if (cfg.website||cfg.social) {
+    h += '<div class="prof-section" style="display:flex;flex-wrap:wrap;gap:14px">';
+    if (cfg.website) {
+      h += '<a href="'+e(cfg.website)+'" target="_blank" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--teal);text-decoration:none">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>';
+      h += e(cfg.website.replace(/^https?:\/\//,'').split('/')[0]) + '</a>';
+    }
+    if (cfg.social) {
+      h += '<a href="'+e(cfg.social)+'" target="_blank" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--teal);text-decoration:none">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>';
+      h += e(cfg.social.replace(/^https?:\/\//,'').split('/')[0]) + '</a>';
+    }
+    h += '</div>';
+  }
+
+  h += '</div></div>'; // main + shell
+  el.innerHTML = h;
+}
+
+function _profileEdit() { var s=document.getElementById('prof-edit-section'); if(s){s.style.display='';s.scrollIntoView({behavior:'smooth',block:'start'});} }
+function _profileEditCancel() { var s=document.getElementById('prof-edit-section'); if(s) s.style.display='none'; }
+function _profileSave() {
+  var cfg=getClinicConfig?getClinicConfig():{};
+  var f=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  cfg.signature = f('prof-f-name');
+  cfg.title     = f('prof-f-title');
+  cfg.bio       = f('prof-f-bio');
+  cfg.areas     = f('prof-f-areas').split(',').map(function(s){return s.trim();}).filter(Boolean);
+  cfg.years     = f('prof-f-years');
+  cfg.langs     = f('prof-f-langs').split(',').map(function(s){return s.trim();}).filter(Boolean);
+  cfg.website   = f('prof-f-web');
+  cfg.social    = f('prof-f-social');
+  if(typeof saveClinicConfig==='function') saveClinicConfig(cfg);
+  showAutoSaveToast('Profil sparad');
+  rProfile();
+}
+
+function _profileUploadCert(input) {
+  var file = input.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var cfg = getClinicConfig ? getClinicConfig() : {};
+    if (!cfg.certs) cfg.certs = [];
+    cfg.certs.push({ name: file.name, type: file.type, data: ev.target.result, ts: new Date().toISOString() });
+    if (typeof saveClinicConfig === 'function') saveClinicConfig(cfg);
+    showAutoSaveToast('Certifikat tillagt: ' + file.name);
+    rProfile();
+    setTimeout(function(){ _profileEdit(); }, 100);
+  };
+  reader.readAsDataURL(file);
+}
+function _profileRemoveCert(idx) {
+  var cfg = getClinicConfig ? getClinicConfig() : {};
+  if (cfg.certs) { cfg.certs.splice(idx, 1); if (typeof saveClinicConfig === 'function') saveClinicConfig(cfg); }
+  rProfile();
+  setTimeout(function(){ _profileEdit(); }, 100);
+}
+function _profileUploadAvatar(input) {
+  var file=input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(ev){ try{localStorage.setItem('vela:profile-avatar',ev.target.result);}catch(e){} rProfile(); showAutoSaveToast('Profilbild uppdaterad'); };
+  reader.readAsDataURL(file);
+}
+
 
 function rAvailability() {
   var el = document.getElementById('s-availability');

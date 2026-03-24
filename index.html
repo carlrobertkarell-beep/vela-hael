@@ -10720,7 +10720,7 @@ function _aktSyncFromIssues() {
 var _CANCEL_POLICY = {
   within24h:      true,   // charge late fee if cancelled within 24h
   lateFeeAmount:  0,      // SEK fixed (0 = use percent instead)
-  lateFeePercent: 50,     // % of service price (if lateFeeAmount is 0)
+  lateFeePercent: 100,    // % of service price (100% = full amount)
   allowExceptions: true,  // AI can waive based on history
   autoRespond:    true,   // AI sends response automatically
   aiTone:         'professional', // professional | warm | firm
@@ -10810,7 +10810,7 @@ async function _aktAiCancelResponse(bk, pat, isLate, policy, reason) {
     + (reason ? 'Anledning från patienten: ' + reason + '\n' : '')
     + (isPrepaid ? 'Patienten har förbetalt: ' + paidAmount + ' kr — ska återbetalas.\n' : '')
     + 'Avbokningspolicy: ' + (isLate && policy.within24h
-        ? 'Sen avbokningsavgift ' + lateFee + ' kr (gäller oavsett anledning per policy)'
+        ? 'Sen avbokningsavgift ' + lateFee + ' kr = 100% av tjänstens pris (gäller oavsett anledning per policy)'
         : 'Ingen avgift — avbokning i tid') + '\n\n'
     + 'Skriv ett kort, professionellt svar på svenska som:\n'
     + '1. Bekräftar avbokningen av ' + serviceName + ' den ' + bk.date + ' kl ' + (bk.time||'') + '\n'

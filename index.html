@@ -1244,7 +1244,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .phase-next-txt { font-size:13px;color:var(--text);line-height:1.65; }
 
 /* ── FORMS & MISC ────────────────────────────────────────── */
-.field { width:100%;border:1.5px solid var(--border);border-radius:var(--r-md,10px);padding:10px 13px;font-size:14px;font-family:var(--font,sans-serif);color:var(--ink);background:var(--surface);outline:none;box-sizing:border-box; }
+.field { width:100%;border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:14px;font-family:var(--font,sans-serif);color:var(--ink);background:var(--surface);outline:none;box-sizing:border-box; }
 .field:focus { border-color:var(--teal); }
 .slabel { display:block;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:18px 0 10px; }
 .chip { padding:6px 14px;border:1.5px solid var(--border);border-radius:20px;background:var(--surface);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font,sans-serif);color:var(--text);transition:all .12s; }
@@ -2183,7 +2183,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 
 
 /* VELA WORKSPACE r4 — Pixel-perfect GitHub repository */
-.r4-namerow{display:flex;align-items:center;justify-content:space-between;padding:16px 24px 8px;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--border)}
+.r4-namerow{display:flex;align-items:center;justify-content:space-between;padding:16px 0 8px;flex-wrap:wrap;gap:8px;border-bottom:1px solid var(--border)}
 .r4-namerow-l{display:flex;align-items:center;gap:6px;min-width:0}
 .r4-repo-ic{color:var(--text2);flex-shrink:0}
 .r4-owner{font-size:18px;font-weight:400;color:var(--teal);cursor:pointer}
@@ -2212,7 +2212,8 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .r4-tab-on svg{opacity:1}
 .r4-tab-badge{font-size:12px;padding:1px 6px;border-radius:20px;background:rgba(177,186,196,.1);color:var(--text);font-weight:500}
 /* Body */
-.r4-body{display:flex;gap:24px;padding:16px 24px 60px;align-items:flex-start}
+.r4-page{max-width:1280px;margin:0 auto;padding:0 24px}
+.r4-body{display:flex;gap:24px;padding:16px 0 60px;align-items:flex-start}
 .r4-main{flex:1;min-width:0}
 .r4-aside{width:256px;flex-shrink:0}
 /* Branch bar */
@@ -2276,7 +2277,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 /* Sidebar — NO boxes, only section > border-bottom */
 .r4-aside{display:flex;flex-direction:column;padding-top:4px}
 .r4-asec{padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--border)}
-.r4-asec-last{border-bottom:none;margin-bottom:0}
+.r4-asec:last-child{border-bottom:none;margin-bottom:0}
 .r4-ah2{font-size:14px;font-weight:600;color:var(--ink);margin:0 0 8px;display:flex;align-items:center;justify-content:space-between}
 .r4-a-gear{background:none;border:none;color:var(--text2);cursor:pointer;padding:2px;border-radius:4px;display:flex;align-items:center}
 .r4-a-gear:hover{color:var(--ink);background:var(--surface2)}
@@ -12891,18 +12892,7 @@ function rWorkspace() {
   });
   h += '</section>';
 
-  // Languages = Services (already shown above as Tjänster — use if no svcs: show placeholder)
-  if (svcArr.length && svcTotal) {
-    h += '<section class="r4-asec r4-asec-last">';
-    h += '<h2 class="r4-ah2">Tjänstefördelning</h2>';
-    h += '<div class="r4-langbar">';
-    svcArr.forEach(function(s,i){ h += '<div style="width:'+s.pct+'%;background:'+svcCols[i]+'"></div>'; });
-    h += '</div>';
-    svcArr.forEach(function(s,i){
-      h += '<span class="r4-lang"><span class="r4-langdot" style="background:'+svcCols[i]+'"></span>'+e(s.name)+' <span class="r4-langpct">'+s.pct+'%</span></span> ';
-    });
-    h += '</section>';
-  }
+
 
   h += '</aside>';
   h += '</div>'; // r4-body
@@ -31585,30 +31575,19 @@ function rProfile() {
 
 
 function _profileEdit() {
-  var s = document.getElementById('prof-edit-section');
+  var s  = document.getElementById('prof-edit-section');
+  var id = document.getElementById('prof-identity');
   if (!s) return;
-  // Show edit form
-  s.style.display = '';
-  // Hide left-column profile info (name, button, status, stats)
-  var profLeft = s.closest('.prof-left') || s.parentElement;
-  if (profLeft) {
-    profLeft.querySelectorAll('.prof-avatar-wrap, .prof-left-info, .prof-left-btn, .prof-left-status, .prof-left-stats').forEach(function(el){
-      el.style.display = 'none';
-    });
-  }
+  s.style.display  = '';
+  if (id) id.style.display = 'none';
   s.scrollIntoView({behavior:'smooth', block:'start'});
 }
 function _profileEditCancel() {
-  var s = document.getElementById('prof-edit-section');
+  var s  = document.getElementById('prof-edit-section');
+  var id = document.getElementById('prof-identity');
   if (!s) return;
   s.style.display = 'none';
-  // Restore left-column profile info
-  var profLeft = s.closest('.prof-left') || s.parentElement;
-  if (profLeft) {
-    profLeft.querySelectorAll('.prof-avatar-wrap, .prof-left-info, .prof-left-btn, .prof-left-status, .prof-left-stats').forEach(function(el){
-      el.style.display = '';
-    });
-  }
+  if (id) id.style.display = '';
 }
 function _profileSave() {
   var cfg=getClinicConfig?getClinicConfig():{};

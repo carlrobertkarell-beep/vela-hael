@@ -2180,102 +2180,129 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .area-card-add { border:1px dashed var(--border2); border-radius:10px; padding:14px 16px; display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; color:var(--text2); font-size:13px; transition:all .15s; }
 .area-card-add:hover { border-color:var(--teal); color:var(--teal); }
 
+
 /* ══════════════════════════════════════════════════════════════════════════
-   VELA WORKSPACE — GitHub repo style
+   VELA WORKSPACE — Exact GitHub repository page
    ══════════════════════════════════════════════════════════════════════════ */
-.ws-shell { max-width:1280px; margin:0 auto; padding:20px 24px 60px; font-family:var(--font); }
+.repo-wrap { max-width:1280px; margin:0 auto; padding:16px 24px 60px; font-family:var(--font); }
 
 /* Header */
-.ws-hdr { display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
-.ws-hdr-name { font-size:18px; font-weight:700; color:var(--teal); }
-.ws-hdr-badge { font-size:11px; font-weight:600; padding:1px 7px; border-radius:20px; border:1px solid var(--teal); color:var(--teal); }
+.repo-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:8px; flex-wrap:wrap; }
+.repo-header-left { display:flex; align-items:center; gap:8px; min-width:0; }
+.repo-name { font-size:18px; font-weight:600; color:var(--teal); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.repo-vis-badge { font-size:12px; font-weight:500; padding:1px 9px; border-radius:20px; cursor:pointer; border:1px solid; transition:all .15s; flex-shrink:0; }
+.repo-vis-badge.public { color:#8b949e; border-color:#30363d; background:none; }
+.repo-vis-badge.public:hover { border-color:#e07628; color:var(--teal); }
+.repo-vis-badge.private { color:#d29922; border-color:rgba(210,153,34,.4); background:rgba(210,153,34,.06); }
+.repo-header-right { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.repo-action-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-weight:500; color:var(--ink); background:var(--surface2); cursor:pointer; font-family:var(--font); }
+.repo-action-btn:hover { background:var(--surface3,#30363d); border-color:var(--text2); }
+.repo-action-count { font-size:12px; font-weight:600; padding:0 5px; border-radius:20px; background:rgba(177,186,196,.12); color:var(--text); }
+.repo-action-primary { background:rgba(63,185,80,.1) !important; border-color:rgba(63,185,80,.4) !important; color:#3fb950 !important; }
+.repo-action-primary:hover { background:rgba(63,185,80,.18) !important; }
 
-/* Subnav */
-.ws-subnav2 { display:flex; align-items:center; gap:8px; border:1px solid var(--border); border-radius:8px; padding:8px 12px; margin-bottom:16px; background:var(--surface); flex-wrap:wrap; }
-.ws-subnav2-left { display:flex; align-items:center; gap:10px; flex:1; flex-wrap:wrap; }
-.ws-subnav2-right { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-.ws-branch2 { display:flex; align-items:center; gap:6px; padding:4px 10px; background:var(--surface2); border:1px solid var(--border); border-radius:6px; font-size:13px; font-weight:600; color:var(--ink); cursor:pointer; }
-.ws-nav-count { display:flex; align-items:center; gap:5px; font-size:13px; color:var(--text); cursor:pointer; text-decoration:none; }
-.ws-nav-count:hover { color:var(--teal); }
-.ws-srch { display:flex; align-items:center; gap:6px; padding:5px 10px; background:var(--bg); border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--text2); cursor:pointer; min-width:140px; }
-.ws-srch:hover { border-color:var(--teal); }
-
-/* Buttons */
-.ws-btn { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-weight:600; color:var(--text); background:var(--surface2); cursor:pointer; font-family:var(--font); text-decoration:none; white-space:nowrap; }
-.ws-btn:hover { background:var(--surface3,#32333f); }
-.ws-btn-green { background:rgba(63,185,80,.1) !important; border-color:rgba(63,185,80,.4) !important; color:#3fb950 !important; }
-.ws-btn-green:hover { background:rgba(63,185,80,.18) !important; }
-.ws-btn-red { border-color:rgba(248,81,73,.3) !important; color:#f85149 !important; }
-.ws-btn-red:hover { background:rgba(248,81,73,.06) !important; }
+/* Sub-nav tabs — like GitHub's Code / Issues / Pull requests */
+.repo-tabs { display:flex; align-items:center; border-bottom:1px solid var(--border); margin-bottom:0; overflow-x:auto; gap:0; }
+.repo-tab { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:none; background:none; font-size:14px; font-weight:400; color:var(--text2); cursor:pointer; font-family:var(--font); border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; transition:color .1s; }
+.repo-tab:hover { color:var(--ink); border-bottom-color:var(--border); }
+.repo-tab.active { color:var(--ink); font-weight:600; border-bottom-color:var(--teal); }
+.repo-tab svg { opacity:.7; }
+.repo-tab.active svg { opacity:1; }
+.repo-tab-badge { font-size:12px; font-weight:500; padding:0 6px; border-radius:20px; background:rgba(177,186,196,.12); color:var(--text); }
 
 /* Body */
-.ws-body { display:flex; gap:24px; align-items:flex-start; }
-.ws-main { flex:1; min-width:0; }
-.ws-aside { width:260px; flex-shrink:0; display:flex; flex-direction:column; gap:12px; }
+.repo-body { display:flex; gap:24px; align-items:flex-start; padding-top:16px; }
+.repo-main { flex:1; min-width:0; }
+.repo-aside { width:256px; flex-shrink:0; }
 
-/* Commit bar */
-.ws-commit { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface); border:1px solid var(--border); border-radius:6px 6px 0 0; border-bottom:none; }
-.ws-commit-av { width:20px; height:20px; border-radius:50%; background:rgba(224,118,40,.15); border:1px solid rgba(224,118,40,.2); display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:var(--teal); flex-shrink:0; }
-.ws-commit-txt { font-size:13px; font-weight:600; color:var(--ink); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.ws-commit-time { font-size:12px; color:var(--text2); white-space:nowrap; }
-.ws-commit-hash { display:flex; align-items:center; gap:4px; font-size:12px; color:var(--text2); white-space:nowrap; padding-left:8px; border-left:1px solid var(--border); }
+/* Branch bar */
+.repo-branch-bar { display:flex; align-items:center; justify-content:space-between; margin-bottom:0; gap:8px; flex-wrap:wrap; }
+.repo-branch-bar-left { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.repo-branch-bar-right { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.repo-branch-btn { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; font-weight:500; color:var(--ink); background:var(--surface2); cursor:pointer; font-family:var(--font); }
+.repo-branch-btn:hover { background:var(--surface3,#30363d); }
+.repo-meta-link { display:inline-flex; align-items:center; gap:4px; font-size:13px; color:var(--text2); cursor:pointer; text-decoration:none; padding:4px 4px; }
+.repo-meta-link:hover { color:var(--teal); }
+.repo-go-file { display:flex; align-items:center; gap:6px; padding:4px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; color:var(--text2); background:var(--surface2); cursor:pointer; min-width:160px; }
+.repo-go-file kbd { font-size:11px; padding:1px 5px; border:1px solid var(--border); border-radius:3px; color:var(--text2); background:var(--bg); font-family:var(--font-mono); margin-left:auto; }
+.repo-go-file:hover { border-color:var(--teal); }
+.repo-add-file-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border:1px solid var(--border); border-radius:6px 0 0 6px; font-size:13px; font-weight:500; color:var(--ink); background:var(--surface2); cursor:pointer; font-family:var(--font); }
+.repo-add-file-btn:hover { background:var(--surface3,#30363d); }
+.repo-code-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border:1px solid rgba(63,185,80,.4); border-radius:6px; font-size:13px; font-weight:600; color:#3fb950; background:rgba(63,185,80,.1); cursor:pointer; font-family:var(--font); }
+.repo-code-btn:hover { background:rgba(63,185,80,.18); }
+
+/* Commit row */
+.repo-commit-row { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface); border:1px solid var(--border); border-bottom:none; border-radius:6px 6px 0 0; margin-top:8px; flex-wrap:wrap; }
+.repo-commit-av-img { width:20px; height:20px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+.repo-commit-av-init { width:20px; height:20px; border-radius:50%; background:rgba(224,118,40,.15); border:1px solid rgba(224,118,40,.25); display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:var(--teal); flex-shrink:0; }
+.repo-commit-author { font-size:13px; font-weight:600; color:var(--ink); }
+.repo-commit-msg { font-size:13px; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:260px; }
+.repo-commit-hash { font-size:12px; font-family:var(--font-mono); color:var(--teal); }
+.repo-commit-time { font-size:12px; color:var(--text2); }
+.repo-commits-link { display:inline-flex; align-items:center; gap:4px; font-size:13px; color:var(--text); text-decoration:none; cursor:pointer; white-space:nowrap; }
+.repo-commits-link:hover { color:var(--teal); }
 
 /* File list */
-.ws-files { border:1px solid var(--border); border-radius:0 0 6px 6px; overflow:hidden; margin-bottom:16px; }
-.ws-file { display:flex; align-items:center; gap:10px; padding:7px 12px; border-bottom:1px solid var(--border2); cursor:pointer; transition:background .08s; }
-.ws-file:last-child { border-bottom:none; }
-.ws-file:hover { background:var(--surface2); }
-.ws-files-empty { padding:24px; text-align:center; color:var(--text2); font-size:14px; }
-.ws-fname { font-size:13px; color:var(--teal); flex:0 0 200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.ws-fdesc { font-size:13px; color:var(--text2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.ws-ftime { font-size:12px; color:var(--text2); white-space:nowrap; flex-shrink:0; }
+.repo-files { border:1px solid var(--border); border-top:none; border-radius:0 0 6px 6px; overflow:hidden; margin-bottom:16px; }
+.repo-file-row { display:flex; align-items:center; gap:10px; padding:7px 12px; border-bottom:1px solid var(--border2); cursor:pointer; transition:background .08s; }
+.repo-file-row:last-child { border-bottom:none; }
+.repo-file-row:hover { background:rgba(177,186,196,.05); }
+.repo-file-icon { flex-shrink:0; }
+.repo-file-name { font-size:14px; color:var(--ink); flex:0 0 180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.repo-file-name:hover { color:var(--teal); text-decoration:underline; }
+.repo-file-desc { font-size:13px; color:var(--text2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.repo-file-time { font-size:12px; color:var(--text2); flex-shrink:0; white-space:nowrap; }
+.repo-files-empty { padding:24px 16px; font-size:13px; color:var(--text2); }
 
-/* Document / README */
-.ws-readme2 { border:1px solid var(--border); border-radius:6px; overflow:hidden; }
-.ws-readme2-hdr { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface); border-bottom:1px solid var(--border); font-size:13px; font-weight:700; color:var(--ink); }
-.ws-readme2-hdr span { flex:1; }
-.ws-icon-btn2 { background:none; border:none; color:var(--text2); cursor:pointer; padding:3px; border-radius:4px; display:flex; align-items:center; }
-.ws-icon-btn2:hover { color:var(--ink); background:var(--surface2); }
-.ws-doc-row { display:flex; align-items:center; gap:12px; padding:14px 16px; }
-.ws-doc-info { flex:1; min-width:0; }
-.ws-doc-name { display:block; font-size:14px; font-weight:600; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.ws-doc-meta { display:block; font-size:12px; color:var(--text2); margin-top:2px; }
-.ws-doc-actions { display:flex; gap:6px; flex-shrink:0; }
-.ws-doc-dropzone { display:block; padding:28px; text-align:center; cursor:pointer; }
-.ws-doc-dropzone:hover { background:var(--surface2); }
+/* README / Document */
+.repo-readme { border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+.repo-readme-header { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface); border-bottom:1px solid var(--border); font-size:13px; font-weight:600; color:var(--ink); }
+.repo-readme-header span { flex:1; }
+.repo-readme-upload { background:none; border:none; color:var(--text2); cursor:pointer; padding:2px 4px; border-radius:4px; display:flex; align-items:center; }
+.repo-readme-upload:hover { color:var(--ink); background:var(--surface2); }
+.repo-readme-empty { padding:32px; text-align:center; }
+.repo-readme-add-btn { display:inline-block; padding:6px 16px; background:#238636; color:#fff; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font); }
+.repo-readme-doc { display:flex; align-items:center; gap:14px; padding:16px; }
+.repo-readme-doc-info { flex:1; min-width:0; }
+.repo-readme-doc-name { display:block; font-size:14px; font-weight:600; color:var(--ink); }
+.repo-readme-doc-meta { display:block; font-size:12px; color:var(--text2); margin-top:2px; }
+.repo-readme-doc-actions { display:flex; gap:6px; flex-shrink:0; }
+.repo-doc-btn { display:inline-flex; align-items:center; padding:4px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; font-weight:600; color:var(--text); background:var(--surface2); cursor:pointer; font-family:var(--font); text-decoration:none; }
+.repo-doc-btn-red { border-color:rgba(248,81,73,.3) !important; color:#f85149 !important; }
 
 /* Sidebar */
-.ws-aside-block { border:1px solid var(--border); border-radius:6px; padding:14px 16px; background:var(--surface); }
-.ws-aside-hdr { display:flex; align-items:center; justify-content:space-between; font-size:14px; font-weight:700; color:var(--ink); margin-bottom:12px; }
-.ws-aside-count { font-size:13px; font-weight:400; color:var(--text2); }
-.ws-about-bio { font-size:13px; color:var(--text); line-height:1.6; margin:0 0 10px; }
-.ws-slink { display:flex; align-items:center; gap:7px; margin-bottom:7px; text-decoration:none; }
-.ws-stat-row { display:flex; align-items:center; gap:7px; margin-bottom:7px; font-size:13px; color:var(--text); cursor:pointer; text-decoration:none; }
-.ws-stat-row:hover span { color:var(--teal); }
-.ws-deploy-row { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+.repo-aside { display:flex; flex-direction:column; gap:16px; }
+.repo-aside-section { border-bottom:1px solid var(--border); padding-bottom:16px; }
+.repo-aside-section:last-child { border-bottom:none; }
+.repo-aside-heading { display:flex; align-items:center; justify-content:space-between; font-size:14px; font-weight:600; color:var(--ink); margin-bottom:8px; }
+.repo-aside-edit { background:none; border:none; color:var(--text2); cursor:pointer; padding:2px; border-radius:4px; display:flex; align-items:center; }
+.repo-aside-edit:hover { color:var(--ink); }
+.repo-aside-badge { font-size:12px; font-weight:500; padding:1px 7px; border-radius:20px; background:rgba(63,185,80,.1); color:#3fb950; border:1px solid rgba(63,185,80,.3); }
+.repo-aside-count { font-size:13px; font-weight:400; color:var(--text2); }
+.repo-about-desc { font-size:14px; color:var(--text2); line-height:1.5; margin:0 0 8px; }
+.repo-about-empty { font-style:italic; }
+.repo-about-link { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+.repo-about-link a { font-size:14px; color:var(--teal); text-decoration:none; }
+.repo-about-link a:hover { text-decoration:underline; }
+.repo-aside-stats { margin-top:8px; display:flex; flex-direction:column; gap:4px; }
+.repo-aside-stat { display:flex; align-items:center; gap:7px; font-size:14px; color:var(--text2); cursor:pointer; padding:2px 0; }
+.repo-aside-stat:hover { color:var(--teal); }
+.repo-deploy-row { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink); }
+.repo-deploy-link { color:var(--ink); text-decoration:none; font-weight:600; }
+.repo-contributor { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.repo-contrib-img { width:32px; height:32px; border-radius:50%; object-fit:cover; }
+.repo-contrib-init { width:32px; height:32px; border-radius:50%; background:var(--surface2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--teal); }
+.repo-contrib-name { font-size:14px; color:var(--teal); font-weight:500; }
+.repo-lang-bar { display:flex; height:8px; border-radius:4px; overflow:hidden; gap:1px; margin-bottom:8px; }
+.repo-lang-bar > div { height:100%; }
+.repo-lang-row { display:flex; align-items:center; gap:7px; margin-bottom:5px; }
+.repo-lang-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.repo-lang-name { font-size:12px; color:var(--text); flex:1; }
+.repo-lang-pct { font-size:12px; color:var(--text2); }
 
-/* Contributors */
-.ws-contributor { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-.ws-contrib-av { width:32px; height:32px; border-radius:50%; object-fit:cover; flex-shrink:0; }
-.ws-contrib-av-init { background:rgba(224,118,40,.12); border:1px solid rgba(224,118,40,.2); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--teal); }
-.ws-contrib-info { min-width:0; }
-.ws-contrib-name { display:block; font-size:13px; font-weight:600; color:var(--teal); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.ws-contrib-role { display:block; font-size:12px; color:var(--text2); }
+@media (max-width:900px) { .repo-body{flex-direction:column} .repo-aside{width:100%} }
+@media (max-width:640px) { .repo-wrap{padding:12px 12px 40px} .repo-file-desc{display:none} .repo-go-file{min-width:0} }
 
-/* Languages / Services */
-.ws-lang-bar { display:flex; height:8px; border-radius:4px; overflow:hidden; gap:2px; margin-bottom:10px; }
-.ws-lang-bar > div { height:100%; transition:opacity .1s; }
-.ws-lang-bar > div:hover { opacity:.8; }
-.ws-lang-row { display:flex; align-items:center; gap:7px; margin-bottom:6px; }
-.ws-lang-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
-.ws-lang-name { font-size:12px; color:var(--text); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.ws-lang-pct { font-size:12px; color:var(--text2); }
-
-@media (max-width:900px) { .ws-body{flex-direction:column} .ws-aside{width:100%} }
-@media (max-width:640px) { .ws-shell{padding:12px 14px 40px} .ws-fdesc{display:none} }
-
-.ws-doc-dropzone { display:block; padding:32px; text-align:center; cursor:pointer; border:2px dashed var(--border2); margin:12px; border-radius:8px; transition:border-color .15s; }
-.ws-doc-dropzone:hover { border-color:var(--teal); }
 </style>
 
 <div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0e1825;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
@@ -12608,286 +12635,306 @@ function rWorkspace() {
   el.classList.add('active');
   S.screen = 'home';
 
-  var cfg   = getClinicConfig ? getClinicConfig() : {};
-  var pats  = S.patients || [];
-  var bks   = getBookings ? getBookings() : [];
-  var svcs  = getServices ? getServices() : [];
-  var now   = new Date();
+  var cfg  = getClinicConfig ? getClinicConfig() : {};
+  var pats = S.patients || [];
+  var bks  = getBookings ? getBookings() : [];
+  var svcs = getServices ? getServices() : [];
+  var now  = new Date();
+  var isPublic = cfg.wsPublic !== false; // default public
 
-  // ── Stats ──────────────────────────────────────────────────────────────────
+  // ── Data ─────────────────────────────────────────────────────────────────
   var completedBks = bks.filter(function(b){ return b.status==='completed'; }).length;
   var activePlans  = 0;
   pats.forEach(function(p){
     (p.visits||[]).forEach(function(v){
       if (!v.plan) return;
       var tw = v.plan.totalWeeks||v.plan.form?.followup||4;
-      var sd = v.date?new Date(v.date):null;
+      var sd = v.date ? new Date(v.date) : null;
       if (sd && new Date(sd.getTime()+tw*7*86400000)>now) activePlans++;
     });
   });
 
-  // ── Recent file list ───────────────────────────────────────────────────────
-  // Three "types" of items like GitHub's file listing
+  // File rows (repo file list)
   var fileRows = [];
-
-  // Most recently modified patients
-  pats.slice().sort(function(a,b){
-    var at = a.createdAt||a.updatedAt||''; var bt = b.createdAt||b.updatedAt||'';
-    return bt>at?1:-1;
-  }).slice(0,3).forEach(function(p){
-    fileRows.push({ icon:'person', name:p.name, desc:'Patient', time:p.createdAt||'', id:p.id, type:'patient' });
-  });
-
-  // Recent completed bookings with journal
-  bks.filter(function(b){return b.status==='completed';})
-    .sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})
+  bks.filter(function(b){ return b.status==='completed'; })
+    .sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; })
     .slice(0,3).forEach(function(b){
-      fileRows.push({ icon:'file', name:(b.patientName||'')+(b.serviceName?' — '+b.serviceName:''), desc:'Journal · '+b.date, time:b.date||'', type:'journal', bkId:b.id });
+      fileRows.push({ name:(b.patientName||'Patient'), desc:b.serviceName||'Besök', time:b.date||'', type:'journal', id:b.patientId });
     });
-
-  // Hael plans
-  var planItems = [];
-  pats.forEach(function(p){
-    (p.visits||[]).filter(function(v){return v.plan;}).forEach(function(v){
-      planItems.push({ name:p.name+' — Hael-plan', desc:'Rehabplan · '+v.date, time:v.date||'', patId:p.id });
-    });
+  pats.slice().sort(function(a,b){ return (b.createdAt||'')>(a.createdAt||'')?1:-1; }).slice(0,3).forEach(function(p){
+    if (!fileRows.find(function(r){ return r.id===p.id; }))
+      fileRows.push({ name:p.name, desc:'Patient', time:p.createdAt||'', type:'patient', id:p.id });
   });
-  planItems.sort(function(a,b){return (b.time||'')>(a.time||'')?1:-1;}).slice(0,2).forEach(function(p){
-    fileRows.push({ icon:'plan', name:p.name, desc:p.desc, time:p.time, type:'hael', patId:p.patId });
-  });
+  fileRows.sort(function(a,b){ return (b.time||'')>(a.time||'')?1:-1; }).splice(8);
 
-  fileRows.sort(function(a,b){return (b.time||'')>(a.time||'')?1:-1;}).splice(8);
+  // Last activity
+  var lastBk = bks.slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; })[0];
+  var lastMsg = lastBk ? (lastBk.patientName||'')+' — '+(lastBk.serviceName||'Bokning') : 'Inga bokningar ännu';
+  var lastTime = lastBk ? _wsTimeAgo(new Date((lastBk.date||'')+'T12:00')) : '';
+  var commitHash = bks.length ? String(bks.length)+'bkn' : '0bkn';
 
-  // ── Last commit ────────────────────────────────────────────────────────────
-  var lastBk = bks.slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0];
-
-  // ── Therapists (Contributors) ──────────────────────────────────────────────
-  var therapists = (getTherapists?getTherapists():[]);
-  if (!therapists.length && cfg.signature) therapists = [{id:'t1',name:cfg.signature,email:cfg.email,role:cfg.title||'Naprapat'}];
-
-  // ── Service breakdown (Languages bar) ─────────────────────────────────────
-  var svcMap = {}; var totalSvcBks = 0;
+  // Service breakdown
+  var svcMap={}, totalSvcBks=0;
   bks.forEach(function(b){ if(b.serviceName){svcMap[b.serviceName]=(svcMap[b.serviceName]||0)+1; totalSvcBks++;} });
-  var svcArr = Object.keys(svcMap).map(function(k){return{name:k,n:svcMap[k],pct:Math.round(svcMap[k]/totalSvcBks*100)};}).sort(function(a,b){return b.n-a.n;}).slice(0,5);
-  var svcColors = ['#58a6ff','#3fb950','#d29922','#a371f7','#f85149'];
+  var svcArr=Object.keys(svcMap).map(function(k){return{name:k,n:svcMap[k],pct:Math.round(svcMap[k]/totalSvcBks*100)};}).sort(function(a,b){return b.n-a.n;}).slice(0,5);
+  var svcColors=['#58a6ff','#3fb950','#d29922','#a371f7','#f85149'];
+
+  // Therapists
+  var therapists = getTherapists ? getTherapists() : [];
+  if (!therapists.length && cfg.signature) therapists=[{id:'t1',name:cfg.signature,role:cfg.title||'Behandlare'}];
 
   var bookingUrl = window.location.origin+window.location.pathname+'#boka';
   var wsDoc = cfg.wsDoc||null;
+  var wsName = cfg.name||'Min arbetsyta';
 
-  var h = '<div class="ws-shell">';
+  var h = '<div class="repo-wrap">';
 
-  // ── HEADER ─────────────────────────────────────────────────────────────────
-  h += '<div class="ws-hdr">';
+  // ══════════════════════════════════════════════════════════════════════
+  //  HEADER — exactly GitHub's repo header
+  // ══════════════════════════════════════════════════════════════════════
+  h += '<div class="repo-header">';
+  h += '<div class="repo-header-left">';
+  // Workspace icon
   h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
-  h += '<span class="ws-hdr-name">'+e(cfg.name||'Min klinik')+'</span>';
-  h += '<span class="ws-hdr-badge">Pro</span>';
-  h += '<div style="flex:1"></div>';
-  h += '<button onclick="navigator.clipboard?.writeText(\''+bookingUrl+'\').then(function(){showAutoSaveToast(\'Bokningslänk kopierad ✓\')})" class="ws-btn">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg> Bokningslänk</button>';
-  h += '<button onclick="openBookingDialog()" class="ws-btn ws-btn-green">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ny bokning</button>';
+  h += '<span class="repo-name">'+e(wsName)+'</span>';
+  // Public/Privat toggle — like GitHub's "Public" badge
+  h += '<button class="repo-vis-badge '+(isPublic?'public':'private')+'" onclick="_wsTogglePublic()" title="'+(isPublic?'Klicka för att göra privat':'Klicka för att göra offentlig')+'">';
+  h += isPublic ? 'Offentlig' : 'Privat';
+  h += '</button>';
+  h += '</div>';
+  // Right actions — Pin Watch Fork Star
+  h += '<div class="repo-header-right">';
+  h += '<button class="repo-action-btn" onclick="navigator.clipboard?.writeText(\''+bookingUrl+'\').then(function(){showAutoSaveToast(\'Bokningslänk kopierad ✓\')})">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>';
+  h += 'Bokningslänk &nbsp;<span class="repo-action-count">'+e(wsName)+'</span></button>';
+  h += '<button class="repo-action-btn" onclick="go(\'list\')">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+  h += 'Patienter &nbsp;<span class="repo-action-count">'+pats.length+'</span></button>';
+  h += '<button class="repo-action-btn repo-action-primary" onclick="openBookingDialog()">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+  h += ' Ny bokning</button>';
+  h += '</div></div>'; // repo-header
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  SUB-NAV TABS — Code / Issues / Actions / Settings
+  // ══════════════════════════════════════════════════════════════════════
+  h += '<div class="repo-tabs">';
+  var rTabs = [
+    { id:'code',       label:'Klinik',        icon:'<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',          active:true },
+    { id:'patients',   label:'Patienter',      icon:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>',         badge:pats.length||null },
+    { id:'hael',       label:'Hael',           icon:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',                      badge:activePlans||null },
+    { id:'activity',   label:'Aktivitet',      icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',                            badge:null },
+    { id:'settings',   label:'Inställningar',  icon:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>',     badge:null },
+  ];
+  rTabs.forEach(function(tab){
+    h += '<button class="repo-tab'+(tab.active?' active':'')+'" onclick="'+(tab.id==='code'?'rWorkspace()':tab.id==='settings'?"go('settings')":tab.id==='activity'?"go('activity')":"go('"+tab.id+"')")+'">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">'+tab.icon+'</svg>';
+    h += ' '+tab.label;
+    if (tab.badge) h += ' <span class="repo-tab-badge">'+tab.badge+'</span>';
+    h += '</button>';
+  });
   h += '</div>';
 
-  // ── SUBNAV ─────────────────────────────────────────────────────────────────
-  h += '<div class="ws-subnav2">';
-  h += '<div class="ws-subnav2-left">';
-  // Branch = aktiv behandlare
-  h += '<div class="ws-branch2">';
+  // ══════════════════════════════════════════════════════════════════════
+  //  BODY
+  // ══════════════════════════════════════════════════════════════════════
+  h += '<div class="repo-body">';
+
+  // ── MAIN COLUMN ──────────────────────────────────────────────────────
+  h += '<div class="repo-main">';
+
+  // Branch bar (main ▾ | 1 Branch | 0 Tags | [search] | Add file | Code▾)
+  h += '<div class="repo-branch-bar">';
+  h += '<div class="repo-branch-bar-left">';
+  h += '<button class="repo-branch-btn">';
   h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 01-9 9"/></svg>';
-  h += e(cfg.signature||'Behandlare')+' ▾</div>';
-  h += '<a class="ws-nav-count" onclick="go(\'settings\');window._settingsActiveTab=\'services\'">';
+  h += e(cfg.signature||'Behandlare')+' <span style="opacity:.7">▾</span></button>';
+  h += '<a class="repo-meta-link" onclick="go(\'settings\');window._settingsActiveTab=\'services\'">';
   h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>';
-  h += '<b>'+svcs.length+'</b> tjänster</a>';
-  h += '<a class="ws-nav-count" onclick="go(\'list\')">';
+  h += ' <b>'+svcs.length+'</b> tjänster</a>';
+  h += '<a class="repo-meta-link" onclick="go(\'list\')">';
   h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>';
-  h += '<b>'+pats.length+'</b> patienter</a>';
+  h += ' <b>'+pats.length+'</b> patienter</a>';
   h += '</div>';
-  h += '<div class="ws-subnav2-right">';
-  h += '<div class="ws-srch" onclick="openCommandPalette()">';
-  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Sök patient...</div>';
-  h += '<button class="ws-btn" onclick="go(\'hael\')">';
-  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Hael</button>';
-  h += '</div></div>';
+  h += '<div class="repo-branch-bar-right">';
+  h += '<div class="repo-go-file" onclick="openCommandPalette()">';
+  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += ' Sök patient... <kbd>⌘K</kbd></div>';
+  h += '<button class="repo-add-file-btn" onclick="go(\'list\')">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+  h += ' Patienter <span style="opacity:.6">▾</span></button>';
+  h += '<button class="repo-code-btn" onclick="openBookingDialog()">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+  h += ' Ny bokning <span style="opacity:.7">▾</span></button>';
+  h += '</div></div>'; // branch-bar
 
-  // ── BODY ───────────────────────────────────────────────────────────────────
-  h += '<div class="ws-body">';
-
-  // ── MAIN ──────────────────────────────────────────────────────────────────
-  h += '<div class="ws-main">';
-
-  // Commit bar
-  if (lastBk) {
-    var lbInit = (lastBk.patientName||'BK').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-    h += '<div class="ws-commit">';
-    h += '<div class="ws-commit-av">'+lbInit+'</div>';
-    h += '<span class="ws-commit-txt">'+e(lastBk.patientName||'')+(lastBk.serviceName?' — '+e(lastBk.serviceName):'')+'</span>';
-    h += '<span class="ws-commit-time">'+_wsTimeAgo(new Date(lastBk.date+'T12:00'))+'</span>';
-    h += '<span class="ws-commit-hash">';
-    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/></svg>';
-    h += bks.length+' bokningar</span>';
-    h += '</div>';
+  // Commit row (latest activity)
+  h += '<div class="repo-commit-row">';
+  var savedAv = null; try{ savedAv=localStorage.getItem('vela:profile-avatar'); }catch(e){}
+  if (savedAv) h += '<img src="'+savedAv+'" class="repo-commit-av-img" alt="avatar">';
+  else {
+    var ini = (cfg.signature||'CA').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+    h += '<div class="repo-commit-av-init">'+ini+'</div>';
   }
+  h += '<span class="repo-commit-author">'+e(cfg.signature||'Behandlare')+'</span>';
+  h += '<span class="repo-commit-msg">'+e(lastMsg)+'</span>';
+  h += '<div style="flex:1"></div>';
+  h += '<span class="repo-commit-hash">'+commitHash+'</span>';
+  if (lastTime) h += '<span class="repo-commit-time">'+lastTime+'</span>';
+  h += '<a class="repo-commits-link" onclick="go(\'calendar\')">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><line x1="3" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="21" y2="12"/></svg>';
+  h += ' <b>'+completedBks+'</b> besök</a>';
+  h += '</div>'; // commit-row
 
   // File list
-  h += '<div class="ws-files">';
-  var ICONS = {
-    person: '<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>',
-    file:   '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
-    plan:   '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  h += '<div class="repo-files">';
+  var TYPE_ICONS = {
+    patient: '<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    journal: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+    hael:    '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
   };
-  var ICOLORS = { person:'#58a6ff', file:'var(--teal)', plan:'#a371f7' };
+  var TYPE_COLORS = { patient:'#58a6ff', journal:'var(--teal)', hael:'#a371f7' };
   if (!fileRows.length) {
-    h += '<div class="ws-files-empty">Inga aktiviteter ännu</div>';
+    h += '<div class="repo-files-empty">Lägg till patienter och bokningar för att se aktivitet här.</div>';
   } else {
-    fileRows.forEach(function(row) {
-      var ic = ICONS[row.icon]||ICONS.file;
-      var col = ICOLORS[row.icon]||'var(--text2)';
-      h += '<div class="ws-file" onclick="_wsOpen(\''+row.type+'\',\''+( row.id||row.patId||row.bkId||'')+'\')">';
-      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+col+'" stroke-width="1.8" stroke-linecap="round" style="flex-shrink:0">'+ic+'</svg>';
-      h += '<span class="ws-fname">'+e(row.name)+'</span>';
-      h += '<span class="ws-fdesc">'+e(row.desc)+'</span>';
-      h += '<span class="ws-ftime">'+(row.time?_wsTimeAgo(new Date(row.time+'T12:00')):'')+'</span>';
+    fileRows.forEach(function(row){
+      var ic = TYPE_ICONS[row.type]||TYPE_ICONS.journal;
+      var col = TYPE_COLORS[row.type]||'var(--text2)';
+      h += '<div class="repo-file-row" onclick="_wsOpen(\''+row.type+'\',\''+e(row.id||'')+'\')">'; 
+      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="'+col+'" stroke-width="1.6" stroke-linecap="round" class="repo-file-icon">'+ic+'</svg>';
+      h += '<span class="repo-file-name">'+e(row.name)+'</span>';
+      h += '<span class="repo-file-desc">'+e(row.desc)+'</span>';
+      h += '<span class="repo-file-time">'+(row.time?_wsTimeAgo(new Date(row.time+'T12:00')):'')+'</span>';
       h += '</div>';
     });
   }
-  h += '</div>';
+  h += '</div>'; // repo-files
 
-  // Document (README)
-  var wsDoc2 = cfg.wsDoc||null;
-  h += '<div class="ws-readme2">';
-  h += '<div class="ws-readme2-hdr">';
+  // README / Document section
+  h += '<div class="repo-readme">';
+  h += '<div class="repo-readme-header">';
   h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>';
   h += '<span>Dokument</span>';
-  h += '<label class="ws-icon-btn2" title="Ladda upp">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>';
+  h += '<label class="repo-readme-upload" title="Ladda upp">';
+  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>';
   h += '<input type="file" accept=".pdf,.doc,.docx,.txt,.md" onchange="_wsUploadDoc(this)" style="display:none"></label>';
   h += '</div>';
-
-  if (wsDoc2) {
-    var ext2 = wsDoc2.name.split('.').pop().toLowerCase();
+  if (wsDoc) {
+    var ext2 = wsDoc.name.split('.').pop().toLowerCase();
     var extC = {pdf:'#f85149',doc:'#58a6ff',docx:'#58a6ff',txt:'var(--text2)',md:'#3fb950'}[ext2]||'var(--text2)';
-    h += '<div class="ws-doc-row">';
-    h += '<svg width="28" height="36" viewBox="0 0 24 30" fill="none">';
-    h += '<rect x="0" y="0" width="24" height="30" rx="3" fill="var(--surface2)" stroke="var(--border)" stroke-width="1"/>';
-    h += '<path d="M14 0v8h8" fill="none" stroke="var(--border)" stroke-width="1"/>';
-    h += '<text x="12" y="22" font-size="6" font-weight="800" fill="'+extC+'" text-anchor="middle" font-family="monospace">'+ext2.toUpperCase()+'</text>';
-    h += '</svg>';
-    h += '<div class="ws-doc-info">';
-    h += '<span class="ws-doc-name">'+e(wsDoc2.name)+'</span>';
-    var kb = wsDoc2.size?Math.round(wsDoc2.size/1024)+' KB':'';
-    var ud = wsDoc2.uploadedAt?new Date(wsDoc2.uploadedAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric'}):'';
-    h += '<span class="ws-doc-meta">'+[kb,ud?'Uppladdad '+ud:''].filter(Boolean).join(' · ')+'</span>';
+    var kb = wsDoc.size?Math.round(wsDoc.size/1024)+' KB':'';
+    var ud = wsDoc.uploadedAt?new Date(wsDoc.uploadedAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric'}):'';
+    h += '<div class="repo-readme-doc">';
+    h += '<svg width="32" height="40" viewBox="0 0 32 40"><rect x="0" y="0" width="32" height="40" rx="3" fill="var(--surface2)" stroke="var(--border)" stroke-width="1"/><path d="M20 0v10h10" fill="none" stroke="var(--border)" stroke-width="1"/><text x="16" y="30" font-size="8" font-weight="800" fill="'+extC+'" text-anchor="middle" font-family="monospace">'+ext2.toUpperCase()+'</text></svg>';
+    h += '<div class="repo-readme-doc-info">';
+    h += '<span class="repo-readme-doc-name">'+e(wsDoc.name)+'</span>';
+    h += '<span class="repo-readme-doc-meta">'+[kb,ud?'Uppladdad '+ud:''].filter(Boolean).join(' · ')+'</span>';
     h += '</div>';
-    h += '<div class="ws-doc-actions">';
-    if (wsDoc2.data) h += '<a href="'+wsDoc2.data+'" download="'+e(wsDoc2.name)+'" class="ws-btn" style="font-size:12px">Ladda ner</a>';
-    h += '<button onclick="_wsRemoveDoc()" class="ws-btn ws-btn-red" style="font-size:12px">Ta bort</button>';
+    h += '<div class="repo-readme-doc-actions">';
+    if (wsDoc.data) h += '<a href="'+wsDoc.data+'" download="'+e(wsDoc.name)+'" class="repo-doc-btn">Ladda ner</a>';
+    h += '<button onclick="_wsRemoveDoc()" class="repo-doc-btn repo-doc-btn-red">Ta bort</button>';
     h += '</div></div>';
   } else {
-    h += '<label class="ws-doc-dropzone">';
-    h += '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.2" stroke-linecap="round" style="display:block;margin:0 auto 12px"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
-    h += '<div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:6px">Lägg till dokument</div>';
-    h += '<div style="font-size:13px;color:var(--text2);margin-bottom:14px">PDF, Word, Markdown — arbetsytans centrala dokument</div>';
-    h += '<span class="ws-btn ws-btn-green" style="display:inline-flex;pointer-events:none">Ladda upp</span>';
-    h += '<input type="file" accept=".pdf,.doc,.docx,.txt,.md" onchange="_wsUploadDoc(this)" style="display:none"></label>';
+    h += '<div class="repo-readme-empty">';
+    h += '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.2" stroke-linecap="round" style="margin:0 auto 12px;display:block"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>';
+    h += '<div style="font-size:16px;font-weight:600;color:var(--ink);margin-bottom:6px">Lägg till ett dokument</div>';
+    h += '<div style="font-size:13px;color:var(--text2);margin-bottom:16px">Hjälp andra förstå ditt arbetsområde</div>';
+    h += '<label class="repo-readme-add-btn">Lägg till dokument<input type="file" accept=".pdf,.doc,.docx,.txt,.md" onchange="_wsUploadDoc(this)" style="display:none"></label>';
+    h += '</div>';
   }
-  h += '</div>';
+  h += '</div>'; // repo-readme
 
-  h += '</div>'; // ws-main
+  h += '</div>'; // repo-main
 
-  // ── SIDEBAR ────────────────────────────────────────────────────────────────
-  h += '<div class="ws-aside">';
+  // ── SIDEBAR ───────────────────────────────────────────────────────────
+  h += '<div class="repo-aside">';
 
   // About
-  h += '<div class="ws-aside-block">';
-  h += '<div class="ws-aside-hdr"><span>Om</span>';
-  h += '<button onclick="go(\'settings\');window._settingsActiveTab=\'general\'" class="ws-icon-btn2" title="Redigera"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>';
+  h += '<div class="repo-aside-section">';
+  h += '<div class="repo-aside-heading">';
+  h += 'Om';
+  h += '<button onclick="go(\'settings\');window._settingsActiveTab=\'general\'" class="repo-aside-edit"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg></button>';
   h += '</div>';
-  if (cfg.bio) h += '<p class="ws-about-bio">'+e(cfg.bio)+'</p>';
-  else h += '<p class="ws-about-bio" style="color:var(--text2)">Ingen beskrivning ännu.<br><a onclick="go(\'settings\');window._settingsActiveTab=\'general\'" style="color:var(--teal);cursor:pointer">Lägg till beskrivning</a></p>';
-  // Links
-  function sLink(iconPath, text, href, action) {
-    var inner = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round">'+iconPath+'</svg>'
-      + '<span style="font-size:13px;color:var(--teal)">'+text+'</span>';
-    if (href) return '<a href="'+href+'" target="_blank" class="ws-slink">'+inner+'</a>';
-    return '<div class="ws-slink" onclick="'+action+'" style="cursor:pointer">'+inner+'</div>';
+  if (cfg.bio) h += '<p class="repo-about-desc">'+e(cfg.bio)+'</p>';
+  else h += '<p class="repo-about-desc repo-about-empty">Ingen beskrivning, webbplats eller ämnen.</p>';
+  if (cfg.website) {
+    h += '<div class="repo-about-link">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>';
+    h += '<a href="'+e(cfg.website)+'" target="_blank">'+e(cfg.website.replace(/^https?:\/\//,''))+'</a>';
+    h += '</div>';
   }
-  if (cfg.website) h += sLink('<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>', cfg.website.replace(/^https?:\/\//,''), cfg.website);
-  if (cfg.phone) h += '<div class="ws-slink"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg><span style="font-size:13px;color:var(--text)">'+e(cfg.phone)+'</span></div>';
-  // Stats (like Stars / Watchers / Forks)
-  function sbStat(iconPath, n, label, dest) {
-    return '<a class="ws-stat-row" onclick="'+dest+'">'
-      + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round">'+iconPath+'</svg>'
-      + '<span><b>'+n+'</b> '+label+'</span></a>';
-  }
-  h += sbStat('<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>', pats.length, 'patienter', "go('list')");
-  h += sbStat('<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', completedBks, 'besök genomförda', "go('calendar')");
-  h += sbStat('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>', activePlans, 'aktiva Hael-planer', "go('hael')");
-  h += '</div>';
+  // Stats like Activity / Stars / Watching / Forks
+  h += '<div class="repo-aside-stats">';
+  h += '<div class="repo-aside-stat" onclick="go(\'activity\')">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Aktivitet</div>';
+  h += '<div class="repo-aside-stat" onclick="go(\'list\')">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+  h += ' <b>'+pats.length+'</b> patienter</div>';
+  h += '<div class="repo-aside-stat" onclick="go(\'calendar\')">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  h += ' <b>'+completedBks+'</b> besök genomförda</div>';
+  h += '<div class="repo-aside-stat" onclick="go(\'hael\')">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+  h += ' <b>'+activePlans+'</b> aktiva planer</div>';
+  h += '</div></div>'; // aside-section
 
-  // Bokningssida (Deployments)
-  h += '<div class="ws-aside-block">';
-  h += '<div class="ws-aside-hdr"><span>Bokningssida</span></div>';
-  h += '<div class="ws-deploy-row">';
+  // Deployments = Bokningssida (like GitHub's Deployments)
+  h += '<div class="repo-aside-section">';
+  h += '<div class="repo-aside-heading">Bokningssida <span class="repo-aside-badge">Live</span></div>';
+  h += '<div class="repo-deploy-row">';
   h += '<svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="#3fb950"/></svg>';
-  h += '<span style="font-size:13px;font-weight:600;color:var(--ink)">Live</span>';
+  h += '<a href="'+bookingUrl+'" target="_blank" class="repo-deploy-link">github-pages <span style="color:var(--text2);font-weight:400">'+_wsTimeAgo(now)+'</span></a>';
   h += '</div>';
-  h += '<a href="'+bookingUrl+'" target="_blank" class="ws-slink">';
-  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
-  h += '<span style="font-size:13px;color:var(--teal)">Öppna bokningssida ↗</span>';
-  h += '</a>';
+  h += '<div style="margin-top:6px"><a href="'+bookingUrl+'" target="_blank" style="font-size:12px;color:var(--teal);text-decoration:none">+ Öppna bokningssida ↗</a></div>';
   h += '</div>';
 
-  // Behandlare (Contributors) — avatar + name like GitHub
+  // Contributors (like GitHub)
   if (therapists.length) {
-    h += '<div class="ws-aside-block">';
-    h += '<div class="ws-aside-hdr"><span>Behandlare</span><span class="ws-aside-count">'+therapists.length+'</span></div>';
-    therapists.forEach(function(t) {
+    h += '<div class="repo-aside-section">';
+    h += '<div class="repo-aside-heading">Behandlare <span class="repo-aside-count">'+therapists.length+'</span></div>';
+    therapists.forEach(function(t,i){
       var ti = (t.name||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-      var savedAv = null; try { savedAv = localStorage.getItem('vela:profile-avatar'); } catch(e) {}
-      h += '<div class="ws-contributor">';
-      if (savedAv && therapists.indexOf(t)===0) {
-        h += '<img src="'+savedAv+'" class="ws-contrib-av" alt="'+e(t.name)+'">';
-      } else {
-        h += '<div class="ws-contrib-av ws-contrib-av-init">'+ti+'</div>';
-      }
-      h += '<div class="ws-contrib-info">';
-      h += '<span class="ws-contrib-name">'+e(t.name)+'</span>';
-      if (t.role||cfg.title) h += '<span class="ws-contrib-role">'+e(t.role||cfg.title||'')+'</span>';
-      h += '</div></div>';
+      var av = null; try{ if(i===0) av=localStorage.getItem('vela:profile-avatar'); }catch(e){}
+      h += '<div class="repo-contributor">';
+      if (av) h += '<img src="'+av+'" class="repo-contrib-img" alt="'+e(t.name)+'">';
+      else h += '<div class="repo-contrib-init">'+ti+'</div>';
+      h += '<span class="repo-contrib-name">'+e(t.name)+'</span>';
+      h += '</div>';
     });
     h += '</div>';
   }
 
-  // Tjänster (Languages bar)
+  // Languages = Services (like GitHub)
   if (svcArr.length && totalSvcBks>0) {
-    h += '<div class="ws-aside-block">';
-    h += '<div class="ws-aside-hdr"><span>Tjänster</span></div>';
-    h += '<div class="ws-lang-bar">';
+    h += '<div class="repo-aside-section">';
+    h += '<div class="repo-aside-heading">Tjänster</div>';
+    h += '<div class="repo-lang-bar">';
     svcArr.forEach(function(s,i){ h += '<div style="width:'+s.pct+'%;background:'+svcColors[i]+'" title="'+e(s.name)+' '+s.pct+'%"></div>'; });
     h += '</div>';
     svcArr.forEach(function(s,i){
-      h += '<div class="ws-lang-row">';
-      h += '<span class="ws-lang-dot" style="background:'+svcColors[i]+'"></span>';
-      h += '<span class="ws-lang-name">'+e(s.name)+'</span>';
-      h += '<span class="ws-lang-pct">'+s.pct+'%</span>';
+      h += '<div class="repo-lang-row">';
+      h += '<span class="repo-lang-dot" style="background:'+svcColors[i]+'"></span>';
+      h += '<span class="repo-lang-name">'+e(s.name)+'</span>';
+      h += '<span class="repo-lang-pct">'+s.pct+'%</span>';
       h += '</div>';
     });
     h += '</div>';
   }
 
-  h += '</div>'; // aside
-  h += '</div>'; // body
-  h += '</div>'; // shell
+  h += '</div>'; // repo-aside
+  h += '</div>'; // repo-body
+  h += '</div>'; // repo-wrap
   el.innerHTML = h;
-
-  window._wsActions = fileRows;
+  window._wsFileRows = fileRows;
 }
 
-function _wsOpen(type, id) {
-  if (!id) return;
-  if (type==='patient') openPat(id);
-  else if (type==='journal') openPat(id);
-  else if (type==='hael') openPat(id);
+function _wsOpen(type, id) { if (id) { if (type==='patient'||type==='journal'||type==='hael') openPat(id); } }
+function _wsTogglePublic() {
+  var cfg = getClinicConfig ? getClinicConfig() : {};
+  cfg.wsPublic = cfg.wsPublic === false ? true : false;
+  if (typeof saveClinicConfig==='function') saveClinicConfig(cfg);
+  showAutoSaveToast(cfg.wsPublic ? 'Arbetsyta offentliggjord' : 'Arbetsyta gjord privat');
+  rWorkspace();
 }
 
 

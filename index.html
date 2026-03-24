@@ -30921,7 +30921,7 @@ function rProfile() {
   var savedAvatar=null;
   try{savedAvatar=localStorage.getItem('vela:profile-avatar');}catch(e){}
   var curStatus = typeof _getStatus==='function' ? _getStatus() : null;
-  var totalActivity = weekData.reduce(function(a,b){return a+b;},0);
+  var totalActivity = dayData.reduce(function(a,b){return a+b;},0);
 
   var h = '<div class="prof-shell">';
 

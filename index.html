@@ -9141,11 +9141,12 @@ function rTopbar() {
         + '</button>';
     }
 
-    // ── ÅTGÄRDER TAB — sidebar handled internally by rActions ─────────────
+    // ── ÅTGÄRDER TAB — sidebar handled by rActions internally ──────────────
     else if (activeTopTab === 'actions') {
-      // rActions renders its own sidebar — global nav shows nothing extra
-    
-    // ── AKTIVITET TAB ─────────────────────────────────────────────────────────
+      // rActions renders its own sidebar — nothing extra needed here
+    }
+
+
     else if (activeTopTab === 'activity') {
       nh += _nsep('Aktivitetslogg');
       nh += '<button class="nav-item active" data-screen="intelligence"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg><span class="nav-item-label">Alla händelser</span></button>';

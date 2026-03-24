@@ -135,10 +135,7 @@ button, input, textarea, select { font-family: inherit; }
 .screen.active { display: block; }
 .platform-screen.active { 
   display: block; 
-  position: fixed; 
-  inset: 0; 
-  z-index: 200; 
-  overflow-y: auto; 
+  min-height: calc(100vh - 102px);
   background: var(--bg); 
 }
 
@@ -2204,7 +2201,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .r4-split-num:hover{background:var(--surface3,#30363d)}
 .r4-split-star,.r4-split-star:hover{background:rgba(63,185,80,.08)!important;border-color:rgba(63,185,80,.3)!important;color:#3fb950!important}
 /* Tabs */
-.r4-tabs{display:flex;padding:0 24px;border-bottom:1px solid var(--border);overflow-x:auto;gap:0}
+.r4-tabs{display:flex;padding:0;border-bottom:1px solid var(--border);overflow-x:auto;gap:0}
 .r4-tab{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border:none;background:none;font-size:14px;font-weight:400;color:var(--text2);cursor:pointer;font-family:var(--font);border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .1s}
 .r4-tab:hover{color:var(--ink)}
 .r4-tab svg{fill:currentColor;opacity:.7}
@@ -4962,14 +4959,23 @@ function go(scr){
     var _tb2         = document.querySelector('.topbar');
 
     if (_isPlatformScreen) {
-      // Platform screen: hide clinic chrome but NOT app-shell (s-home is inside it)
-      if (_gtbWrap)     _gtbWrap.style.display     = 'none';
-      if (_appShell)    _appShell.style.paddingTop  = '0';
-      if (_navSidebar)  _navSidebar.style.display   = 'none';
-      if (_mainContent) _mainContent.style.marginLeft = '0';
-      if (_tb2)         _tb2.style.display          = 'none';
-      if (_appShell)    _appShell.style.display      = '';
-      // Clear any lingering inline styles on the platform screen el
+      if (scr === 'home') {
+        // Workspace: keep global topbar (Klinik/Kalender tabs), hide sidebar only
+        if (_gtbWrap)     _gtbWrap.style.display     = '';
+        if (_appShell)    _appShell.style.paddingTop  = '102px';
+        if (_navSidebar)  _navSidebar.style.display   = 'none';
+        if (_mainContent) _mainContent.style.marginLeft = '0';
+        if (_tb2)         _tb2.style.display          = 'none';
+        if (_appShell)    _appShell.style.display      = '';
+      } else {
+        // Other platform screens (ask-full, workspace-new): hide all chrome
+        if (_gtbWrap)     _gtbWrap.style.display     = 'none';
+        if (_appShell)    _appShell.style.paddingTop  = '0';
+        if (_navSidebar)  _navSidebar.style.display   = 'none';
+        if (_mainContent) _mainContent.style.marginLeft = '0';
+        if (_tb2)         _tb2.style.display          = 'none';
+        if (_appShell)    _appShell.style.display      = '';
+      }
       var _pEl = document.getElementById('s-' + scr);
       if (_pEl) { _pEl.style.cssText = ''; }
     } else {
@@ -12695,7 +12701,7 @@ function rWorkspace() {
   var bookingUrl=window.location.origin+window.location.pathname+'#boka';
   var wsDoc=cfg.wsDoc||null;
 
-  var h = '';
+  var h = '<div class="r4-page">';
 
   // ─────────────────────────────────────────────────────────────────
   // ROW 1: icon + owner/name + visibility | Pin Watch Fork Star
@@ -12896,6 +12902,7 @@ function rWorkspace() {
 
   h += '</aside>';
   h += '</div>'; // r4-body
+  h += '</div>'; // r4-page
   el.innerHTML = h;
 }
 

@@ -461,7 +461,7 @@ button, input, textarea, select { font-family: inherit; }
 .org-add-clinic-card:hover { border-color:var(--teal); }
 
 /* ── BOOKING CALENDAR ─────────────────────────────────────────────────────── */
-.cal-wrap { display:flex; flex-direction:column; height:calc(100vh - 52px); overflow:hidden; background:var(--bg); }
+.cal-wrap { display:flex; flex-direction:column; height:calc(100vh - 110px); overflow:hidden; background:var(--bg); }
 .cal-header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:var(--bg); border-bottom:1px solid var(--border); flex-shrink:0; gap:12px; flex-wrap:wrap; }
 .cal-nav { display:flex; align-items:center; gap:8px; }
 .cal-nav-btn { background:none; border:1px solid var(--border); border-radius:8px; padding:6px 12px; font-size:13px; font-weight:600; color:var(--text); cursor:pointer; font-family:var(--font); transition:background .12s; }
@@ -1740,6 +1740,245 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .vcal-avail-btn { display:flex;align-items:center;gap:6px;padding:0 11px;height:28px;border:1px solid var(--border);border-radius:7px;background:var(--surface2);color:var(--text);cursor:pointer;font-size:13px;font-weight:500;font-family:var(--font); }
 .vcal-avail-btn:hover { border-color:var(--teal);color:var(--teal); }
 
+
+/* ── User menu dropdown ──────────────────────────────────────────────────── */
+#vela-user-menu {
+  position: fixed; top: 62px; right: 12px; z-index: 900;
+  width: 260px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  overflow: hidden; font-family: var(--font); animation: menu-drop .1s ease;
+}
+@keyframes menu-drop { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   VELA INBOX — responsive Gmail-style UI
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+#gm-app {
+  display: flex;
+  height: calc(100vh - 110px);
+  overflow: hidden;
+  font-family: var(--font);
+  background: var(--bg);
+  position: relative;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+#gm-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 12px 8px;
+  gap: 2px;
+  transition: transform .25s cubic-bezier(.4,0,.2,1);
+}
+
+.gm-compose-btn {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 9px 14px;
+  background: var(--teal); color: #0d1117;
+  border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  font-family: var(--font); margin-bottom: 12px;
+  transition: filter .1s;
+}
+.gm-compose-btn:hover { filter: brightness(1.08); }
+
+.gm-nav-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--text2);
+  padding: 10px 10px 4px;
+}
+.gm-nav-group { display: flex; flex-direction: column; gap: 1px; margin-bottom: 4px; }
+.gm-nav-btn {
+  display: flex; align-items: center; gap: 9px;
+  width: 100%; padding: 7px 10px;
+  background: none; border: none; border-radius: 7px;
+  font-size: 13px; font-weight: 400; color: var(--text);
+  cursor: pointer; font-family: var(--font); text-align: left;
+  transition: background .08s, color .08s;
+}
+.gm-nav-btn:hover { background: var(--surface2); color: var(--ink); }
+.gm-nav-btn.active { background: var(--surface2); color: var(--ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--teal); }
+.gm-nav-btn svg { flex-shrink: 0; opacity: .6; }
+.gm-nav-btn.active svg { opacity: 1; }
+.gm-nav-btn span:nth-child(2) { flex: 1; }
+
+.gm-badge {
+  font-size: 11px; font-weight: 700;
+  padding: 1px 6px; border-radius: 10px;
+  background: var(--surface2); color: var(--text2);
+  flex-shrink: 0;
+}
+
+/* ── List panel ──────────────────────────────────────────────────────────── */
+#gm-list-panel {
+  width: 320px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.gm-list-header {
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--surface);
+}
+.gm-list-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 700; color: var(--ink);
+  margin-bottom: 8px;
+}
+.gm-filter-tag {
+  font-size: 12px; font-weight: 600; color: var(--teal);
+  background: rgba(45,212,191,.1); border: 1px solid rgba(45,212,191,.2);
+  padding: 2px 8px; border-radius: 20px;
+  display: flex; align-items: center; gap: 2px;
+}
+.gm-spinner {
+  width: 14px; height: 14px; border: 2px solid var(--border);
+  border-top-color: var(--teal); border-radius: 50%;
+  animation: spin 0.7s linear infinite; margin-left: auto;
+}
+
+.gm-search-wrap {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 7px; padding: 6px 10px;
+}
+.gm-search-inp {
+  flex: 1; border: none; background: none;
+  font-size: 13px; color: var(--ink); outline: none; font-family: var(--font);
+}
+.gm-search-inp::placeholder { color: var(--text2); }
+.gm-search-clear {
+  background: none; border: none; color: var(--text2);
+  cursor: pointer; font-size: 16px; line-height: 1; padding: 0;
+}
+
+.gm-thread-list { flex: 1; overflow-y: auto; }
+
+.gm-thread-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 11px 14px; border-bottom: 1px solid var(--border2);
+  cursor: pointer; transition: background .08s; position: relative;
+}
+.gm-thread-row:hover { background: var(--surface2); }
+.gm-thread-row.selected { background: rgba(45,212,191,.06); border-left: 3px solid var(--teal); padding-left: 11px; }
+.gm-thread-row.unread .gm-thread-from { font-weight: 700; color: var(--ink); }
+.gm-thread-row.unread .gm-thread-subj { font-weight: 600; color: var(--ink); }
+
+.gm-thread-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--surface2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; color: var(--text);
+  flex-shrink: 0; margin-top: 1px;
+}
+
+.gm-thread-body { flex: 1; min-width: 0; }
+.gm-thread-row1 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+.gm-thread-from { font-size: 13px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.gm-thread-date { font-size: 11px; color: var(--text2); flex-shrink: 0; margin-left: 6px; }
+.gm-thread-row2 { display: flex; align-items: flex-start; gap: 5px; margin-bottom: 2px; }
+.gm-thread-subj { font-size: 13px; font-weight: 400; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.gm-thread-snip { font-size: 12px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.gm-unread-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--teal); flex-shrink: 0; margin-top: 6px;
+}
+
+.gm-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 10px; color: var(--text2); font-size: 14px;
+}
+
+/* ── Thread / detail panel ────────────────────────────────────────────────── */
+#gm-thread-panel {
+  flex: 1; display: flex; flex-direction: column;
+  overflow: hidden; min-width: 0;
+  background: var(--bg);
+}
+.gm-thread-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; gap: 12px; color: var(--text2); font-size: 14px;
+}
+
+/* Mobile back button (shown in thread header on mobile) */
+.gm-back-btn {
+  display: none;
+  background: none; border: none; color: var(--text2);
+  cursor: pointer; padding: 4px 8px; border-radius: 6px;
+  font-family: var(--font); font-size: 13px; font-weight: 600;
+  align-items: center; gap: 5px; flex-shrink: 0;
+}
+.gm-mob-menu { display: none; background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; flex-shrink: 0; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MOBILE — single panel at a time, slide transition
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  #gm-app {
+    height: calc(100vh - 110px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #gm-sidebar {
+    position: absolute; inset: 0; z-index: 20;
+    width: 100%; border-right: none;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    background: var(--bg);
+  }
+  #gm-list-panel {
+    position: absolute; inset: 0; z-index: 10;
+    width: 100%; border-right: none;
+    transform: translateX(0);
+    transition: transform .25s ease;
+  }
+  #gm-thread-panel {
+    position: absolute; inset: 0; z-index: 15;
+    width: 100%;
+    transform: translateX(100%);
+    transition: transform .25s ease;
+  }
+
+  /* Panel switching via data attribute */
+  #gm-app[data-panel="sidebar"] #gm-sidebar  { transform: translateX(0); }
+  #gm-app[data-panel="sidebar"] #gm-list-panel { transform: translateX(100%); }
+  #gm-app[data-panel="list"]    #gm-list-panel { transform: translateX(0); }
+  #gm-app[data-panel="thread"]  #gm-list-panel { transform: translateX(-100%); }
+  #gm-app[data-panel="thread"]  #gm-thread-panel { transform: translateX(0); }
+
+  .gm-mob-menu { display: flex; }
+  .gm-back-btn { display: flex !important; }
+  .gm-thread-row { padding: 13px 14px; }
+  .gm-thread-avatar { width: 38px; height: 38px; font-size: 13px; }
+  .gm-thread-from { font-size: 14px; }
+  .gm-thread-subj { font-size: 14px; }
+  .gm-thread-snip { font-size: 13px; }
+}
+
+@media (min-width: 769px) {
+  #gm-app[data-panel] #gm-sidebar,
+  #gm-app[data-panel] #gm-list-panel,
+  #gm-app[data-panel] #gm-thread-panel {
+    position: static;
+    transform: none !important;
+  }
+}
 </style>
 
 <div id="page-loader" style="position:fixed;inset:0;z-index:9999;background:#0e1825;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
@@ -8096,135 +8335,126 @@ function _updateStatusBadge() {
 
 
 function _openUserMenu(evt) {
-  // Close if already open
   document.getElementById('vela-user-menu-overlay')?.remove();
   document.getElementById('vela-user-menu')?.remove();
 
   var email    = (typeof _authUser !== 'undefined' && _authUser?.email) || '';
-  var initials = email.slice(0,2).toUpperCase() || 'VA';
-  var tier     = getClinicTier ? getClinicTier() : 'pro';
-  var tierName = tier === 'free' ? 'Free' : tier === 'intelligence' ? 'Intelligence' : 'Pro';
-  var isDark   = !document.body.classList.contains('light');
+  var initials = email.slice(0,2).toUpperCase() || 'CA';
   var cfg      = getClinicConfig ? getClinicConfig() : {};
+  var tier     = getClinicTier ? getClinicTier() : 'pro';
+  var tierLabel = tier === 'free' ? 'Free' : tier === 'intelligence' ? 'Intelligence' : 'Pro';
+  var isDark   = !document.body.classList.contains('light');
+  var curStatus = (typeof _getStatus === 'function') ? _getStatus() : null;
 
-  // Overlay (closes menu on outside click)
+  // Click-away overlay
   var overlay = document.createElement('div');
   overlay.id = 'vela-user-menu-overlay';
-  overlay.className = 'vela-user-menu-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:899';
   overlay.onclick = _closeUserMenu;
   document.body.appendChild(overlay);
   document.addEventListener('keydown', _userMenuEscHandler);
 
-  // Menu — positioned top-right like GitHub
   var menu = document.createElement('div');
   menu.id = 'vela-user-menu';
-  menu.className = 'vela-user-menu';
-  menu.style.cssText = 'position:fixed;top:62px;right:12px;z-index:900';
-  menu.onclick = function(e) { e.stopPropagation(); };
+  menu.onclick = function(e){ e.stopPropagation(); };
 
-  function icon(path, size) {
-    size = size || 14;
-    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + path + '</svg>';
-  }
-
-  function item(iconPath, label, action, extra, danger) {
-    return '<button class="vela-user-menu-item' + (danger ? ' danger' : '') + '" id="' + action + '">'
-      + icon(iconPath)
-      + label
-      + (extra || '')
-      + '</button>';
-  }
-
+  // Build menu HTML
   var h = '';
 
-  // ── Header: user identity ─────────────────────────────────────────────
-  h += '<div class="vela-user-menu-head">';
-  h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">';
-  h += '<div style="width:34px;height:34px;border-radius:50%;background:var(--teal-lt);border:1px solid rgba(45,212,191,.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--teal);font-family:var(--font-mono);flex-shrink:0">' + initials + '</div>';
+  // ── Header ────────────────────────────────────────────────────────────────
+  h += '<div style="padding:12px 16px 10px;border-bottom:1px solid var(--border)">';
+  h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
+  h += '<div style="width:36px;height:36px;border-radius:50%;background:rgba(45,212,191,.12);border:1px solid rgba(45,212,191,.25);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--teal);flex-shrink:0">' + initials + '</div>';
   h += '<div style="flex:1;min-width:0">';
-  h += '<div class="vela-user-menu-email">' + e(email || 'Okänd användare') + '</div>';
-  if (cfg.name) h += '<div style="font-size:13px;color:var(--text2);margin-top:1px">' + e(cfg.name) + '</div>';
+  h += '<div style="font-size:13px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e(email) + '</div>';
+  if (cfg.name) h += '<div style="font-size:12px;color:var(--text2);margin-top:1px">' + e(cfg.name) + '</div>';
   h += '</div></div>';
-  h += '<span class="vela-user-menu-plan ' + tier + '">' + tierName + '</span>';
+  // Plan badge
+  h += '<div style="display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(45,212,191,.1);color:var(--teal);border:1px solid rgba(45,212,191,.2)">' + tierLabel + '</div>';
   h += '</div>';
 
-  // ── Group 1: Klinik ───────────────────────────────────────────────────
-  h += '<div class="vela-user-menu-group">';
-  h += item('<circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>', 'Klinikinställningar', 'um-clinic-settings');
-  h += item('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>', 'Behandlare & användare', 'um-users');
-  h += item('<path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>', 'Abonnemang', 'um-billing',
-    '<span class="vela-user-menu-badge">' + tierName + '</span>');
+  // ── Set status ────────────────────────────────────────────────────────────
+  h += '<div style="padding:4px 8px;border-bottom:1px solid var(--border)">';
+  h += '<button onclick="_closeUserMenu();openStatusModal()" style="width:100%;display:flex;align-items:center;gap:10px;padding:7px 8px;background:none;border:none;border-radius:7px;cursor:pointer;font-family:var(--font);text-align:left" onmouseover="this.style.background=\'var(--surface3,#30363d)\'" onmouseout="this.style.background=\'none\'">';
+  h += '<div style="width:28px;height:28px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">';
+  h += curStatus && curStatus.emoji ? curStatus.emoji : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
+  h += '</div>';
+  h += '<div style="flex:1;min-width:0">';
+  h += '<div style="font-size:13px;color:var(--text)">Sätt status</div>';
+  if (curStatus && curStatus.text) h += '<div style="font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e(curStatus.text) + '</div>';
+  h += '</div></button>';
   h += '</div>';
 
-  // ── Group 2: Konto ────────────────────────────────────────────────────
-  h += '<div class="vela-user-menu-group">';
-  h += '<button class="vela-user-menu-item" id="um-appearance">'
-    + icon('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>')
-    + 'Utseende'
-    + '<div class="theme-toggle">'
-    + '<button class="theme-btn' + (isDark ? ' active' : '') + '" id="um-theme-dark">Mörkt</button>'
-    + '<button class="theme-btn' + (!isDark ? ' active' : '') + '" id="um-theme-light">Ljust</button>'
-    + '</div>'
-    + '</button>';
-  h += item('<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/>', 'Hjälpcenter', 'um-help');
+  // ── Group: Arbetsyta ──────────────────────────────────────────────────────
+  h += '<div style="padding:4px 8px;border-bottom:1px solid var(--border)">';
+  h += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);padding:8px 8px 4px">Arbetsyta</div>';
+
+  function menuItem(svgPath, label, id, badge, danger) {
+    var col = danger ? '#f85149' : 'var(--text)';
+    var s = '<button id="' + id + '" style="width:100%;display:flex;align-items:center;gap:10px;padding:7px 8px;background:none;border:none;border-radius:7px;cursor:pointer;font-family:var(--font);color:' + col + '" onmouseover="this.style.background=\'var(--surface3,#30363d)\'" onmouseout="this.style.background=\'none\'">';
+    s += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="flex-shrink:0;opacity:.7">' + svgPath + '</svg>';
+    s += '<span style="font-size:13px;flex:1;text-align:left">' + label + '</span>';
+    if (badge) s += '<span style="font-size:11px;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(45,212,191,.1);color:var(--teal)">' + badge + '</span>';
+    s += '</button>';
+    return s;
+  }
+
+  h += menuItem('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>', 'Inställningar', 'um-settings');
+  h += menuItem('<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/>', 'Behandlare', 'um-users');
+  h += menuItem('<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>', 'Abonnemang', 'um-billing', tierLabel);
   h += '</div>';
 
-  // ── Group 3: Sign out ─────────────────────────────────────────────────
-  h += '<div class="vela-user-menu-group">';
-  h += item('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>', 'Logga ut', 'um-signout', null, true);
+  // ── Group: Konto ──────────────────────────────────────────────────────────
+  h += '<div style="padding:4px 8px;border-bottom:1px solid var(--border)">';
+  h += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);padding:8px 8px 4px">Konto</div>';
+
+  // Theme toggle row
+  h += '<div style="display:flex;align-items:center;gap:10px;padding:7px 8px">';
+  h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round" style="opacity:.7"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+  h += '<span style="font-size:13px;color:var(--text);flex:1">Utseende</span>';
+  h += '<div style="display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden">';
+  h += '<button id="um-theme-dark" style="padding:4px 10px;background:' + (isDark?'var(--surface3,#30363d)':'none') + ';border:none;color:' + (isDark?'var(--ink)':'var(--text2)') + ';font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">Mörkt</button>';
+  h += '<button id="um-theme-light" style="padding:4px 10px;background:' + (!isDark?'var(--surface3,#30363d)':'none') + ';border:none;color:' + (!isDark?'var(--ink)':'var(--text2)') + ';font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">Ljust</button>';
+  h += '</div></div>';
+
+  h += menuItem('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>', 'API-nycklar', 'um-apikey');
+  h += '</div>';
+
+  // ── Sign out ──────────────────────────────────────────────────────────────
+  h += '<div style="padding:4px 8px">';
+  h += menuItem('<path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>', 'Logga ut', 'um-signout', null, true);
   h += '</div>';
 
   menu.innerHTML = h;
   document.body.appendChild(menu);
 
-  // ── Wire actions ──────────────────────────────────────────────────────
-  function wire(id, fn) {
-    var el = document.getElementById(id);
-    if (el) el.onclick = fn;
-  }
+  // ── Wire actions ──────────────────────────────────────────────────────────
+  function wire(id, fn2) { var el = document.getElementById(id); if (el) el.onclick = fn2; }
 
-  wire('um-clinic-settings', function() {
-    _closeUserMenu();
-    window._settingsActiveTab = 'general';
-    go('settings');
-  });
-  wire('um-users', function() {
-    _closeUserMenu();
-    window._settingsActiveTab = 'users';
-    go('settings');
-  });
-  wire('um-billing', function() {
-    _closeUserMenu();
-    window._settingsActiveTab = 'billing';
-    go('settings');
-  });
-  wire('um-help', function() {
-    _closeUserMenu();
-    openHelpCenter && openHelpCenter();
-  });
-  wire('um-signout', function() {
-    _closeUserMenu();
-    sbSignOut();
-  });
+  wire('um-settings', function(){ _closeUserMenu(); window._settingsActiveTab='general'; go('settings'); });
+  wire('um-users',    function(){ _closeUserMenu(); window._settingsActiveTab='users'; go('settings'); });
+  wire('um-billing',  function(){ _closeUserMenu(); window._settingsActiveTab='billing'; go('settings'); });
+  wire('um-apikey',   function(){ _closeUserMenu(); window._settingsActiveTab='apikey'; go('settings'); });
+  wire('um-signout',  function(){ _closeUserMenu(); sbSignOut(); });
 
-  // Theme toggle
   var darkBtn  = document.getElementById('um-theme-dark');
   var lightBtn = document.getElementById('um-theme-light');
-  if (darkBtn) darkBtn.onclick = function(e) {
+  if (darkBtn) darkBtn.onclick = function(e){
     e.stopPropagation();
     document.body.classList.remove('light');
     localStorage.setItem('vela:theme','dark');
-    darkBtn.classList.add('active');
-    if (lightBtn) lightBtn.classList.remove('active');
+    darkBtn.style.background='var(--surface3,#30363d)'; darkBtn.style.color='var(--ink)';
+    if (lightBtn){ lightBtn.style.background='none'; lightBtn.style.color='var(--text2)'; }
   };
-  if (lightBtn) lightBtn.onclick = function(e) {
+  if (lightBtn) lightBtn.onclick = function(e){
     e.stopPropagation();
     document.body.classList.add('light');
     localStorage.setItem('vela:theme','light');
-    lightBtn.classList.add('active');
-    if (darkBtn) darkBtn.classList.remove('active');
+    lightBtn.style.background='var(--surface3,#30363d)'; lightBtn.style.color='var(--ink)';
+    if (darkBtn){ darkBtn.style.background='none'; darkBtn.style.color='var(--text2)'; }
   };
 }
+
 
 function _closeUserMenu() {
   document.getElementById('vela-user-menu-overlay')?.remove();
@@ -8284,7 +8514,7 @@ function _renderGlobalTopbar() {
     { id:'hael',         label:'Hael',           dest:'hael',      icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
     { id:'intelligence', label:'Insikter',   dest:'intelligence', icon:'<path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/>', badge: alerts||null },
     { id:'actions',      label:'Åtgärder',      dest:'actions',      icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' },
-    { id:'activity',     label:'Aktivitet',     dest:'intelligence', icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',                                                                  badge: null },
+    { id:'activity',     label:'Aktivitet',     dest:'activity', icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',                                                                  badge: (function(){ try { var s=window._gmailState; return (s&&s.threads)?s.threads.filter(function(t){return t.unread;}).length||null:null; } catch(e){return null;} })() },
     { id:'settings',     label:'Inställningar',  dest:'settings',  icon:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>' },
   ];
 
@@ -10256,9 +10486,15 @@ async function rInbox() {
   if (_gmailIsAuthed && _gmailIsAuthed()) _gmailLoadFolder();
 }
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  VELA INBOX — Redesigned UI, mobile-first
+// ══════════════════════════════════════════════════════════════════════════════
+
 function _gmailRenderShell(el) {
   var authed = _gmailIsAuthed && _gmailIsAuthed();
-  el.innerHTML = '<div id="gm-app" style="display:flex;height:calc(100vh - 52px);overflow:hidden;font-family:var(--font)"></div>';
+  el.style.cssText = '';
+  el.innerHTML = '<div id="gm-app"></div>';
   var app = el.querySelector('#gm-app');
 
   if (!authed) {
@@ -10269,11 +10505,12 @@ function _gmailRenderShell(el) {
     return;
   }
 
-  // ── Three-panel layout ────────────────────────────────────────────────────
+  // Mobile: show list by default; thread replaces it when selected
+  // Desktop: sidebar + list + thread side by side
   app.innerHTML =
-    '<div id="gm-sidebar" style="width:220px;flex-shrink:0;background:var(--bg);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto"></div>'
-  + '<div id="gm-list-panel" style="width:300px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden"></div>'
-  + '<div id="gm-thread-panel" style="flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;min-width:0"></div>';
+    '<div id="gm-sidebar"></div>'
+  + '<div id="gm-list-panel"></div>'
+  + '<div id="gm-thread-panel"></div>';
 
   _gmailRenderSidebar();
   _gmailRenderListPanel();
@@ -10285,141 +10522,102 @@ function _gmailRenderSidebar() {
   var sb = document.getElementById('gm-sidebar');
   if (!sb) return;
 
-  var unread    = _gmailState.threads.filter(function(t){return t.unread;}).length;
-  var folder    = _gmailState.folder;
-  var selFilter = _gmailState.filter;
+  var folder    = _gmailState.folder || 'inbox';
+  var selFilter = _gmailState.filter || 'all';
+  var threads   = _gmailState.threads || [];
+  var unread    = threads.filter(function(t){ return t.unread; }).length;
 
-  // Count threads per intent
-  var intentCounts = {};
-  _gmailState.threads.forEach(function(t) {
+  // Intent counts
+  var counts = { all: threads.length };
+  threads.forEach(function(t) {
     var id = _gmailDetectIntent(t.subject, t.snippet).id;
-    intentCounts[id] = (intentCounts[id]||0) + 1;
+    counts[id] = (counts[id]||0) + 1;
   });
-
-  function navBtn(id, label, iconPath, count, isSub) {
-    var isFolder = ['inbox','sent','drafts'].includes(id);
-    var active = isFolder ? (folder===id && selFilter==='all') : selFilter===id;
-    return '<button data-nav="' + id + '" style="'
-      + 'display:flex;align-items:center;gap:9px;width:100%;'
-      + 'padding:' + (isSub?'6px 14px 6px 18px':'7px 14px') + ';'
-      + 'border:none;background:' + (active?'rgba(177,186,196,.08)':'none') + ';'
-      + 'color:' + (active?'var(--ink)':'var(--text)') + ';'
-      + 'font-size:' + (isSub?'12':'13') + 'px;font-weight:' + (active?'600':'400') + ';'
-      + 'cursor:pointer;font-family:var(--font);text-align:left;'
-      + 'box-sizing:border-box;'
-      + (active?'box-shadow:inset 3px 0 0 var(--teal)':'')
-      + '">'
-      + (iconPath ? '<svg width="' + (isSub?'13':'14') + '" height="' + (isSub?'13':'14') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="flex-shrink:0;opacity:' + (active?'.9':'.55') + '">' + iconPath + '</svg>' : '<div style="width:14px;flex-shrink:0"></div>')
-      + '<span style="flex:1">' + label + '</span>'
-      + (count ? '<span style="font-size:12px;font-weight:700;background:' + (active?'rgba(45,212,191,.12)':'var(--surface2)') + ';color:' + (active?'var(--teal)':'var(--text2)') + ';padding:1px 6px;border-radius:10px;min-width:16px;text-align:center">' + count + '</span>' : '')
-      + '</button>';
-  }
-
-  function sectionLabel(label) {
-    return '<div style="font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);padding:16px 14px 5px;cursor:default">' + label + '</div>';
-  }
 
   var h = '';
 
-  // ── Top: Skriv button ───────────────────────────────────────────────────
-  h += '<div style="padding:14px 12px 10px">';
-  h += '<button id="gm-compose-btn" style="'
-     + 'display:flex;align-items:center;justify-content:center;gap:7px;'
-     + 'width:100%;padding:7px 12px;background:var(--teal);color:#0d1117;'
-     + 'border:none;border-radius:7px;font-size:13px;font-weight:700;'
-     + 'cursor:pointer;font-family:var(--font)">'
-     + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
-     + 'Skriv mail</button>';
+  // Compose button
+  h += '<button onclick="_gmailOpenCompose()" class="gm-compose-btn">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+  h += 'Nytt mail</button>';
+
+  // Folders
+  function folderBtn(id, label, icon, badge) {
+    var active = folder === id && selFilter === 'all';
+    return '<button class="gm-nav-btn' + (active?' active':'') + '" data-nav="' + id + '">'
+      + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' + icon + '</svg>'
+      + '<span>' + label + '</span>'
+      + (badge ? '<span class="gm-badge">' + badge + '</span>' : '')
+      + '</button>';
+  }
+
+  h += '<div class="gm-nav-group">';
+  h += folderBtn('inbox',  'Inkorg',   '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6L18.55 5.11A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/>', unread||null);
+  h += folderBtn('sent',   'Skickat',  '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>');
+  h += folderBtn('drafts', 'Utkast',   '<path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>');
   h += '</div>';
 
-  // ── Section 1: Mappar (like "All workflows" + individual) ──────────────
-  h += sectionLabel('Mappar');
-  h += navBtn('inbox',  'Inkorg',  '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/>', unread||null);
-  h += navBtn('sent',   'Skickat', '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>');
-  h += navBtn('drafts', 'Utkast',  '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>');
+  // Filter by intent
+  var intents = [
+    { id:'scheduling', label:'Tidsbyte',  color:'#d29922' },
+    { id:'cancel',     label:'Avbokning', color:'#f85149' },
+    { id:'clinical',   label:'Klinisk',   color:'#2dd4bf' },
+    { id:'admin',      label:'Admin',     color:'#8b949e' },
+  ].filter(function(f){ return counts[f.id] > 0; });
 
-  // ── Section 2: Klinisk filtrering (like workflow names) ────────────────
-  h += '<div style="border-top:1px solid var(--border);margin-top:8px"></div>';
-  h += sectionLabel('Klinisk');
-  h += navBtn('scheduling', 'Tidsbyte',   '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
-    intentCounts['scheduling']||null, true);
-  h += navBtn('clinical',   'Kliniska',   '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/>',
-    intentCounts['clinical']||null, true);
-  h += navBtn('cancel',     'Avbokningar','<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
-    intentCounts['cancel']||null, true);
-  h += navBtn('admin',      'Admin',      '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',
-    intentCounts['admin']||null, true);
-
-  // ── Section 3: Automatik (like "Management") ───────────────────────────
-  h += '<div style="border-top:1px solid var(--border);margin-top:8px"></div>';
-  h += sectionLabel('Automatik');
-  // Retention queue count
-  var retQ = getRetentionQueue ? getRetentionQueue() : [];
-  var retSent   = retQ.filter(function(q){return q.sentAt;}).length;
-  var retPending = retQ.filter(function(q){return !q.sentAt && q.approved;}).length;
-  h += navBtn('retention-sent',    'Skickade retention', '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
-    retSent||null, true);
-  h += navBtn('retention-pending', 'Schemalagda',        '<svg width="13" height="13"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-    retPending||null, true);
-  h += navBtn('portal-activity',   'Portal-aktivitet',   '<path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
-    null, true);
-
-  // ── AI-genomgång button at bottom ──────────────────────────────────────
-  h += '<div style="margin-top:auto;border-top:1px solid var(--border);padding:10px 12px">';
-  h += '<button id="gm-ai-all-btn" style="'
-     + 'display:flex;align-items:center;gap:7px;width:100%;'
-     + 'padding:7px 12px;background:none;border:1px solid rgba(45,212,191,.25);border-radius:7px;'
-     + 'font-size:13px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">'
-     + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
-     + 'AI-genomgång av inkorg</button>';
-  h += '</div>';
+  if (intents.length) {
+    h += '<div class="gm-nav-label">Kategorier</div>';
+    h += '<div class="gm-nav-group">';
+    intents.forEach(function(f) {
+      var active = selFilter === f.id;
+      h += '<button class="gm-nav-btn' + (active?' active':'') + '" data-filter="' + f.id + '">'
+        + '<span style="width:8px;height:8px;border-radius:50%;background:' + f.color + ';flex-shrink:0"></span>'
+        + '<span>' + f.label + '</span>'
+        + '<span class="gm-badge" style="background:' + f.color + '22;color:' + f.color + '">' + counts[f.id] + '</span>'
+        + '</button>';
+    });
+    h += '</div>';
+  }
 
   sb.innerHTML = h;
 
-  // ── Wire all nav buttons ──────────────────────────────────────────────
+  // Wire
   sb.querySelectorAll('[data-nav]').forEach(function(btn) {
-    btn.onclick = function() {
-      var id = btn.getAttribute('data-nav');
-      var isFolder = ['inbox','sent','drafts'].includes(id);
-      if (isFolder) {
-        _gmailState.folder = id;
-        _gmailState.filter = 'all';
-        _gmailState.selectedThread = null;
-        _gmailState.aiResult = null;
-        _gmailRenderSidebar();
-        _gmailLoadFolder();
-      } else if (id === 'retention-sent' || id === 'retention-pending' || id === 'portal-activity') {
-        // Show in list panel as a special view
-        _gmailState.filter = id;
-        _gmailRenderSidebar();
-        _gmailRenderListPanel();
-      } else {
-        _gmailState.filter = id;
-        _gmailRenderSidebar();
-        _gmailRenderListPanel();
-      }
-    };
+    btn.addEventListener('click', function() {
+      _gmailState.folder = btn.getAttribute('data-nav');
+      _gmailState.filter = 'all';
+      _gmailState.search = '';
+      _gmailLoadFolder();
+    });
   });
-
-  sb.querySelector('#gm-compose-btn')?.addEventListener('click', _gmailOpenCompose);
-  sb.querySelector('#gm-ai-all-btn')?.addEventListener('click', _gmailAiReview);
+  sb.querySelectorAll('[data-filter]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      _gmailState.filter = btn.getAttribute('data-filter');
+      _gmailState.selectedThread = null;
+      _gmailRenderListPanel();
+      _gmailRenderThreadPanel();
+      _gmailMobileShowPanel('list');
+    });
+  });
 }
 
-
-// ── Thread list panel ─────────────────────────────────────────────────────────
+// ── List panel ────────────────────────────────────────────────────────────────
 function _gmailRenderListPanel() {
   var panel = document.getElementById('gm-list-panel');
   if (!panel) return;
 
-  // Filter threads
-  var threads = _gmailState.threads;
-  if (_gmailState.filter !== 'all') {
-    threads = threads.filter(function(t) {
-      return _gmailDetectIntent(t.subject, t.snippet).id === _gmailState.filter;
+  var allThreads = _gmailState.threads || [];
+  var selFilter  = _gmailState.filter  || 'all';
+  var searchQ    = _gmailState.search  || '';
+
+  var threads = allThreads;
+  if (selFilter !== 'all') {
+    threads = threads.filter(function(t){
+      return _gmailDetectIntent(t.subject, t.snippet).id === selFilter;
     });
   }
-  if (_gmailState.search) {
-    var q = _gmailState.search.toLowerCase();
+  if (searchQ) {
+    var q = searchQ.toLowerCase();
     threads = threads.filter(function(t){
       return (t.fromName||'').toLowerCase().includes(q)
           || (t.subject||'').toLowerCase().includes(q)
@@ -10427,135 +10625,159 @@ function _gmailRenderListPanel() {
     });
   }
 
+  var folderLabel = { inbox:'Inkorg', sent:'Skickat', drafts:'Utkast' }[_gmailState.folder] || 'Inkorg';
+
+  var h = '';
+
   // Header
-  var folderLabel = {inbox:'Inkorg',sent:'Skickat',drafts:'Utkast'}[_gmailState.folder]||'';
-  var h = '<div style="padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0">';
-  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
-  h += '<span style="font-size:14px;font-weight:700;color:var(--ink)">' + folderLabel + '</span>';
-  if (threads.length) h += '<span style="font-size:13px;color:var(--text2);background:var(--surface2);padding:1px 7px;border-radius:10px">' + threads.length + '</span>';
-  h += '</div>';
-  // Search
-  h += '<div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;padding:6px 10px">';
-  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-  h += '<input id="gm-search" type="text" placeholder="Sök..." value="' + (_gmailState.search||'') + '" style="border:none;background:none;font-size:13px;color:var(--ink);font-family:var(--font);outline:none;width:100%">';
-  h += '</div></div>';
-
-  if (_gmailState.loading) {
-    h += '<div style="display:flex;align-items:center;justify-content:center;padding:40px;flex-direction:column;gap:12px">';
-    h += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6-8.5"/></svg>';
-    h += '<span style="font-size:13px;color:var(--text2)">Hämtar mail...</span></div>';
-    h += '</div>';
-    panel.innerHTML = h;
-    return;
+  h += '<div class="gm-list-header">';
+  h += '<div class="gm-list-title">';
+  // Mobile: hamburger to open sidebar
+  h += '<button class="gm-mob-menu" onclick="_gmailMobileShowPanel(\'sidebar\')" title="Meny">';
+  h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+  h += '</button>';
+  h += '<span>' + folderLabel + '</span>';
+  if (selFilter !== 'all') {
+    var filterNames = { scheduling:'Tidsbyte', cancel:'Avbokning', clinical:'Klinisk', admin:'Admin' };
+    h += '<span class="gm-filter-tag">' + (filterNames[selFilter]||selFilter) + ' <button onclick="_gmailSetFilter(\'all\')" style="background:none;border:none;cursor:pointer;color:inherit;font-size:13px;padding:0;margin-left:2px;line-height:1">×</button></span>';
   }
+  if (_gmailState.loading) h += '<div class="gm-spinner"></div>';
+  h += '</div>';
 
-  h += '<div id="gm-thread-rows" style="flex:1;overflow-y:auto">';
+  // Search
+  h += '<div class="gm-search-wrap">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += '<input id="gm-search-inp" class="gm-search-inp" placeholder="Sök mail..." value="' + e(searchQ) + '" oninput="_gmailRunSearch(this.value)">';
+  if (searchQ) h += '<button onclick="_gmailRunSearch(\'\')" class="gm-search-clear">×</button>';
+  h += '</div>';
+  h += '</div>';
+
+  // Thread list
+  h += '<div class="gm-thread-list">';
+
   if (!threads.length) {
-    h += '<div style="padding:40px 20px;text-align:center;color:var(--text2);font-size:13px">Inga mail</div>';
+    h += '<div class="gm-empty">';
+    h += '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
+    h += '<span>' + (searchQ ? 'Inga resultat för "' + e(searchQ) + '"' : 'Inga mail') + '</span>';
+    h += '</div>';
   } else {
     threads.forEach(function(t) {
-      var intent = _gmailDetectIntent(t.subject, t.snippet);
-      var isSelected = _gmailState.selectedThread && _gmailState.selectedThread.threadId === t.threadId;
-      var pat = (S.patients||[]).find(function(p){ return p.email && t.fromEmail && t.fromEmail.toLowerCase().includes(p.email.toLowerCase()); });
+      var intent  = _gmailDetectIntent(t.subject, t.snippet);
+      var isSel   = _gmailState.selectedThread && _gmailState.selectedThread.id === t.id;
+      var ic = { scheduling:'#d29922', cancel:'#f85149', clinical:'var(--teal)', admin:'var(--text2)' }[intent.id];
 
-      h += '<div class="gm-row" data-tid="' + t.threadId + '" style="'
-         + 'display:flex;align-items:flex-start;gap:10px;padding:11px 14px;cursor:pointer;'
-         + 'border-bottom:1px solid var(--border2);transition:background .1s;'
-         + 'background:' + (isSelected?'rgba(45,212,191,.05)':t.unread?'rgba(177,186,196,.03)':'transparent') + ';'
-         + (isSelected?'box-shadow:inset 3px 0 0 var(--teal)':'')
-         + '">';
+      h += '<div class="gm-thread-row' + (isSel?' selected':'') + (t.unread?' unread':'') + '" data-tid="' + t.id + '">';
 
       // Avatar
-      h += '<div style="position:relative;flex-shrink:0">';
-      h += '<div style="width:34px;height:34px;border-radius:50%;background:' + (pat?'rgba(45,212,191,.1)':'var(--surface2)') + ';border:1px solid ' + (pat?'rgba(45,212,191,.2)':'var(--border)') + ';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:' + (pat?'var(--teal)':'var(--text)') + ';font-family:var(--font-mono)">' + _gmailInitials(t.fromName) + '</div>';
-      if (t.unread) h += '<div style="position:absolute;top:-1px;right:-1px;width:8px;height:8px;border-radius:50%;background:var(--blue);border:2px solid var(--bg)"></div>';
-      h += '</div>';
+      var initials = _gmailInitials(t.fromName || t.from || '?');
+      h += '<div class="gm-thread-avatar">' + initials + '</div>';
 
-      // Content
-      h += '<div style="flex:1;min-width:0">';
+      h += '<div class="gm-thread-body">';
       // Row 1: from + date
-      h += '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:6px;margin-bottom:2px">';
-      h += '<span style="font-size:13px;font-weight:' + (t.unread?'700':'500') + ';color:' + (t.unread?'var(--ink)':'var(--text)') + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px">' + (t.fromName||'').slice(0,22) + '</span>';
-      h += '<span style="font-size:13px;color:var(--text2);flex-shrink:0">' + _gmailDateStr(t.internalDate) + '</span>';
+      h += '<div class="gm-thread-row1">';
+      h += '<span class="gm-thread-from">' + e(t.fromName || t.from || '') + '</span>';
+      h += '<span class="gm-thread-date">' + _gmailDateStr(t.date) + '</span>';
       h += '</div>';
-      // Row 2: subject + count
-      h += '<div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">';
-      h += '<span style="font-size:13px;font-weight:' + (t.unread?'600':'400') + ';color:' + (t.unread?'var(--ink)':'var(--text)') + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + (t.subject||'').slice(0,40) + '</span>';
-      if (t.count > 1) h += '<span style="font-size:12px;background:var(--surface3);color:var(--text2);padding:0 5px;border-radius:8px;flex-shrink:0">' + t.count + '</span>';
+      // Row 2: subject + intent dot
+      h += '<div class="gm-thread-row2">';
+      if (ic) h += '<span style="width:7px;height:7px;border-radius:50%;background:' + ic + ';flex-shrink:0;margin-top:4px"></span>';
+      h += '<span class="gm-thread-subj">' + e(t.subject || '(Inget ämne)') + '</span>';
       h += '</div>';
-      // Row 3: snippet + intent badge
-      h += '<div style="display:flex;align-items:center;gap:5px">';
-      h += '<span style="font-size:13px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + (t.snippet||'').slice(0,50) + '</span>';
-      if (intent.id !== 'other' && intent.id !== 'system') {
-        h += '<span class="status-pill ' + intent.color + '" style="font-size:11px;padding:1px 5px;flex-shrink:0">' + intent.label + '</span>';
-      }
-      if (pat) h += '<span class="status-pill teal" style="font-size:11px;padding:1px 5px;flex-shrink:0">Patient</span>';
-      h += '</div>';
+      // Row 3: snippet
+      h += '<div class="gm-thread-snip">' + e((t.snippet||'').slice(0,80)) + '</div>';
+      h += '</div>'; // body
 
-      // Quick actions for scheduling/cancel (appear on hover via JS)
-      if (intent.id === 'scheduling' || intent.id === 'cancel') {
-        h += '<div class="gm-quick-actions" style="display:none;gap:5px;margin-top:7px" onclick="event.stopPropagation()">';
-        if (pat) {
-          h += '<button onclick="sendPortalMagicLink((S.patients||[]).find(function(p){return p.id===\'' + pat.id + '\';}))" style="padding:3px 9px;border:1px solid rgba(45,212,191,.3);border-radius:5px;background:none;font-size:12px;color:var(--teal);cursor:pointer;font-family:var(--font)">Skicka portallänk</button>';
-        }
-        h += '<button data-ai-tid="' + t.threadId + '" style="padding:3px 9px;border:1px solid var(--border);border-radius:5px;background:none;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">AI-svar</button>';
-        h += '</div>';
-      }
-
-      h += '</div></div>';
+      if (t.unread) h += '<div class="gm-unread-dot"></div>';
+      h += '</div>';
     });
   }
-  h += '</div>';
+
+  h += '</div>'; // thread-list
   panel.innerHTML = h;
 
-  // Wire events
-  var searchEl = panel.querySelector('#gm-search');
-  if (searchEl) searchEl.oninput = function() {
-    _gmailState.search = searchEl.value;
-    _gmailRenderListPanel();
-  };
-
-  // Thread row clicks + hover
-  panel.querySelectorAll('.gm-row').forEach(function(row) {
-    row.onclick = function() {
-      var tid = row.getAttribute('data-tid');
-      _gmailOpenThread(tid);
-    };
-    row.onmouseenter = function() {
-      var qa = row.querySelector('.gm-quick-actions');
-      if (qa) qa.style.display = 'flex';
-    };
-    row.onmouseleave = function() {
-      var qa = row.querySelector('.gm-quick-actions');
-      if (qa) qa.style.display = 'none';
-    };
-  });
-
-  // AI quick action buttons
-  panel.querySelectorAll('[data-ai-tid]').forEach(function(btn) {
-    btn.onclick = function(e) {
-      e.stopPropagation();
-      var tid = btn.getAttribute('data-ai-tid');
-      _gmailOpenThread(tid, true);
-    };
+  // Wire thread clicks
+  panel.querySelectorAll('.gm-thread-row').forEach(function(row) {
+    row.addEventListener('click', function() {
+      _gmailOpenThread(row.getAttribute('data-tid'));
+      _gmailMobileShowPanel('thread');
+    });
   });
 }
 
-// ── Thread panel (empty state) ────────────────────────────────────────────────
+// ── Thread panel ──────────────────────────────────────────────────────────────
 function _gmailRenderThreadPanel(content) {
   var panel = document.getElementById('gm-thread-panel');
   if (!panel) return;
   if (!content) {
-    panel.innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--text2)">'
-      + '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
-      + '<span style="font-size:13px">Välj ett mail att läsa</span>'
+    panel.innerHTML = '<div class="gm-thread-empty">'
+      + '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
+      + '<span>Välj ett mail</span>'
       + '</div>';
     return;
   }
   panel.innerHTML = content;
 }
 
-// ── Load folder (deduplicate threads) ─────────────────────────────────────────
+// ── Mobile panel navigation ───────────────────────────────────────────────────
+function _gmailMobileShowPanel(which) {
+  var app = document.getElementById('gm-app');
+  if (!app) return;
+  app.setAttribute('data-panel', which);
+}
+
+
+
+async function _gmailLoadPatHistory(pat) {
+  if (!pat || !pat.email) { showAutoSaveToast("Patienten har ingen e-post registrerad"); return; }
+  if (!_gmailIsAuthed()) return;
+
+  showAutoSaveToast("Hämtar korrespondens med " + pat.name.split(' ')[0] + "…");
+
+  try {
+    var query = 'from:' + pat.email + ' OR to:' + pat.email;
+    var resp = await _gmailFetch('https://www.googleapis.com/gmail/v1/users/me/threads?q=' + encodeURIComponent(query) + '&maxResults=20');
+    var data = resp && resp.threads ? resp : { threads: [] };
+
+    if (!_gmailState.patHistory) _gmailState.patHistory = {};
+    _gmailState.patHistory[pat.id] = (data.threads || []).map(function(t) {
+      return {
+        threadId: t.id,
+        snippet:  t.snippet || '',
+        subject:  '',
+        date:     0,
+        fromMe:   false,
+      };
+    });
+
+    // Fetch snippet + subject for each thread (up to 10)
+    var threads = _gmailState.patHistory[pat.id].slice(0, 10);
+    await Promise.all(threads.map(async function(t, i) {
+      try {
+        var detail = await _gmailFetch('https://www.googleapis.com/gmail/v1/users/me/threads/' + t.threadId + '?format=metadata&metadataHeaders=Subject&metadataHeaders=From&metadataHeaders=Date');
+        var msgs = detail.messages || [];
+        var first = msgs[0];
+        var last  = msgs[msgs.length-1];
+        var hdrs = {};
+        (first?.payload?.headers || []).forEach(function(h){ hdrs[h.name.toLowerCase()] = h.value; });
+        t.subject  = hdrs['subject'] || '(Inget ämne)';
+        t.date     = parseInt(last?.internalDate || '0');
+        t.fromMe   = (hdrs['from']||'').toLowerCase().includes('calle@kansei') || (hdrs['from']||'').toLowerCase().includes('carlrobert');
+        t.snippet  = msgs[msgs.length-1]?.snippet || first?.snippet || '';
+      } catch(e) {}
+    }));
+
+    // Sort by date desc
+    _gmailState.patHistory[pat.id].sort(function(a,b){ return b.date - a.date; });
+
+    showAutoSaveToast("Korrespondens laddad — " + _gmailState.patHistory[pat.id].length + " trådar");
+    _gmailRenderThreadContent();
+  } catch(err) {
+    console.error('patHistory error', err);
+    showAutoSaveToast("Kunde inte hämta historik");
+  }
+}
+
+
 async function _gmailLoadFolder() {
   _gmailState.loading = true;
   _gmailRenderListPanel();
@@ -10623,25 +10845,36 @@ function _gmailRenderThreadContent() {
   var h = '<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">';
 
   // ── Thread header ───────────────────────────────────────────────────────
-  h += '<div style="padding:14px 18px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:flex-start;gap:12px">';
-  h += '<div style="flex:1;min-width:0">';
-  h += '<div style="font-size:17px;font-weight:700;color:var(--ink);margin-bottom:4px">' + (meta.subject||'(Inget ämne)').slice(0,70) + '</div>';
-  h += '<div style="display:flex;align-items:center;gap:6px">';
-  if (intent.id!=='other'&&intent.id!=='system') h += '<span class="status-pill ' + intent.color + '" style="font-size:12px">' + intent.label + '</span>';
-  if (pat) h += '<span class="status-pill teal" style="font-size:12px">Patient: ' + pat.name.split(' ')[0] + '</span>';
-  h += '<span style="font-size:13px;color:var(--text2)">' + msgs.length + ' meddelanden</span>';
-  h += '</div></div>';
-  // Toolbar
-  h += '<div style="display:flex;gap:6px;flex-shrink:0">';
-  if (pat) h += '<button onclick="openPat(\'' + pat.id + '\')" class="act-btn" style="font-size:13px">Patientkort</button>';
-  h += '<button id="gm-ai-toggle" class="act-btn' + (aiOpen?' act-btn-primary':'') + '" style="font-size:13px;gap:5px">';
-  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
-  h += 'AI-assistans</button>';
+  h += '<div style="padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--surface)">';
+  // Mobile back button
+  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+  h += '<button class="gm-back-btn" onclick="_gmailMobileShowPanel(this.dataset.p)" data-p="list">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>';
+  h += 'Inkorg</button>';
+  h += '</div>';
+  // Subject
+  h += '<div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px;line-height:1.3">' + e(meta.subject||'(Inget ämne)') + '</div>';
+  // Pills row
+  h += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
+  if (intent.id!=='other'&&intent.id!=='system') h += '<span class="status-pill ' + intent.color + '" style="font-size:11px">' + intent.label + '</span>';
+  if (pat) h += '<span class="status-pill teal" style="font-size:11px">👤 ' + e(pat.name.split(' ')[0]) + '</span>';
+  h += '<span style="font-size:12px;color:var(--text2)">' + msgs.length + ' meddelanden</span>';
+  h += '</div>';
+  // Actions row
+  h += '<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">';
+  h += '<button id="gm-ai-toggle" style="display:flex;align-items:center;gap:6px;padding:6px 13px;background:' + (aiOpen?'var(--teal)':'var(--surface2)') + ';color:' + (aiOpen?'#0d1117':'var(--text)') + ';border:1px solid ' + (aiOpen?'var(--teal)':'var(--border)') + ';border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+  h += (aiOpen ? 'Dölj AI' : 'AI-assistans') + '</button>';
+  if (pat) {
+    h += '<button onclick="openPat(\'' + pat.id + '\')" style="display:flex;align-items:center;gap:6px;padding:6px 13px;background:none;border:1px solid var(--border);border-radius:7px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    h += 'Patientkort</button>';
+  }
   h += '</div>';
   h += '</div>';
 
   // ── Body: messages + AI panel side by side ──────────────────────────────
-  h += '<div style="display:flex;flex:1;overflow:hidden;margin-top:62px">';
+  h += '<div style="display:flex;flex:1;overflow:hidden">'; 
 
   // Messages column
   h += '<div style="flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:14px;min-width:0">';
@@ -10790,6 +11023,13 @@ function _gmailRenderThreadContent() {
       showAutoSaveToast('Kunde inte spara utkast');
     }
   });
+  // Wire history load
+  panel.querySelector('#gm-hist-load')?.addEventListener('click', function() {
+    var sel = _gmailState.selectedThread;
+    if (!sel || !sel.pat) return;
+    _gmailLoadPatHistory(sel.pat);
+  });
+
 }
 
 async function Gmail_create_draft_stub(threadId, body) {
@@ -12094,6 +12334,63 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
     h += '</div>';
   });
   h += '</div></div>';
+
+
+  // ── Contact notes timeline ──────────────────────────────────────────────
+  var notes = (p.contactNotes||[]).concat(
+    (p.quickNotes||[]).filter(function(qn){
+      return !(p.contactNotes||[]).some(function(cn){ return cn.ts===qn.ts; });
+    }).map(function(qn){ return { type:'other', text:qn.text, ts:qn.ts }; })
+  ).sort(function(a,b){ return (b.ts||'')>(a.ts||'')?1:-1; });
+
+  h += '<div class="det-card" style="margin-top:16px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px 8px">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Kontakthistorik</div>';
+  h += '<button data-patid="' + p.id + '" onclick="openQuickNote(this.dataset.patid)" style="display:flex;align-items:center;gap:5px;padding:5px 12px;background:rgba(45,212,191,.08);border:1px solid rgba(45,212,191,.2);border-radius:7px;font-size:13px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)">';
+  h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+  h += 'Nytt notat</button>';
+  h += '</div>';
+
+  if (!notes.length) {
+    h += '<div style="padding:16px 18px;font-size:13px;color:var(--text2)">Inga kontaktnotat ännu.</div>';
+  } else {
+    var typeIcons = {
+      call:    '<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>',
+      email:   '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+      sms:     '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>',
+      meeting: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>',
+      other:   '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+    };
+    var typeLabels = { call:'Samtal', email:'Mail', sms:'SMS', meeting:'Möte', other:'Notat' };
+    var dirLabels  = { 'in':'↙ Ink.', 'out':'↗ Utg.' };
+
+    h += '<div style="padding:0 18px 14px">';
+    notes.slice(0,10).forEach(function(n) {
+      var d = new Date(n.ts);
+      var dateStr = d.toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) + ' ' + d.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
+      var icon = typeIcons[n.type] || typeIcons.other;
+      var label = typeLabels[n.type] || 'Notat';
+      h += '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border2)">';
+      // Icon
+      h += '<div style="width:28px;height:28px;border-radius:7px;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round">' + icon + '</svg>';
+      h += '</div>';
+      // Content
+      h += '<div style="flex:1;min-width:0">';
+      h += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">';
+      h += '<span style="font-size:12px;font-weight:700;color:var(--text)">' + label + '</span>';
+      if (n.dir) h += '<span style="font-size:11px;color:var(--text2)">' + (dirLabels[n.dir]||'') + '</span>';
+      h += '<span style="font-size:11px;color:var(--text2);margin-left:auto">' + dateStr + '</span>';
+      h += '</div>';
+      h += '<div style="font-size:13px;color:var(--text);line-height:1.5">' + e(n.text) + '</div>';
+      h += '</div></div>';
+    });
+    if (notes.length > 10) {
+      h += '<div style="font-size:13px;color:var(--text2);padding:8px 0">+' + (notes.length-10) + ' äldre notat</div>';
+    }
+    h += '</div>';
+  }
+  h += '</div>';
 
   return h;
 }
@@ -30129,6 +30426,12 @@ function openTreatmentPanel(bkId) {
   }
 
   // ── NOTES ─────────────────────────────────────────────────────────────────
+  // Quick contact note button in treatment panel
+  h += '<div style="padding:8px 16px;border-bottom:1px solid rgba(255,255,255,.06)">';
+  h += '<button onclick="closeTreatmentPanel();openQuickNote(\'" + bk.patientId + "\')" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;background:rgba(45,212,191,.06);border:1px solid rgba(45,212,191,.15);border-radius:8px;font-size:13px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>';
+  h += 'Lägg till kontaktnotat';
+  h += '</button></div>';
   h += '<div style="padding:12px 16px">';
   h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.3);margin-bottom:8px">Anteckning</div>';
   h += '<textarea id="tx-bk-note" placeholder="Notering inför besöket…" style="width:100%;min-height:60px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px;font-size:13px;color:rgba(255,255,255,.7);font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.5">' + e(bk.notes||'') + '</textarea>';
@@ -30159,42 +30462,146 @@ function _saveBkNote(bkId) {
 
 
 
-function openQuickNote(patId) {
+function openQuickNote(patId, prefill) {
   document.getElementById('quick-note-ov')?.remove();
   var pat = (S.patients||[]).find(function(p){ return p.id===patId; });
   if (!pat) return;
+
+  var types = [
+    { id:'call',    label:'Samtal',   icon:'<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>' },
+    { id:'email',   label:'Mail',     icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>' },
+    { id:'sms',     label:'SMS',      icon:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>' },
+    { id:'meeting', label:'Möte',     icon:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>' },
+    { id:'other',   label:'Annat',    icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' },
+  ];
+
   var ov = document.createElement('div');
   ov.id = 'quick-note-ov';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px);font-family:var(--font)';
   ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
-  ov.innerHTML = '<div style="background:var(--surface);border-radius:18px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">'
-    + '<div style="background:var(--navy);padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between">'
-    + '<div><div style="font-size:16px;font-weight:700;color:white">Snabb anteckning</div>'
-    + '<div style="font-size:13px;color:rgba(255,255,255,.35)">' + e(pat.name) + '</div></div>'
-    + '<button onclick="document.getElementById(\'quick-note-ov\').remove()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:20px;cursor:pointer">×</button>'
-    + '</div>'
-    + '<div style="padding:16px">'
-    + '<textarea id="qn-text" class="field" rows="4" placeholder="T.ex. ringde, mår bra, ingen ny tid behövs ännu..." style="margin-bottom:12px;font-size:13px" autofocus></textarea>'
-    + '<button onclick="_saveQuickNote(\''+patId+'\')" class="btn btn-p" style="width:100%;padding:11px">Spara anteckning →</button>'
-    + '</div></div>';
+
+  var h = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.5)" onclick="event.stopPropagation()">';
+
+  // Header
+  h += '<div style="padding:16px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
+  h += '<div>';
+  h += '<div style="font-size:15px;font-weight:700;color:var(--ink)">Kontaktnotat</div>';
+  h += '<div style="font-size:13px;color:var(--text2);margin-top:1px">' + e(pat.name) + '</div>';
+  h += '</div>';
+  h += '<button onclick="document.getElementById(\'quick-note-ov\').remove()" style="background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1;padding:0">×</button>';
+  h += '</div>';
+
+  h += '<div style="padding:16px 18px">';
+
+  // Type selector
+  h += '<div style="margin-bottom:14px">';
+  h += '<label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:8px">Typ</label>';
+  h += '<div id="qn-types" style="display:flex;gap:6px;flex-wrap:wrap">';
+  types.forEach(function(t, i) {
+    var active = i === 0;
+    h += '<button class="qn-type-btn' + (active?' active':'') + '" data-type="' + t.id + '" onclick="_qnSelectType(this)"';
+    h += ' style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;border:1px solid ' + (active?'var(--teal)':'var(--border)') + ';background:' + (active?'rgba(45,212,191,.08)':'none') + ';color:' + (active?'var(--teal)':'var(--text)') + ';font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">';
+    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' + t.icon + '</svg>';
+    h += t.label + '</button>';
+  });
+  h += '</div></div>';
+
+  // Direction (in/out) — shown for call/email/sms
+  h += '<div id="qn-dir-row" style="display:flex;gap:8px;margin-bottom:14px">';
+  h += '<button id="qn-dir-in" onclick="_qnSetDir(\'in\')" style="flex:1;padding:6px 0;border:1px solid var(--teal);border-radius:8px;background:rgba(45,212,191,.08);color:var(--teal);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">↙ Inkommande</button>';
+  h += '<button id="qn-dir-out" onclick="_qnSetDir(\'out\')" style="flex:1;padding:6px 0;border:1px solid var(--border);border-radius:8px;background:none;color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">↗ Utgående</button>';
+  h += '</div>';
+
+  // Summary / free text
+  h += '<div style="margin-bottom:14px">';
+  h += '<label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:6px">Anteckning</label>';
+  h += '<textarea id="qn-text" rows="3" placeholder="T.ex. ringde och frågade om tid, mår bättre sedan senast..." autocomplete="off" style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:14px;color:var(--ink);font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.6">' + e(prefill||'') + '</textarea>';
+  h += '</div>';
+
+  // Save buttons
+  h += '<div style="display:flex;gap:8px">';
+  h += '<button onclick="document.getElementById(\'quick-note-ov\').remove()" style="padding:9px 16px;background:none;border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--font)">Avbryt</button>';
+  h += '<button onclick="_saveContactNote(\'' + patId + '\')" style="flex:1;padding:9px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara notat</button>';
+  h += '</div>';
+
+  h += '</div></div>';
+  ov.innerHTML = h;
   document.body.appendChild(ov);
-  setTimeout(function(){ document.getElementById('qn-text')?.focus(); }, 100);
+  setTimeout(function(){ document.getElementById('qn-text')?.focus(); }, 80);
 }
 
-function _saveQuickNote(patId) {
+function _qnSelectType(btn) {
+  document.querySelectorAll('.qn-type-btn').forEach(function(b) {
+    b.style.borderColor = 'var(--border)';
+    b.style.background  = 'none';
+    b.style.color       = 'var(--text)';
+  });
+  btn.style.borderColor = 'var(--teal)';
+  btn.style.background  = 'rgba(45,212,191,.08)';
+  btn.style.color       = 'var(--teal)';
+  // Hide direction for 'meeting' and 'other'
+  var t = btn.getAttribute('data-type');
+  var dirRow = document.getElementById('qn-dir-row');
+  if (dirRow) dirRow.style.display = (t === 'meeting' || t === 'other') ? 'none' : 'flex';
+}
+
+function _qnSetDir(dir) {
+  var inBtn  = document.getElementById('qn-dir-in');
+  var outBtn = document.getElementById('qn-dir-out');
+  if (!inBtn || !outBtn) return;
+  if (dir === 'in') {
+    inBtn.style.borderColor  = 'var(--teal)'; inBtn.style.background  = 'rgba(45,212,191,.08)'; inBtn.style.color = 'var(--teal)';
+    outBtn.style.borderColor = 'var(--border)'; outBtn.style.background = 'none'; outBtn.style.color = 'var(--text)';
+  } else {
+    outBtn.style.borderColor = 'var(--teal)'; outBtn.style.background  = 'rgba(45,212,191,.08)'; outBtn.style.color = 'var(--teal)';
+    inBtn.style.borderColor  = 'var(--border)'; inBtn.style.background  = 'none'; inBtn.style.color = 'var(--text)';
+  }
+}
+
+function _saveContactNote(patId) {
   var text = document.getElementById('qn-text')?.value?.trim();
   if (!text) { showAutoSaveToast('Skriv en anteckning'); return; }
+
+  var typeBtn = document.querySelector('.qn-type-btn[style*="var(--teal)"]')
+             || document.querySelector('.qn-type-btn.active');
+  var type = typeBtn ? typeBtn.getAttribute('data-type') : 'other';
+
+  var dirIn  = document.getElementById('qn-dir-in');
+  var dir = 'in';
+  if (dirIn && dirIn.style.color && dirIn.style.color.indexOf('teal') === -1) dir = 'out';
+  var dirRow = document.getElementById('qn-dir-row');
+  var hasDir = !dirRow || dirRow.style.display !== 'none';
+
   var pat = (S.patients||[]).find(function(p){ return p.id===patId; });
   if (!pat) return;
+
+  if (!pat.contactNotes) pat.contactNotes = [];
+  pat.contactNotes.unshift({
+    id:   'cn_' + Date.now(),
+    type: type,
+    dir:  hasDir ? dir : null,
+    text: text,
+    ts:   new Date().toISOString(),
+    author: (typeof _authUser !== 'undefined' && _authUser?.email) || ''
+  });
+
+  // Also preserve backward compat quickNotes
   if (!pat.quickNotes) pat.quickNotes = [];
-  pat.quickNotes.push({ text:text, ts:new Date().toISOString() });
+  pat.quickNotes.unshift({ text: text, ts: new Date().toISOString() });
+
   savePat(pat);
   document.getElementById('quick-note-ov')?.remove();
-  showAutoSaveToast('Anteckning sparad ✓');
+
+  var typeLabels = { call:'Samtal', email:'Mail', sms:'SMS', meeting:'Möte', other:'Anteckning' };
+  showAutoSaveToast((typeLabels[type]||'Notat') + ' sparat ✓');
+
+  // Refresh detail if open
+  if (S.screen === 'detail') rDetail();
 }
 
+// Backward compat alias
+function _saveQuickNote(patId) { _saveContactNote(patId); }
 
-// ── HAEL — REHABPLAN OVERVIEW ────────────────────────────────────────────────
 
 function rHael() {
   var el = document.getElementById('s-hael');

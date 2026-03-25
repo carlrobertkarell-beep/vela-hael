@@ -157,7 +157,7 @@ a:hover { text-decoration: underline; }
 .nav-sidebar.collapsed .nav-logo { display: none; }
 .nav-sidebar.collapsed .nav-collapse-arrow { transform:rotate(180deg); }
 
-.nav-tooltip { display:none; position:absolute; left:calc(100% + 10px); top:50%; transform:translateY(-50%); background:rgba(10,20,35,.96); color:rgba(255,255,255,.9); font-size:13px; font-weight:600; white-space:nowrap; padding:5px 10px; border-radius:7px; pointer-events:none; z-index:500; border:1px solid rgba(255,255,255,.08); box-shadow:0 4px 14px rgba(0,0,0,.4); }
+.nav-tooltip { display:none; position:absolute; left:calc(100% + 10px); top:50%; transform:translateY(-50%); background:rgba(10,20,35,.96); color:rgba(255,255,255,.9); font-size:13px; font-weight:600; white-space:nowrap; padding:5px 10px; border-radius:7px; pointer-events:none; z-index:500; border:1px solid rgba(255,255,255,.08);  }
 .nav-sidebar.collapsed .nav-item:hover .nav-tooltip { display:block; }
 .nav-logo {
   display:none; /* logo hidden — topbar has logo */
@@ -332,7 +332,7 @@ a:hover { text-decoration: underline; }
 .ss-card { background:var(--bg);border-radius:11px;padding:11px;text-align:center; }
 .ss-val { font-size:20px;font-weight:800;color:var(--teal); }
 .ss-lbl { font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em; }
-.ambient-finish-btn { width:100%;padding:15px;background:var(--teal);color:white;border:none;border-radius: 6px;font-size:16px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em; }
+.ambient-finish-btn { width:100%;padding:15px;background:#238636;color:white;border:none;border-radius: 6px;font-size:16px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em; }
 .ambient-finish-btn:hover { opacity:.92; }
 
 /* ══ AMBIENT AI SESSION ══════════════════════════════════════════════════════ */
@@ -387,7 +387,7 @@ a:hover { text-decoration: underline; }
 .ss-card { background:var(--bg);border-radius:11px;padding:11px;text-align:center; }
 .ss-val { font-size:20px;font-weight:800;color:var(--teal); }
 .ss-lbl { font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em; }
-.ambient-finish-btn { width:100%;padding:15px;background:var(--teal);color:white;border:none;border-radius: 6px;font-size:16px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em; }
+.ambient-finish-btn { width:100%;padding:15px;background:#238636;color:white;border:none;border-radius: 6px;font-size:16px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em; }
 .ambient-finish-btn:hover { opacity:.92; }
 
 /* ══ BOOKING DIALOG REBUILD ══════════════════════════════════════════════════ */
@@ -395,7 +395,7 @@ a:hover { text-decoration: underline; }
   backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;
   padding:20px;animation:cmd-fade-in .15s ease; }
 .bk2-box { background:#161b22;border-radius:22px;width:100%;max-width:560px;
-  overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45);display:flex;flex-direction:column;
+  overflow:hidden;display:flex;flex-direction:column;
   max-height:92vh; }
 .bk2-header { background:var(--navy);padding:18px 22px 14px;flex-shrink:0; }
 .bk2-title { font-size:18px;font-weight:800;color:white;letter-spacing:-.02em; }
@@ -421,7 +421,7 @@ a:hover { text-decoration: underline; }
 /* Suggestions */
 .bk2-suggestions { position:absolute;top:calc(100% + 4px);left:0;right:0;background:#161b22;
   border:1px solid #30363d;border-radius: 6px;z-index:50;overflow:hidden;
-  box-shadow:0 8px 24px rgba(0,0,0,.3);max-height:200px;overflow-y:auto; }
+  max-height:200px;overflow-y:auto; }
 .bk2-sug-item { padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;
   transition:background .1s; }
 .bk2-sug-item:hover { background:rgba(224,118,40,.05); }
@@ -440,7 +440,7 @@ a:hover { text-decoration: underline; }
 /* Footer */
 .bk2-footer { padding:14px 22px 18px;display:flex;gap:10px;flex-shrink:0;
   border-top:1px solid #30363d; }
-.bk2-btn-primary { flex:2;padding:13px;background:var(--teal);color:white;border:none;
+.bk2-btn-primary { flex:2;padding:13px;background: #238636;color:white;border:none;
   border-radius: 6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);
   display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .15s; }
 .bk2-btn-primary:hover { opacity:.9; }
@@ -460,7 +460,7 @@ a:hover { text-decoration: underline; }
 .org-add-clinic-card:hover { border-color:var(--teal); }
 
 /* ── BOOKING CALENDAR ─────────────────────────────────────────────────────── */
-.cal-wrap { display:flex; flex-direction:column; height:calc(100vh - 110px); overflow:hidden; background:var(--bg); }
+.cal-wrap { display:flex; flex-direction:column; height:calc(100vh - 107px); overflow:hidden; background:var(--bg); }
 .cal-header { display:flex; align-items:center; justify-content:space-between; padding:14px 20px; background:var(--bg); border-bottom:1px solid #30363d; flex-shrink:0; gap:12px; flex-wrap:wrap; }
 .cal-nav { display:flex; align-items:center; gap:8px; }
 .cal-nav-btn { background:none; border:1px solid #30363d; border-radius:8px; padding:6px 12px; font-size:13px; font-weight:600; color:var(--text); cursor:pointer; font-family:var(--font); transition:background .12s; }
@@ -476,7 +476,7 @@ a:hover { text-decoration: underline; }
    ══════════════════════════════════════════════════════════════════════════════ */
 
 /* ── Layout ─────────────────────────────────────────────────────────────────── */
-.cal-shell         { display:flex; height:calc(100vh - 110px); overflow:hidden; background:var(--bg); }
+.cal-shell         { display:flex; height:calc(100vh - 107px); overflow:hidden; background:var(--bg); }
 .cal-left          { width:220px; flex-shrink:0; border-right:1px solid #30363d; display:flex; flex-direction:column; overflow:hidden; background:var(--bg); }
 .cal-main          { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
 
@@ -546,7 +546,7 @@ a:hover { text-decoration: underline; }
 
 /* ── Bookings (events) ──────────────────────────────────────────────────────── */
 .cal-event         { position:absolute; left:3px; right:3px; border-radius:7px; padding:4px 8px; cursor:pointer; overflow:hidden; transition:all .15s; z-index:2; border:1px solid transparent; }
-.cal-event:hover   { filter:brightness(1.1); z-index:10; transform:translateX(1px); box-shadow:0 4px 12px rgba(0,0,0,.3); }
+.cal-event:hover   { filter:brightness(1.1); z-index:10; transform:translateX(1px);  }
 .cal-event-title   { font-size:12px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.3; }
 .cal-event-meta    { font-size:11px; color:rgba(255,255,255,.75); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .cal-event-time    { font-size:10px; color:rgba(255,255,255,.6); }
@@ -560,7 +560,7 @@ a:hover { text-decoration: underline; }
 .cal-now-line::after { content:''; position:absolute; left:0; top:0; right:0; height:2px; background:var(--teal); }
 
 /* ── Drag ghost ─────────────────────────────────────────────────────────────── */
-.cal-drag-ghost    { position:fixed; pointer-events:none; z-index:999; opacity:.85; border-radius:7px; padding:4px 8px; font-size:12px; font-weight:700; color:#fff; box-shadow:0 8px 24px rgba(0,0,0,.4); transition:none; }
+.cal-drag-ghost    { position:fixed; pointer-events:none; z-index:999; opacity:.85; border-radius:7px; padding:4px 8px; font-size:12px; font-weight:700; color:#fff;  transition:none; }
 .cal-drop-target   { background:rgba(224,118,40,.12) !important; border:2px dashed var(--teal) !important; }
 
 /* ── Month view ─────────────────────────────────────────────────────────────── */
@@ -588,7 +588,7 @@ a:hover { text-decoration: underline; }
 .cal-agenda-sub    { font-size:12px; color:var(--text2); margin-top:2px; }
 
 /* ── Event detail popover ───────────────────────────────────────────────────── */
-.cal-popover       { position:fixed; z-index:500; background:#161b22; border:1px solid #30363d; border-radius: 6px; box-shadow:0 8px 32px rgba(0,0,0,.4); width:280px; padding:16px; }
+.cal-popover       { position:fixed; z-index:500; background:#161b22; border:1px solid #30363d; border-radius: 6px;  width:280px; padding:16px; }
 .cal-popover-arrow { position:absolute; width:12px; height:12px; background:#161b22; border:1px solid #30363d; transform:rotate(45deg); }
 
 /* ════════════════════════════════════════════════════════════════════════
@@ -815,10 +815,7 @@ button:not([class]) { border-radius: 6px; }
   padding: 0 20px; border-bottom: 1px solid #30363d;
   flex-shrink: 0; cursor: pointer;
 }
-.vai-role {
-  font-size: 11px; font-weight: 700; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--orange);
-}
+.vai-role { display: flex; align-items: center; }
 .vai-title { font-size: 13px; color: #e6edf3; font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .vai-controls { display: flex; gap: 4px; flex-shrink: 0; }
 .vai-ctrl-btn {
@@ -1099,7 +1096,7 @@ button:not([class]) { border-radius: 6px; }
 }
 .act-btn:hover { background: #30363d; border-color: rgba(177,186,196,.3); }
 .act-btn-primary {
-  background: var(--teal); color: #0d1117; border-color: var(--teal); font-weight: 700;
+  background: #238636; color: #0d1117; border-color: var(--teal); font-weight: 700;
 }
 .act-btn-primary:hover { background: var(--teal-dk); border-color: var(--teal-dk); }
 .act-btn-danger { color: var(--red); border-color: rgba(248,81,73,.3); }
@@ -1172,7 +1169,7 @@ button:not([class]) { border-radius: 6px; }
 .modal {
   background:#161b22; border-radius: 6px;
   padding:28px 24px; width:100%; max-width:400px;
-  box-shadow:0 8px 40px rgba(0,0,0,.2);
+  
 }
 .modal-title { font-size:17px; font-weight:700; color:var(--navy); margin-bottom:8px; }
 .modal-text  { font-size:14px; color:var(--text); line-height:1.6; margin-bottom:20px; }
@@ -1226,7 +1223,7 @@ button:not([class]) { border-radius: 6px; }
 
 /* ── SETTINGS LAYOUT ─────────────────────────────────────── */
 .vela-settings-wrap {
-  display: flex; min-height: calc(100vh - 110px);
+  display: flex; min-height: calc(100vh - 107px);
   margin: 0; padding: 0;
 }
 .vela-settings-nav {
@@ -1507,7 +1504,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .intel-ask-input::placeholder { color:rgba(255,255,255,.3); }
 .intel-ask-input:focus { border-color:rgba(224,118,40,.5); }
 .intel-ask-btn {
-  background:var(--teal); color:white; border:none;
+  background:#238636; color:white; border:none;
   border-radius: 6px; padding:12px 20px; font-size:14px; font-weight:700;
   cursor:pointer; font-family:var(--font,sans-serif); white-space:nowrap;
 }
@@ -1713,7 +1710,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .day-view-sub { font-size:13px;color:var(--muted);margin-top:2px; }
 .day-view-list { flex:1;overflow-y:auto;padding:12px 0; }
 .day-slot { display:flex;gap:0;margin:0 16px 6px;border-radius: 6px;overflow:hidden;cursor:pointer;transition:all .15s;position:relative; }
-.day-slot:hover { transform:translateY(-1px);box-shadow:0 4px 20px rgba(0,0,0,.2); }
+.day-slot:hover { transform:translateY(-1px); }
 .day-slot-time { width:72px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 8px;background:var(--navy);border-right:1px solid rgba(255,255,255,.06); }
 .day-slot-hour { font-size:16px;font-weight:800;color:white; }
 .day-slot-min  { font-size:12px;color:rgba(255,255,255,.35);margin-top:1px; }
@@ -1750,7 +1747,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .soap-ai-card-text { font-size:13px;color:rgba(255,255,255,.75);line-height:1.6; }
 .soap-ai-apply-btn { width:100%;margin-top:8px;padding:6px;background:rgba(224,118,40,.07);border:1px solid rgba(224,118,40,.12);border-radius:7px;font-size:13px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font);text-align:center; }
 .close-visit-wizard { position:fixed;inset:0;z-index:700;background:rgba(7,16,30,.8);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px; }
-.cvw-box { background:#161b22;border-radius:24px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 16px 60px rgba(0,0,0,.4);animation:slide-in-right .3s ease; }
+.cvw-box { background:#161b22;border-radius:24px;width:100%;max-width:480px;overflow:hidden;animation:slide-in-right .3s ease; }
 .cvw-step { padding:28px; }
 .cvw-label { font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:6px; }
 .cvw-title { font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.03em;margin-bottom:4px; }
@@ -1771,7 +1768,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 /* ── COMMAND PALETTE ─────────────────────────────────────────────────────── */
 .cmd-overlay { position:fixed;inset:0;z-index:800;background:transparent;display:block; }
 @keyframes cmd-fade-in { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
-.cmd-box { background:#21262d;border:1px solid #30363d;border-radius:0 0 8px 8px;width:460px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.4);position:fixed;top:62px;right:60px;z-index:801; }
+.cmd-box { background:#21262d;border:1px solid #30363d;border-radius:0 0 8px 8px;width:460px;overflow:hidden;position:fixed;top:62px;right:60px;z-index:801; }
 .cmd-input-row { display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #30363d;background:#21262d; }
 .cmd-icon { color:var(--teal);flex-shrink:0; }
 .cmd-input { flex:1;background:none;border:none;font-size:14px;color:var(--ink);outline:none;font-family:var(--font); }
@@ -1832,7 +1829,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 
 
 /* ── VCAL — new world-class calendar ──────────────────────────────────────── */
-.vcal-shell     { display:flex; height:calc(100vh - 110px); overflow:hidden; background:var(--bg); font-family:var(--font); }
+.vcal-shell     { display:flex; height:calc(100vh - 107px); overflow:hidden; background:var(--bg); font-family:var(--font); max-width:1280px;margin:0 auto;}
 .vcal-left      { width:220px; flex-shrink:0; border-right:1px solid #30363d; display:flex; flex-direction:column; overflow:hidden; }
 .vcal-main      { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
 /* Mini calendar */
@@ -1907,7 +1904,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .vcal-now-line::before { content:''; position:absolute; left:-4px; top:-4px; width:10px; height:10px; border-radius:50%; background:var(--red,#f85149); }
 /* Chips */
 .vcal-chip        { position:absolute; border-radius:7px; padding:3px 7px; cursor:pointer; overflow:hidden; user-select:none; }
-.vcal-chip:hover  { filter:brightness(1.12); z-index:10; box-shadow:0 4px 14px rgba(0,0,0,.35); }
+.vcal-chip:hover  { filter:brightness(1.12); z-index:10;  }
 .vcal-chip-time   { font-size:11px; color:rgba(255,255,255,.75); white-space:nowrap; }
 .vcal-chip-name   { font-size:12px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .vcal-chip-svc    { font-size:11px; color:rgba(255,255,255,.65); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -1959,7 +1956,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 
 #gm-app {
   display: flex;
-  height: calc(100vh - 110px);
+  height: calc(100vh - 107px);
   overflow: hidden;
   font-family: var(--font);
   background: var(--bg);
@@ -2131,7 +2128,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
    ══════════════════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
   #gm-app {
-    height: calc(100vh - 110px);
+    height: calc(100vh - 107px);
     position: relative;
     overflow: hidden;
   }
@@ -2187,7 +2184,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 
 .akt-shell {
   display: flex;
-  height: calc(100vh - 110px);
+  height: calc(100vh - 107px);
   overflow: hidden;
   font-family: var(--font);
   background: var(--bg);
@@ -2337,7 +2334,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 }
 
 /* ── Profile ──────────────────────────────────────────────────────────────── */
-.prof-shell { display:flex; gap:28px; padding:32px 28px; max-width:1100px; margin:0 auto; font-family:var(--font); min-height:calc(100vh - 110px); box-sizing:border-box; }
+.prof-shell { display:flex; gap:28px; padding:32px 28px; max-width:1100px; margin:0 auto; font-family:var(--font); min-height:calc(100vh - 107px); box-sizing:border-box; }
 .prof-left { width:260px; flex-shrink:0; }
 .prof-avatar-wrap { position:relative; width:120px; height:120px; margin-bottom:16px; }
 .prof-avatar-img { width:120px; height:120px; border-radius:50%; object-fit:cover; border:3px solid var(--border); }
@@ -2666,7 +2663,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
   </div>
 </div>
 
-<div id="autosave-toast" style="display:none;position:fixed;bottom:80px;right:24px;background:var(--navy);color:white;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:998;opacity:0;transition:opacity .3s;box-shadow:0 4px 16px rgba(0,0,0,.2)">Autosparad</div>
+<div id="autosave-toast" style="display:none;position:fixed;bottom:80px;right:24px;background:var(--navy);color:white;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;z-index:998;opacity:0;transition:opacity .3s">Autosparad</div>
 <div class="modal-ov" id="modal">
   <div class="modal">
     <div class="modal-title" id="mtitle"></div>
@@ -2861,7 +2858,7 @@ function showUpgradeModal(reason) {
   const used = getMonthlyPlanCount();
   const limit = TIERS.free.planLimit;
   ov.innerHTML = `
-  <div style="background:#161b22;border-radius:24px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">
+  <div style="background:#161b22;border-radius:24px;width:100%;max-width:420px;overflow:hidden" onclick="event.stopPropagation()">
     <div style="background:linear-gradient(135deg,#0a1f3a,#0d2d4a);padding:28px 28px 20px;text-align:center">
       <div style="width:52px;height:52px;border-radius:6px;background:rgba(224,118,40,.07);border:1px solid rgba(224,118,40,.3);display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e07628" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -4611,7 +4608,7 @@ function zpShowLockedFeature(featureId, patId, visitId) {
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1fc8b4" stroke-width="2" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
     </div>
     <button onclick="window._zpRenewalPat=window._publicPlanCache?.pat;zpRenderPaywall('${patId}','${visitId}',window._publicPlanCache?.pat);document.querySelector('[style*=fixed][style*=z-index:600]')?.remove()"
-      style="width:100%;background:#e07628;color:white;border:none;border-radius:13px;padding:15px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 20px rgba(224,118,40,.3)">
+      style="width:100%;background:#e07628;color:white;border:none;border-radius:13px;padding:15px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">
       Lås upp ${tierLabel} ->
     </button>
     <button onclick="this.closest('[style*=fixed]').remove()"
@@ -5830,7 +5827,7 @@ function _vcalOpenSchedule() {
   // AI suggestion button
   h += '<div style="padding:12px 20px;border-bottom:1px solid #30363d;background:rgba(224,118,40,.04);display:flex;align-items:center;justify-content:space-between">';
   h += '<div style="font-size:13px;color:var(--text)">AI kan fylla i schema baserat på dina befintliga bokningar.</div>';
-  h += '<button onclick="_vcalAISuggestSchedule()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--teal);border:none;border-radius:8px;font-size:13px;font-weight:700;color:#0d1117;cursor:pointer;font-family:var(--font)">';
+  h += '<button onclick="_vcalAISuggestSchedule()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:#238636;border:none;border-radius:8px;font-size:13px;font-weight:700;color:#0d1117;cursor:pointer;font-family:var(--font)">';
   h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>AI-förslag</button>';
   h += '</div>';
 
@@ -5889,7 +5886,7 @@ function _vcalOpenSchedule() {
   // Footer
   h += '<div style="padding:14px 20px;border-top:1px solid #30363d;display:flex;justify-content:flex-end;gap:8px">';
   h += '<button onclick="document.getElementById(\'vcal-schedule-ov\').remove()" style="padding:9px 20px;background:none;border:1px solid #30363d;border-radius:8px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avbryt</button>';
-  h += '<button onclick="_vcalSaveSchedule()" style="padding:9px 20px;background:var(--teal);border:none;border-radius:8px;font-size:14px;font-weight:700;color:#0d1117;cursor:pointer;font-family:var(--font)">Spara schema</button>';
+  h += '<button onclick="_vcalSaveSchedule()" style="padding:9px 20px;background:#238636;border:none;border-radius:8px;font-size:14px;font-weight:700;color:#0d1117;cursor:pointer;font-family:var(--font)">Spara schema</button>';
   h += '</div>';
   h += '</div>';
 
@@ -6539,7 +6536,7 @@ function _vcalDragStart(e, bkId) {
   // Create ghost
   var ghost = document.createElement('div');
   ghost.className = 'vcal-drag-ghost';
-  ghost.style.cssText = 'position:fixed;pointer-events:none;z-index:999;opacity:.85;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.4);background:' + _vcalBkColor(bk) + ';min-width:100px;';
+  ghost.style.cssText = 'position:fixed;pointer-events:none;z-index:999;opacity:.85;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;color:#fff;background:' + _vcalBkColor(bk) + ';min-width:100px;';
   ghost.textContent = bk.patientName + ' ' + bk.time;
   document.body.appendChild(ghost);
 
@@ -6668,7 +6665,7 @@ function _vcalOpenBk(bkId) {
 
   var pop = document.createElement('div');
   pop.id = 'vcal-popover';
-  pop.style.cssText = 'position:fixed;z-index:600;background:#161b22;border:1px solid #30363d;border-radius:6px;box-shadow:0 8px 32px rgba(0,0,0,.5);width:300px;overflow:hidden;';
+  pop.style.cssText = 'position:fixed;z-index:600;background:#161b22;border:1px solid #30363d;border-radius:6px;width:300px;overflow:hidden;';
 
   if (rect) {
     var left = rect.right + 10;
@@ -6702,7 +6699,7 @@ function _vcalOpenBk(bkId) {
     + '</div>'
     + '<div style="padding:10px 16px;border-top:1px solid #30363d;display:flex;gap:6px">'
     + '<button onclick="document.getElementById(\'vcal-popover\').remove();openPat(\'' + bk.patientId + '\')" style="flex:1;padding:8px;background:none;border:1px solid #30363d;border-radius:8px;font-size:13px;color:var(--text);cursor:pointer;font-family:var(--font)">Patient →</button>'
-    + '<button onclick="document.getElementById(\'vcal-popover\').remove();openBookingDetail(\'' + bk.id + '\')" style="flex:1;padding:8px;background:var(--teal);border:none;border-radius:8px;font-size:13px;font-weight:700;color:#0d1117;cursor:pointer;font-family:var(--font)">Öppna</button>'
+    + '<button onclick="document.getElementById(\'vcal-popover\').remove();openBookingDetail(\'' + bk.id + '\')" style="flex:1;padding:8px;background:#238636;border:none;border-radius:8px;font-size:13px;font-weight:700;color:#0d1117;cursor:pointer;font-family:var(--font)">Öppna</button>'
     + '</div>';
 
   document.body.appendChild(pop);
@@ -7156,7 +7153,7 @@ function rHaelPatient(planData, patData) {
     h += '<div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,.06)">';
     h += '<div style="display:flex;gap:10px;align-items:flex-end">';
     h += '<textarea class="hael-msg-input" id="hael-pat-msg" rows="2" placeholder="Skriv ett meddelande till din kliniker..."></textarea>';
-    h += '<button onclick="_haelSendPatientMessage()" style="padding:10px 16px;background:var(--teal);color:white;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);flex-shrink:0">Skicka</button>';
+    h += '<button onclick="_haelSendPatientMessage()" style="padding:10px 16px;background:#238636;color:white;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);flex-shrink:0">Skicka</button>';
     h += '</div></div>';
     h += '</div>';
   }
@@ -7301,7 +7298,7 @@ function _haelShowCelebration(entry) {
     + (entry.nrs!==null ? 'NRS ' + entry.nrs + '/10 · ' : '')
     + (entry.exercisesDone||0) + ' övningar'
     + '</div>'
-    + '<button onclick="this.parentNode.parentNode.remove();_haelSetTab(\'progress\')" style="padding:14px 32px;background:var(--teal);color:white;border:none;border-radius:6px;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font)">Se min progress →</button>'
+    + '<button onclick="this.parentNode.parentNode.remove();_haelSetTab(\'progress\')" style="padding:14px 32px;background:#238636;color:white;border:none;border-radius:6px;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font)">Se min progress →</button>'
     + '</div>';
   document.body.appendChild(cel);
   setTimeout(function(){ cel.remove(); _haelSetTab('today'); }, 4000);
@@ -7800,7 +7797,7 @@ function _renderAmbientConsent(pat) {
     + '<div style="background:rgba(224,118,40,.04);border:1px solid rgba(224,118,40,.07);border-radius:6px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:var(--muted);line-height:1.7">'
     + '📋 Allt bearbetas av Anthropics Claude AI · Ingen data lagras på externa servrar · Klinikern granskar och godkänner all dokumentation'
     + '</div>'
-    + '<button onclick="_ambientGrantConsent()" style="width:100%;padding:14px;background:var(--teal);color:white;border:none;border-radius:13px;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:10px">Patienten har samtyckt — Starta session →</button>'
+    + '<button onclick="_ambientGrantConsent()" style="width:100%;padding:14px;background:#238636;color:white;border:none;border-radius:13px;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:10px">Patienten har samtyckt — Starta session →</button>'
     + '<button onclick="closeAmbientSession()" style="width:100%;padding:11px;background:none;border:1px solid #30363d;border-radius:13px;font-size:14px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avbryt</button>'
     + '</div></div></div>';
 }
@@ -8448,7 +8445,7 @@ function _bk2Save() {
 
 function _showBk2Confirmation(bk, patName, email, intakeSent) {
   var toast = document.createElement('div');
-  toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:900;background:#161b22;border:1px solid rgba(224,118,40,.3);border-radius:6px;padding:14px 20px;box-shadow:0 8px 24px rgba(0,0,0,.3);animation:signal-in .25s ease;max-width:380px;width:90%';
+  toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:900;background:#161b22;border:1px solid rgba(224,118,40,.3);border-radius:6px;padding:14px 20px;animation:signal-in .25s ease;max-width:380px;width:90%';
   var lines = [
     '<div style="font-size:14px;font-weight:700;color:white;margin-bottom:6px">✓ ' + e(patName) + ' bokad ' + _fmtBookingDate(bk.date) + ' kl ' + bk.time + '</div>',
     email ? '<div style="font-size:13px;color:var(--muted)">📧 Bekräftelse köad → ' + e(email) + '</div>' : '<div style="font-size:13px;color:#f85149">⚠ Ingen e-post — bekräftelse kunde ej skickas</div>',
@@ -8772,7 +8769,7 @@ function openStatusModal() {
   modal.style.cssText = 'position:fixed;inset:0;z-index:900;display:flex;align-items:center;justify-content:center;background:rgba(7,16,30,.72);backdrop-filter:blur(4px);font-family:var(--font)';
   modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
 
-  var h = '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.5)">';
+  var h = '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;width:100%;max-width:420px;overflow:hidden">';
 
   // Header
   h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #30363d">';
@@ -8831,7 +8828,7 @@ function openStatusModal() {
   h += '<button onclick="_statusClear()" style="padding:7px 14px;background:none;border:1px solid #30363d;border-radius:7px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Rensa status</button>';
   h += '<div style="display:flex;gap:8px">';
   h += '<button onclick="document.getElementById(\'vela-status-modal\').remove()" style="padding:7px 14px;background:none;border:1px solid #30363d;border-radius:7px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avbryt</button>';
-  h += '<button onclick="_statusSave()" style="padding:7px 14px;background:var(--teal);color:#0d1117;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Sätt status</button>';
+  h += '<button onclick="_statusSave()" style="padding:7px 14px;background:#238636;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Sätt status</button>';
   h += '</div></div>';
 
   h += '</div>';
@@ -8876,13 +8873,13 @@ function _statusEmojiPicker() {
   var emojis = ['😀','😂','🤔','😎','🥳','🤒','🤧','😴','🏠','🌴','🎯','💪','🚀','⚡','🔥','✅','❌','⏰','📚','💼'];
   var pick = document.createElement('div');
   pick.id = 'status-emoji-pick';
-  pick.style.cssText = 'position:absolute;z-index:1000;background:#161b22;border:1px solid #30363d;border-radius:6px;padding:10px;display:flex;flex-wrap:wrap;gap:4px;width:200px;box-shadow:0 8px 24px rgba(0,0,0,.4)';
+  pick.style.cssText = 'position:absolute;z-index:1000;background:#161b22;border:1px solid #30363d;border-radius:6px;padding:10px;display:flex;flex-wrap:wrap;gap:4px;width:200px';
 
   emojis.forEach(function(em) {
     var b = document.createElement('button');
     b.textContent = em;
     b.style.cssText = 'background:none;border:none;font-size:20px;cursor:pointer;padding:4px;border-radius:6px;line-height:1';
-    b.onmouseenter = function(){ b.style.background='var(--surface2)'; };
+    b.onmouseenter = function(){ b.style.background='#21262d'; };
     b.onmouseleave = function(){ b.style.background='none'; };
     b.onclick = function(e) {
       e.stopPropagation();
@@ -9235,7 +9232,7 @@ function _openWorkspaceDropdown(ev) {
   var cfg = getClinicConfig ? getClinicConfig() : {};
   var pop = document.createElement('div');
   pop.id = 'vela-ws-popover';
-  pop.style.cssText = 'position:fixed;top:'+(rect.bottom+6)+'px;left:'+rect.left+'px;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:8px 0;z-index:9999;min-width:220px;box-shadow:0 8px 24px rgba(0,0,0,.5);font-family:var(--font)';
+  pop.style.cssText = 'position:fixed;top:'+(rect.bottom+6)+'px;left:'+rect.left+'px;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:8px 0;z-index:9999;min-width:220px;font-family:var(--font)';
   var mkItem = function(label, fn) {
     return '<button onclick="'+fn+';document.getElementById(\'vela-ws-popover\')&&document.getElementById(\'vela-ws-popover\').remove()" style="width:100%;padding:7px 16px;background:none;border:none;text-align:left;font-size:13px;color:#8b949e;cursor:pointer;font-family:var(--font);display:block" onmouseenter="this.style.background=\'rgba(177,186,196,.06)\';this.style.color=\'#e6edf3\'" onmouseleave="this.style.background=\'none\';this.style.color=\'#8b949e\'">'+label+'</button>';
   };
@@ -9266,12 +9263,12 @@ var _AI_PANEL_EXPANDED = false;
 
 // Role → label mapping
 var AI_ROLES = {
-  cfo:   { label: 'Vela CFO',  color: '#58a6ff' },
-  hr:    { label: 'Vela HR',   color: '#3fb950' },
-  ceo:   { label: 'Vela CEO',  color: '#e07628' },
-  cto:   { label: 'Vela CTO',  color: '#a371f7' },
-  ai:    { label: 'Vela AI',   color: '#e07628' },
-  nurse: { label: 'Vela Klinik', color: '#3fb950' },
+  cfo:   { label: 'CFO',   fullLabel: 'Vela CFO',     color: '#58a6ff', bg: 'rgba(88,166,255,.12)' },
+  hr:    { label: 'HR',    fullLabel: 'Vela HR',      color: '#3fb950', bg: 'rgba(63,185,80,.12)' },
+  ceo:   { label: 'CEO',   fullLabel: 'Vela CEO',     color: '#e07628', bg: 'rgba(224,118,40,.12)' },
+  cto:   { label: 'CTO',   fullLabel: 'Vela CTO',     color: '#a371f7', bg: 'rgba(163,113,247,.12)' },
+  ai:    { label: 'AI',    fullLabel: 'Vela AI',      color: '#e07628', bg: 'rgba(224,118,40,.12)' },
+  nurse: { label: 'Klinik',fullLabel: 'Vela Klinik',  color: '#3fb950', bg: 'rgba(63,185,80,.12)' },
 };
 
 // Push a notification to the AI panel
@@ -9310,7 +9307,13 @@ function _showNextAIPanel() {
   var roleInfo = AI_ROLES[notif.role] || AI_ROLES.ai;
   var roleEl = document.getElementById('vai-role');
   var titleEl = document.getElementById('vai-title');
-  if (roleEl) { roleEl.textContent = roleInfo.label; roleEl.style.color = roleInfo.color; }
+  if (roleEl) {
+    roleEl.innerHTML = '<span style="display:inline-flex;align-items:center;gap:5px">'
+      + '<span style="background:'+roleInfo.bg+';color:'+roleInfo.color+';font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.06em">'+roleInfo.label+'</span>'
+      + '<span style="font-size:11px;color:#8b949e;font-weight:400">'+roleInfo.fullLabel+'</span>'
+      + '</span>';
+    roleEl.style.color = '';
+  }
   if (titleEl) titleEl.textContent = notif.title;
 
   // Render body
@@ -9991,7 +9994,7 @@ function rApprovalReview(approvalId) {
   // Action buttons
   h += '<div style="display:flex;gap:8px;flex-shrink:0">';
   h += '<button onclick="rejectAIContent(\'' + approvalId + '\')" style="padding:9px 18px;background:none;border:1px solid #30363d;border-radius:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avvisa</button>';
-  h += '<button onclick="approveAIContent(\'' + approvalId + '\')" style="padding:9px 20px;background:var(--teal);border:none;border-radius:8px;font-size:14px;font-weight:700;color:white;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:7px">';
+  h += '<button onclick="approveAIContent(\'' + approvalId + '\')" style="padding:9px 20px;background:#238636;border:none;border-radius:8px;font-size:14px;font-weight:700;color:white;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:7px">';
   h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
   h += 'Signera &amp; godkänn</button>';
   h += '</div>';
@@ -10052,7 +10055,7 @@ function rApprovalReview(approvalId) {
   h += '</div>';
   h += '<div style="margin-left:auto;display:flex;gap:8px">';
   h += '<button onclick="rejectAIContent(\'' + approvalId + '\')" style="padding:8px 16px;background:none;border:1px solid #30363d;border-radius:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avvisa</button>';
-  h += '<button onclick="approveAIContent(\'' + approvalId + '\')" style="padding:8px 18px;background:var(--teal);border:none;border-radius:8px;font-size:13px;font-weight:700;color:white;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px">';
+  h += '<button onclick="approveAIContent(\'' + approvalId + '\')" style="padding:8px 18px;background:#238636;border:none;border-radius:8px;font-size:13px;font-weight:700;color:white;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px">';
   h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Signera &amp; godkänn</button>';
   h += '</div>';
   h += '</div>';
@@ -10108,6 +10111,7 @@ function _gatherIssues() {
           issues.push({
             id: 'do_'+p.id, type:'dropout', patId:p.id, patName:p.name,
             title: 'Risk f\u00f6r avhopp',
+            signals: pr.signals.slice(0,4),
             meta: pr.signals.map(function(s){return s.text;}).join(' \u00b7 ').slice(0,80),
             age: now - new Date(lastV?.date||now),
             aiSuggestion: 'Skicka ett personligt \u00e5terbesöksmeddelande via AI Retention.',
@@ -10374,9 +10378,34 @@ function rActions() {
       h += '</div>';
       h += '<div class="item-row-meta">';
       h += '<span class="status-pill ' + (itype.color||'muted') + '" style="font-size:12px">' + (itype.label||'') + '</span>';
-      if (issue.meta) h += ' &nbsp;' + e(issue.meta.slice(0,70));
-      if (ageStr) h += ' &nbsp;·&nbsp; ' + ageStr;
+      if (issue.signals && issue.signals.length) {
+        // Show signal weights as colored chips (Module 4: Förklarbarhet)
+        h += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">';
+        issue.signals.slice(0,3).forEach(function(sig) {
+          var scol = sig.w >= 3 ? '#f85149' : sig.w >= 2 ? '#d29922' : '#8b949e';
+          var sbg  = sig.w >= 3 ? 'rgba(248,81,73,.1)' : sig.w >= 2 ? 'rgba(210,153,34,.1)' : 'rgba(139,148,158,.1)';
+          var sicon = sig.w >= 3 ? '▲' : sig.w >= 2 ? '●' : '–';
+          h += '<span style="font-size:11px;padding:1px 8px;border-radius:20px;background:'+sbg+';color:'+scol+';display:inline-flex;align-items:center;gap:3px">'
+            + '<span style="font-size:9px">'+sicon+'</span> '+e(sig.text)+'</span>';
+        });
+        h += '</div>';
+      } else if (issue.meta) {
+        h += ' &nbsp;<span style="font-size:12px;color:#8b949e">'+e(issue.meta.slice(0,70))+'</span>';
+      }
+      if (ageStr) h += ' &nbsp;<span style="font-size:12px;color:#8b949e">·&nbsp;' + ageStr + '</span>';
       h += '</div>';
+      // Signal chips for dropout risk (Module 4 — explainability)
+      if (issue.type === 'dropout' && issue.factors && issue.factors.length) {
+        h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">';
+        issue.factors.slice(0,3).forEach(function(factor, fi) {
+          var col = fi===0?'#f85149':fi===1?'#d29922':'#8b949e';
+          var bg  = fi===0?'rgba(248,81,73,.1)':fi===1?'rgba(210,153,34,.1)':'rgba(139,148,158,.08)';
+          h += '<span style="font-size:11px;font-weight:500;color:'+col+';background:'+bg+';padding:2px 8px;border-radius:20px">'
+             + e(factor.length>52?factor.slice(0,50)+'…':factor)+'</span>';
+        });
+        if (issue.riskScore) h += '<span style="font-size:11px;color:#8b949e;margin-left:2px">Score: <strong>'+issue.riskScore+'</strong></span>';
+        h += '</div>';
+      }
       // AI suggestion (expandable)
       if (issue.aiSuggestion && !isClosed) {
         h += '<div style="font-size:13px;color:var(--teal);margin-top:4px;display:flex;align-items:center;gap:5px">'
@@ -12491,7 +12520,7 @@ function _gmailRenderThreadContent() {
   h += '</div>';
   // Actions row
   h += '<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">';
-  h += '<button id="gm-ai-toggle" style="display:flex;align-items:center;gap:6px;padding:6px 13px;background:' + (aiOpen?'var(--teal)':'var(--surface2)') + ';color:' + (aiOpen?'#0d1117':'var(--text)') + ';border:1px solid ' + (aiOpen?'var(--teal)':'var(--border)') + ';border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">';
+  h += '<button id="gm-ai-toggle" style="display:flex;align-items:center;gap:6px;padding:6px 13px;background:' + (aiOpen?'var(--teal)':'#21262d') + ';color:' + (aiOpen?'#0d1117':'var(--text)') + ';border:1px solid ' + (aiOpen?'var(--teal)':'var(--border)') + ';border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">';
   h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
   h += (aiOpen ? 'Dölj AI' : 'AI-assistans') + '</button>';
   if (pat) {
@@ -12528,7 +12557,7 @@ function _gmailRenderThreadContent() {
     }
 
     h += '<div style="display:flex;gap:11px;' + (isMine?'flex-direction:row-reverse':'') + '">';
-    h += '<div style="width:32px;height:32px;border-radius:50%;background:' + (isMine?'rgba(224,118,40,.1)':'var(--surface2)') + ';border:1px solid ' + (isMine?'rgba(224,118,40,.2)':'var(--border)') + ';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:' + (isMine?'var(--teal)':'var(--text)') + ';font-family:var(--font-mono);flex-shrink:0">' + (isMine?'CR':initials) + '</div>';
+    h += '<div style="width:32px;height:32px;border-radius:50%;background:' + (isMine?'rgba(224,118,40,.1)':'#21262d') + ';border:1px solid ' + (isMine?'rgba(224,118,40,.2)':'var(--border)') + ';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:' + (isMine?'var(--teal)':'var(--text)') + ';font-family:var(--font-mono);flex-shrink:0">' + (isMine?'CR':initials) + '</div>';
     h += '<div style="flex:1;min-width:0">';
     h += '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:5px;' + (isMine?'justify-content:flex-end':'') + '">';
     h += '<span style="font-size:13px;font-weight:600;color:var(--ink)">' + fromName + '</span>';
@@ -13250,7 +13279,7 @@ function rHome() {
     if (items) c += ' <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
     c += '</button>';
     if (items && items.length) {
-      c += '<div class="hc-d" style="display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:400;background:#161b22;border:1px solid #30363d;border-radius:9px;box-shadow:0 8px 28px rgba(0,0,0,.6);min-width:280px;overflow:hidden">';
+      c += '<div class="hc-d" style="display:none;position:absolute;top:calc(100% + 6px);left:0;z-index:400;background:#161b22;border:1px solid #30363d;border-radius:9px;min-width:280px;overflow:hidden">';
       items.forEach(function(s) {
         c += '<div class="hc-i" data-p="' + s.replace(/"/g,'&quot;') + '" style="padding:9px 14px;font-size:13px;color:#c9d1d9;cursor:pointer;border-bottom:1px solid #21262d" onmouseenter="this.style.background=\'#1f2937\'" onmouseleave="this.style.background=\'transparent\'">' + s + '</div>';
       });
@@ -13567,7 +13596,7 @@ function rWorkspace() {
       var _agKey = _agD.toISOString().slice(0,10);
       var _agCount = _agMap[_agKey] || 0;
       var _agCol;
-      if (_agCount === 0) _agCol = '#21262d';
+      if (_agCount === 0) _agCol = '#161b22';
       else if (_agCount === 1) _agCol = '#0e4429';
       else if (_agCount <= 3) _agCol = '#006d32';
       else if (_agCount <= 5) _agCol = '#26a641';
@@ -13643,7 +13672,7 @@ function rWorkspace() {
     var kb=wsDoc.size?Math.round(wsDoc.size/1024)+' KB':'';
     var ud=wsDoc.uploadedAt?new Date(wsDoc.uploadedAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric'}):'';
     h += '<div class="r4-doc">';
-    h += '<svg width="32" height="40" viewBox="0 0 32 40"><rect x=".5" y=".5" width="31" height="39" rx="3" fill="var(--surface2)" stroke="var(--border)"/><path d="M20 .5V11h11" fill="none" stroke="var(--border)"/><text x="16" y="30" font-size="8" font-weight="800" fill="'+extC+'" text-anchor="middle" font-family="monospace">'+ext2.toUpperCase()+'</text></svg>';
+    h += '<svg width="32" height="40" viewBox="0 0 32 40"><rect x=".5" y=".5" width="31" height="39" rx="3" fill="#21262d" stroke="var(--border)"/><path d="M20 .5V11h11" fill="none" stroke="var(--border)"/><text x="16" y="30" font-size="8" font-weight="800" fill="'+extC+'" text-anchor="middle" font-family="monospace">'+ext2.toUpperCase()+'</text></svg>';
     h += '<div class="r4-doc-info"><b>'+e(wsDoc.name)+'</b><span>'+[kb,ud?'Upp. '+ud:''].filter(Boolean).join(' · ')+'</span></div>';
     h += '<div class="r4-doc-btns">';
     if (wsDoc.data) h += '<a href="'+wsDoc.data+'" download="'+e(wsDoc.name)+'" class="r4-obtn">Ladda ner</a>';
@@ -14179,7 +14208,7 @@ function rDetail(){
   const initials = (p.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
   const nrsColor = nrs==null?'var(--text2)':nrs>=7?'var(--red)':nrs>=4?'var(--amber)':'var(--green)';
 
-  var h = '<div class="page-shell">';
+  var h = '<div class="page-shell" style="max-width:1280px;margin:0 auto;padding:24px 32px 60px">';
 
   // ── Page header ────────────────────────────────────────────────────────
   h += '<div class="page-header">';
@@ -14260,7 +14289,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
   h += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
   if (diagList.length) {
     diagList.forEach(function(d,i) {
-      h += '<span style="padding:3px 10px;background:' + (i===0?'rgba(224,118,40,.1)':'var(--surface2)') + ';border:1px solid ' + (i===0?'rgba(224,118,40,.2)':'var(--border)') + ';border-radius:20px;font-size:13px;font-weight:' + (i===0?'600':'500') + ';color:' + (i===0?'var(--teal)':'var(--text)') + '">' + e(d) + '</span>';
+      h += '<span style="padding:3px 10px;background:' + (i===0?'rgba(224,118,40,.1)':'#21262d') + ';border:1px solid ' + (i===0?'rgba(224,118,40,.2)':'var(--border)') + ';border-radius:20px;font-size:13px;font-weight:' + (i===0?'600':'500') + ';color:' + (i===0?'var(--teal)':'var(--text)') + '">' + e(d) + '</span>';
     });
   } else {
     h += '<span style="font-size:13px;color:var(--text2)">Ingen diagnos registrerad</span>';
@@ -14729,7 +14758,7 @@ function openDiagEditor(patId) {
   ov.onclick = e => { if(e.target===ov) ov.remove(); };
   const pat = S.patients.find(x=>x.id===patId)||S.pat;
   ov.innerHTML = `
-  <div style="background:#161b22;width:100%;max-width:440px;border-radius:20px;overflow:hidden;position:relative;z-index:1;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
+  <div style="background:#161b22;width:100%;max-width:440px;border-radius:20px;overflow:hidden;position:relative;z-index:1" onclick="event.stopPropagation()">
     <div style="background:var(--navy);padding:18px 20px">
       <div style="font-size:17px;font-weight:600;color:white">Diagnoser</div>
       <div style="font-size:13px;color:rgba(255,255,255,.5);margin-top:2px">En diagnos per rad · Första raden = primärdiagnos</div>
@@ -15364,7 +15393,7 @@ function rDoc(){
   // -- THERAPIST MESSAGE TO PATIENT ------------------------------------------
   const savedMsg = plan.therapistMessage || '';
   h += `
-  <div style="margin:12px 16px 0;background:#161b22;border-radius:6px;padding:16px 18px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+  <div style="margin:12px 16px 0;background:#161b22;border-radius:6px;padding:16px 18px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div>
         <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)">Meddelande till patienten</div>
@@ -15387,13 +15416,13 @@ function rDoc(){
 
   // -- GREETING CARD ---------------------------------------------------------
   if(plan.greeting) h+=`
-  <div style="margin:16px 16px 0;background:#161b22;border-radius:6px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+  <div style="margin:16px 16px 0;background:#161b22;border-radius:6px;padding:18px 20px">
     <div class="dgreet">${e(plan.greeting)}</div>
   </div>`;
 
   // -- GOALS -----------------------------------------------------------------
   if(plan.goals&&plan.goals.length){
-    h+=`<div style="margin:12px 16px 0;background:#161b22;border-radius:6px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+    h+=`<div style="margin:12px 16px 0;background:#161b22;border-radius:6px;padding:18px 20px">
     <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:14px">Mål med rehabiliteringen</div>
     <div style="display:flex;flex-direction:column;gap:10px">`;
     plan.goals.forEach((g,i)=>{
@@ -15412,7 +15441,7 @@ function rDoc(){
     h+=`<div style="margin:12px 16px 0">
     <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:10px;padding-left:4px">Övningsprogram</div>`;
     plan.exercises.forEach((ex,i)=>{
-      h+=`<div class="mob-excard" style="background:#161b22;border-radius:6px;margin-bottom:10px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+      h+=`<div class="mob-excard" style="background:#161b22;border-radius:6px;margin-bottom:10px;overflow:hidden">
         <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-bottom:1px solid #f0f2f4;cursor:pointer" onclick="const b=this.parentElement.querySelector('.mob-exbody');b.style.display=b.style.display==='none'?'block':'none';this.querySelector('.ex-chevron').style.transform=b.style.display==='block'?'rotate(90deg)':''">
           <div style="width:34px;height:34px;border-radius:6px;background:var(--navy);color:white;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div>
           <div style="flex:1;min-width:0">
@@ -15443,7 +15472,7 @@ function rDoc(){
 
   // -- SCHEDULE --------------------------------------------------------------
   if(plan.schedule&&plan.schedule.length){
-    h+=`<div style="margin:12px 16px 0;background:#161b22;border-radius:6px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+    h+=`<div style="margin:12px 16px 0;background:#161b22;border-radius:6px;padding:18px 20px">
     <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:14px">Veckoschema</div>
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">`;
     plan.schedule.forEach(d=>{
@@ -15468,7 +15497,7 @@ function rDoc(){
 
   // -- LIFESTYLE TIPS --------------------------------------------------------
   if(plan.lifestyleTips&&plan.lifestyleTips.length){
-    h+=`<div style="margin:12px 16px 0;background:#161b22;border-radius:6px;padding:18px 20px;box-shadow:0 1px 6px rgba(0,0,0,.06)">
+    h+=`<div style="margin:12px 16px 0;background:#161b22;border-radius:6px;padding:18px 20px">
     <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:14px">Livsstilsråd</div>
     <div style="display:flex;flex-direction:column;gap:8px">`;
     plan.lifestyleTips.forEach(t=>{
@@ -15482,7 +15511,7 @@ function rDoc(){
 
   // -- FOLLOWUP BANNER -------------------------------------------------------
   if(plan.followupNote){
-    h+=`<div style="margin:12px 16px 0;background:linear-gradient(135deg,#1a3a4a,#2a5a6a);border-radius:6px;padding:20px;box-shadow:0 1px 6px rgba(0,0,0,.1)">
+    h+=`<div style="margin:12px 16px 0;background:linear-gradient(135deg,#1a3a4a,#2a5a6a);border-radius:6px;padding:20px">
       <div style="font-family:'Cormorant Garamond',serif;font-size:16px;color:white;line-height:1.7;font-style:italic;text-align:center" data-followup-note>${e(plan.followupNote)}</div>
     </div>`;
   }
@@ -15541,7 +15570,7 @@ function _showPatientIntel(pat) {
 
   const toast = document.createElement('div');
   toast.id = 'pat-intel-toast';
-  toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:900;background:var(--navy);border:1px solid rgba(224,118,40,.12);border-radius:6px;padding:11px 16px;font-family:var(--font);max-width:420px;width:calc(100%-32px);box-shadow:0 4px 20px rgba(0,0,0,.3);animation:fadeUp .2s ease';
+  toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:900;background:var(--navy);border:1px solid rgba(224,118,40,.12);border-radius:6px;padding:11px 16px;font-family:var(--font);max-width:420px;width:calc(100%-32px);animation:fadeUp .2s ease';
   toast.innerHTML = '<div style="display:flex;align-items:flex-start;gap:10px">'
     + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e07628" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
     + '<div style="flex:1;min-width:0">'
@@ -15584,7 +15613,7 @@ function newVisit(){
   ov.style.cssText = 'position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.75);backdrop-filter:blur(6px)';
   ov.onclick = function(e){ if(e.target===ov) ov.remove(); };
 
-  var h = '<div style="background:#161b22;border-radius:6px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.4)" onclick="event.stopPropagation()">';
+  var h = '<div style="background:#161b22;border-radius:6px;width:100%;max-width:420px;overflow:hidden" onclick="event.stopPropagation()">';
 
   // Header
   h += '<div style="padding:20px 22px 14px;border-bottom:1px solid #30363d">';
@@ -15765,7 +15794,7 @@ function _autoSendIntakeAfterRegistration(pat) {
   const mailtoUrl = `mailto:${encodeURIComponent(pat.email||'')}?subject=${subject}&body=${body}`;
 
   ov.innerHTML = `
-  <div style="background:#161b22;border-radius:6px;padding:28px 24px 22px;max-width:420px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
+  <div style="background:#161b22;border-radius:6px;padding:28px 24px 22px;max-width:420px;width:100%" onclick="event.stopPropagation()">
     <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#0f2744,#e07628);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     </div>
@@ -15978,7 +16007,7 @@ function showConsentPopup(patId) {
 
   var inner = document.createElement('div');
   inner.onclick = function(ev){ ev.stopPropagation(); };
-  inner.style.cssText = 'background:var(--surface,#fff);border-radius:6px;max-width:460px;width:100%;padding:26px;box-shadow:0 20px 60px rgba(0,0,0,.2)';
+  inner.style.cssText = 'background:var(--surface,#fff);border-radius:6px;max-width:460px;width:100%;padding:26px';
   inner.innerHTML = '<div style="font-size:18px;font-weight:700;color:var(--ink,#0f2744);margin-bottom:4px">Samtycke</div>'
     + '<div style="font-size:13px;color:var(--muted,#6b7280);margin-bottom:18px;line-height:1.65">Bekr&#228;ftas muntligt eller skriftligt. Kan &#228;ndras n&#228;r som helst.</div>'
     + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">' + rows + '</div>'
@@ -16458,7 +16487,7 @@ function setClinicalICD(code, diagName) {
   }
   // Toast
   const t = document.createElement('div');
-  t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a4a7a;color:white;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2)';
+  t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1a4a7a;color:white;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999';
   t.textContent = `ICD-10 satt: ${code} -- ${diagName}`;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 2800);
@@ -16999,7 +17028,7 @@ function rManualSOAP(bk) {
           Autosparad
         </span>
         <button onclick="finishManualSOAP(false)"
-          style="padding:6px 14px;background:var(--teal);color:#0d1117;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">
+          style="padding:6px 14px;background:#238636;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">
           Spara & granska
         </button>
       </div>
@@ -17059,7 +17088,7 @@ function rManualSOAP(bk) {
         <!-- Action buttons -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px">
           <button onclick="finishManualSOAP(false)"
-            style="padding:13px;background:var(--teal);color:#0d1117;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:7px">
+            style="padding:13px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:7px">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
             Spara journal
           </button>
@@ -17165,7 +17194,7 @@ function startMeeting() {
     const ov = document.createElement('div');
     ov.id = 'meet-draft-overlay';
     ov.style.cssText = 'position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,20,35,.72)';
-    ov.innerHTML = `<div style="background:#161b22;border-radius:6px;width:100%;max-width:420px;padding:24px;box-shadow:0 8px 40px rgba(0,0,0,.25)">
+    ov.innerHTML = `<div style="background:#161b22;border-radius:6px;width:100%;max-width:420px;padding:24px">
       <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:6px">Avbruten inspelning hittad</div>
       <div style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:8px">${draft.transcript.length} rader sparade</div>
       <div style="font-size:13px;color:var(--text3);margin-bottom:20px">Från ett möte ${timeAgo}. Vill du fortsätta där du slutade?</div>
@@ -17419,7 +17448,7 @@ function renderConsentBlock(p) {
       + '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--ink)">'+(ch==='mail'?'Informationsmail':'SMS-info')+'</div>'
       + '<div style="font-size:12px;color:var(--muted)">'+(on?'Aktiv':'Avstängd')+'</div></div>'
       + '<div id="comms-toggle-'+ch+'-'+p.id+'" style="width:32px;height:18px;border-radius:9px;background:'+(on?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;transition:background .2s">'
-      + '<div style="position:absolute;top:2px;left:'+(on?'14px':'2px')+';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.15)"></div></div>'
+      + '<div style="position:absolute;top:2px;left:'+(on?'14px':'2px')+';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div></div>'
       + '</div>';
   }
 
@@ -18182,7 +18211,7 @@ Skicka länken via mail, SMS eller iMessage. Patienten öppnar den i mobilen -- 
   .top-diag{font-size:13px;opacity:.7}
   .top-meta{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
   .meta-pill{background:rgba(255,255,255,.12);border-radius:20px;padding:4px 12px;font-size:13px}
-  .card{background:#161b22;border-radius: 6px;margin:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  .card{background:#161b22;border-radius: 6px;margin:12px;padding:16px}
   .sec{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#4a9aaa;margin-bottom:12px}
   .greet{font-size:14px;color:var(--text2);line-height:1.7;font-style:italic}
   .goal{margin-bottom:10px;padding:10px 12px;background:#21262d;border-radius:8px;border-left:3px solid #4a9aaa}
@@ -18631,7 +18660,7 @@ async function showProgressNote(patId) {
   window._progressNotePlainText = plainText;
 
   ov.innerHTML = `
-  <div style="background:#161b22;border-radius:6px;width:100%;max-width:560px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 48px rgba(0,0,0,.22)" onclick="event.stopPropagation()">
+  <div style="background:#161b22;border-radius:6px;width:100%;max-width:560px;max-height:88vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
     <div style="padding:18px 20px 14px;border-bottom:1px solid #eef0f3;flex-shrink:0;display:flex;align-items:flex-start;gap:12px">
       <div style="flex:1">
         <div style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin-bottom:3px">Klinisk patientanalys</div>
@@ -19455,7 +19484,7 @@ function sendIntakeLink(patId, intakeType) {
   const overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
   overlay.innerHTML = `
-    <div style="background:#161b22;border-radius:6px;padding:28px 24px 22px;max-width:440px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.18)" onclick="event.stopPropagation()">
+    <div style="background:#161b22;border-radius:6px;padding:28px 24px 22px;max-width:440px;width:90%" onclick="event.stopPropagation()">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
         <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#0f2744,#e07628);display:flex;align-items:center;justify-content:center;flex-shrink:0">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
@@ -19475,7 +19504,7 @@ function sendIntakeLink(patId, intakeType) {
       </div>
 
       <div style="display:flex;gap:8px;margin-bottom:10px">
-        ${p.email ? `<button onclick="window.location.href='${mailtoUrl}'" style="flex:1;background:var(--teal);color:white;border:none;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Öppna i e-post</button>` : ''}
+        ${p.email ? `<button onclick="window.location.href='${mailtoUrl}'" style="flex:1;background:#238636;color:#fff;border:1px solid rgba(240,246,252,.1);border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Öppna i e-post</button>` : ''}
         <button onclick="navigator.clipboard.writeText('${intakeUrl}').then(()=>this.textContent='Kopierat!')" style="${p.email ? 'flex:0 0 auto;' : 'flex:1;'}background:var(--bg2);color:var(--ink);border:1px solid #30363d;border-radius:9px;padding:12px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">Kopiera länk</button>
       </div>
       ${!p.email ? '<div style="font-size:13px;color:var(--amber);text-align:center;margin-bottom:8px">Ingen e-post registrerad — kopiera länken manuellt</div>' : ''}
@@ -19512,7 +19541,7 @@ function renderPendingPlanApproval(p) {
 
       <div style="display:flex;gap:8px">
         <button onclick="approvePendingPlan('${p.id}','${v.id}')"
-          style="flex:1;background:var(--teal);color:white;border:none;border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">
+          style="flex:1;background:#238636;color:#fff;border:1px solid rgba(240,246,252,.1);border-radius:9px;padding:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">
           Godkänn &amp; skicka
         </button>
         <button onclick="previewPendingPlan('${p.id}','${v.id}')"
@@ -19629,7 +19658,7 @@ function renderIntakeReviewPanel(patId) {
             </div>
             <div style="display:flex;gap:5px;flex-shrink:0;margin-top:1px">
               <button onclick="intakeApproveSuggestion('${patId}','${latest.ts}',${i})"
-                style="padding:5px 11px;background:var(--teal);color:white;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">✓</button>
+                style="padding:5px 11px;background:#238636;color:white;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer">✓</button>
               <button onclick="intakeRejectSuggestion('${patId}','${latest.ts}',${i})"
                 style="padding:5px 11px;background:var(--bg2);color:var(--muted);border:1px solid #30363d;border-radius:6px;font-size:13px;cursor:pointer">✕</button>
             </div>
@@ -19676,7 +19705,7 @@ function renderIntakeReviewPanel(patId) {
         <div style="margin-bottom:12px">
           <div style="font-size:13px;color:var(--muted);margin-bottom:10px">Skapa Hael-plan baserad på dessa svar:</div>
           <button onclick="generatePlanFromIntake('${patId}','${latest.ts}')"
-            style="width:100%;padding:12px;background:var(--teal);color:white;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">
+            style="width:100%;padding:12px;background:#238636;color:white;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">
             Generera Hael-plan från svaren
           </button>
         </div>`}
@@ -20221,7 +20250,7 @@ function renderPublicIntakeForm(patId, visitId) {
       </div>
 
       <style>
-        .intake-q{background:#161b22;border-radius: 6px;padding:16px 16px 14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+        .intake-q{background:#161b22;border-radius: 6px;padding:16px 16px 14px;margin-bottom:12px}
         .intake-qlbl{font-size:13px;font-weight:700;color:#07101e;margin-bottom:12px;line-height:1.4}
         .iq-opt{width:100%;text-align:left;padding:11px 14px;border:1.5px solid #e0e4ee;border-radius:9px;background:#161b22;font-size:13px;font-weight:500;color:#07101e;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .12s}
         .iq-opt.iq-sm{width:auto;text-align:center}
@@ -20421,7 +20450,7 @@ function showPlanAdjustmentOverlay(result, patId, visitId) {
   ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,20,35,.78);backdrop-filter:blur(6px)';
   ov.onclick = ev => { if(ev.target===ov) ov.remove(); };
   ov.innerHTML = `
-  <div style="background:#161b22;border-radius:6px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 12px 50px rgba(0,0,0,.25)" onclick="event.stopPropagation()">
+  <div style="background:#161b22;border-radius:6px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">
     <div style="background:var(--navy);padding:18px 20px;border-radius:6px 16px 0 0;position:sticky;top:0;z-index:1">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div>
@@ -20803,7 +20832,7 @@ function renderPublicPlanProgressGraph(pat, blurred) {
     </div>`;
   }
 
-  return `<div style="margin:12px 14px 0;background:var(--navy);border-radius:6px;padding:18px 20px;box-shadow:0 2px 8px rgba(0,0,0,.1)">
+  return `<div style="margin:12px 14px 0;background:var(--navy);border-radius:6px;padding:18px 20px">
     <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px">Din smärtutveckling (NRS)</div>
     <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:${trend}">${arrow}${diff>0?' · '+diff+' enheter':''}</div>
     <svg width="100%" viewBox="0 0 ${W} ${H+28}" style="overflow:visible">${svgContent}</svg>
@@ -21434,7 +21463,7 @@ function renderPublicPlan(plan, pat) {
 
   // -- FOLLOWUP --------------------------------------------------------------
   const followupHtml = (plan.followupNote || followupStr) ? `
-    <div style="margin:12px 14px 0;background:var(--navy);border-radius:6px;padding:22px 20px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+    <div style="margin:12px 14px 0;background:var(--navy);border-radius:6px;padding:22px 20px">
       <div style="font-size:11px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:10px">Nästa steg</div>
       ${plan.followupNote ? `<div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:white;line-height:1.7;font-style:italic;margin-bottom:${followupStr?'16px':'0'}">${e(plan.followupNote)}</div>` : ''}
       ${followupStr ? `<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -21669,7 +21698,7 @@ function openDictationModal(fieldId, letter) {
   ov.onclick = e => { if(e.target===ov) closeDictModal(); };
 
   ov.innerHTML = `
-  <div style="background:#161b22;border-radius:6px;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 8px 48px rgba(0,0,0,.22)" onclick="event.stopPropagation()">
+  <div style="background:#161b22;border-radius:6px;width:100%;max-width:600px;max-height:88vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
 
     <!-- Header -->
     <div style="display:flex;align-items:center;gap:10px;padding:16px 18px 12px;border-bottom:1px solid #eef0f3;flex-shrink:0">
@@ -21712,11 +21741,11 @@ function openDictationModal(fieldId, letter) {
         <span id="dict-rec-dot" style="width:8px;height:8px;border-radius:50%;background:#161b22;display:inline-block"></span>
         <span id="dict-rec-label">Spela in</span>
       </button>
-      <button id="dict-ai-btn" onclick="dictReformulate('${letter}')" style="display:none;background:var(--teal);color:white;border:none;border-radius:7px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Omformulera kliniskt</button>
+      <button id="dict-ai-btn" onclick="dictReformulate('${letter}')" style="display:none;background:#238636;color:#fff;border:1px solid rgba(240,246,252,.1);border-radius:7px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Omformulera kliniskt</button>
       <button id="dict-raw-btn" onclick="dictInsertRaw()" style="display:none;background:#161b22;color:var(--text2);border:1px solid #30363d;border-radius:7px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Infoga som den är</button>
       <div id="dict-ai-status" style="font-size:13px;color:var(--text3)"></div>
       <div style="flex:1"></div>
-      <button id="dict-insert-btn" onclick="dictInsert()" style="display:none;background:var(--teal);color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Infoga i journal -></button>
+      <button id="dict-insert-btn" onclick="dictInsert()" style="display:none;background:#238636;color:#fff;border:1px solid rgba(240,246,252,.1);border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Infoga i journal -></button>
     </div>
   </div>`;
 
@@ -21885,7 +21914,7 @@ function openPromptEditor(letter) {
   ov.style.cssText = 'position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(10,20,35,.75);backdrop-filter:blur(4px)';
   ov.onclick = e => { if(e.target===ov) ov.remove(); };
   ov.innerHTML = `
-  <div style="background:#161b22;border-radius:6px;width:100%;max-width:480px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.2)" onclick="event.stopPropagation()">
+  <div style="background:#161b22;border-radius:6px;width:100%;max-width:480px;max-height:85vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
     <div style="padding:18px 20px 14px;border-bottom:1px solid #eef0f3;flex-shrink:0">
       <div style="font-size:16px;font-weight:600;color:var(--navy);margin-bottom:2px">Redigera struktur -- ${letter}</div>
       <div style="font-size:13px;color:var(--text3)">En punkt per rad. Används som guidestruktur vid diktering.</div>
@@ -21897,7 +21926,7 @@ function openPromptEditor(letter) {
       </div>
     </div>
     <div style="padding:12px 20px 20px;border-top:1px solid #eef0f3;display:flex;gap:8px;flex-shrink:0">
-      <button onclick="savePromptEditor('${letter}')" style="flex:1;background:var(--teal);color:white;border:none;border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Spara</button>
+      <button onclick="savePromptEditor('${letter}')" style="flex:1;background:#238636;color:#fff;border:1px solid rgba(240,246,252,.1);border-radius:9px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif">Spara</button>
       <button onclick="document.getElementById('prompt-editor-ov').remove()" style="background:none;border:1px solid #30363d;border-radius:9px;padding:11px 18px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;color:var(--text3)">Avbryt</button>
     </div>
   </div>`;
@@ -22172,7 +22201,7 @@ function savePassLog(patId, entry) {
 // Render multi-metric patient check-in widget (shown in public plan after exercises)
 function pubCheckInHTML(patId, visitId) {
   return `
-  <div id="pub-checkin" style="margin:12px 14px 0;background:#161b22;border-radius:6px;padding:18px 18px 16px;box-shadow:0 1px 3px rgba(0,0,0,.06)">
+  <div id="pub-checkin" style="margin:12px 14px 0;background:#161b22;border-radius:6px;padding:18px 18px 16px">
     <div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--navy);margin-bottom:16px">Rapport efter passet</div>
 
     <!-- Pain -->
@@ -22584,7 +22613,7 @@ function showOnboarding(patId, visitId, patName, diagnosis) {
 
     <div style="padding:0 24px 48px;display:flex;flex-direction:column;gap:12px">
       <div style="display:flex;gap:6px;justify-content:center;margin-bottom:8px">${dots}</div>
-      <button onclick="window._onboardingNext()" style="background:#e07628;color:white;border:none;border-radius:6px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;box-shadow:0 4px 20px rgba(224,118,40,.35)">
+      <button onclick="window._onboardingNext()" style="background:#e07628;color:white;border:none;border-radius:6px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif">
         ${isLast ? (s.cta || 'Kom igång') : 'Nästa ->'}
       </button>
       ${!isLast ? `<button onclick="window._onboardingSkip()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:13px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;padding:8px">
@@ -23178,7 +23207,7 @@ function openRemissDialog(patId) {
     </label>`
   ).join('');
 
-  ov.innerHTML = `<div style="background:#161b22;border-radius:var(--r-xl);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.25)">
+  ov.innerHTML = `<div style="background:#161b22;border-radius:var(--r-xl);width:100%;max-width:520px;max-height:90vh;overflow-y:auto">
     <div style="padding:22px 22px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #30363d">
       <div>
         <div style="font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.01em">Remissunderlag</div>
@@ -23546,7 +23575,7 @@ function openHelpCenter() {
     + '<div style="flex:1;overflow-y:auto;padding:0 24px">' + topicsHTML + '</div>'
     + '<div style="padding:16px 24px;border-top:1px solid #30363d;flex-shrink:0">'
     + '<div style="font-size:13px;color:var(--muted);margin-bottom:8px">Hittar du inte svaret?</div>'
-    + '<a href="mailto:support@vela.se" style="display:block;text-align:center;padding:10px;background:var(--teal);color:white;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none;font-family:var(--font)">Kontakta support →</a>'
+    + '<a href="mailto:support@vela.se" style="display:block;text-align:center;padding:10px;background:#238636;color:white;border-radius:6px;font-size:13px;font-weight:700;text-decoration:none;font-family:var(--font)">Kontakta support →</a>'
     + '</div></div>';
   document.body.appendChild(ov2);
 }
@@ -24468,6 +24497,9 @@ function rIntelligence() {
   var _nWeeks = parseInt(window._intelPeriod || '12', 10);
   var weeks12 = weekSeries(_nWeeks);
 
+  // For long periods, reduce x-axis labels
+  var xDensity = _nWeeks > 26 ? 4 : _nWeeks > 12 ? 2 : 1; // show every Nth label
+
   // ── Chart helpers ─────────────────────────────────────────────
   // ── Chart helpers (GitHub Insights style) ───────────────────────
   // Line chart with Y-axis labels left, X-axis dates bottom
@@ -24707,7 +24739,8 @@ function rIntelligence() {
   h += navI('nrs',        'NRS & smärta');
   h += navI('patienter',  'Patienttillväxt');
   h += navI('tjanster',   'Tjänster');
-  h += navI('dropout',    'Avhoppsrisk');
+  h += navI('dropout',     'Avhoppsrisk');
+  h += navI('datakvalitet','Datakvalitet');
   h += '</nav>';
 
   // ── Main content ──────────────────────────────────────────────
@@ -24722,7 +24755,9 @@ function rIntelligence() {
     return i%2===0 ? w.label.replace(' v',' v') : '';
   });
   // Short date labels for axes
-  var xShort = weeks12.map(function(w){ return w.label.split(' ')[0]; });
+  var xShort = weeks12.map(function(w, i){
+    return (i % (xDensity||1) === 0) ? w.label.split(' ')[0] : '';
+  });
 
   // ── PULSE ──────────────────────────────────────────────────────
   if (activeView === 'pulse') {
@@ -24951,6 +24986,60 @@ function rIntelligence() {
       });
       h += '</div></div>';
     }
+
+  // ── DATAKVALITET ──────────────────────────────────────────────
+  } else if (activeView === 'datakvalitet') {
+    h += '<div class="gi2-header"><div><div class="gi2-title">Datakvalitet</div><div class="gi2-subtitle">AI-träningsdata och journalkvalitet</div></div></div>';
+
+    // Compute metrics
+    var allVisits = []; pats.forEach(function(p){ (p.visits||[]).forEach(function(v){ allVisits.push({v:v,p:p}); }); });
+    var totalV = allVisits.length;
+    var withNRS = allVisits.filter(function(x){ return x.v.soap && x.v.soap.S && /\d+\s*\/\s*10|NRS\s*\d+/i.test(x.v.soap.S); }).length;
+    var withSOAP = allVisits.filter(function(x){ return x.v.soap && (x.v.soap.S||x.v.soap.O||x.v.soap.A||x.v.soap.P); }).length;
+    var aiGenerated = allVisits.filter(function(x){ return x.v.soapMeta && x.v.soapMeta.aiGenerated; }).length;
+    var aiApproved = allVisits.filter(function(x){ return x.v.aiApproved; }).length;
+    var allEdits = (function(){ try{ return JSON.parse(localStorage.getItem('vela:ai_edits')||'[]'); }catch(e2){return [];} })();
+    var allApprovals = (function(){ try{ return JSON.parse(localStorage.getItem('vela:approvals')||'[]'); }catch(e3){return [];} })();
+    var approvedCount = allApprovals.filter(function(a){ return a.status==='approved'; }).length;
+    var rejectedCount = allApprovals.filter(function(a){ return a.status==='rejected'; }).length;
+    var editedCount = allApprovals.filter(function(a){ return a.editedContent && a.editedContent !== a.aiContent; }).length;
+    var avgEditRatio = allEdits.length ? Math.round(allEdits.reduce(function(s,e){ return s+(e.editRatio||0); },0)/allEdits.length) : 0;
+    var nrsPct = totalV ? Math.round(withNRS/totalV*100) : 0;
+    var soapPct = totalV ? Math.round(withSOAP/totalV*100) : 0;
+    var aiPct   = totalV ? Math.round(aiGenerated/totalV*100) : 0;
+
+    h += '<div class="gi2-stats" style="margin-bottom:20px">';
+    h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(nrsPct>=70?'#3fb950':nrsPct>=40?'#d29922':'#f85149')+'">'+nrsPct+'%</div><div class="gi2-stat-label">Besök med NRS</div></div>';
+    h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(soapPct>=80?'#3fb950':soapPct>=50?'#d29922':'#f85149')+'">'+soapPct+'%</div><div class="gi2-stat-label">Besök med SOAP</div></div>';
+    h += '<div class="gi2-stat"><div class="gi2-stat-val">'+aiPct+'%</div><div class="gi2-stat-label">AI-genererade journaler</div></div>';
+    h += '<div class="gi2-stat"><div class="gi2-stat-val">'+allEdits.length+'</div><div class="gi2-stat-label">AI-redigeringar loggade</div></div>';
+    h += '</div>';
+
+    h += '<div class="gi2-grid">';
+    // Approval breakdown chart
+    if (allApprovals.length > 0) {
+      h += chartCard('AI-godkännanden', allApprovals.length+' totalt',
+        '<div style="padding:8px 0">'+hBarChart(
+          ['Signerade','Redigerade','Avvisade','Väntande'],
+          [approvedCount-editedCount, editedCount, rejectedCount, allApprovals.length-approvedCount-rejectedCount],
+          '#3fb950'
+        )+'</div>',
+        editedCount > 0 ? 'Behandlaren redigerade '+editedCount+' AI-förslag ('+Math.round(editedCount/(approvedCount||1)*100)+'% av godkända). Genomsnittlig ändring: '+avgEditRatio+'% av innehållet. Dessa redigeringar är träningsdata.' : 'Inga redigeringar ännu — AI-förslag accepteras omodifierade.'
+      );
+    } else {
+      h += chartCard('AI-godkännanden', 'Inga ännu',
+        '<div style="padding:40px;text-align:center;color:#8b949e;font-size:13px">AI-godkännanden visas här när du börjar signera AI-genererade journaler.</div>');
+    }
+    // NRS coverage per week
+    h += chartCard('NRS-täckning per vecka', 'Andel besök med smärtskattning',
+      lineChart(weeks12.map(function(wk,wi){
+        var next = wi<weeks12.length-1?weeks12[wi+1].ts:Date.now()+1;
+        var wVisits = allVisits.filter(function(x){ return x.v.date && new Date(x.v.date).getTime()>=wk.ts && new Date(x.v.date).getTime()<next; });
+        return wVisits.length ? Math.round(wVisits.filter(function(x){ return x.v.soap&&x.v.soap.S&&/\d+\s*\/\s*10|NRS\s*\d+/i.test(x.v.soap.S); }).length/wVisits.length*100) : 0;
+      }), xShort, '#58a6ff', {h:160}),
+      nrsPct < 50 ? 'NRS dokumenteras i '+nrsPct+'% av besöken. Mål: >70%. Notera NRS i SOAP S-fältet: "Patienten anger NRS 4/10".' : 'Bra NRS-täckning: '+nrsPct+'%.'
+    );
+    h += '</div>';
   }
 
   h += '</div>'; // gi2-main
@@ -25148,7 +25237,7 @@ function buildReviewQueueHtml() {
       </div>
       ${r.reasons?.length ? `<div style="font-size:13px;color:var(--muted);margin-bottom:8px">${r.reasons.join(' · ')}</div>` : ''}
       <div style="display:flex;gap:8px">
-        <button onclick="approvePlan('${pat.id}','${visit.id}')" style="flex:1;background:var(--teal);color:white;border:none;border-radius:8px;padding:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">✓ Godkänn</button>
+        <button onclick="approvePlan('${pat.id}','${visit.id}')" style="flex:1;background:#238636;color:#fff;border:1px solid rgba(240,246,252,.1);border-radius:8px;padding:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">✓ Godkänn</button>
         <button onclick="openPat('${pat.id}')" style="background:none;border:1px solid #30363d;color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;font-family:var(--font)">Granska</button>
       </div>
     </div>`;
@@ -25611,7 +25700,7 @@ async function _generateRetentionForPat(patId) {
   ov.style.cssText = 'position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(1,4,9,.82);backdrop-filter:blur(6px)';
   ov.onclick = function(e){ if(e.target===ov) ov.remove(); };
 
-  var h = '<div style="background:#161b22;border-radius:6px;width:100%;max-width:520px;overflow:hidden;box-shadow:0 16px 48px rgba(1,4,9,.8);border:1px solid #30363d" onclick="event.stopPropagation()">';
+  var h = '<div style="background:#161b22;border-radius:6px;width:100%;max-width:520px;overflow:hidden;border:1px solid #30363d" onclick="event.stopPropagation()">';
   h += '<div style="padding:18px 22px 14px;border-bottom:1px solid #30363d;display:flex;align-items:center;justify-content:space-between">';
   h += '<div><div style="font-size:16px;font-weight:800;color:var(--ink)">' + e(pat.name) + '</div>';
   h += '<div style="font-size:13px;color:var(--text2);margin-top:3px">' + chanLabel + ' · AI-genererat · Granska innan du skickar</div></div>';
@@ -26109,7 +26198,7 @@ function _stIntegrations() {
       + '<div>'
       + '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px">' + name + '</div>'
       + '<div style="font-size:13px;color:var(--text2);margin-bottom:6px">' + desc + '</div>'
-      + '<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:20px;background:' + (connected?'rgba(63,185,80,.1)':'var(--surface2)') + ';color:' + (connected?'#3fb950':'var(--text2)') + '">'
+      + '<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:20px;background:' + (connected?'rgba(63,185,80,.1)':'#21262d') + ';color:' + (connected?'#3fb950':'var(--text2)') + '">'
       + '<span style="width:6px;height:6px;border-radius:50%;background:' + (connected?'#3fb950':'var(--text2)') + '"></span>'
       + (connected ? 'Ansluten' : 'Ej ansluten') + '</span>'
       + (extraInfo ? '<div style="font-size:12px;color:var(--text2);margin-top:3px">' + extraInfo + '</div>' : '')
@@ -26352,7 +26441,7 @@ function _stComms(cfg) {
     h += '<div style="display:flex;align-items:center;gap:8px">';
     h += '<span style="font-size:13px;color:var(--muted)">'+(aiOn?'Aktivt':'Inaktivt')+'</span>';
     h += '<div style="width:38px;height:21px;border-radius:11px;background:'+(aiOn?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;flex-shrink:0;transition:background .2s" onclick="_toggleAiMail()">';
-    h += '<div style="position:absolute;top:3px;left:'+(aiOn?'19px':'3px')+';width:15px;height:15px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div>';
+    h += '<div style="position:absolute;top:3px;left:'+(aiOn?'19px':'3px')+';width:15px;height:15px;border-radius:50%;background:#fff;transition:left .2s"></div></div>';
     h += '</div></div>';
     if (aiOn) {
       // Flow diagram
@@ -26493,7 +26582,7 @@ function _stComms(cfg) {
       h += '<div style="font-size:13px;color:var(--muted)">'+sms.sub+'</div></div>';
       // Toggle
       h += '<div style="width:32px;height:18px;border-radius:9px;background:'+(on?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;flex-shrink:0;transition:background .2s" onclick="_toggleSms2(\''+sms.id+'\')">';
-      h += '<div style="position:absolute;top:2px;left:'+(on?'14px':'2px')+';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div></div>';
+      h += '<div style="position:absolute;top:2px;left:'+(on?'14px':'2px')+';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div></div>';
       h += '</div>';
       // Text field + live preview
       h += '<div style="background:var(--bg);border:1px solid #30363d;border-radius:9px;overflow:hidden">';
@@ -26986,7 +27075,7 @@ function _stGeneral(cfg) {
   h += '<button onclick="_resetWorkspace()" style="padding:6px 14px;border:1px solid rgba(248,81,73,.4);border-radius:7px;color:#f85149;background:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">Återställ</button>';
   h += '</div></div>';
 
-  h += '<button onclick="_saveGeneralSettings()" style="padding:10px 24px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara inställningar</button>';
+  h += '<button onclick="_saveGeneralSettings()" style="padding:10px 24px;background:#238636;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara inställningar</button>';
   h += '</div>';
   return h;
 }
@@ -27113,7 +27202,7 @@ function _stUsers() {
     h += '<div style="position:relative">';
     h += '<div style="font-size:13px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+rColor+'18;color:'+rColor+';cursor:pointer;white-space:nowrap" data-ddid="role-dd-" data-ddidx="' + i + '" onclick="_toggleRoleDropdown(this.dataset.ddid+this.dataset.ddidx)">';
     h += roleName(u.role||'therapist')+' ▾</div>';
-    h += '<div id="role-dd-'+i+'" style="display:none;position:absolute;right:0;top:28px;background:var(--navy);border:1px solid #30363d;border-radius:6px;overflow:hidden;z-index:100;min-width:140px;box-shadow:0 4px 20px rgba(0,0,0,.3)">';
+    h += '<div id="role-dd-'+i+'" style="display:none;position:absolute;right:0;top:28px;background:var(--navy);border:1px solid #30363d;border-radius:6px;overflow:hidden;z-index:100;min-width:140px">';
     klinikRoles.forEach(function(r) {
       h += '<div onclick="_velaRoleSelect(\'' + e(u.email) + '\',\'' + r.id + '\''+ ',' + i + ')" style="padding:8px 13px;font-size:13px;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:8px" onmouseover="this.style.background=\'rgba(255,255,255,.06)\'" onmouseout="this.style.background=\'none\'">';
       h += '<div style="width:8px;height:8px;border-radius:50%;background:'+r.color+';flex-shrink:0"></div>'+r.label+'</div>';
@@ -27554,7 +27643,7 @@ function _showPriceIntelPopup(svc, result) {
       + '</div>'
     : '';
 
-  ov.innerHTML = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">'
+  ov.innerHTML = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:480px;overflow:hidden" onclick="event.stopPropagation()">'
 
     // Header
     + '<div style="background:linear-gradient(135deg,#0a1f3a,#0c2a40);padding:18px 22px 16px">'
@@ -27580,7 +27669,7 @@ function _showPriceIntelPopup(svc, result) {
         const avgPct   = Math.max(2, Math.min(96, ((result.marketAvg||svc.price) - min) / range * 100));
         return '<div style="position:absolute;left:0;right:0;top:0;bottom:0;background:linear-gradient(90deg,rgba(224,118,40,.05),rgba(224,118,40,.12));border-radius:4px"></div>'
           + '<div style="position:absolute;top:-2px;left:' + avgPct + '%;width:2px;height:12px;background:rgba(224,118,40,.6);border-radius:1px" title="Snitt"></div>'
-          + '<div style="position:absolute;top:-3px;left:' + yourPct + '%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:white;border:2.5px solid ' + assessColor + ';box-shadow:0 2px 6px rgba(0,0,0,.3)" title="Ditt pris"></div>';
+          + '<div style="position:absolute;top:-3px;left:' + yourPct + '%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:white;border:2.5px solid ' + assessColor + '" title="Ditt pris"></div>';
       })()
     + '</div>'
     + '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:14px">'
@@ -27714,7 +27803,7 @@ async function _stPriceIntelAll() {
         + '</div>'
       : '';
 
-    ov.innerHTML = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:520px;overflow:hidden;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">'
+    ov.innerHTML = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:520px;overflow:hidden;max-height:85vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">'
       + '<div style="background:linear-gradient(135deg,#0a1f3a,#0c2a40);padding:18px 22px 16px;flex-shrink:0">'
       + '<div style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(224,118,40,.8);margin-bottom:4px">Vela Intelligence · Fullständig prisanalys</div>'
       + '<div style="font-size:18px;font-weight:700;color:white">' + e(cfg.name || 'Kliniken') + '</div>'
@@ -29944,7 +30033,7 @@ function renderHaelMessagesPanel(patId) {
   h += '</div>';
   h += '<div style="padding:10px 14px;border-top:1px solid #30363d;display:flex;gap:8px">';
   h += '<input id="hael-msg-input-' + patId + '" type="text" class="field" style="margin-bottom:0;flex:1;font-size:13px" placeholder="Skriv meddelande till patient...">';
-  h += '<button onclick="_sendHaelMsg(\'' + patId + '\')" style="padding:8px 14px;background:var(--teal);color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);flex-shrink:0">Skicka</button>';
+  h += '<button onclick="_sendHaelMsg(\'' + patId + '\')" style="padding:8px 14px;background:#238636;color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);flex-shrink:0">Skicka</button>';
   h += '</div></div>';
   return h;
 }
@@ -30079,7 +30168,7 @@ function generateWebBookingWidget() {
     + '<style>'
     + 'body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#f5f7f9;color:#1a2a3a}'
     + '.bw-wrap{max-width:520px;margin:0 auto;padding:20px}'
-    + '.bw-card{background:white;border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.08);overflow:hidden}'
+    + '.bw-card{background:white;border-radius:20px;overflow:hidden}'
     + '.bw-header{background:linear-gradient(135deg,#0a1e3a,#0f2744);padding:24px;color:white;text-align:center}'
     + '.bw-logo{font-size:20px;font-weight:800;margin-bottom:4px}'
     + '.bw-sub{font-size:13px;opacity:.55}'
@@ -30207,7 +30296,7 @@ function showWebBookingSetup() {
 
   var embedCode = '<script src="https://carlrobertkarell-beep.github.io/vela-hael/booking-widget.js" data-clinic="' + getCurrentClinicId() + '"><\/script>';
 
-  var h = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">';
+  var h = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">';
   h += '<div style="background:var(--navy);padding:20px 24px 16px;display:flex;align-items:center;justify-content:space-between">';
   h += '<div><div style="font-size:17px;font-weight:700;color:white">Webb-bokningswidget</div>';
   h += '<div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:3px">Bädda in på er hemsida</div></div>';
@@ -30220,7 +30309,7 @@ function showWebBookingSetup() {
   h += '<div style="background:rgba(224,118,40,.04);border:1px solid rgba(224,118,40,.07);border-radius:6px;padding:16px">';
   h += '<div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:8px">Förhandsgranska bokningsflödet</div>';
   h += '<div style="font-size:13px;color:var(--muted);margin-bottom:12px">Så här ser det ut för dina patienter. Fullständigt responsivt, på svenska.</div>';
-  h += '<button onclick="_previewWebBooking()" style="padding:9px 18px;background:var(--teal);color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Öppna förhandsgranskning →</button>';
+  h += '<button onclick="_previewWebBooking()" style="padding:9px 18px;background:#238636;color:white;border:none;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Öppna förhandsgranskning →</button>';
   h += '</div>';
 
   // Embed code
@@ -30355,7 +30444,7 @@ function openTherapistScheduleDialog(therapistId) {
   ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
   ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
 
-  var h = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">';
+  var h = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">';
   h += '<div style="background:var(--navy);padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between">';
   h += '<div>';
   h += '<div style="font-size:17px;font-weight:700;color:white">' + e(t.name) + '</div>';
@@ -30531,7 +30620,7 @@ function _renderPROMDialog() {
   var totalSteps = tool.dynamic ? 2 : sections.length;
   var pct = Math.round((st.step / totalSteps) * 100);
 
-  var h = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">';
+  var h = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">';
   h += '<div style="background:var(--navy);padding:18px 22px 14px">';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
   h += '<div><div style="font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin-bottom:2px">' + e(tool.name) + '</div>';
@@ -32127,7 +32216,7 @@ function _openNewPatientDialog() {
   ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
   ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
 
-  ov.innerHTML = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:420px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">'
+  ov.innerHTML = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:420px;overflow:hidden" onclick="event.stopPropagation()">'
     + '<div style="background:var(--navy);padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between">'
     + '<div><div style="font-size:17px;font-weight:700;color:white">Ny patient</div>'
     + '<div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">Grundprofil — boka separat</div></div>'
@@ -32264,7 +32353,7 @@ function openWaitlistDialog() {
   ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
   ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
 
-  var h = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:500px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">';
+  var h = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:500px;max-height:80vh;overflow:hidden;display:flex;flex-direction:column" onclick="event.stopPropagation()">';
   h += '<div style="background:var(--navy);padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between">';
   h += '<div><div style="font-size:17px;font-weight:700;color:white">Väntelista</div>';
   h += '<div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">' + wl.length + ' patient' + (wl.length!==1?'er':'') + ' väntar · sorterat efter angelägenhet</div></div>';
@@ -32362,7 +32451,7 @@ function openRecurringBookingDialog(patId, startDate, startTime) {
 
   var svcs = getServices().filter(function(s){ return s.price>0; });
 
-  var h = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">';
+  var h = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:460px;overflow:hidden" onclick="event.stopPropagation()">';
   h += '<div style="background:var(--navy);padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between">';
   h += '<div><div style="font-size:17px;font-weight:700;color:white">Återkommande bokning</div>';
   h += '<div style="font-size:13px;color:rgba(255,255,255,.4);margin-top:2px">' + e(pat.name) + '</div></div>';
@@ -32668,7 +32757,7 @@ function rProfile() {
 
   // Save / Cancel
   h += '<div style="display:flex;gap:8px">';
-  h += '<button onclick="_profileSave()" style="flex:1;padding:5px 16px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara</button>';
+  h += '<button onclick="_profileSave()" style="flex:1;padding:5px 16px;background:#238636;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara</button>';
   h += '<button onclick="_profileEditCancel()" style="padding:5px 14px;background:none;border:1px solid #30363d;border-radius:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avbryt</button>';
   h += '</div>';
   h += '</div>'; // prof-edit-section
@@ -32746,7 +32835,7 @@ function rProfile() {
   ['','Mån','','Ons','','Fre',''].forEach(function(d){ h += '<div style="font-size:9px;color:var(--text2);height:11px;line-height:11px;text-align:right;padding-right:2px">'+d+'</div>'; });
   h += '</div>';
   h += '<div class="prof-graph">';
-  var GC = ['var(--surface2)','rgba(224,118,40,.15)','rgba(224,118,40,.35)','rgba(224,118,40,.6)','var(--teal)'];
+  var GC = ['#21262d','rgba(224,118,40,.15)','rgba(224,118,40,.35)','rgba(224,118,40,.6)','var(--teal)'];
   for (var wk=0;wk<GRAPH_WEEKS;wk++) {
     h += '<div style="display:flex;flex-direction:column;gap:2px">';
     for (var dy=0;dy<7;dy++) {
@@ -32894,7 +32983,7 @@ function rAvailability() {
     h += '<div>';
     h += '<div style="font-size:14px;font-weight:600;color:#d29922;margin-bottom:3px">Inga tider inlagda ännu</div>';
     h += '<div style="font-size:13px;color:var(--text2);margin-bottom:10px">Patienter kan inte boka dig förrän du lagt in dina tillgängliga tider.</div>';
-    h += '<button onclick="_availAiSuggest()" style="display:flex;align-items:center;gap:6px;padding:7px 13px;background:var(--teal);color:#0d1117;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">';
+    h += '<button onclick="_availAiSuggest()" style="display:flex;align-items:center;gap:6px;padding:7px 13px;background:#238636;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">';
     h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
     h += 'Låt AI föreslå schema baserat på dina bokningar</button>';
     h += '</div></div>';
@@ -32913,7 +33002,7 @@ function rAvailability() {
     // Toggle
     h += '<label style="position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0;cursor:pointer">';
     h += '<input type="checkbox" id="avail-toggle-' + day.key + '"' + (isActive?' checked':'') + ' onchange="_availToggleDay(\'' + day.key + '\',this.checked)" style="opacity:0;width:0;height:0">';
-    h += '<span style="position:absolute;inset:0;border-radius:20px;background:' + (isActive?'var(--teal)':'var(--surface2)') + ';border:1px solid #30363d;transition:.2s"></span>';
+    h += '<span style="position:absolute;inset:0;border-radius:20px;background:' + (isActive?'var(--teal)':'#21262d') + ';border:1px solid #30363d;transition:.2s"></span>';
     h += '<span style="position:absolute;left:' + (isActive?'18':'2') + 'px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:.2s"></span>';
     h += '</label>';
 
@@ -32964,7 +33053,7 @@ function rAvailability() {
   var bookingUrl = window.location.origin + window.location.pathname + '#boka';
   h += '<div style="display:flex;gap:8px">';
   h += '<input readonly value="' + bookingUrl + '" style="flex:1;padding:8px 12px;background:var(--bg);border:1px solid #30363d;border-radius:7px;font-size:13px;color:var(--text);font-family:var(--font-mono);outline:none">';
-  h += '<button onclick="navigator.clipboard?.writeText(\'' + bookingUrl + '\').then(function(){showAutoSaveToast(\'Länk kopierad ✓\')})" style="padding:8px 14px;background:var(--teal);color:#0d1117;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Kopiera</button>';
+  h += '<button onclick="navigator.clipboard?.writeText(\'' + bookingUrl + '\').then(function(){showAutoSaveToast(\'Länk kopierad ✓\')})" style="padding:8px 14px;background:#238636;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Kopiera</button>';
   h += '</div></div>';
 
   h += '</div>';
@@ -33286,7 +33375,7 @@ function openQuickNote(patId, prefill) {
   ov.style.cssText = 'position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px);font-family:var(--font)';
   ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
 
-  var h = '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;width:100%;max-width:460px;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.5)" onclick="event.stopPropagation()">';
+  var h = '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;width:100%;max-width:460px;overflow:hidden" onclick="event.stopPropagation()">';
 
   // Header
   h += '<div style="padding:16px 18px 12px;border-bottom:1px solid #30363d;display:flex;align-items:center;justify-content:space-between">';
@@ -33327,7 +33416,7 @@ function openQuickNote(patId, prefill) {
   // Save buttons
   h += '<div style="display:flex;gap:8px">';
   h += '<button onclick="document.getElementById(\'quick-note-ov\').remove()" style="padding:9px 16px;background:none;border:1px solid #30363d;border-radius:8px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--font)">Avbryt</button>';
-  h += '<button onclick="_saveContactNote(\'' + patId + '\')" style="flex:1;padding:9px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara notat</button>';
+  h += '<button onclick="_saveContactNote(\'' + patId + '\')" style="flex:1;padding:9px;background:#238636;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara notat</button>';
   h += '</div>';
 
   h += '</div></div>';
@@ -33903,7 +33992,7 @@ function editClinic(clinicId) {
       + '</div>';
   }
 
-  ov.innerHTML = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">'
+  ov.innerHTML = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:480px;overflow:hidden" onclick="event.stopPropagation()">'
     + '<div style="background:var(--navy);padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between">'
     + '<div style="font-size:17px;font-weight:700;color:white">Redigera klinik</div>'
     + '<button onclick="document.getElementById(\"edit-clinic-ov\").remove()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1">×</button>'
@@ -34224,7 +34313,7 @@ function rAddClinicDialog() {
   ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
   ov.onclick = function(ev) { if(ev.target===ov) ov.remove(); };
 
-  ov.innerHTML = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:480px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3)" onclick="event.stopPropagation()">'
+  ov.innerHTML = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:480px;overflow:hidden" onclick="event.stopPropagation()">'
     + '<div style="background:var(--navy);padding:18px 22px 14px"><div style="font-size:17px;font-weight:700;color:white">Ny klinik</div></div>'
     + '<div style="padding:20px 22px;display:grid;gap:14px">'
     + _stField('nc-name','Kliniknamn *','','T.ex. Kansei Göteborg','text')
@@ -34449,7 +34538,7 @@ function _buildAiProfileWizardHTML(profile, step) {
     }
   }
 
-  return '<div style="background:#161b22;border-radius:24px;width:100%;max-width:520px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.4)" onclick="event.stopPropagation()">'
+  return '<div style="background:#161b22;border-radius:24px;width:100%;max-width:520px;overflow:hidden" onclick="event.stopPropagation()">'
     // Header
     + '<div style="background:linear-gradient(135deg,#08192f,#0a2540);padding:22px 26px 18px">'
     + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'

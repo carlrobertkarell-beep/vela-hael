@@ -6,17 +6,18 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#07101e">
+<meta name="theme-color" content="#161b22" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Hael">
+<meta name="apple-mobile-web-app-title" content="Vela">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="description" content="Hael — ditt personliga rehabiliteringsprogram">
+<meta name="description" content="Vela — naprapatjournalsystem och klinikhantering">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="manifest" href="hael-manifest.json">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230d9b8a'/><text x='96' y='130' font-size='100' text-anchor='middle' fill='white' font-family='Georgia,serif' font-weight='300'>H</text></svg>">
+<link rel="manifest" href="vela-manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%23161b22'/><polyline points='180 96 156 96 138 168 102 24 84 96 60 96 12 96' fill='none' stroke='%23e07628' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <title>Vela</title>
 
 <style id="vela-app-css">
@@ -97,36 +98,128 @@
   --sb-active-col:#e07628;
 }
 
-/* ── Light mode override (optional, future toggle) ────────── */
-body.light {
-  --bg:       #f6f8fa;
-  --bg2:      #eaeef2;
-  --surface:  #ffffff;
-  --surface2: #f6f8fa;
-  --surface3: #eaeef2;
-  --ink:      #1f2328;
-  --text:     #636c76;
-  --text2:    #818b98;
-  --text3:    #9198a1;
-  --muted:    #818b98;
-  --border:   #d0d7de;
-  --border2:  #eaeef2;
-  --navy:     #ffffff;
-  --navy2:    #f6f8fa;
-  --sb-bg:    #f6f8fa;
-  --sb-border:#d0d7de;
-  --sb-text:  #818b98;
-  --sb-text2: #1f2328;
-  --sb-hover: rgba(31,35,40,.06);
-  --sb-active-bg: rgba(224,118,40,.1);
-  --sb-active-col:#b85e18;
+/* ── Theme system: dark (default) / light / system ─────────── */
+
+/* Smooth token transitions on theme change */
+html {
+  transition: background-color .2s ease, color .2s ease;
+}
+*, *::before, *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+  transition-duration: .15s;
+  transition-timing-function: ease;
+}
+/* Disable transitions on elements that shouldn't animate */
+svg *, img, video, canvas, .no-transition,
+input[type="range"], input[type="checkbox"] {
+  transition: none !important;
+}
+
+/* Dark is default — :root tokens above */
+
+/* ── Light theme ──────────────────────────────────────────── */
+body[data-theme="light"] {
+  color-scheme: light;
+  --topbar-bg:  #ffffff;
+  --bg:         #f6f8fa;
+  --bg2:        #eaeef2;
+  --surface:    #ffffff;
+  --surface2:   #f6f8fa;
+  --surface3:   #eaeef2;
+  --navy:       #ffffff;
+  --navy2:      #f6f8fa;
+  --ink:        #1f2328;
+  --text:       #636c76;
+  --text2:      #818b98;
+  --text3:      #9198a1;
+  --muted:      #818b98;
+  --border:     #d0d7de;
+  --border2:    #eaeef2;
+  --sb-bg:      #f6f8fa;
+  --sb-border:  #d0d7de;
+  --sb-text:    #636c76;
+  --sb-text2:   #1f2328;
+  --sb-hover:   rgba(31,35,40,.06);
+  --sb-active-bg:  rgba(224,118,40,.08);
+  --sb-active-col: #b85e18;
+  --orange-text:   #b85e18;
+  --link:          #0969da;
+  --shadow-xs: 0 1px 0 rgba(31,35,40,.04);
   --shadow-sm: 0 1px 3px rgba(31,35,40,.12);
-  --shadow-md: 0 3px 12px rgba(31,35,40,.1);
+  --shadow-md: 0 3px 12px rgba(31,35,40,.10);
+  --shadow-lg: 0 8px 24px rgba(31,35,40,.12);
+}
+
+/* ── System preference (only active in "system" mode) ────── */
+body[data-theme="system"] {
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: light) {
+  body[data-theme="system"] {
+    --topbar-bg:  #ffffff;
+    --bg:         #f6f8fa;
+    --bg2:        #eaeef2;
+    --surface:    #ffffff;
+    --surface2:   #f6f8fa;
+    --surface3:   #eaeef2;
+    --navy:       #ffffff;
+    --navy2:      #f6f8fa;
+    --ink:        #1f2328;
+    --text:       #636c76;
+    --text2:      #818b98;
+    --text3:      #9198a1;
+    --muted:      #818b98;
+    --border:     #d0d7de;
+    --border2:    #eaeef2;
+    --sb-bg:      #f6f8fa;
+    --sb-border:  #d0d7de;
+    --sb-text:    #636c76;
+    --sb-text2:   #1f2328;
+    --sb-hover:   rgba(31,35,40,.06);
+    --sb-active-bg:  rgba(224,118,40,.08);
+    --sb-active-col: #b85e18;
+    --orange-text:   #b85e18;
+    --link:          #0969da;
+    --shadow-xs: 0 1px 0 rgba(31,35,40,.04);
+    --shadow-sm: 0 1px 3px rgba(31,35,40,.12);
+    --shadow-md: 0 3px 12px rgba(31,35,40,.10);
+    --shadow-lg: 0 8px 24px rgba(31,35,40,.12);
+  }
+}
+
+/* Legacy .light class — keep for backwards compat */
+body.light {
+  --topbar-bg:  #ffffff;
+  --bg:         #f6f8fa;
+  --bg2:        #eaeef2;
+  --surface:    #ffffff;
+  --surface2:   #f6f8fa;
+  --surface3:   #eaeef2;
+  --navy:       #ffffff;
+  --navy2:      #f6f8fa;
+  --ink:        #1f2328;
+  --text:       #636c76;
+  --text2:      #818b98;
+  --text3:      #9198a1;
+  --muted:      #818b98;
+  --border:     #d0d7de;
+  --border2:    #eaeef2;
+  --sb-bg:      #f6f8fa;
+  --sb-border:  #d0d7de;
+  --sb-text:    #636c76;
+  --sb-text2:   #1f2328;
+  --sb-hover:   rgba(31,35,40,.06);
+  --sb-active-bg:  rgba(224,118,40,.08);
+  --sb-active-col: #b85e18;
+  --orange-text:   #b85e18;
+  --link:          #0969da;
+  --shadow-sm: 0 1px 3px rgba(31,35,40,.12);
+  --shadow-md: 0 3px 12px rgba(31,35,40,.10);
 }
 
 /* ── RESET ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; font-family: var(--font); font-size: 14px; color: #e6edf3; background: var(--bg); -webkit-font-smoothing: antialiased; }
+html, body { height: 100%; font-family: var(--font); font-size: 14px; color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
 button, input, textarea, select { font-family: inherit; }
 a { color: #58a6ff; text-decoration: none; }
 a:hover { text-decoration: underline; }
@@ -603,7 +696,7 @@ a:hover { text-decoration: underline; }
   display: flex; flex-direction: column;
   font-family: var(--font);
 }
-.vela-gtb-row1 { height: 62px; display: flex; align-items: center; gap: 0; width: 100%; background: #161b22; flex-shrink: 0; }
+.vela-gtb-row1 { height: 62px; display: flex; align-items: center; gap: 0; width: 100%; background: var(--topbar-bg); flex-shrink: 0; border-bottom: 1px solid var(--border); }
 .vela-gtb-row2 {
   height: 45px; display: flex; align-items: stretch;
   padding: 0; overflow-x: auto; overflow-y: hidden;
@@ -9017,13 +9110,24 @@ function _openUserMenu(evt) {
   h += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;padding:8px 8px 4px">Konto</div>';
   h += menuItem('<circle cx="12" cy="12" r="3"/><path d="M3 12h1M12 3v1M20.66 7l-.87.5M20.66 17l-.87-.5M3.34 17l.87-.5M3.34 7l.87.5"/>', 'Profil', 'um-profile');
 
-  // Theme toggle row
-  h += '<div style="display:flex;align-items:center;gap:10px;padding:7px 8px">';
-  h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round" style="opacity:.7"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
-  h += '<span style="font-size:13px;color:#e6edf3;flex:1">Utseende</span>';
-  h += '<div style="display:flex;border:1px solid #30363d;border-radius:6px;overflow:hidden">';
-  h += '<button id="um-theme-dark" style="padding:4px 10px;background:' + (isDark?'var(--surface3,#30363d)':'none') + ';border:none;color:' + (isDark?'var(--ink)':'var(--text2)') + ';font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">Mörkt</button>';
-  h += '<button id="um-theme-light" style="padding:4px 10px;background:' + (!isDark?'var(--surface3,#30363d)':'none') + ';border:none;color:' + (!isDark?'var(--ink)':'var(--text2)') + ';font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">Ljust</button>';
+  // Theme toggle row — 3-mode (Mörkt / Ljust / System)
+  var _umTheme = window._velaTheme || localStorage.getItem('vela:theme') || 'dark';
+  function _umThemeBtn(id, label, icon) {
+    var active = _umTheme === id;
+    return '<button id="vela-theme-btn-'+id+'" onclick="setTheme(\'' + id + '\');_openUserMenu&&_openUserMenu()" style="'
+      + 'flex:1;padding:5px 4px;border:1px solid '+(active?'var(--orange)':'var(--border)')+';'
+      + 'border-radius:6px;background:'+(active?'var(--orange-lt)':'transparent')+';'
+      + 'color:'+(active?'var(--orange)':'var(--text2)')+';'
+      + 'font-size:12px;font-weight:'+(active?700:400)+';cursor:pointer;font-family:var(--font);'
+      + 'display:flex;align-items:center;justify-content:center;gap:4px;transition:border-color .15s">'
+      + icon+' '+label+'</button>';
+  }
+  h += '<div style="padding:6px 8px">';
+  h += '<div style="font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Utseende</div>';
+  h += '<div style="display:flex;gap:5px">';
+  h += _umThemeBtn('dark',   'Mörkt',  '🌙');
+  h += _umThemeBtn('light',  'Ljust',  '☀️');
+  h += _umThemeBtn('system', 'System', '💻');
   h += '</div></div>';
 
   h += menuItem('<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>', 'Kopplingar', 'um-integrations');
@@ -18397,6 +18501,106 @@ ${plan.followupNote ? `<div class="card"><div class="fu">${plan.followupNote}</d
   <div class="vai-body" id="vai-body"></div>
 </div>
 <!-- ── END AI PANEL ─────────────────────────────────────────── -->
+
+<script>
+// ── PWA: inline manifest via blob URL ────────────────────────────────────────
+(function() {
+  var manifest = {
+    name: 'Vela',
+    short_name: 'Vela',
+    description: 'Naprapatjournalsystem och klinikhantering',
+    lang: 'sv',
+    start_url: './',
+    display: 'standalone',
+    orientation: 'any',
+    background_color: '#0d1117',
+    theme_color: '#161b22',
+    icons: [
+      {
+        src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%23161b22'/><polyline points='180 96 156 96 138 168 102 24 84 96 60 96 12 96' fill='none' stroke='%23e07628' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/></svg>",
+        sizes: '192x192',
+        type: 'image/svg+xml',
+        purpose: 'any maskable'
+      },
+      {
+        src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23161b22'/><polyline points='480 256 416 256 368 448 272 64 224 256 160 256 32 256' fill='none' stroke='%23e07628' stroke-width='40' stroke-linecap='round' stroke-linejoin='round'/></svg>",
+        sizes: '512x512',
+        type: 'image/svg+xml',
+        purpose: 'any maskable'
+      }
+    ],
+    shortcuts: [
+      { name: 'Kalender', url: './?screen=calendar', description: 'Öppna kalendervy' },
+      { name: 'Ny bokning', url: './?action=book', description: 'Skapa ny bokning' }
+    ]
+  };
+  try {
+    var blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+    var url = URL.createObjectURL(blob);
+    var existing = document.querySelector('link[rel="manifest"]');
+    if (existing) existing.href = url;
+    else { var l = document.createElement('link'); l.rel = 'manifest'; l.href = url; document.head.appendChild(l); }
+  } catch(e) {}
+})();
+
+// ── Service Worker: cache-first for app shell ─────────────────────────────────
+if ('serviceWorker' in navigator) {
+  var swCode = `
+const CACHE = 'vela-v1';
+const FONTS = [
+  'https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap',
+];
+self.addEventListener('install', function(e) {
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(function(c) {
+    return c.addAll(FONTS).catch(function(){});
+  }));
+});
+self.addEventListener('activate', function(e) {
+  e.waitUntil(
+    caches.keys().then(function(keys) {
+      return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));
+    }).then(function(){ return self.clients.claim(); })
+  );
+});
+self.addEventListener('fetch', function(e) {
+  var url = e.request.url;
+  // Cache-first for fonts
+  if (url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com')) {
+    e.respondWith(caches.match(e.request).then(function(r) {
+      return r || fetch(e.request).then(function(res) {
+        var clone = res.clone();
+        caches.open(CACHE).then(function(c){ c.put(e.request, clone); });
+        return res;
+      });
+    }));
+    return;
+  }
+  // Network-first for everything else (API calls, app HTML)
+  e.respondWith(
+    fetch(e.request).catch(function() { return caches.match(e.request); })
+  );
+});
+`;
+  try {
+    var swBlob = new Blob([swCode], {type: 'application/javascript'});
+    var swUrl = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl, {scope: './'})
+      .then(function(reg) { console.log('[Vela SW] registered, scope:', reg.scope); })
+      .catch(function(err) { console.warn('[Vela SW] registration failed:', err); });
+  } catch(e) { console.warn('[Vela SW] blob SW not supported:', e); }
+}
+
+// ── Reactive theme-color meta tag ─────────────────────────────────────────────
+function _updateThemeColorMeta() {
+  var isLight = document.body.classList.contains('light')
+    || (window._velaTheme === 'system' && !window.matchMedia('(prefers-color-scheme: dark)').matches);
+  var color = isLight ? '#ffffff' : '#161b22';
+  document.querySelectorAll('meta[name="theme-color"]').forEach(function(m) { m.content = color; });
+}
+document.addEventListener('DOMContentLoaded', _updateThemeColorMeta);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', _updateThemeColorMeta);
+</script>
 </body>
 </html>`;
 
@@ -24527,6 +24731,494 @@ async function generateAllRetentionMessages() {
   showAutoSaveToast('Alla meddelanden genererade ✓');
 }
 
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INTELLIGENCE — shared chart helpers (top-level, reusable)
+// ══════════════════════════════════════════════════════════════════════════════
+
+function _intelLineChart(data, labels, color, opts) {
+  opts = opts||{};
+  var h = opts.h || 160;
+  var w = 500;
+  var pad = {l:36, r:8, t:8, b:22};
+  var iw = w-pad.l-pad.r, ih = h-pad.t-pad.b;
+  if (!data.length) return '<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><text x="'+(w/2)+'" y="'+(h/2)+'" fill="#8b949e" font-size="12" text-anchor="middle">Ingen data</text></svg>';
+  var max = Math.max.apply(null, data)||1;
+  var min = Math.min.apply(null, data.filter(function(v){return v>=0;}))||0;
+  if (max === min) max = min + 1;
+  var yticks = [0,1,2,3].map(function(i){ return Math.round(min + (max-min)*i/3); });
+  var yPos = function(v) { return pad.t + ih - Math.round((v-min)/(max-min)*ih); };
+  var xPos = function(i) { return pad.l + Math.round(i/(data.length-1||1)*iw); };
+  var svg = '<svg width="100%" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMidYMid meet" style="display:block">';
+  yticks.forEach(function(v){
+    var y = yPos(v);
+    svg += '<line x1="'+pad.l+'" y1="'+y+'" x2="'+(w-pad.r)+'" y2="'+y+'" stroke="#21262d" stroke-width="1"/>';
+    svg += '<text x="'+(pad.l-4)+'" y="'+(y+4)+'" fill="#8b949e" font-size="10" text-anchor="end">'+v+'</text>';
+  });
+  var skip = Math.ceil(data.length/6);
+  if (labels) labels.forEach(function(lbl, i){
+    if (i % skip === 0 || i === data.length-1) {
+      svg += '<text x="'+xPos(i)+'" y="'+(h-4)+'" fill="#8b949e" font-size="10" text-anchor="middle">'+lbl+'</text>';
+    }
+  });
+  var pts = data.map(function(v,i){ return xPos(i)+','+yPos(v); }).join(' ');
+  svg += '<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>';
+  var lx = xPos(data.length-1), ly = yPos(data[data.length-1]);
+  svg += '<circle cx="'+lx+'" cy="'+ly+'" r="3" fill="'+color+'"/>';
+  svg += '</svg>';
+  return svg;
+}
+
+function _intelHBarChart(labels, values, color) {
+  var max = Math.max.apply(null, values)||1;
+  var h = '';
+  labels.forEach(function(lbl, i){
+    h += '<div class="gi2-bar-row">'
+      + '<span class="gi2-bar-label">'+lbl+'</span>'
+      + '<div class="gi2-bar-track"><div class="gi2-bar-fill" style="width:'+Math.round(values[i]/max*100)+'%;background:'+color+'"></div></div>'
+      + '<span class="gi2-bar-val">'+values[i]+'</span>'
+      + '</div>';
+  });
+  return h;
+}
+
+function _intelChartCard(title, stat, chartHtml, aiText, aiCta, aiFn) {
+  var h = '<div class="gi2-chart-card">';
+  h += '<div class="gi2-chart-header">';
+  h += '<div><div class="gi2-chart-title">'+title+'</div>';
+  if (stat) h += '<div class="gi2-chart-stat">'+stat+'</div>';
+  h += '</div>';
+  h += '<div class="gi2-chart-menu">';
+  h += '<button class="gi2-chart-menu-btn" title="Mer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>';
+  h += '</div>';
+  h += '</div>';
+  h += '<div class="gi2-chart-body">'+chartHtml+'</div>';
+  if (aiText) {
+    h += '<div class="gi2-ai-strip">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e07628" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+    h += '<span class="gi2-ai-text">'+aiText+'</span>';
+    if (aiCta) h += '<button class="gi2-ai-cta" onclick="'+aiFn+'">'+aiCta+' \u2192</button>';
+    h += '</div>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function _intelTrendBadge(curr, prev, unit) {
+  if (!prev) return '';
+  var pct = prev > 0 ? Math.round((curr-prev)/prev*100) : 0;
+  var up = pct >= 0;
+  var col = up ? '#3fb950' : '#f85149';
+  return '<span class="gi2-stat-trend" style="color:'+col+'">'
+    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+col+'" stroke-width="2.5"><polyline points="'+(up?'18 15 12 9 6 15':'6 9 12 15 18 9')+'"/></svg>'
+    + (up?'+':'')+pct+'% '+(unit||'vs f\u00f6reg\u00e5ende period')+'</span>';
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INTELLIGENCE — per-view renderers (each returns HTML string)
+// ══════════════════════════════════════════════════════════════════════════════
+
+function _intelRenderPulse(ctx) {
+  var h = '';
+  var rangeStart = ctx.rangeStart, rangeEnd = ctx.rangeEnd;
+  var weeks12 = ctx.weeks12, xShort = ctx.xShort, _nWeeks = ctx._nWeeks;
+  var visitsPerWeek = ctx.visitsPerWeek, revenuePerWeek = ctx.revenuePerWeek;
+  var nrsPerWeek = ctx.nrsPerWeek, newPatsPerWeek = ctx.newPatsPerWeek;
+  var totalVisits = ctx.totalVisits, totalRevenue = ctx.totalRevenue;
+  var avgNRSVal = ctx.avgNRSVal, dropoutCount = ctx.dropoutCount;
+  var retentionRate = ctx.retentionRate, weekTrend = ctx.weekTrend;
+  var pats = ctx.pats;
+
+  h += '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #30363d">';
+  h += '<div><div style="font-size:22px;font-weight:400;color:#e6edf3">'+rangeStart+' \u2013 '+rangeEnd+'</div></div>';
+  var periods = [
+    {id:'4',  label:'4 veckor'},
+    {id:'12', label:'12 veckor'},
+    {id:'26', label:'6 m\u00e5nader'},
+    {id:'52', label:'1 \u00e5r'},
+  ];
+  var selPeriod = window._intelPeriod || '12';
+  h += '<div style="display:flex;gap:6px">';
+  periods.forEach(function(p) {
+    var active = p.id === selPeriod;
+    h += '<button onclick="window._intelPeriod=\''+p.id+'\';rIntelligence()" style="'
+      + 'padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:var(--font);'
+      + (active ? 'background:#388bfd1a;border:1px solid #388bfd;color:#58a6ff;' : 'background:#21262d;border:1px solid #30363d;color:#8b949e;')
+      + '">'+p.label+'</button>';
+  });
+  h += '</div></div>';
+
+  // Summary stats row
+  var curr4 = visitsPerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
+  var prev4 = visitsPerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
+  var curr4r = revenuePerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
+  var prev4r = revenuePerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
+  h += '<div class="gi2-stats" style="margin-bottom:28px">';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val">'+totalVisits+'</div><div class="gi2-stat-label">Genomf\u00f6rda bes\u00f6k</div>'+_intelTrendBadge(curr4,prev4)+'</div>';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val">'+(totalRevenue>0?Math.round(totalRevenue/1000)+'k':'–')+' kr</div><div class="gi2-stat-label">Ber\u00e4knad int\u00e4kt</div>'+_intelTrendBadge(curr4r,prev4r)+'</div>';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(avgNRSVal>6?'#f85149':avgNRSVal>4?'#d29922':'#3fb950')+'">'+(avgNRSVal||'–')+'</div><div class="gi2-stat-label">Snitt NRS</div></div>';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(retentionRate>=80?'#3fb950':'#f85149')+'">'+retentionRate+'%</div><div class="gi2-stat-label">Retention</div></div>';
+  h += '</div>';
+
+  // Charts grid
+  h += '<div class="gi2-grid">';
+  h += _intelChartCard('Bes\u00f6ksvolym', totalVisits+' genomf\u00f6rda',
+    _intelLineChart(visitsPerWeek, xShort, '#3fb950', {h:160}),
+    weekTrend ? 'Positiv trend senaste 4 veckorna.' : 'Volymen har sjunkit j\u00e4mf\u00f6rt med f\u00f6reg\u00e5ende period. \u00d6verv\u00e4g att aktivera dormanta patienter.');
+  h += _intelChartCard('Int\u00e4ktstrend', (totalRevenue>0?totalRevenue.toLocaleString('sv-SE')+' kr tot.':'Ingen data'),
+    _intelLineChart(revenuePerWeek, xShort, '#58a6ff', {h:160}),
+    curr4r>prev4r ? 'Int\u00e4kterna \u00f6kar.' : 'Int\u00e4kterna minskar \u2014 justera prissättning eller marknadsf\u00f6ring.');
+  h += _intelChartCard('NRS-trend', 'Genomsnittlig sm\u00e4rta',
+    _intelLineChart(nrsPerWeek.map(function(v){return Math.round(v*10)/10;}), xShort, '#f78166', {h:160}));
+  h += _intelChartCard('Nya patienter', pats.length+' totalt',
+    _intelLineChart(newPatsPerWeek, xShort, '#e07628', {h:160}));
+  h += '</div>';
+
+  // AI Briefing card
+  h += '<div class="gi2-chart-card" style="margin-top:0">';
+  h += '<div class="gi2-chart-header"><div><div class="gi2-chart-title">AI-analys</div><div class="gi2-chart-stat">Klinisk \u00f6versikt</div></div>';
+  h += '<button class="gi2-ai-cta" onclick="_generateIntelligenceBriefing && _generateIntelligenceBriefing()">Uppdatera \u2192</button>';
+  h += '</div>';
+  h += '<div class="gi2-chart-body"><div class="intel-insights" id="intel-insights-body"><div style="font-size:13px;color:#8b949e;font-style:italic">Klicka Uppdatera f\u00f6r AI-analys av kliniken.</div></div></div>';
+  h += '</div>';
+  return h;
+}
+
+function _intelRenderBesok(ctx) {
+  var h = '';
+  var visitsPerWeek = ctx.visitsPerWeek, xShort = ctx.xShort;
+  var totalVisits = ctx.totalVisits, weeks12 = ctx.weeks12;
+  var completed = ctx.completed;
+
+  h += '<div class="gi2-header"><div><div class="gi2-title">Bes\u00f6ksvolym</div><div class="gi2-subtitle">Genomf\u00f6rda bes\u00f6k per vecka</div></div></div>';
+  h += '<div class="gi2-grid">';
+  h += _intelChartCard('Bes\u00f6k per vecka', totalVisits+' totalt',
+    _intelLineChart(visitsPerWeek, xShort, '#3fb950', {h:180}),
+    'Veckosnitt: '+Math.round(totalVisits/Math.max(ctx._nWeeks,1))+' bes\u00f6k.');
+
+  var days = ['M\u00e5n','Tis','Ons','Tor','Fre','L\u00f6r','S\u00f6n'];
+  var byday = [0,0,0,0,0,0,0];
+  completed.forEach(function(b){ if(b.date){ var d=new Date(b.date).getDay(); byday[(d+6)%7]++; }});
+  h += _intelChartCard('F\u00f6rdelning per veckodag', 'Alla bes\u00f6k',
+    '<div style="padding:8px 0">'+_intelHBarChart(days, byday, '#3fb950')+'</div>');
+  h += '</div>';
+
+  var peakWk = visitsPerWeek.indexOf(Math.max.apply(null,visitsPerWeek));
+  var aiV = 'Mest bes\u00f6kta vecka: '+weeks12[peakWk].label+' ('+visitsPerWeek[peakWk]+' bes\u00f6k).';
+  if (visitsPerWeek.slice(-4).filter(function(v){return v===0;}).length > 1) aiV += ' Tomma veckor detekterade \u2014 kontrollera kalender.';
+  h += _intelChartCard('AI-analys', null, '<div style="padding:12px 0;color:#e6edf3;font-size:13px;line-height:1.7">'+aiV+'</div>');
+  return h;
+}
+
+function _intelRenderIntakter(ctx) {
+  var h = '';
+  var totalRevenue = ctx.totalRevenue, totalVisits = ctx.totalVisits;
+  var revenuePerWeek = ctx.revenuePerWeek, xShort = ctx.xShort;
+  var completed = ctx.completed;
+
+  h += '<div class="gi2-header"><div><div class="gi2-title">Int\u00e4kter</div><div class="gi2-subtitle">Int\u00e4kts\u00f6versikt</div></div></div>';
+  if (totalRevenue === 0) {
+    h += '<div style="padding:60px;text-align:center;color:#8b949e;font-size:14px">Ingen int\u00e4ktsdata. S\u00e4tt priser p\u00e5 dina tj\u00e4nster under Inst\u00e4llningar \u2192 Tj\u00e4nster.</div>';
+    return h;
+  }
+  var curr4r = revenuePerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
+  var prev4r = revenuePerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
+  h += '<div class="gi2-stats" style="margin-bottom:20px">';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val">'+totalRevenue.toLocaleString('sv-SE')+' kr</div><div class="gi2-stat-label">Total int\u00e4kt</div></div>';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val">'+(totalVisits>0?Math.round(totalRevenue/totalVisits).toLocaleString('sv-SE')+' kr':'–')+'</div><div class="gi2-stat-label">Snitt per bes\u00f6k</div></div>';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val">'+curr4r.toLocaleString('sv-SE')+' kr</div><div class="gi2-stat-label">Senaste 4 veckor</div>'+_intelTrendBadge(curr4r,prev4r)+'</div>';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val">'+Math.round(curr4r*13/1000)+'k kr</div><div class="gi2-stat-label">Prognos (\u00e5r)</div></div>';
+  h += '</div>';
+  h += '<div class="gi2-grid">';
+  h += _intelChartCard('Int\u00e4kt per vecka', totalRevenue.toLocaleString('sv-SE')+' kr totalt',
+    _intelLineChart(revenuePerWeek, xShort, '#58a6ff', {h:180}),
+    curr4r>prev4r
+      ? 'Positiv int\u00e4ktstrend. \u00d6kning p\u00e5 '+Math.round((curr4r-prev4r)/Math.max(prev4r,1)*100)+'% vs f\u00f6reg\u00e5ende period.'
+      : 'Int\u00e4kterna minskar. \u00d6verv\u00e4g att justera priser eller marknadsf\u00f6ring.');
+  var svcRev = {};
+  completed.forEach(function(b){ if(b.serviceName&&b.servicePrice) svcRev[b.serviceName]=(svcRev[b.serviceName]||0)+b.servicePrice; });
+  var svcRevArr = Object.entries(svcRev).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
+  if (svcRevArr.length) {
+    h += _intelChartCard('Int\u00e4kt per tj\u00e4nst', '',
+      '<div style="padding:8px 0">'+_intelHBarChart(svcRevArr.map(function(s){return s[0];}), svcRevArr.map(function(s){return s[1];}), '#58a6ff')+'</div>');
+  }
+  h += '</div>';
+  return h;
+}
+
+function _intelRenderNRS(ctx) {
+  var h = '';
+  var nrsPerWeek = ctx.nrsPerWeek, xShort = ctx.xShort;
+  var avgNRSVal = ctx.avgNRSVal, pats = ctx.pats;
+
+  h += '<div class="gi2-header"><div><div class="gi2-title">NRS & Sm\u00e4rttrend</div><div class="gi2-subtitle">Genomsnittlig sm\u00e4rtniv\u00e5 fr\u00e5n journaler</div></div></div>';
+  var hasNRS = nrsPerWeek.some(function(v){return v>0;});
+  if (!hasNRS) {
+    h += '<div style="padding:60px;text-align:center;color:#8b949e;font-size:14px">NRS-data samlas automatiskt fr\u00e5n SOAP-journaler.<br>Dokumentera NRS i S-f\u00e4ltet, ex: \"Patienten anger NRS 4/10\".</div>';
+    return h;
+  }
+  h += '<div class="gi2-grid">';
+  h += _intelChartCard('Genomsnittlig NRS per vecka', 'L\u00e4gre = b\u00e4ttre',
+    _intelLineChart(nrsPerWeek.map(function(v){return Math.round(v*10)/10;}), xShort, '#f78166', {h:180}));
+  var nrsVals = [];
+  pats.forEach(function(p){ (p.visits||[]).forEach(function(v){
+    if(v.soap&&v.soap.S){var m=v.soap.S.match(/(\d+)\s*\/\s*10|NRS\s*(\d+)/i);if(m)nrsVals.push(parseInt(m[1]||m[2]));}
+  });});
+  var nrsBuckets = ['0\u20132','3\u20134','5\u20136','7\u20138','9\u201310'];
+  var nrsCounts = [0,0,0,0,0];
+  nrsVals.forEach(function(v){ if(v<=2)nrsCounts[0]++;else if(v<=4)nrsCounts[1]++;else if(v<=6)nrsCounts[2]++;else if(v<=8)nrsCounts[3]++;else nrsCounts[4]++;});
+  h += _intelChartCard('NRS-f\u00f6rdelning', nrsVals.length+' registrerade v\u00e4rden',
+    '<div style="padding:8px 0">'+_intelHBarChart(nrsBuckets, nrsCounts, '#f78166')+'</div>');
+  h += '</div>';
+  var nrsLast = nrsPerWeek.filter(function(v){return v>0;});
+  var nrsTrend2 = nrsLast.length>1 ? nrsLast[nrsLast.length-1]-nrsLast[0] : 0;
+  h += _intelChartCard('AI-tolkning', null,
+    '<div style="padding:12px 0;color:#e6edf3;font-size:13px;line-height:1.7">'
+      +(nrsTrend2<0?'Positiv trend \u2014 sm\u00e4rtan minskar systematiskt. Behandlingen ger resultat.'
+        :nrsTrend2>0.5?'Sm\u00e4rtniv\u00e5erna stiger. Granska behandlingsprotokoll och \u00f6verv\u00e4g att revidera Hael-planerna.'
+        :'Stabil sm\u00e4rtniv\u00e5. Genomsnitt: '+(avgNRSVal||0)+'/10.')+'</div>',
+    nrsTrend2>0.5?'Granska \u00e5tg\u00e4rder':null, "go('actions')");
+  return h;
+}
+
+function _intelRenderPatienter(ctx) {
+  var h = '';
+  var newPatsPerWeek = ctx.newPatsPerWeek, xShort = ctx.xShort;
+  var pats = ctx.pats;
+
+  h += '<div class="gi2-header"><div><div class="gi2-title">Patienttillv\u00e4xt</div><div class="gi2-subtitle">Nya patienter registrerade per vecka</div></div></div>';
+  h += '<div class="gi2-grid">';
+  h += _intelChartCard('Nya patienter per vecka', pats.length+' totalt',
+    _intelLineChart(newPatsPerWeek, xShort, '#e07628', {h:180}));
+  var cumPats = [];
+  var runTotal = Math.max(0, pats.length - newPatsPerWeek.reduce(function(a,b){return a+b;},0));
+  newPatsPerWeek.forEach(function(v){ runTotal+=v; cumPats.push(runTotal); });
+  h += _intelChartCard('Kumulativ patientbas', 'Totalt antal registrerade patienter',
+    _intelLineChart(cumPats, xShort, '#58a6ff', {h:180}));
+  h += '</div>';
+  var newL4 = newPatsPerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
+  var newP4 = newPatsPerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
+  h += _intelChartCard('AI-analys', null,
+    '<div style="padding:12px 0;color:#e6edf3;font-size:13px;line-height:1.7">'+newL4+' nya patienter senaste 4 veckorna. '
+      +(newL4>newP4?'Tillv\u00e4xten \u00e4r positiv.'
+        :newL4<newP4?'F\u00e4rre nya patienter \u00e4n f\u00f6reg\u00e5ende period. Dela din bokningsl\u00e4nk f\u00f6r att \u00f6ka infl\u00f6det.'
+        :'Stabil tillv\u00e4xt.')+'</div>',
+    newL4<newP4?'Dela bokningsl\u00e4nk':null, "go('settings')");
+  return h;
+}
+
+function _intelRenderTjanster(ctx) {
+  var h = '';
+  var svcArr = ctx.svcArr, xShort = ctx.xShort;
+  var weeks12 = ctx.weeks12, completed = ctx.completed;
+
+  h += '<div class="gi2-header"><div><div class="gi2-title">Tj\u00e4nster</div><div class="gi2-subtitle">Vilka tj\u00e4nster bokas mest</div></div></div>';
+  if (!svcArr.length) {
+    h += '<div style="padding:60px;text-align:center;color:#8b949e;font-size:14px">Ingen tj\u00e4nstedata. L\u00e4gg till tj\u00e4nster under Inst\u00e4llningar.</div>';
+    return h;
+  }
+  var svcTotal2 = svcArr.reduce(function(s,v){return s+v[1];},0);
+  h += '<div class="gi2-grid">';
+  h += _intelChartCard('Bokningar per tj\u00e4nst', svcTotal2+' bokningar totalt',
+    '<div style="padding:8px 0">'+_intelHBarChart(svcArr.map(function(s){return s[0];}), svcArr.map(function(s){return s[1];}), '#3fb950')+'</div>');
+  if (svcArr[0]) {
+    var top = svcArr[0][0];
+    var topTrend = weeks12.map(function(wk,i){
+      var next = i<weeks12.length-1 ? weeks12[i+1].ts : Date.now()+1;
+      return completed.filter(function(b){ return b.serviceName===top && b.date && new Date(b.date).getTime()>=wk.ts && new Date(b.date).getTime()<next; }).length;
+    });
+    h += _intelChartCard('Trend: '+top, svcArr[0][1]+' bokningar',
+      _intelLineChart(topTrend, xShort, '#3fb950', {h:180}));
+  }
+  h += '</div>';
+  h += _intelChartCard('AI-analys', null,
+    '<div style="padding:12px 0;color:#e6edf3;font-size:13px;line-height:1.7">\"'+svcArr[0][0]+'\" \u00e4r din mest bokade tj\u00e4nst ('+Math.round(svcArr[0][1]/svcTotal2*100)+'% av alla bes\u00f6k). '
+      +(svcArr.length>1?'Komplettera med paketpriser eller l\u00e4ngre versioner av de popul\u00e4raste behandlingarna.':'Diversifiera ditt utbud f\u00f6r att n\u00e5 fler patientgrupper.')+'</div>');
+  return h;
+}
+
+function _intelRenderDropout(ctx) {
+  var h = '';
+  var retentionRate = ctx.retentionRate, dropoutCount = ctx.dropoutCount;
+  var pats = ctx.pats, dropoutByWeek = ctx.dropoutByWeek, xShort = ctx.xShort;
+
+  h += '<div class="gi2-header"><div><div class="gi2-title">Avhoppsrisk</div><div class="gi2-subtitle">Patienter som riskerar att avsluta behandlingen</div></div></div>';
+  h += '<div class="gi2-stats" style="margin-bottom:20px">';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(retentionRate>=80?'#3fb950':'#f85149')+'">'+retentionRate+'%</div><div class="gi2-stat-label">Retention</div></div>';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(dropoutCount>0?'#f85149':'#3fb950')+'">'+dropoutCount+'</div><div class="gi2-stat-label">H\u00f6g risk nu</div></div>';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val">'+pats.length+'</div><div class="gi2-stat-label">Totalt patienter</div></div>';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val">'+Math.max(0,pats.length-dropoutCount)+'</div><div class="gi2-stat-label">Aktiva & stabila</div></div>';
+  h += '</div>';
+  h += '<div class="gi2-grid">';
+  h += _intelChartCard('Avhoppstrend per vecka', 'Patienter utan \u00e5terbes\u00f6k > 21 dagar',
+    _intelLineChart(dropoutByWeek, xShort, '#f85149', {h:180}),
+    dropoutCount>0
+      ? dropoutCount+' patienter har h\u00f6g avhoppsrisk. AI kan generera \u00e5teraktiveringsmeddelanden automatiskt.'
+      : 'Inga patienter med h\u00f6g avhoppsrisk. Bra jobbat!',
+    dropoutCount>0?'Hantera i \u00c5tg\u00e4rder':null, "window._actionsType='dropout';go('actions')");
+  var buckets = ['< 14 d','14\u201321 d','22\u201330 d','31\u201360 d','> 60 d'];
+  var bCounts = [0,0,0,0,0];
+  pats.forEach(function(p){
+    var last = (p.visits||[]).slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0];
+    if (!last||!last.date) return;
+    var days = Math.floor((Date.now()-new Date(last.date).getTime())/86400000);
+    if (days<14) bCounts[0]++;
+    else if (days<22) bCounts[1]++;
+    else if (days<31) bCounts[2]++;
+    else if (days<61) bCounts[3]++;
+    else bCounts[4]++;
+  });
+  h += _intelChartCard('Dagar sedan senaste bes\u00f6k', 'Per patient',
+    '<div style="padding:8px 0">'+_intelHBarChart(buckets, bCounts, '#f85149')+'</div>');
+  h += '</div>';
+  if (dropoutCount > 0 && typeof _scanDropoutRisks === 'function') {
+    var risks = _scanDropoutRisks().slice(0,10);
+    h += '<div class="gi2-chart-card">';
+    h += '<div class="gi2-chart-header"><div><div class="gi2-chart-title">Patienter att f\u00f6lja upp</div><div class="gi2-chart-sub">Sorterade efter risk</div></div>';
+    h += '<div class="gi2-chart-menu"><button class="gi2-ai-cta" onclick="window._actionsType=\'dropout\';go(\'actions\')">Hantera alla \u2192</button></div></div>';
+    h += '<div class="gi2-chart-body">';
+    risks.forEach(function(r){
+      var p = pats.find(function(x){return x.id===r.patId;});
+      if (!p) return;
+      var last = (p.visits||[]).slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0];
+      var days = last&&last.date ? Math.floor((Date.now()-new Date(last.date).getTime())/86400000) : null;
+      var col = days > 30 ? '#f85149' : days > 21 ? '#d29922' : '#8b949e';
+      h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #21262d">';
+      h += '<span style="font-size:14px;color:#58a6ff;cursor:pointer" onclick="openPat(\''+p.id+'\');go(\'detail\')">'+e(p.name)+'</span>';
+      h += '<span style="font-size:12px;color:'+col+'">'+(days !== null ? days+' dagar sedan' : 'Ok\u00e4nt')+'</span>';
+      h += '</div>';
+    });
+    h += '</div></div>';
+  }
+  return h;
+}
+
+function _intelRenderDatakvalitet(ctx) {
+  var h = '';
+  var pats = ctx.pats, weeks12 = ctx.weeks12, xShort = ctx.xShort;
+
+  h += '<div class="gi2-header"><div><div class="gi2-title">Datakvalitet</div><div class="gi2-subtitle">AI-tr\u00e4ningsdata och journalkvalitet</div></div>';
+  h += '<button class="gi2-ai-gen-btn" onclick="_analyzeDataQuality()" style="display:flex;align-items:center;gap:6px;background:rgba(224,118,40,.12);border:1px solid rgba(224,118,40,.3);color:#e07628;border-radius:7px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s" onmouseenter="this.style.background=\'rgba(224,118,40,.2)\'" onmouseleave="this.style.background=\'rgba(224,118,40,.12)\'">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Analysera med AI</button></div>';
+
+  var allVisits = []; pats.forEach(function(p){ (p.visits||[]).forEach(function(v){ allVisits.push({v:v,p:p}); }); });
+  if (allVisits.length === 0) {
+    h += '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:80px 20px;text-align:center">';
+    h += '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#30363d" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
+    h += '<div style="font-size:15px;font-weight:600;color:#8b949e">Inga bes\u00f6k att analysera</div>';
+    h += '<div style="font-size:13px;color:#484f58;max-width:320px;line-height:1.6">Datakvalitetsrapporten fylls p\u00e5 automatiskt n\u00e4r du b\u00f6rjar dokumentera bes\u00f6k och SOAP-journaler.</div>';
+    h += '</div>';
+    return h;
+  }
+
+  var totalV = allVisits.length;
+  var withNRS = allVisits.filter(function(x){ return x.v.soap && x.v.soap.S && /\d+\s*\/\s*10|NRS\s*\d+/i.test(x.v.soap.S); }).length;
+  var withSOAP = allVisits.filter(function(x){ return x.v.soap && (x.v.soap.S||x.v.soap.O||x.v.soap.A||x.v.soap.P); }).length;
+  var withFullSOAP = allVisits.filter(function(x){ return x.v.soap && x.v.soap.S && x.v.soap.O && x.v.soap.A && x.v.soap.P; }).length;
+  var aiGenerated = allVisits.filter(function(x){ return x.v.soapMeta && x.v.soapMeta.aiGenerated; }).length;
+  var allEdits = (function(){ try{ return JSON.parse(localStorage.getItem('vela:ai_edits')||'[]'); }catch(e2){return [];} })();
+  var allApprovals = (function(){ try{ return JSON.parse(localStorage.getItem('vela:approvals')||'[]'); }catch(e3){return [];} })();
+  var approvedCount = allApprovals.filter(function(a){ return a.status==='approved'; }).length;
+  var rejectedCount = allApprovals.filter(function(a){ return a.status==='rejected'; }).length;
+  var editedCount = allApprovals.filter(function(a){ return a.editedContent && a.editedContent !== a.aiContent; }).length;
+  var avgEditRatio = allEdits.length ? Math.round(allEdits.reduce(function(s,e4){ return s+(e4.editRatio||0); },0)/allEdits.length) : 0;
+  var nrsPct = totalV ? Math.round(withNRS/totalV*100) : 0;
+  var soapPct = totalV ? Math.round(withSOAP/totalV*100) : 0;
+  var fullSoapPct = totalV ? Math.round(withFullSOAP/totalV*100) : 0;
+  var aiPct = totalV ? Math.round(aiGenerated/totalV*100) : 0;
+  var approvalRate = allApprovals.length ? Math.round(approvedCount/allApprovals.length*100) : 0;
+  var qualScore = Math.round(nrsPct * 0.35 + soapPct * 0.35 + (allApprovals.length ? approvalRate : 50) * 0.3);
+  var qualColor = qualScore >= 75 ? '#3fb950' : qualScore >= 50 ? '#d29922' : '#f85149';
+  var qualLabel = qualScore >= 75 ? 'Bra' : qualScore >= 50 ? 'OK' : 'Beh\u00f6ver f\u00f6rb\u00e4ttras';
+
+  h += '<div class="gi2-stats" style="margin-bottom:20px">';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+qualColor+'">'+qualScore+'</div><div class="gi2-stat-label">Kvalitetspo\u00e4ng</div><div style="font-size:11px;color:'+qualColor+';margin-top:2px">'+qualLabel+'</div></div>';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(nrsPct>=70?'#3fb950':nrsPct>=40?'#d29922':'#f85149')+'">'+nrsPct+'%</div><div class="gi2-stat-label">NRS-t\u00e4ckning</div><div style="font-size:11px;color:#8b949e;margin-top:2px">M\u00e5l: 70%</div></div>';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(soapPct>=80?'#3fb950':soapPct>=50?'#d29922':'#f85149')+'">'+soapPct+'%</div><div class="gi2-stat-label">SOAP-t\u00e4ckning</div><div style="font-size:11px;color:#8b949e;margin-top:2px">Fullst\u00e4ndig: '+fullSoapPct+'%</div></div>';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val">'+aiPct+'%</div><div class="gi2-stat-label">AI-journaler</div><div style="font-size:11px;color:#8b949e;margin-top:2px">'+aiGenerated+' av '+totalV+'</div></div>';
+  h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(approvalRate>=80?'#3fb950':approvalRate>=50?'#d29922':'#8b949e')+'">'+(allApprovals.length?approvalRate+'%':'—')+'</div><div class="gi2-stat-label">Signeringsgrad</div><div style="font-size:11px;color:#8b949e;margin-top:2px">'+(allApprovals.length||0)+' granskade</div></div>';
+  h += '</div>';
+
+  h += '<div id="dq-ai-panel" style="display:none;background:rgba(224,118,40,.06);border:1px solid rgba(224,118,40,.2);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#e6edf3;line-height:1.7"></div>';
+  h += '<div class="gi2-grid">';
+
+  // Chart 1: SOAP field coverage
+  var soapFields = ['S (Subjektivt)', 'O (Objektivt)', 'A (Analys)', 'P (Plan)'];
+  var soapFieldCounts = [
+    allVisits.filter(function(x){ return x.v.soap && x.v.soap.S && x.v.soap.S.length > 5; }).length,
+    allVisits.filter(function(x){ return x.v.soap && x.v.soap.O && x.v.soap.O.length > 5; }).length,
+    allVisits.filter(function(x){ return x.v.soap && x.v.soap.A && x.v.soap.A.length > 5; }).length,
+    allVisits.filter(function(x){ return x.v.soap && x.v.soap.P && x.v.soap.P.length > 5; }).length
+  ];
+  var maxSF = Math.max.apply(null, soapFieldCounts) || 1;
+  var soapFieldColors = ['#58a6ff','#3fb950','#d29922','#e07628'];
+  var soapBars = '<div style="padding:8px 0">';
+  soapFields.forEach(function(lbl, i) {
+    var pct = totalV ? Math.round(soapFieldCounts[i]/totalV*100) : 0;
+    soapBars += '<div class="gi2-bar-row">'
+      + '<span class="gi2-bar-label" style="min-width:110px">'+lbl+'</span>'
+      + '<div class="gi2-bar-track" style="flex:1"><div class="gi2-bar-fill" style="width:'+Math.round(soapFieldCounts[i]/maxSF*100)+'%;background:'+soapFieldColors[i]+';border-radius:4px"></div></div>'
+      + '<span class="gi2-bar-val" style="min-width:48px;text-align:right">'+pct+'%</span>'
+      + '</div>';
+  });
+  soapBars += '</div>';
+  var weakestField = soapFields[soapFieldCounts.indexOf(Math.min.apply(null, soapFieldCounts))];
+  h += _intelChartCard('SOAP-f\u00e4ltt\u00e4ckning', totalV+' bes\u00f6k totalt', soapBars,
+    fullSoapPct < 60
+      ? 'Fullst\u00e4ndiga SOAP-journaler i '+fullSoapPct+'% av bes\u00f6ken. '+weakestField+' \u00e4r det minst dokumenterade f\u00e4ltet.'
+      : 'Journalkvaliteten \u00e4r god. '+fullSoapPct+'% av bes\u00f6ken har alla fyra SOAP-f\u00e4lt ifyllda.');
+
+  // Chart 2: NRS trend
+  var nrsWeekData = weeks12.map(function(wk,wi){
+    var next = wi<weeks12.length-1?weeks12[wi+1].ts:Date.now()+1;
+    var wVisits = allVisits.filter(function(x){ return x.v.date && new Date(x.v.date).getTime()>=wk.ts && new Date(x.v.date).getTime()<next; });
+    return wVisits.length ? Math.round(wVisits.filter(function(x){ return x.v.soap&&x.v.soap.S&&/\d+\s*\/\s*10|NRS\s*\d+/i.test(x.v.soap.S); }).length/wVisits.length*100) : 0;
+  });
+  var recentNRS = nrsWeekData.slice(-4).reduce(function(a,b){return a+b;},0)/4;
+  var prevNRS = nrsWeekData.slice(-8,-4).reduce(function(a,b){return a+b;},0)/4;
+  var nrsTrend = recentNRS - prevNRS;
+  h += _intelChartCard('NRS-t\u00e4ckning per vecka', 'Andel bes\u00f6k med sm\u00e4rtskattning',
+    _intelLineChart(nrsWeekData, xShort, nrsPct>=70?'#3fb950':nrsPct>=40?'#d29922':'#f85149', {h:160}),
+    nrsPct < 50
+      ? 'NRS dokumenteras i '+nrsPct+'% av bes\u00f6ken \u2014 under m\u00e5lniv\u00e5n 70%.'
+      : nrsTrend > 5
+        ? 'NRS-t\u00e4ckningen f\u00f6rb\u00e4ttras (+'+Math.round(nrsTrend)+'% senaste 4 veckorna).'
+        : 'NRS-t\u00e4ckning '+nrsPct+'%.'+(nrsTrend < -5 ? ' Obs: l\u00e4tt ned\u00e5ttrend ('+Math.round(nrsTrend)+'%).' : ''));
+
+  // Chart 3: AI approval breakdown
+  if (allApprovals.length > 0) {
+    var waitingCount = allApprovals.length - approvedCount - rejectedCount;
+    var approvalBars = '<div style="padding:8px 0">';
+    var apLabels = ['Signerade','Redigerade','Avvisade','V\u00e4ntande'];
+    var apVals = [approvedCount-editedCount, editedCount, rejectedCount, waitingCount];
+    var apColors = ['#3fb950','#58a6ff','#f85149','#8b949e'];
+    var apMax = Math.max.apply(null, apVals)||1;
+    apLabels.forEach(function(lbl, i){
+      approvalBars += '<div class="gi2-bar-row">'
+        + '<span class="gi2-bar-label">'+lbl+'</span>'
+        + '<div class="gi2-bar-track"><div class="gi2-bar-fill" style="width:'+Math.round(apVals[i]/apMax*100)+'%;background:'+apColors[i]+'"></div></div>'
+        + '<span class="gi2-bar-val">'+apVals[i]+'</span>'
+        + '</div>';
+    });
+    approvalBars += '</div>';
+    h += _intelChartCard('AI-godk\u00e4nnanden', allApprovals.length+' granskade totalt', approvalBars,
+      editedCount > 0
+        ? 'Du redigerade '+editedCount+' AI-f\u00f6rslag ('+Math.round(editedCount/(approvedCount||1)*100)+'% av godk\u00e4nda). Genomsnittlig \u00e4ndring: '+avgEditRatio+'%.'
+        : waitingCount > 0
+          ? waitingCount+' godk\u00e4nnanden v\u00e4ntar p\u00e5 signering.'
+          : 'AI-f\u00f6rslag accepteras utan redigering \u2014 bra tecken p\u00e5 h\u00f6g modellkvalitet.');
+  } else {
+    h += _intelChartCard('AI-godk\u00e4nnanden', 'Inga \u00e4nnu',
+      '<div style="padding:40px;text-align:center;color:#8b949e;font-size:13px">B\u00f6rja signera AI-genererade journaler f\u00f6r att se statistik h\u00e4r.</div>');
+  }
+  h += '</div>';
+  return h;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// INTELLIGENCE — main entry point (slim dispatcher)
+// ══════════════════════════════════════════════════════════════════════════════
+
 function rIntelligence() {
   var el = document.getElementById('s-intelligence');
   if (!el) return;
@@ -24534,16 +25226,15 @@ function rIntelligence() {
   el.classList.add('active');
   S.screen = 'intelligence';
 
-  var pats = S.patients || [];
-  var bks  = (typeof getBookings === 'function') ? getBookings() : [];
-  var now  = new Date();
+  var pats      = S.patients || [];
+  var bks       = (typeof getBookings === 'function') ? getBookings() : [];
+  var now       = new Date();
   var completed = bks.filter(function(b){ return b.status === 'completed'; });
-
-  // ── Active view ───────────────────────────────────────────────
   var activeView = window._intelView || 'pulse';
+  var _nWeeks   = parseInt(window._intelPeriod || '12', 10);
 
-  // ── Helper: build last-12-weeks time series ───────────────────
-  function weekSeries(n) {
+  // ── Time series ───────────────────────────────────────────────
+  var weeks12 = (function(n){
     var weeks = [];
     for (var w = n-1; w >= 0; w--) {
       var d = new Date(now); d.setDate(d.getDate() - w*7);
@@ -24552,163 +25243,47 @@ function rIntelligence() {
       weeks.push({ label: mo + ' v' + wk, ts: d.getTime() });
     }
     return weeks;
+  })(_nWeeks);
+
+  var xDensity = _nWeeks > 26 ? 4 : _nWeeks > 12 ? 2 : 1;
+  var xShort = weeks12.map(function(w, i){ return (i % xDensity === 0) ? w.label.split(' ')[0] : ''; });
+
+  // ── Computed series ───────────────────────────────────────────
+  function _wkFilter(bkArr, wk, i) {
+    var next = i < weeks12.length-1 ? weeks12[i+1].ts : Date.now()+1;
+    return bkArr.filter(function(b){ var t = b.date ? new Date(b.date).getTime() : 0; return t >= wk.ts && t < next; });
   }
-  var _nWeeks = parseInt(window._intelPeriod || '12', 10);
-  var weeks12 = weekSeries(_nWeeks);
+  var visitsPerWeek   = weeks12.map(function(wk,i){ return _wkFilter(completed, wk, i).length; });
+  var revenuePerWeek  = weeks12.map(function(wk,i){ return _wkFilter(completed, wk, i).reduce(function(s,b){ return s+(b.price||b.servicePrice||0); },0); });
+  var newPatsPerWeek  = weeks12.map(function(wk,i){ var next=i<weeks12.length-1?weeks12[i+1].ts:Date.now()+1; return pats.filter(function(p){ var t=p.createdAt?new Date(p.createdAt).getTime():0; return t>=wk.ts&&t<next; }).length; });
+  var dropoutByWeek   = weeks12.map(function(wk,i){ var next=i<weeks12.length-1?weeks12[i+1].ts:Date.now()+1; return pats.filter(function(p){ var last=(p.visits||[]).slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0]; if(!last||!last.date) return false; var t=new Date(last.date).getTime(); return t>=wk.ts&&t<next&&(Date.now()-t)>21*86400000; }).length; });
+  var nrsPerWeek = weeks12.map(function(wk,i){ var next=i<weeks12.length-1?weeks12[i+1].ts:Date.now()+1; var scores=[]; pats.forEach(function(p){ (p.visits||[]).forEach(function(v){ var t=v.date?new Date(v.date).getTime():0; if(t>=wk.ts&&t<next&&v.soap&&v.soap.S){var m=v.soap.S.match(/(\d+)\s*\/\s*10|NRS\s*(\d+)|sm\u00e4rta\s*(\d+)/i);if(m)scores.push(parseInt(m[1]||m[2]||m[3]));} }); }); return scores.length?Math.round(scores.reduce(function(a,b){return a+b;})/scores.length*10)/10:0; });
 
-  // For long periods, reduce x-axis labels
-  var xDensity = _nWeeks > 26 ? 4 : _nWeeks > 12 ? 2 : 1; // show every Nth label
-
-  // ── Chart helpers ─────────────────────────────────────────────
-  // ── Chart helpers (GitHub Insights style) ───────────────────────
-  // Line chart with Y-axis labels left, X-axis dates bottom
-  function lineChart(data, labels, color, opts) {
-    opts = opts||{};
-    var h = opts.h || 160;
-    var w = 500;
-    var pad = {l:36, r:8, t:8, b:22};
-    var iw = w-pad.l-pad.r, ih = h-pad.t-pad.b;
-    if (!data.length) return '<svg width="100%" height="'+h+'" viewBox="0 0 '+w+' '+h+'"><text x="'+(w/2)+'" y="'+(h/2)+'" fill="#8b949e" font-size="12" text-anchor="middle">Ingen data</text></svg>';
-    var max = Math.max.apply(null, data)||1;
-    var min = Math.min.apply(null, data.filter(function(v){return v>=0;}))||0;
-    if (max === min) max = min + 1;
-    // Y-axis ticks (4 levels)
-    var yticks = [0,1,2,3].map(function(i){ return Math.round(min + (max-min)*i/3); });
-    var yPos = function(v) { return pad.t + ih - Math.round((v-min)/(max-min)*ih); };
-    var xPos = function(i) { return pad.l + Math.round(i/(data.length-1||1)*iw); };
-    var svg = '<svg width="100%" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMidYMid meet" style="display:block">';
-    // Grid lines
-    yticks.forEach(function(v){
-      var y = yPos(v);
-      svg += '<line x1="'+pad.l+'" y1="'+y+'" x2="'+(w-pad.r)+'" y2="'+y+'" stroke="#21262d" stroke-width="1"/>';
-      svg += '<text x="'+(pad.l-4)+'" y="'+(y+4)+'" fill="#8b949e" font-size="10" text-anchor="end">'+v+'</text>';
-    });
-    // X-axis labels (show every N labels)
-    var skip = Math.ceil(data.length/6);
-    if (labels) labels.forEach(function(lbl, i){
-      if (i % skip === 0 || i === data.length-1) {
-        svg += '<text x="'+xPos(i)+'" y="'+(h-4)+'" fill="#8b949e" font-size="10" text-anchor="middle">'+lbl+'</text>';
-      }
-    });
-    // Line path
-    var pts = data.map(function(v,i){ return xPos(i)+','+yPos(v); }).join(' ');
-    svg += '<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>';
-    // Dot on last point
-    var lx = xPos(data.length-1), ly = yPos(data[data.length-1]);
-    svg += '<circle cx="'+lx+'" cy="'+ly+'" r="3" fill="'+color+'"/>';
-    svg += '</svg>';
-    return svg;
-  }
-
-  // Bar chart (horizontal, GitHub style)
-  function hBarChart(labels, values, color) {
-    var max = Math.max.apply(null, values)||1;
-    var h = '';
-    labels.forEach(function(lbl, i){
-      h += '<div class="gi2-bar-row">'
-        + '<span class="gi2-bar-label">'+lbl+'</span>'
-        + '<div class="gi2-bar-track"><div class="gi2-bar-fill" style="width:'+Math.round(values[i]/max*100)+'%;background:'+color+'"></div></div>'
-        + '<span class="gi2-bar-val">'+values[i]+'</span>'
-        + '</div>';
-    });
-    return h;
-  }
-
-  // Card header with title + ... + gear (GitHub style)
-  function chartCard(title, stat, chartHtml, aiText, aiCta, aiFn) {
-    var h = '<div class="gi2-chart-card">';
-    h += '<div class="gi2-chart-header">';
-    h += '<div><div class="gi2-chart-title">'+title+'</div>';
-    if (stat) h += '<div class="gi2-chart-stat">'+stat+'</div>';
-    h += '</div>';
-    h += '<div class="gi2-chart-menu">';
-    h += '<button class="gi2-chart-menu-btn" title="Mer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>';
-    h += '</div>';
-    h += '</div>';
-    h += '<div class="gi2-chart-body">'+chartHtml+'</div>';
-    if (aiText) {
-      h += '<div class="gi2-ai-strip">';
-      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#e07628" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
-      h += '<span class="gi2-ai-text">'+aiText+'</span>';
-      if (aiCta) h += '<button class="gi2-ai-cta" onclick="'+aiFn+'">'+aiCta+' →</button>';
-      h += '</div>';
-    }
-    h += '</div>';
-    return h;
-  }
-
-
-  // ── Data computations ─────────────────────────────────────────
-  // Visits per week (last 12 weeks)
-  var visitsPerWeek = weeks12.map(function(wk, i){
-    var next = i < weeks12.length-1 ? weeks12[i+1].ts : Date.now()+1;
-    return completed.filter(function(b){
-      var t = b.date ? new Date(b.date).getTime() : 0;
-      return t >= wk.ts && t < next;
-    }).length;
-  });
-
-  // Revenue per week
-  var revenuePerWeek = weeks12.map(function(wk, i){
-    var next = i < weeks12.length-1 ? weeks12[i+1].ts : Date.now()+1;
-    return completed.filter(function(b){
-      var t = b.date ? new Date(b.date).getTime() : 0;
-      return t >= wk.ts && t < next;
-    }).reduce(function(s,b){ return s + (b.price||b.servicePrice||0); }, 0);
-  });
-
-  // NRS trend (average pain score per week from visit soap)
-  var nrsPerWeek = weeks12.map(function(wk, i){
-    var next = i < weeks12.length-1 ? weeks12[i+1].ts : Date.now()+1;
-    var scores = [];
-    pats.forEach(function(p){
-      (p.visits||[]).forEach(function(v){
-        var t = v.date ? new Date(v.date).getTime() : 0;
-        if (t >= wk.ts && t < next && v.soap && v.soap.S) {
-          var m = v.soap.S.match(/(\d+)\s*\/\s*10|NRS\s*(\d+)|smärta\s*(\d+)/i);
-          if (m) scores.push(parseInt(m[1]||m[2]||m[3]));
-        }
-      });
-    });
-    return scores.length ? Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length*10)/10 : 0;
-  });
-
-  // New patients per week
-  var newPatsPerWeek = weeks12.map(function(wk, i){
-    var next = i < weeks12.length-1 ? weeks12[i+1].ts : Date.now()+1;
-    return pats.filter(function(p){
-      var t = p.createdAt ? new Date(p.createdAt).getTime() : 0;
-      return t >= wk.ts && t < next;
-    }).length;
-  });
-
-  // Dropout risk timeline
-  var dropoutByWeek = weeks12.map(function(wk, i){
-    var next = i < weeks12.length-1 ? weeks12[i+1].ts : Date.now()+1;
-    return pats.filter(function(p){
-      var last = (p.visits||[]).slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0];
-      if (!last || !last.date) return false;
-      var t = new Date(last.date).getTime();
-      return t >= wk.ts && t < next && (Date.now()-t) > 21*86400000;
-    }).length;
-  });
-
-  // Service distribution
-  var svcMap = {};
-  completed.forEach(function(b){ svcMap[b.serviceName||'Övrigt'] = (svcMap[b.serviceName||'Övrigt']||0)+1; });
-  var svcArr = Object.entries(svcMap).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
-
-  // Summary stats
-  var totalVisits = completed.length;
-  var totalRevenue = completed.reduce(function(s,b){return s+((b.price||b.servicePrice)||0);},0);
-  var avgNRS = nrsPerWeek.filter(function(v){return v>0;});
-  var avgNRSVal = avgNRS.length ? Math.round(avgNRS.reduce(function(a,b){return a+b;})/avgNRS.length*10)/10 : 0;
-  var dropoutCount = (typeof _scanDropoutRisks === 'function') ? _scanDropoutRisks().length : 0;
+  // ── Summary stats ─────────────────────────────────────────────
+  var totalVisits   = completed.length;
+  var totalRevenue  = completed.reduce(function(s,b){return s+((b.price||b.servicePrice)||0);},0);
+  var avgNRSArr     = nrsPerWeek.filter(function(v){return v>0;});
+  var avgNRSVal     = avgNRSArr.length ? Math.round(avgNRSArr.reduce(function(a,b){return a+b;})/avgNRSArr.length*10)/10 : 0;
+  var dropoutCount  = (typeof _scanDropoutRisks === 'function') ? _scanDropoutRisks().length : 0;
   var retentionRate = pats.length > 1 ? Math.round((1 - dropoutCount/pats.length)*100) : 100;
-  var weekTrend = visitsPerWeek.slice(-4).reduce(function(a,b){return a+b;},0) > visitsPerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
+  var weekTrend     = visitsPerWeek.slice(-4).reduce(function(a,b){return a+b;},0) > visitsPerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
+  var svcMap = {}; completed.forEach(function(b){ svcMap[b.serviceName||'\u00d6vrigt']=(svcMap[b.serviceName||'\u00d6vrigt']||0)+1; });
+  var svcArr = Object.entries(svcMap).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
+  var rangeEnd   = now.toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'});
+  var rangeStart = new Date(now.getTime()-84*86400000).toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'});
 
-  // Week labels (short)
-  var wkLabels = weeks12.map(function(w,i){ return i%3===0 ? w.label.split(' ')[0] : ''; });
+  // ── Context object ────────────────────────────────────────────
+  var ctx = {
+    pats: pats, bks: bks, completed: completed, now: now,
+    weeks12: weeks12, xShort: xShort, _nWeeks: _nWeeks,
+    visitsPerWeek: visitsPerWeek, revenuePerWeek: revenuePerWeek,
+    nrsPerWeek: nrsPerWeek, newPatsPerWeek: newPatsPerWeek,
+    dropoutByWeek: dropoutByWeek, svcArr: svcArr,
+    totalVisits: totalVisits, totalRevenue: totalRevenue,
+    avgNRSVal: avgNRSVal, dropoutCount: dropoutCount,
+    retentionRate: retentionRate, weekTrend: weekTrend,
+    rangeStart: rangeStart, rangeEnd: rangeEnd, activeView: activeView,
+  };
 
   // ── CSS ───────────────────────────────────────────────────────
   var css = '<style>'
@@ -24740,8 +25315,8 @@ function rIntelligence() {
     + '.gi2-axis span{font-size:10px;color:#8b949e}'
     + '.gi2-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}'
     + '.gi2-bar-label{font-size:13px;color:#8b949e;width:140px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
-    + '.gi2-bar-track{flex:1;background:#21262d;border-radius:3px;height:12px;overflow:hidden}'
-    + '.gi2-bar-fill{height:100%;border-radius:3px;transition:width .4s}'
+    + '.gi2-bar-track{flex:1;background:#21262d;border-radius:4px;height:16px;overflow:hidden}'
+    + '.gi2-bar-fill{height:100%;border-radius:4px;transition:width .55s cubic-bezier(.4,0,.2,1)}'
     + '.gi2-bar-val{font-size:12px;color:#8b949e;width:40px;text-align:right;flex-shrink:0}'
     + '.gi2-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}'
     + '@media(max-width:800px){.gi2-grid{grid-template-columns:1fr}}'
@@ -24757,430 +25332,66 @@ function rIntelligence() {
     + '.gi2-chart-wrap{position:relative;padding-left:40px}'
     + '</style>';
 
-  // ── Nav items ─────────────────────────────────────────────────
+  // ── Nav builder ───────────────────────────────────────────────
   function navI(id, label) {
     var a = activeView === id;
-    return '<button class="gi2-nav-item'+(a?' active':'')+'" onclick="window._intelView=\''+id+'\';rIntelligence()">'+label+'</button>';
+    return '<button class="gi2-nav-item'+(a?' active':'')
+      +'" onclick="window._intelView=\''+id+'\';rIntelligence()">'+label+'</button>';
   }
 
-  // ── AI interpretation helper ──────────────────────────────────
-  function aiStrip(text, actionLabel, actionFn) {
-    var h2 = '<div class="gi2-ai-strip">';
-    h2 += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e07628" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
-    h2 += '<span class="gi2-ai-text">'+text+'</span>';
-    if (actionLabel) {
-      h2 += '<button class="gi2-ai-cta" onclick="'+actionFn+'">'+actionLabel+' →</button>';
-    }
-    h2 += '</div>';
-    return h2;
-  }
-
-  // ── Trend arrow ───────────────────────────────────────────────
-  function trendBadge(curr, prev, unit) {
-    if (!prev) return '';
-    var pct = prev > 0 ? Math.round((curr-prev)/prev*100) : 0;
-    var up = pct >= 0;
-    var col = up ? '#3fb950' : '#f85149';
-    return '<span class="gi2-stat-trend" style="color:'+col+'">'
-      + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+col+'" stroke-width="2.5"><polyline points="'+(up?'18 15 12 9 6 15':'6 9 12 15 18 9')+'"/></svg>'
-      + (up?'+':'')+pct+'% '+(unit||'vs föregående period')+'</span>';
-  }
-
-  // ── BUILD PAGE ────────────────────────────────────────────────
+  // ── Assemble shell ────────────────────────────────────────────
   var h = css;
   h += '<div class="gi2">';
-
-  // ── Left nav (text-only, GitHub Insights exact) ───────────────
   h += '<nav class="gi2-nav">';
-  h += navI('pulse',      'Pulse');
-  h += navI('besok',      'Besöksvolym');
-  h += navI('intakter',   'Intäkter');
-  h += navI('nrs',        'NRS & smärta');
-  h += navI('patienter',  'Patienttillväxt');
-  h += navI('tjanster',   'Tjänster');
+  h += navI('pulse',       'Pulse');
+  h += navI('besok',       'Bes\u00f6ksvolym');
+  h += navI('intakter',    'Int\u00e4kter');
+  h += navI('nrs',         'NRS & sm\u00e4rta');
+  h += navI('patienter',   'Patienttillv\u00e4xt');
+  h += navI('tjanster',    'Tj\u00e4nster');
   h += navI('dropout',     'Avhoppsrisk');
   h += navI('datakvalitet','Datakvalitet');
   h += '</nav>';
-
-  // ── Main content ──────────────────────────────────────────────
   h += '<div class="gi2-main">';
 
-  // Date range header (GitHub style)
-  var rangeEnd   = now.toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'});
-  var rangeStart = new Date(now.getTime()-84*86400000).toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'});
-
-  // X-axis labels: every-other week label
-  var xLabels = weeks12.map(function(w,i){
-    return i%2===0 ? w.label.replace(' v',' v') : '';
-  });
-  // Short date labels for axes
-  var xShort = weeks12.map(function(w, i){
-    return (i % (xDensity||1) === 0) ? w.label.split(' ')[0] : '';
-  });
-
-  // ── PULSE ──────────────────────────────────────────────────────
-  if (activeView === 'pulse') {
-    h += '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #30363d">';
-    h += '<div><div style="font-size:22px;font-weight:400;color:#e6edf3">'+rangeStart+' – '+rangeEnd+'</div></div>';
-    var periods = [
-      {id:'4',  label:'4 veckor'},
-      {id:'12', label:'12 veckor'},
-      {id:'26', label:'6 månader'},
-      {id:'52', label:'1 år'},
-    ];
-    var selPeriod = window._intelPeriod || '12';
-    h += '<div style="display:flex;align-items:center;gap:6px">';
-    periods.forEach(function(p){
-      var active = p.id === selPeriod;
-      h += '<button onclick="window._intelPeriod=\''+p.id+'\';rIntelligence()" style="'
-        + 'padding:4px 10px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;font-family:var(--font);'
-        + (active ? 'background:#21262d;border:1px solid #30363d;color:#e6edf3' : 'background:none;border:1px solid transparent;color:#8b949e')
-        + '">'+p.label+'</button>';
-    });
-    h += '</div>';
-    h += '</div>';
-
-    // Stat boxes (Overview-style like GitHub Pulse)
-    h += '<div style="border:1px solid #30363d;border-radius:6px;padding:20px;margin-bottom:20px">';
-    h += '<div style="font-size:14px;font-weight:600;color:#e6edf3;margin-bottom:16px">Översikt</div>';
-    h += '<div class="gi2-stats">';
-    var prev4v = visitsPerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
-    var curr4v = visitsPerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
-    var prev4r = revenuePerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
-    var curr4r = revenuePerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
-    h += '<div class="gi2-stat"><div class="gi2-stat-val">'+totalVisits+'</div><div class="gi2-stat-label">Genomförda besök</div>'+trendBadge(curr4v,prev4v,'4 v')+'</div>';
-    h += '<div class="gi2-stat"><div class="gi2-stat-val">'+(totalRevenue>0?totalRevenue.toLocaleString('sv-SE')+' kr':'–')+'</div><div class="gi2-stat-label">Total intäkt</div>'+trendBadge(curr4r,prev4r,'4 v')+'</div>';
-    h += '<div class="gi2-stat"><div class="gi2-stat-val">'+pats.length+'</div><div class="gi2-stat-label">Aktiva patienter</div></div>';
-    h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(retentionRate>=80?'#3fb950':'#f85149')+'">'+retentionRate+'%</div><div class="gi2-stat-label">Retention</div></div>';
-    h += '</div></div>';
-
-    // 2-col chart grid
-    h += '<div class="gi2-grid">';
-    h += chartCard(
-      'Besök per vecka', totalVisits+' besök totalt',
-      lineChart(visitsPerWeek, xShort, '#3fb950', {h:160}),
-      curr4v < prev4v ? (prev4v-curr4v)+' färre besök de senaste 4 veckorna. '+(dropoutCount>0?dropoutCount+' patienter med avhoppsrisk.':'') : 'Besöksvolymen är stabil eller växande.',
-      curr4v < prev4v && dropoutCount>0 ? 'Hantera avhopp' : null,
-      "window._actionsType='dropout';go('actions')"
-    );
-    if (totalRevenue > 0) {
-      h += chartCard(
-        'Intäkt per vecka', 'Senaste 12 veckor',
-        lineChart(revenuePerWeek, xShort, '#58a6ff', {h:160}),
-        curr4r > prev4r ? 'Intäkterna ökar. Snitt per besök: '+(totalVisits>0?Math.round(totalRevenue/totalVisits).toLocaleString('sv-SE')+' kr':'–') : 'Intäkterna är stabila.'
-      );
-    } else {
-      h += chartCard('Intäkt per vecka', 'Inga priser satta', '<div style="padding:40px 0;text-align:center;color:#8b949e;font-size:13px">Sätt priser på tjänster i Inställningar</div>');
-    }
-    h += '</div>';
-
-    // New patients
-    h += chartCard(
-      'Nya patienter per vecka', newPatsPerWeek.reduce(function(a,b){return a+b;},0)+' nya de senaste 12 veckorna',
-      lineChart(newPatsPerWeek, xShort, '#e07628', {h:140}),
-      null
-    );
-
-  // ── BESÖKSVOLYM ───────────────────────────────────────────────
-  } else if (activeView === 'besok') {
-    h += '<div class="gi2-header"><div><div class="gi2-title">Besöksvolym</div><div class="gi2-subtitle">Genomförda besök per vecka – senaste 12 veckor</div></div></div>';
-    h += '<div class="gi2-grid">';
-    h += chartCard(
-      'Besök per vecka', totalVisits+' totalt',
-      lineChart(visitsPerWeek, xShort, '#3fb950', {h:180}),
-      'Veckosnitt: '+Math.round(totalVisits/12)+' besök.'
-    );
-    // Weekday distribution
-    var days = ['Mån','Tis','Ons','Tor','Fre','Lör','Sön'];
-    var byday = [0,0,0,0,0,0,0];
-    completed.forEach(function(b){ if(b.date){ var d=new Date(b.date).getDay(); byday[(d+6)%7]++; }});
-    h += chartCard(
-      'Fördelning per veckodag', 'Alla besök',
-      '<div style="padding:8px 0">'+hBarChart(days, byday, '#3fb950')+'</div>'
-    );
-    h += '</div>';
-    var peakWk = visitsPerWeek.indexOf(Math.max.apply(null,visitsPerWeek));
-    var aiV = 'Mest besökta vecka: '+weeks12[peakWk].label+' ('+visitsPerWeek[peakWk]+' besök).';
-    if (visitsPerWeek.slice(-4).filter(function(v){return v===0;}).length > 1) aiV += ' Tomma veckor detekterade — kontrollera kalender.';
-    h += chartCard('AI-analys', null, '<div style="padding:12px 0;color:#e6edf3;font-size:13px;line-height:1.7">'+aiV+'</div>');
-
-  // ── INTÄKTER ──────────────────────────────────────────────────
-  } else if (activeView === 'intakter') {
-    h += '<div class="gi2-header"><div><div class="gi2-title">Intäkter</div><div class="gi2-subtitle">Intäktsöversikt – senaste 12 veckor</div></div></div>';
-    if (totalRevenue === 0) {
-      h += '<div style="padding:60px;text-align:center;color:#8b949e;font-size:14px">Ingen intäktsdata. Sätt priser på dina tjänster under Inställningar → Tjänster.</div>';
-    } else {
-      h += '<div class="gi2-stats" style="margin-bottom:20px">';
-      h += '<div class="gi2-stat"><div class="gi2-stat-val">'+totalRevenue.toLocaleString('sv-SE')+' kr</div><div class="gi2-stat-label">Total intäkt</div></div>';
-      h += '<div class="gi2-stat"><div class="gi2-stat-val">'+(totalVisits>0?Math.round(totalRevenue/totalVisits).toLocaleString('sv-SE')+' kr':'–')+'</div><div class="gi2-stat-label">Snitt per besök</div></div>';
-      var curr4r2 = revenuePerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
-      var prev4r2 = revenuePerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
-      h += '<div class="gi2-stat"><div class="gi2-stat-val">'+curr4r2.toLocaleString('sv-SE')+' kr</div><div class="gi2-stat-label">Senaste 4 veckor</div>'+trendBadge(curr4r2,prev4r2)+'</div>';
-      h += '<div class="gi2-stat"><div class="gi2-stat-val">'+Math.round(curr4r2*13/1000)+'k kr</div><div class="gi2-stat-label">Prognos (år)</div></div>';
-      h += '</div>';
-      h += '<div class="gi2-grid">';
-      h += chartCard('Intäkt per vecka', totalRevenue.toLocaleString('sv-SE')+' kr totalt', lineChart(revenuePerWeek, xShort, '#58a6ff', {h:180}),
-        curr4r2>prev4r2 ? 'Positiv intäktstrend. Ökning på '+Math.round((curr4r2-prev4r2)/Math.max(prev4r2,1)*100)+'% vs föregående period.' : 'Intäkterna minskar. Överväg att justera priser eller marknadsföring.');
-      // Revenue per service
-      var svcRev = {};
-      completed.forEach(function(b){ if(b.serviceName&&b.servicePrice) svcRev[b.serviceName]=(svcRev[b.serviceName]||0)+b.servicePrice; });
-      var svcRevArr = Object.entries(svcRev).sort(function(a,b){return b[1]-a[1];}).slice(0,5);
-      if (svcRevArr.length) {
-        h += chartCard('Intäkt per tjänst', '', '<div style="padding:8px 0">'+hBarChart(svcRevArr.map(function(s){return s[0];}), svcRevArr.map(function(s){return s[1];}), '#58a6ff')+'</div>');
-      }
-      h += '</div>';
-    }
-
-  // ── NRS ──────────────────────────────────────────────────────
-  } else if (activeView === 'nrs') {
-    h += '<div class="gi2-header"><div><div class="gi2-title">NRS & Smärttrend</div><div class="gi2-subtitle">Genomsnittlig smärtnivå från journaler</div></div></div>';
-    var hasNRS = nrsPerWeek.some(function(v){return v>0;});
-    if (!hasNRS) {
-      h += '<div style="padding:60px;text-align:center;color:#8b949e;font-size:14px">NRS-data samlas automatiskt från SOAP-journaler.<br>Dokumentera NRS i S-fältet, ex: "Patienten anger NRS 4/10".</div>';
-    } else {
-      h += '<div class="gi2-grid">';
-      h += chartCard('Genomsnittlig NRS per vecka', 'Lägre = bättre', lineChart(nrsPerWeek.map(function(v){return Math.round(v*10)/10;}), xShort, '#f78166', {h:180}));
-      // NRS distribution
-      var nrsVals = [];
-      pats.forEach(function(p){ (p.visits||[]).forEach(function(v){ if(v.soap&&v.soap.S){var m=v.soap.S.match(/(\d+)\s*\/\s*10|NRS\s*(\d+)/i);if(m)nrsVals.push(parseInt(m[1]||m[2]));}});});
-      var nrsBuckets = ['0-2','3-4','5-6','7-8','9-10'];
-      var nrsCounts = [0,0,0,0,0];
-      nrsVals.forEach(function(v){ if(v<=2)nrsCounts[0]++;else if(v<=4)nrsCounts[1]++;else if(v<=6)nrsCounts[2]++;else if(v<=8)nrsCounts[3]++;else nrsCounts[4]++;});
-      h += chartCard('NRS-fördelning', nrsVals.length+' registrerade värden', '<div style="padding:8px 0">'+hBarChart(nrsBuckets, nrsCounts, '#f78166')+'</div>');
-      h += '</div>';
-      var nrsLast = nrsPerWeek.filter(function(v){return v>0;});
-      var nrsTrend2 = nrsLast.length>1 ? nrsLast[nrsLast.length-1]-nrsLast[0] : 0;
-      h += chartCard('AI-tolkning', null,
-        '<div style="padding:12px 0;color:#e6edf3;font-size:13px;line-height:1.7">'+(nrsTrend2<0?'Positiv trend — smärtan minskar systematiskt. Behandlingen ger resultat.':(nrsTrend2>0.5?'Smärtnivåerna stiger. Granska behandlingsprotokoll och överväg att revidera Hael-planerna.':'Stabil smärtnivå. Genomsnitt: '+(avgNRSVal||0)+'/10.'))+'</div>',
-        nrsTrend2>0.5?'Granska åtgärder':null, "go('actions')");
-    }
-
-  // ── PATIENTER ─────────────────────────────────────────────────
-  } else if (activeView === 'patienter') {
-    h += '<div class="gi2-header"><div><div class="gi2-title">Patienttillväxt</div><div class="gi2-subtitle">Nya patienter registrerade per vecka</div></div></div>';
-    h += '<div class="gi2-grid">';
-    h += chartCard('Nya patienter per vecka', pats.length+' totalt', lineChart(newPatsPerWeek, xShort, '#e07628', {h:180}));
-    // Cumulative
-    var cumPats = [];
-    var runTotal = Math.max(0, pats.length - newPatsPerWeek.reduce(function(a,b){return a+b;},0));
-    newPatsPerWeek.forEach(function(v){ runTotal+=v; cumPats.push(runTotal); });
-    h += chartCard('Kumulativ patientbas', 'Totalt antal registrerade patienter', lineChart(cumPats, xShort, '#58a6ff', {h:180}));
-    h += '</div>';
-    var newL4 = newPatsPerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
-    var newP4 = newPatsPerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
-    h += chartCard('AI-analys', null,
-      '<div style="padding:12px 0;color:#e6edf3;font-size:13px;line-height:1.7">'+newL4+' nya patienter senaste 4 veckorna. '+(newL4>newP4?'Tillväxten är positiv.':(newL4<newP4?'Färre nya patienter än föregående period. Dela din bokningslänk för att öka inflödet.':'Stabil tillväxt.'))+'</div>',
-      newL4<newP4?'Dela bokningslänk':null, "go('settings')");
-
-  // ── TJÄNSTER ──────────────────────────────────────────────────
-  } else if (activeView === 'tjanster') {
-    h += '<div class="gi2-header"><div><div class="gi2-title">Tjänster</div><div class="gi2-subtitle">Vilka tjänster bokas mest</div></div></div>';
-    if (!svcArr.length) {
-      h += '<div style="padding:60px;text-align:center;color:#8b949e;font-size:14px">Ingen tjänstedata. Lägg till tjänster under Inställningar.</div>';
-    } else {
-      var svcTotal2 = svcArr.reduce(function(s,v){return s+v[1];},0);
-      h += '<div class="gi2-grid">';
-      h += chartCard('Bokningar per tjänst', svcTotal2+' bokningar totalt',
-        '<div style="padding:8px 0">'+hBarChart(svcArr.map(function(s){return s[0];}), svcArr.map(function(s){return s[1];}), '#3fb950')+'</div>');
-      // Time trend for top service
-      if (svcArr[0]) {
-        var top = svcArr[0][0];
-        var topTrend = weeks12.map(function(wk,i){
-          var next = i<weeks12.length-1 ? weeks12[i+1].ts : Date.now()+1;
-          return completed.filter(function(b){ return b.serviceName===top && b.date && new Date(b.date).getTime()>=wk.ts && new Date(b.date).getTime()<next; }).length;
-        });
-        h += chartCard('Trend: '+top, svcArr[0][1]+' bokningar', lineChart(topTrend, xShort, '#3fb950', {h:180}));
-      }
-      h += '</div>';
-      h += chartCard('AI-analys', null,
-        '<div style="padding:12px 0;color:#e6edf3;font-size:13px;line-height:1.7">"'+svcArr[0][0]+'" är din mest bokade tjänst ('+Math.round(svcArr[0][1]/svcTotal2*100)+'% av alla besök). '+(svcArr.length>1?'Komplettera med paketpriser eller längre versioner av de populäraste behandlingarna.':'Diversifiera ditt utbud för att nå fler patientgrupper.')+'</div>');
-    }
-
-  // ── AVHOPPSRISK ───────────────────────────────────────────────
-  } else if (activeView === 'dropout') {
-    h += '<div class="gi2-header"><div><div class="gi2-title">Avhoppsrisk</div><div class="gi2-subtitle">Patienter som riskerar att avsluta behandlingen</div></div></div>';
-    h += '<div class="gi2-stats" style="margin-bottom:20px">';
-    h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(retentionRate>=80?'#3fb950':'#f85149')+'">'+retentionRate+'%</div><div class="gi2-stat-label">Retention</div></div>';
-    h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(dropoutCount>0?'#f85149':'#3fb950')+'">'+dropoutCount+'</div><div class="gi2-stat-label">Hög risk nu</div></div>';
-    h += '<div class="gi2-stat"><div class="gi2-stat-val">'+pats.length+'</div><div class="gi2-stat-label">Totalt patienter</div></div>';
-    h += '<div class="gi2-stat"><div class="gi2-stat-val">'+Math.max(0,pats.length-dropoutCount)+'</div><div class="gi2-stat-label">Aktiva & stabila</div></div>';
-    h += '</div>';
-    h += '<div class="gi2-grid">';
-    h += chartCard('Avhoppstrend per vecka', 'Patienter utan återbesök > 21 dagar', lineChart(dropoutByWeek, xShort, '#f85149', {h:180}),
-      dropoutCount>0 ? dropoutCount+' patienter har hög avhoppsrisk. AI kan generera återaktiveringsmeddelanden automatiskt.' : 'Inga patienter med hög avhoppsrisk. Bra jobbat!',
-      dropoutCount>0 ? 'Hantera i Åtgärder' : null, "window._actionsType='dropout';go('actions')");
-    // Risk by days since last visit
-    var buckets = ['< 14 d','14–21 d','22–30 d','31–60 d','> 60 d'];
-    var bCounts = [0,0,0,0,0];
-    pats.forEach(function(p){
-      var last = (p.visits||[]).slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0];
-      if (!last||!last.date) return;
-      var days = Math.floor((Date.now()-new Date(last.date).getTime())/86400000);
-      if (days<14) bCounts[0]++;
-      else if (days<22) bCounts[1]++;
-      else if (days<31) bCounts[2]++;
-      else if (days<61) bCounts[3]++;
-      else bCounts[4]++;
-    });
-    h += chartCard('Dagar sedan senaste besök', 'Per patient', '<div style="padding:8px 0">'+hBarChart(buckets, bCounts, '#f85149')+'</div>');
-    h += '</div>';
-
-    // List at-risk patients
-    if (dropoutCount > 0 && typeof _scanDropoutRisks === 'function') {
-      var risks = _scanDropoutRisks().slice(0,10);
-      h += '<div class="gi2-chart-card">';
-      h += '<div class="gi2-chart-header"><div><div class="gi2-chart-title">Patienter att följa upp</div><div class="gi2-chart-sub">Sorterade efter risk</div></div>';
-      h += '<div class="gi2-chart-menu"><button class="gi2-ai-cta" onclick="window._actionsType=\'dropout\';go(\'actions\')">Hantera alla →</button></div></div>';
-      h += '<div class="gi2-chart-body">';
-      risks.forEach(function(r){
-        var p = pats.find(function(x){return x.id===r.patId;});
-        if (!p) return;
-        var last = (p.visits||[]).slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0];
-        var days = last&&last.date ? Math.floor((Date.now()-new Date(last.date).getTime())/86400000) : null;
-        var col = days > 30 ? '#f85149' : days > 21 ? '#d29922' : '#8b949e';
-        h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #21262d">';
-        h += '<span style="font-size:14px;color:#58a6ff;cursor:pointer" onclick="openPat(\''+p.id+'\');go(\'detail\')">'+e(p.name)+'</span>';
-        h += '<span style="font-size:12px;color:'+col+'">'+( days !== null ? days+' dagar sedan' : 'Okänt')+'</span>';
-        h += '</div>';
-      });
-      h += '</div></div>';
-    }
-
-  // ── DATAKVALITET ──────────────────────────────────────────────
-  } else if (activeView === 'datakvalitet') {
-    h += '<div class="gi2-header"><div><div class="gi2-title">Datakvalitet</div><div class="gi2-subtitle">AI-träningsdata och journalkvalitet</div></div>';
-    h += '<button class="gi2-ai-gen-btn" onclick="_analyzeDataQuality()" style="display:flex;align-items:center;gap:6px;background:rgba(224,118,40,.12);border:1px solid rgba(224,118,40,.3);color:#e07628;border-radius:7px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s" onmouseenter="this.style.background=\'rgba(224,118,40,.2)\'" onmouseleave="this.style.background=\'rgba(224,118,40,.12)\'">';
-    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Analysera med AI</button></div>';
-
-    // Compute metrics
-    var allVisits = []; pats.forEach(function(p){ (p.visits||[]).forEach(function(v){ allVisits.push({v:v,p:p}); }); });
-    var totalV = allVisits.length;
-    var withNRS = allVisits.filter(function(x){ return x.v.soap && x.v.soap.S && /\d+\s*\/\s*10|NRS\s*\d+/i.test(x.v.soap.S); }).length;
-    var withSOAP = allVisits.filter(function(x){ return x.v.soap && (x.v.soap.S||x.v.soap.O||x.v.soap.A||x.v.soap.P); }).length;
-    var withFullSOAP = allVisits.filter(function(x){ return x.v.soap && x.v.soap.S && x.v.soap.O && x.v.soap.A && x.v.soap.P; }).length;
-    var aiGenerated = allVisits.filter(function(x){ return x.v.soapMeta && x.v.soapMeta.aiGenerated; }).length;
-    var aiApproved = allVisits.filter(function(x){ return x.v.aiApproved; }).length;
-    var allEdits = (function(){ try{ return JSON.parse(localStorage.getItem('vela:ai_edits')||'[]'); }catch(e2){return [];} })();
-    var allApprovals = (function(){ try{ return JSON.parse(localStorage.getItem('vela:approvals')||'[]'); }catch(e3){return [];} })();
-    var approvedCount = allApprovals.filter(function(a){ return a.status==='approved'; }).length;
-    var rejectedCount = allApprovals.filter(function(a){ return a.status==='rejected'; }).length;
-    var editedCount = allApprovals.filter(function(a){ return a.editedContent && a.editedContent !== a.aiContent; }).length;
-    var avgEditRatio = allEdits.length ? Math.round(allEdits.reduce(function(s,e4){ return s+(e4.editRatio||0); },0)/allEdits.length) : 0;
-    var nrsPct = totalV ? Math.round(withNRS/totalV*100) : 0;
-    var soapPct = totalV ? Math.round(withSOAP/totalV*100) : 0;
-    var fullSoapPct = totalV ? Math.round(withFullSOAP/totalV*100) : 0;
-    var aiPct   = totalV ? Math.round(aiGenerated/totalV*100) : 0;
-    var approvalRate = allApprovals.length ? Math.round(approvedCount/allApprovals.length*100) : 0;
-
-    // Score: weighted quality score 0-100
-    var qualScore = Math.round(nrsPct * 0.35 + soapPct * 0.35 + (allApprovals.length ? approvalRate : 50) * 0.3);
-    var qualColor = qualScore >= 75 ? '#3fb950' : qualScore >= 50 ? '#d29922' : '#f85149';
-    var qualLabel = qualScore >= 75 ? 'Bra' : qualScore >= 50 ? 'OK' : 'Behöver förbättras';
-
-    h += '<div class="gi2-stats" style="margin-bottom:20px">';
-    h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+qualColor+'">'+qualScore+'</div><div class="gi2-stat-label">Kvalitetspoäng</div><div style="font-size:11px;color:'+qualColor+';margin-top:2px">'+qualLabel+'</div></div>';
-    h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(nrsPct>=70?'#3fb950':nrsPct>=40?'#d29922':'#f85149')+'">'+nrsPct+'%</div><div class="gi2-stat-label">NRS-täckning</div><div style="font-size:11px;color:#8b949e;margin-top:2px">Mål: 70%</div></div>';
-    h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(soapPct>=80?'#3fb950':soapPct>=50?'#d29922':'#f85149')+'">'+soapPct+'%</div><div class="gi2-stat-label">SOAP-täckning</div><div style="font-size:11px;color:#8b949e;margin-top:2px">Fullständig: '+fullSoapPct+'%</div></div>';
-    h += '<div class="gi2-stat"><div class="gi2-stat-val">'+aiPct+'%</div><div class="gi2-stat-label">AI-journaler</div><div style="font-size:11px;color:#8b949e;margin-top:2px">'+aiGenerated+' av '+totalV+'</div></div>';
-    h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(approvalRate>=80?'#3fb950':approvalRate>=50?'#d29922':'#8b949e')+'">'+(allApprovals.length?approvalRate+'%':'—')+'</div><div class="gi2-stat-label">Signeringsgrad</div><div style="font-size:11px;color:#8b949e;margin-top:2px">'+(allApprovals.length||0)+' granskade</div></div>';
-    h += '</div>';
-
-    // AI analysis panel
-    h += '<div id="dq-ai-panel" style="display:none;background:rgba(224,118,40,.06);border:1px solid rgba(224,118,40,.2);border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#e6edf3;line-height:1.7"></div>';
-
-    h += '<div class="gi2-grid">';
-
-    // --- Chart 1: SOAP completeness breakdown (horizontal bars with color coding)
-    var soapFields = ['S (Subjektivt)', 'O (Objektivt)', 'A (Analys)', 'P (Plan)'];
-    var soapFieldCounts = [
-      allVisits.filter(function(x){ return x.v.soap && x.v.soap.S && x.v.soap.S.length > 5; }).length,
-      allVisits.filter(function(x){ return x.v.soap && x.v.soap.O && x.v.soap.O.length > 5; }).length,
-      allVisits.filter(function(x){ return x.v.soap && x.v.soap.A && x.v.soap.A.length > 5; }).length,
-      allVisits.filter(function(x){ return x.v.soap && x.v.soap.P && x.v.soap.P.length > 5; }).length
-    ];
-    var maxSF = Math.max.apply(null, soapFieldCounts) || 1;
-    var soapFieldColors = ['#58a6ff','#3fb950','#d29922','#e07628'];
-    var soapBars = '<div style="padding:8px 0">';
-    soapFields.forEach(function(lbl, i) {
-      var pct = totalV ? Math.round(soapFieldCounts[i]/totalV*100) : 0;
-      soapBars += '<div class="gi2-bar-row">'
-        + '<span class="gi2-bar-label" style="min-width:110px">'+lbl+'</span>'
-        + '<div class="gi2-bar-track" style="flex:1"><div class="gi2-bar-fill" style="width:'+Math.round(soapFieldCounts[i]/maxSF*100)+'%;background:'+soapFieldColors[i]+';border-radius:3px"></div></div>'
-        + '<span class="gi2-bar-val" style="min-width:48px;text-align:right">'+pct+'%</span>'
-        + '</div>';
-    });
-    soapBars += '</div>';
-    var weakestField = soapFields[soapFieldCounts.indexOf(Math.min.apply(null, soapFieldCounts))];
-    h += chartCard('SOAP-fälttäckning', totalV+' besök totalt', soapBars,
-      fullSoapPct < 60
-        ? 'Fullständiga SOAP-journaler i '+fullSoapPct+'% av besöken. '+weakestField+' är det minst dokumenterade fältet — fokusera här för bättre AI-träningsdata.'
-        : 'Journalkvaliteten är god. '+fullSoapPct+'% av besöken har alla fyra SOAP-fält ifyllda.'
-    );
-
-    // --- Chart 2: NRS coverage trend (line chart per week)
-    var nrsWeekData = weeks12.map(function(wk,wi){
-      var next = wi<weeks12.length-1?weeks12[wi+1].ts:Date.now()+1;
-      var wVisits = allVisits.filter(function(x){ return x.v.date && new Date(x.v.date).getTime()>=wk.ts && new Date(x.v.date).getTime()<next; });
-      return wVisits.length ? Math.round(wVisits.filter(function(x){ return x.v.soap&&x.v.soap.S&&/\d+\s*\/\s*10|NRS\s*\d+/i.test(x.v.soap.S); }).length/wVisits.length*100) : 0;
-    });
-    // Trend: compare last 4 weeks avg vs previous 4
-    var recentNRS = nrsWeekData.slice(-4).reduce(function(a,b){return a+b;},0)/4;
-    var prevNRS = nrsWeekData.slice(-8,-4).reduce(function(a,b){return a+b;},0)/4;
-    var nrsTrend = recentNRS - prevNRS;
-    h += chartCard('NRS-täckning per vecka', 'Andel besök med smärtskattning',
-      lineChart(nrsWeekData, xShort, nrsPct>=70?'#3fb950':nrsPct>=40?'#d29922':'#f85149', {h:160}),
-      nrsPct < 50
-        ? 'NRS dokumenteras i '+nrsPct+'% av besöken — under målnivån 70%. Skriv "Patienten anger NRS X/10" i SOAP S-fältet för att öka täckningen.'
-        : nrsTrend > 5
-          ? 'NRS-täckningen förbättras (+'+Math.round(nrsTrend)+'% senaste 4 veckorna). Håll i — konsekvent smärtdokumentation stärker AI-analysen.'
-          : 'NRS-täckning '+nrsPct+'% — över målnivån.'+(nrsTrend < -5 ? ' Obs: lätt nedåttrend senaste veckorna ('+Math.round(nrsTrend)+'%).' : '')
-    );
-
-    // --- Chart 3: AI approval breakdown
-    if (allApprovals.length > 0) {
-      var waitingCount = allApprovals.length - approvedCount - rejectedCount;
-      var approvalBars = '<div style="padding:8px 0">';
-      var apLabels = ['Signerade','Redigerade','Avvisade','Väntande'];
-      var apVals = [approvedCount-editedCount, editedCount, rejectedCount, waitingCount];
-      var apColors = ['#3fb950','#58a6ff','#f85149','#8b949e'];
-      var apMax = Math.max.apply(null, apVals)||1;
-      apLabels.forEach(function(lbl, i){
-        approvalBars += '<div class="gi2-bar-row">'
-          + '<span class="gi2-bar-label">'+lbl+'</span>'
-          + '<div class="gi2-bar-track"><div class="gi2-bar-fill" style="width:'+Math.round(apVals[i]/apMax*100)+'%;background:'+apColors[i]+';border-radius:3px"></div></div>'
-          + '<span class="gi2-bar-val">'+apVals[i]+'</span>'
-          + '</div>';
-      });
-      approvalBars += '</div>';
-      h += chartCard('AI-godkännanden', allApprovals.length+' granskade totalt', approvalBars,
-        editedCount > 0
-          ? 'Du redigerade '+editedCount+' AI-förslag ('+Math.round(editedCount/(approvedCount||1)*100)+'% av godkända). Genomsnittlig ändring: '+avgEditRatio+'% av innehållet. Redigeringarna förbättrar AI-modellen.'
-          : waitingCount > 0
-            ? waitingCount+' godkännanden väntar på signering.'
-            : 'AI-förslag accepteras utan redigering — bra tecken på hög modellkvalitet.'
-      );
-    } else {
-      h += chartCard('AI-godkännanden', 'Inga ännu',
-        '<div style="padding:40px;text-align:center;color:#8b949e;font-size:13px">Börja signera AI-genererade journaler för att se godkännandestatistik här.</div>');
-    }
-
-    h += '</div>'; // gi2-grid
-  }
+  // ── Dispatch to sub-renderer ──────────────────────────────────
+  var viewRenderers = {
+    pulse:       _intelRenderPulse,
+    besok:       _intelRenderBesok,
+    intakter:    _intelRenderIntakter,
+    nrs:         _intelRenderNRS,
+    patienter:   _intelRenderPatienter,
+    tjanster:    _intelRenderTjanster,
+    dropout:     _intelRenderDropout,
+    datakvalitet:_intelRenderDatakvalitet,
+  };
+  var renderer = viewRenderers[activeView] || _intelRenderPulse;
+  h += renderer(ctx);
 
   h += '</div>'; // gi2-main
   h += '</div>'; // gi2
 
   el.innerHTML = h;
+
+  // Auto-trigger AI analysis when datakvalitet view loads (only if there's data)
+  if (activeView === 'datakvalitet') {
+    var _dqKey = typeof getKey === 'function' ? getKey() : null;
+    var _dqHasVisits = (S.patients||[]).some(function(p){ return (p.visits||[]).length > 0; });
+    if (_dqKey && _dqHasVisits) setTimeout(function(){ _analyzeDataQuality(true); }, 200);
+  }
 }
 
 
-
-async function _analyzeDataQuality() {
+async function _analyzeDataQuality(autoTriggered) {
   var key = typeof getKey === 'function' ? getKey() : null;
   var panel = document.getElementById('dq-ai-panel');
   if (!panel) return;
+  // If auto-triggered and already has content, skip
+  if (autoTriggered && panel.dataset.loaded === '1') return;
   panel.style.display = '';
-  panel.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:#e07628"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span style="font-size:13px">AI analyserar datakvalitet...</span></div>';
+  panel.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:#e07628;padding:4px 0">'
+    + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+    + '<span style="font-size:13px">AI analyserar datakvalitet...</span></div>';
   if (!key) {
     panel.innerHTML = '<div style="color:#8b949e;font-size:13px">API-nyckel saknas — lägg till under Inställningar → API-nycklar.</div>';
     return;
@@ -25190,27 +25401,45 @@ async function _analyzeDataQuality() {
   var totalV = allVisits.length;
   var withNRS = allVisits.filter(function(x){ return x.v.soap && x.v.soap.S && /\d+\s*\/\s*10|NRS\s*\d+/i.test(x.v.soap.S); }).length;
   var withFullSOAP = allVisits.filter(function(x){ return x.v.soap && x.v.soap.S && x.v.soap.O && x.v.soap.A && x.v.soap.P; }).length;
-  var allApprovals = (function(){ try{ return JSON.parse(localStorage.getItem('vela:approvals')||'[]'); }catch(e){return [];} })();
+  var allApprovals = (function(){ try{ return JSON.parse(localStorage.getItem('vela:approvals')||'[]'); }catch(e2){return [];} })();
   var approvedCount = allApprovals.filter(function(a){ return a.status==='approved'; }).length;
   var editedCount = allApprovals.filter(function(a){ return a.editedContent && a.editedContent !== a.aiContent; }).length;
+  var rejectedCount = allApprovals.filter(function(a){ return a.status==='rejected'; }).length;
   var nrsPct = totalV ? Math.round(withNRS/totalV*100) : 0;
   var soapPct = totalV ? Math.round(withFullSOAP/totalV*100) : 0;
-  var prompt = 'Du är AI-dataanalytiker för ett naprapatjournalsystem. Bedöm datakvaliteten baserat på dessa mätvärden:\n'
-    + '- Totalt antal besök: ' + totalV + '\n'
+  var approvalRate = allApprovals.length ? Math.round(approvedCount/allApprovals.length*100) : null;
+
+  var prompt = 'Du är AI-dataanalytiker för ett naprapatjournalsystem. Analysera datakvaliteten och ge 3 konkreta insikter.\n\n'
+    + 'Mätvärden:\n'
+    + '- Totalt besök: ' + totalV + ', Patienter: ' + pats.length + '\n'
     + '- NRS-täckning: ' + nrsPct + '% (mål 70%)\n'
     + '- Fullständig SOAP: ' + soapPct + '% (mål 80%)\n'
-    + '- AI-godkännanden: ' + allApprovals.length + ' totalt, ' + approvedCount + ' signerade, ' + editedCount + ' redigerade\n'
-    + '- Antal patienter: ' + pats.length + '\n\n'
-    + 'Ge en kort analys (3–4 meningar) med: (1) aktuell status, (2) viktigaste förbättringsområde, (3) konkret nästa steg. Skriv på svenska, direkt och kliniskt.';
+    + '- AI-signerade: ' + approvedCount + ', Redigerade: ' + editedCount + ', Avvisade: ' + rejectedCount + ' (totalt ' + allApprovals.length + ')\n'
+    + (approvalRate !== null ? '- Signeringsgrad: ' + approvalRate + '%\n' : '')
+    + '\nSvara ENBART med JSON utan backticks:\n'
+    + '[{"title":"rubrik","body":"1-2 meningar analys","action":"konkret nästa steg","level":"success|warning|info"}]';
   try {
     var res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 400, messages: [{ role:'user', content: prompt }] })
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 500, messages: [{ role:'user', content: prompt }] })
     });
     var data = await res.json();
-    var txt = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
-    panel.innerHTML = '<div style="display:flex;gap:10px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e07628" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><div><div style="font-size:12px;font-weight:700;color:#e07628;letter-spacing:.06em;margin-bottom:6px">AI-ANALYS</div><div style="font-size:13px;color:#e6edf3;line-height:1.7;white-space:pre-wrap">' + e(txt) + '</div></div></div>';
+    var raw = (data.content||[]).map(function(b){ return b.text||''; }).join('').replace(/```json|```/g,'').trim();
+    var insights = JSON.parse(raw);
+    var dotColors = { success:'#3fb950', warning:'#d29922', info:'#58a6ff' };
+    panel.innerHTML = '<div style="display:grid;gap:10px">'
+      + insights.map(function(ins) {
+          var col = dotColors[ins.level] || dotColors.info;
+          return '<div style="display:flex;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid #30363d;border-left:3px solid '+col+';border-radius:6px">'
+            + '<div style="flex:1;min-width:0">'
+            + '<div style="font-size:13px;font-weight:600;color:#e6edf3;margin-bottom:4px">'+e(ins.title)+'</div>'
+            + '<div style="font-size:13px;color:#8b949e;line-height:1.6">'+e(ins.body)+'</div>'
+            + (ins.action ? '<div style="font-size:12px;color:'+col+';font-weight:600;margin-top:6px">→ '+e(ins.action)+'</div>' : '')
+            + '</div></div>';
+        }).join('')
+      + '</div>';
+    panel.dataset.loaded = '1';
   } catch(err) {
     panel.innerHTML = '<div style="color:#8b949e;font-size:13px">Analys misslyckades — kontrollera API-nyckel.</div>';
   }
@@ -25460,7 +25689,7 @@ Klinikdata:
     const data = await res.json();
     const raw = (data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
     const insights = JSON.parse(raw);
-    const dotColors = {success:'var(--teal,#e07628)',warning:'var(--gold,#d29922)',info:'var(--navy,#0f2744)'};
+    const dotColors = {success:'#3fb950',warning:'#d29922',info:'#58a6ff'};
     el.innerHTML = insights.map(function(ins) {
       return '<div class="intel-insight">'
         + '<div class="intel-insight-dot" style="background:'+(dotColors[ins.level]||dotColors.info)+'"></div>'
@@ -26251,11 +26480,25 @@ function _stWorkflow() {
   h += '<div class="vela-st-title">Arbetsflöde</div>';
   h += '<div class="vela-st-desc">Anpassa hur Vela beter sig i din vardag. Ändringar sparas direkt.</div>';
 
-  h += card('Utseende', row('Tema', null,
-    '<div style="display:flex;gap:3px;background:var(--bg);border:1px solid #30363d;border-radius:8px;padding:3px">'
-    + '<button onclick="document.body.classList.remove(&quot;light&quot;);localStorage.setItem(&quot;vela:theme&quot;,&quot;dark&quot;)" style="padding:5px 14px;border:none;border-radius:6px;font-size:13px;font-weight:'+(isDark?700:500)+';cursor:pointer;font-family:var(--font);background:'+(isDark?'#161b22':'transparent')+';color:'+(isDark?'var(--ink)':'var(--text2)')+'">Mörkt</button>'
-    + '<button onclick="document.body.classList.add(&quot;light&quot;);localStorage.setItem(&quot;vela:theme&quot;,&quot;light&quot;)" style="padding:5px 14px;border:none;border-radius:6px;font-size:13px;font-weight:'+(!isDark?700:500)+';cursor:pointer;font-family:var(--font);background:'+(!isDark?'#161b22':'transparent')+';color:'+(!isDark?'var(--ink)':'var(--text2)')+'">Ljust</button>'
-    + '</div>'));
+  var _curTheme = window._velaTheme || localStorage.getItem('vela:theme') || 'dark';
+  function _themeBtn2(id, label, icon) {
+    var active = _curTheme === id;
+    return '<button id="vela-theme-btn-'+id+'" onclick="setTheme(\''+id+'\')" style="'
+      + 'flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 8px;'
+      + 'border:1px solid '+(active?'var(--orange)':'var(--border)')+';'
+      + 'border-radius:8px;background:'+(active?'var(--orange-lt)':'transparent')+';'
+      + 'cursor:pointer;font-family:var(--font);transition:border-color .15s,background .15s">'
+      + '<div style="font-size:20px">'+icon+'</div>'
+      + '<div style="font-size:12px;font-weight:'+(active?700:400)+';color:'+(active?'var(--orange)':'var(--text)')+'">'+label+'</div>'
+      + '</button>';
+  }
+  h += card('Utseende',
+    row('Tema', 'Välj hur Vela ser ut. System följer din enhets inställning.',
+      '<div style="display:flex;gap:8px;width:100%;margin-top:4px">'
+      + _themeBtn2('dark',   'Mörkt',  '🌙')
+      + _themeBtn2('light',  'Ljust',  '☀️')
+      + _themeBtn2('system', 'System', '💻')
+      + '</div>'));
 
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><span style="font-size:15px;font-weight:700;color:#e6edf3">Kalender</span><button onclick="go(\'availability\')" style="font-size:13px;color:var(--teal);background:none;border:none;cursor:pointer;font-family:var(--font);font-weight:600">Ange tillgänglighet →</button></div>';
   h += card('Kalender',
@@ -27172,8 +27415,8 @@ function _resetWorkspace() {
 }
 
 function _setTheme(light) {
-  if (light) document.body.classList.add('light'); else document.body.classList.remove('light');
-  localStorage.setItem('vela:theme', light?'light':'dark');
+  // Legacy wrapper — use setTheme() instead
+  setTheme(light ? 'light' : 'dark');
 }
 
 function _stGeneral(cfg) {
@@ -27225,10 +27468,18 @@ function _stGeneral(cfg) {
   h += '<label style="font-size:13px;color:#8b949e">Accentfärg</label>';
   h += '<input type="color" id="st-accent" value="' + (cfg.accent||'#e07628') + '" style="width:40px;height:32px;border:none;border-radius:6px;cursor:pointer;background:none;padding:0">';
   h += '<span style="font-size:13px;color:#8b949e">Används i Hael-planen och all patientkommunikation</span>';
-  var isDarkNow = !document.body.classList.contains('light');
-  h += '<div style="margin-left:auto;display:flex;gap:8px">';
-  h += '<button class="theme-btn' + (isDarkNow?' active':'') + '" onclick="_setTheme(0)" style="font-family:var(--font)">Mörkt</button>';
-  h += '<button class="theme-btn' + (!isDarkNow?' active':'') + '" onclick="_setTheme(1)" style="font-family:var(--font)">Ljust</button>';
+  var _profTheme = window._velaTheme || localStorage.getItem('vela:theme') || 'dark';
+  h += '<div style="margin-left:auto;display:flex;gap:5px">';
+  ['dark','light','system'].forEach(function(m) {
+    var labels = {dark:'🌙 Mörkt', light:'☀️ Ljust', system:'💻 System'};
+    var active = _profTheme === m;
+    h += '<button id="vela-theme-btn-'+m+'" onclick="setTheme(\'' + m + '\')" style="'
+      + 'padding:5px 10px;border:1px solid '+(active?'var(--orange)':'var(--border)')+';'
+      + 'border-radius:6px;background:'+(active?'var(--orange-lt)':'transparent')+';'
+      + 'color:'+(active?'var(--orange)':'var(--text2)')+';'
+      + 'font-size:12px;font-weight:'+(active?700:400)+';cursor:pointer;font-family:var(--font);'
+      + 'transition:border-color .15s,background .15s">'+labels[m]+'</button>';
+  });
   h += '</div></div></div>';
 
   // Danger zone — like GitHub
@@ -28193,16 +28444,65 @@ function _stSaveApiKey(apiId) {
 }
 
 // ── THEME TOGGLE ─────────────────────────────────────────────
+// ── Theme system: 'dark' | 'light' | 'system' ────────────────
 function initTheme() {
-  const saved = localStorage.getItem('vela:theme');
-  if (saved === 'light') document.body.classList.add('light');
+  const saved = localStorage.getItem('vela:theme') || 'dark';
+  _applyTheme(saved);
 }
-function toggleTheme() {
-  const isLight = document.body.classList.toggle('light');
-  localStorage.setItem('vela:theme', isLight ? 'light' : 'dark');
-  document.documentElement.style.colorScheme = isLight ? 'light' : 'dark';
+
+function _applyTheme(mode) {
+  const body = document.body;
+  // Remove all theme classes/attrs
+  body.removeAttribute('data-theme');
+  body.classList.remove('light');
+  if (mode === 'light') {
+    body.setAttribute('data-theme', 'light');
+    body.classList.add('light'); // backwards compat
+    document.documentElement.style.colorScheme = 'light';
+  } else if (mode === 'system') {
+    body.setAttribute('data-theme', 'system');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.style.colorScheme = 'light dark';
+    if (!prefersDark) body.classList.add('light');
+  } else {
+    // dark (default)
+    body.setAttribute('data-theme', 'dark');
+    document.documentElement.style.colorScheme = 'dark';
+  }
+  localStorage.setItem('vela:theme', mode);
+  window._velaTheme = mode;
+  // Re-render settings if open
   const settingsActive = document.getElementById('s-settings')?.classList.contains('active');
-  if (settingsActive) { window._settingsActiveTab='clinic'; _renderSettingsContent('clinic'); _renderSettingsNav(); }
+  if (settingsActive) { _renderSettingsContent('workflow'); _renderSettingsNav(); }
+  // Update theme picker if visible
+  _updateThemePicker();
+}
+
+function _updateThemePicker() {
+  const mode = window._velaTheme || 'dark';
+  ['dark','light','system'].forEach(function(m) {
+    const btn = document.getElementById('vela-theme-btn-' + m);
+    if (!btn) return;
+    const active = mode === m;
+    btn.style.background = active ? 'var(--surface3)' : 'transparent';
+    btn.style.color = active ? 'var(--ink)' : 'var(--text2)';
+    btn.style.fontWeight = active ? '700' : '400';
+  });
+}
+
+function setTheme(mode) {
+  _applyTheme(mode);
+}
+
+// Listen for system preference changes in system mode
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+  if (window._velaTheme === 'system') _applyTheme('system');
+});
+
+function toggleTheme() {
+  // Legacy: cycle dark → light → dark
+  const cur = window._velaTheme || 'dark';
+  _applyTheme(cur === 'dark' ? 'light' : 'dark');
 }
 
 function handleLogoUpload(input) { /* logo upload removed */ }

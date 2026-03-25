@@ -131,7 +131,7 @@ button, input, textarea, select { font-family: inherit; }
 
 /* ── APP SHELL ──────────────────────────────────────────────── */
 .app-shell { display: flex; height: 100vh; overflow: hidden; transition: padding-top .12s ease; }
-.main-content { flex: 1; overflow-y: auto; background: var(--bg); padding-top: 62px; }
+.main-content { flex: 1; overflow-y: auto; background: var(--bg); }
 .screen { display: none; min-height: 100%; }
 .screen.active { display: block; }
 .platform-screen.active { 
@@ -144,13 +144,7 @@ button, input, textarea, select { font-family: inherit; }
 }
 
 /* ── SIDEBAR ────────────────────────────────────────────────── */
-.nav-sidebar {
-  width: 260px; flex-shrink: 0; background: var(--sb-bg);
-  display: flex; flex-direction: column;
-  border-right: 1px solid var(--sb-border);
-  z-index: 150; overflow: hidden; position: relative;
-  transition: width .22s cubic-bezier(.4,0,.2,1), transform .25s ease;
-}
+/* nav-sidebar: replaced by GitHub CSS block above */
 .nav-sidebar.collapsed { width: 52px; }
 .nav-sidebar.collapsed .nav-section-label { opacity:0; height:0; padding:0; pointer-events:none; }
 .nav-sidebar.collapsed .nav-item-label,
@@ -2404,7 +2398,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .r4-codebtn{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border:1px solid rgba(63,185,80,.4);border-radius:6px;font-size:13px;font-weight:600;color:#3fb950;background:rgba(63,185,80,.1);cursor:pointer;font-family:var(--font)}
 .r4-codebtn:hover{background:rgba(63,185,80,.18)}
 /* Commit row — top part of file box */
-.r4-commitrow{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.r4-commitrow{display:flex;align-items:center;gap:7px;padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-bottom:none;border-radius:6px 6px 0 0;margin-top:12px;flex-wrap:wrap}
 .r4-av20{width:20px;height:20px;border-radius:50%;object-fit:cover;flex-shrink:0}
 .r4-av20i{background:rgba(224,118,40,.12);border:1px solid rgba(224,118,40,.2);display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--teal)}
 .r4-commit-who{font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;flex-shrink:0}
@@ -9067,7 +9061,6 @@ function _toggleClinicSidebar() {
 function _renderGlobalTopbar() {
   var wrap = document.getElementById('vela-global-topbar-wrap');
   if (!wrap) return;
-  wrap.className = 'vela-global-topbar'; // must set class every render — ensures fixed position/styling
   var cfg = getClinicConfig ? getClinicConfig() : {};
   var clinicName = cfg.name || 'Min klinik';
   var email = (typeof _authUser !== 'undefined' && _authUser && _authUser.email) ? _authUser.email : '';
@@ -9979,8 +9972,6 @@ function _gatherIssues() {
             id: 'do_'+p.id, type:'dropout', patId:p.id, patName:p.name,
             title: 'Risk f\u00f6r avhopp',
             meta: pr.signals.map(function(s){return s.text;}).join(' \u00b7 ').slice(0,80),
-            signalWeights: pr.signals,   // [{w:0-3, text:string}] — for explainability UI
-            retentionLevel: pr.level,    // 2=attention, 3=urgent
             age: now - new Date(lastV?.date||now),
             aiSuggestion: 'Skicka ett personligt \u00e5terbesöksmeddelande via AI Retention.',
             closeFn: 'generateRetention', closeLabel: 'Skicka med AI',
@@ -10250,29 +10241,8 @@ function rActions() {
       if (ageStr) h += ' &nbsp;·&nbsp; ' + ageStr;
       h += '</div>';
       // AI suggestion (expandable)
-      // ── Explainability: dropout signal weights ──────────────────────
-      if (issue.type === 'dropout' && issue.signalWeights && issue.signalWeights.length && !isClosed) {
-        var _wCol = ['var(--green)','var(--blue)','var(--amber)','var(--red)'];
-        var _wBg  = ['var(--green-lt)','var(--blue-lt)','var(--amber-lt)','var(--red-lt)'];
-        var _wLbl = ['Positiv','Observera','Uppmärksamhet','Akut'];
-        h += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;align-items:center">';
-        h += '<span style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-right:2px">Varför flaggad</span>';
-        issue.signalWeights.forEach(function(sig) {
-          var w = Math.max(0, Math.min(3, sig.w||0));
-          var col = _wCol[w]; var bg = _wBg[w]; var lbl = _wLbl[w];
-          h += '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;'
-             + 'background:'+bg+';color:'+col+';border-radius:5px;padding:2px 8px;border:1px solid '+col+';opacity:.85" '
-             + 'title="Signalvikt: '+lbl+'">';
-          // Weight indicator: filled dots
-          for (var _d=0;_d<3;_d++) {
-            h += '<span style="width:5px;height:5px;border-radius:50%;background:'+(_d<w?col:'rgba(128,128,128,.25)')+';display:inline-block"></span>';
-          }
-          h += '&nbsp;'+e(sig.text)+'</span>';
-        });
-        h += '</div>';
-      }
       if (issue.aiSuggestion && !isClosed) {
-        h += '<div style="font-size:13px;color:var(--teal);margin-top:6px;display:flex;align-items:center;gap:5px">'
+        h += '<div style="font-size:13px;color:var(--teal);margin-top:4px;display:flex;align-items:center;gap:5px">'
            + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
            + e(issue.aiSuggestion)
            + '</div>';
@@ -13323,11 +13293,11 @@ function _homeAsk(prompt) {
 // ══════════════════════════════════════════════════════════════════════════════
 
 function rWorkspace() {
-  var el = document.getElementById('s-home');
+  var el = document.getElementById('s-dashboard');
   if (!el) return;
   document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
   el.classList.add('active');
-  S.screen = 'home';
+  S.screen = 'dashboard';
 
   var cfg      = getClinicConfig ? getClinicConfig() : {};
   var pats     = S.patients || [];
@@ -13447,11 +13417,8 @@ function rWorkspace() {
   h += '<div class="r4-bb-grp"><button class="r4-codebtn" onclick="openBookingDialog()"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"/></svg> Ny bokning <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button></div>';
   h += '</div></div>'; // branchbar
 
-  // FILE CARD — gh-card wrapper + gh-row rows (no table)
-  h += '<div class="gh-card" style="margin-top:12px;margin-bottom:16px">';
-
-  // COMMIT ROW
-  h += '<div class="gh-row r4-commitrow" style="border-radius:6px 6px 0 0">';
+  // COMMIT ROW (top of file box, rounded top)
+  h += '<div class="r4-commitrow">';
   if (savedAv) h += '<img src="'+savedAv+'" class="r4-av20" alt="">';
   else h += '<span class="r4-av20 r4-av20i">'+ownerInit+'</span>';
   h += '<a class="r4-commit-who" onclick="go(\'profile\')">'+e(cfg.signature||'Behandlare')+'</a>';
@@ -13465,21 +13432,20 @@ function rWorkspace() {
   h += ' <b>'+doneBks+'</b> besök</a>';
   h += '</div>';
 
-  // FILE ROWS (gh-row divs replacing table)
+  // FILE TABLE
+  h += '<table class="r4-files">';
   if (!rows.length) {
-    h += '<div class="gh-row" style="font-size:13px;color:var(--text2)">Lägg till patienter och bokningar för att se dem här.</div>';
+    h += '<tr><td colspan="3" class="r4-files-empty">Lägg till patienter och bokningar för att se dem här.</td></tr>';
   } else {
     rows.forEach(function(row){
       var col = row.type==='p'?'#58a6ff':'var(--teal)';
-      h += '<div class="gh-row r4-frow" onclick="_wsOpen(\''+e(row.id||'')+'\')" style="cursor:pointer;align-items:center">';
-      h += '<svg viewBox="0 0 16 16" width="16" height="16" fill="'+col+'" style="flex-shrink:0"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688Z"/></svg>';
-      h += '<a class="r4-fname" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e(row.name)+'</a>';
-      h += '<span class="r4-fmsg" style="color:var(--text2);font-size:13px;flex-shrink:0">'+e(row.msg)+'</span>';
-      h += '<span style="color:var(--text2);font-size:12px;flex-shrink:0;margin-left:16px">'+_wsTimeAgo(new Date((row.time||new Date().toISOString().slice(0,10))+'T12:00'))+'</span>';
-      h += '</div>';
+      h += '<tr class="r4-frow" onclick="_wsOpen(\''+e(row.id||'')+'\')"><td class="r4-ftd1"><svg viewBox="0 0 16 16" width="16" height="16" fill="'+col+'"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688Z"/></svg></td>';
+      h += '<td class="r4-ftd2"><a class="r4-fname">'+e(row.name)+'</a></td>';
+      h += '<td class="r4-ftd3"><span class="r4-fmsg">'+e(row.msg)+'</span></td>';
+      h += '<td class="r4-ftd4">'+_wsTimeAgo(new Date((row.time||new Date().toISOString().slice(0,10))+'T12:00'))+'</td></tr>';
     });
   }
-  h += '</div>'; // gh-card
+  h += '</table>';
 
   // README / DOCUMENT BOX
   h += '<div class="r4-readme">';

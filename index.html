@@ -9383,11 +9383,346 @@ function togSettings(){
 // rDashboard v1 removed
 
 // ══════════════════════════════════════════════════════════════════════════════
+// BEHANDLARGODKÄNNANDE — Human-in-the-loop AI approval flow
+// ══════════════════════════════════════════════════════════════════════════════
+
+var APPROVALS_KEY = 'vela:approvals';
+var AI_EDITS_KEY  = 'vela:ai_edits';
+
+// ── Approval CRUD ──────────────────────────────────────────────────────────
+function getApprovals() {
+  try { return JSON.parse(localStorage.getItem(APPROVALS_KEY) || '[]'); } catch { return []; }
+}
+function saveApprovals(arr) {
+  try { localStorage.setItem(APPROVALS_KEY, JSON.stringify(arr)); } catch {}
+}
+function getApproval(id) {
+  return getApprovals().find(function(a){ return a.id === id; }) || null;
+}
+function upsertApproval(a) {
+  var arr = getApprovals();
+  var idx = arr.findIndex(function(x){ return x.id === a.id; });
+  if (idx >= 0) arr[idx] = a; else arr.push(a);
+  saveApprovals(arr);
+  return a;
+}
+function deleteApproval(id) {
+  saveApprovals(getApprovals().filter(function(a){ return a.id !== id; }));
+}
+function getPendingApprovals() {
+  return getApprovals().filter(function(a){ return a.status === 'pending'; });
+}
+
+// Create a pending approval from an AI-generated document
+// type: 'soap' | 'hael_plan' | 'patient_message' | 'intake_summary'
+function createAIApproval(opts) {
+  // opts: { type, patId, patName, title, aiContent, prevContent, visitId, meta }
+  var id = 'apr_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+  var approval = {
+    id: id,
+    type: opts.type || 'soap',
+    patId: opts.patId,
+    patName: opts.patName || '',
+    title: opts.title || 'AI-förslag',
+    aiContent: opts.aiContent || '',
+    prevContent: opts.prevContent || '',
+    editedContent: null,        // null = behandlaren har inte redigerat
+    status: 'pending',          // pending | approved | rejected
+    createdAt: new Date().toISOString(),
+    approvedAt: null,
+    approvedBy: null,
+    visitId: opts.visitId || null,
+    meta: opts.meta || {},
+    editDiff: null,             // set on approval if content was edited
+  };
+  upsertApproval(approval);
+  return approval;
+}
+
+// ── AI Edit Feedback Loop (Module 2 träningsdata) ─────────────────────────
+function getAIEdits() {
+  try { return JSON.parse(localStorage.getItem(AI_EDITS_KEY) || '[]'); } catch { return []; }
+}
+function logAIEdit(approvalId, patId, docType, originalText, editedText) {
+  if (!originalText || !editedText || originalText.trim() === editedText.trim()) return;
+  var edits = getAIEdits();
+  edits.push({
+    id: 'edit_' + Date.now(),
+    approvalId: approvalId,
+    patId: patId,
+    docType: docType,
+    originalText: originalText,
+    editedText: editedText,
+    editedAt: new Date().toISOString(),
+    // Compute rough edit distance as signal
+    charDelta: editedText.length - originalText.length,
+    editRatio: Math.round(Math.abs(editedText.length - originalText.length) / Math.max(originalText.length, 1) * 100),
+  });
+  // Keep max 500 entries
+  if (edits.length > 500) edits.splice(0, edits.length - 500);
+  try { localStorage.setItem(AI_EDITS_KEY, JSON.stringify(edits)); } catch {}
+}
+
+// ── Simple diff renderer (word-level) ─────────────────────────────────────
+function _renderDiff(oldText, newText) {
+  if (!oldText) return '<span style="color:var(--teal)">' + e(newText) + '</span>';
+  if (oldText === newText) return '<span style="color:var(--text2);font-style:italic">Ingen ändring</span>';
+
+  var oldWords = (oldText||'').split(/(\s+)/);
+  var newWords = (newText||'').split(/(\s+)/);
+
+  // Simple LCS-based diff (short docs only, fallback to side-by-side for long)
+  if (oldText.length + newText.length > 4000) {
+    // Side-by-side for long content
+    var h2 = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
+    h2 += '<div><div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#f85149;margin-bottom:6px">AI-förslag</div>';
+    h2 += '<pre style="font-size:13px;line-height:1.7;white-space:pre-wrap;margin:0;color:var(--text);background:rgba(248,81,73,.05);padding:10px;border-radius:6px;border-left:3px solid #f85149">' + e(oldText) + '</pre></div>';
+    h2 += '<div><div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#3fb950;margin-bottom:6px">Efter redigering</div>';
+    h2 += '<pre style="font-size:13px;line-height:1.7;white-space:pre-wrap;margin:0;color:var(--text);background:rgba(63,185,80,.05);padding:10px;border-radius:6px;border-left:3px solid #3fb950">' + e(newText) + '</pre></div>';
+    h2 += '</div>';
+    return h2;
+  }
+
+  // Word-level inline diff
+  var result = '';
+  var i = 0, j = 0;
+  // Build a simple map for matching
+  while (i < oldWords.length || j < newWords.length) {
+    var ow = oldWords[i], nw = newWords[j];
+    if (i >= oldWords.length) {
+      result += '<mark style="background:rgba(63,185,80,.25);border-radius:2px;color:#3fb950">' + e(nw) + '</mark>';
+      j++;
+    } else if (j >= newWords.length) {
+      result += '<del style="color:#f85149;text-decoration:line-through;opacity:.7">' + e(ow) + '</del>';
+      i++;
+    } else if (ow === nw) {
+      result += e(ow);
+      i++; j++;
+    } else {
+      result += '<del style="color:#f85149;text-decoration:line-through;opacity:.7">' + e(ow) + '</del>';
+      result += '<mark style="background:rgba(63,185,80,.25);border-radius:2px;color:#3fb950">' + e(nw) + '</mark>';
+      i++; j++;
+    }
+  }
+  return result;
+}
+
+// ── Approve / Reject ───────────────────────────────────────────────────────
+function approveAIContent(approvalId, onDone) {
+  var a = getApproval(approvalId);
+  if (!a) return;
+  var cfg = getClinicConfig ? getClinicConfig() : {};
+  var editedEl = document.getElementById('apr-edit-' + approvalId);
+  var finalContent = editedEl ? editedEl.value.trim() : (a.editedContent || a.aiContent);
+
+  // Log edit if content changed
+  if (finalContent !== a.aiContent) {
+    logAIEdit(approvalId, a.patId, a.type, a.aiContent, finalContent);
+    a.editDiff = { charDelta: finalContent.length - a.aiContent.length, editRatio: Math.round(Math.abs(finalContent.length - a.aiContent.length) / Math.max(a.aiContent.length,1)*100) };
+    a.editedContent = finalContent;
+  }
+
+  a.status = 'approved';
+  a.approvedAt = new Date().toISOString();
+  a.approvedBy = cfg.signature || 'Behandlare';
+  upsertApproval(a);
+
+  // Write back to patient record
+  _applyApprovedContent(a, finalContent);
+
+  showAutoSaveToast('✓ Signerat av ' + (cfg.signature || 'behandlare'));
+  if (typeof onDone === 'function') onDone();
+  else { window._approvalReviewId = null; rActions(); }
+}
+
+function rejectAIContent(approvalId, onDone) {
+  var a = getApproval(approvalId);
+  if (!a) return;
+  a.status = 'rejected';
+  a.approvedAt = new Date().toISOString();
+  upsertApproval(a);
+  showAutoSaveToast('AI-förslag avvisat');
+  if (typeof onDone === 'function') onDone();
+  else { window._approvalReviewId = null; rActions(); }
+}
+
+// Write approved content back to the patient record
+function _applyApprovedContent(a, content) {
+  if (!a.patId) return;
+  var p = (S.patients||[]).find(function(x){ return x.id === a.patId; });
+  if (!p) return;
+
+  if (a.type === 'soap' && a.visitId) {
+    var updVisits = (p.visits||[]).map(function(v) {
+      if (v.id !== a.visitId) return v;
+      var soapParsed = {};
+      // Parse "S: ...\n\nO: ..." format back into object
+      content.split(/\n\n/).forEach(function(block) {
+        var m = block.match(/^([SOAP]):\s*([\s\S]*)/);
+        if (m) soapParsed[m[1]] = m[2].trim();
+      });
+      return Object.assign({}, v, { note: content, soap: Object.keys(soapParsed).length ? soapParsed : v.soap, aiApproved: true, aiApprovedAt: a.approvedAt });
+    });
+    savePat(Object.assign({}, p, { visits: updVisits }));
+
+  } else if (a.type === 'patient_message') {
+    // Mark the message as approved in inbox
+    var msgs = (p.messages||[]).map(function(m) {
+      if (m.id === a.meta.messageId) return Object.assign({}, m, { aiApproved: true, text: content });
+      return m;
+    });
+    savePat(Object.assign({}, p, { messages: msgs }));
+
+  } else if (a.type === 'hael_plan' && a.visitId) {
+    var updV2 = (p.visits||[]).map(function(v) {
+      if (v.id !== a.visitId) return v;
+      return Object.assign({}, v, { aiApproved: true, aiApprovedAt: a.approvedAt });
+    });
+    savePat(Object.assign({}, p, { visits: updV2 }));
+  }
+  S.patients = getPatients ? getPatients() : S.patients;
+  if (S.pat && S.pat.id === a.patId) S.pat = (S.patients||[]).find(function(x){ return x.id === a.patId; }) || S.pat;
+}
+
+// ── Hook into saveSOAPToVisit to create approval ─────────────────────────
+// Called at the end of saveSOAPToVisit — wraps AI-generated content in approval
+function _maybeQueueSOAPApproval(p, vid, soapText, mergedSoap) {
+  if (!currentSOAP || !currentSOAP.aiGenerated) return; // only for AI-generated
+  var existing = getApprovals().find(function(a){ return a.visitId === vid && a.type === 'soap' && a.status === 'pending'; });
+  if (existing) return;
+  createAIApproval({
+    type: 'soap',
+    patId: p.id,
+    patName: p.name,
+    title: 'SOAP-journal — ' + (p.name||''),
+    aiContent: soapText,
+    prevContent: '',
+    visitId: vid,
+    meta: { soap: mergedSoap, date: currentSOAP.date },
+  });
+}
+
+// ── rApprovalReview — full-screen review modal ────────────────────────────
+function rApprovalReview(approvalId) {
+  var a = getApproval(approvalId);
+  if (!a) { rActions(); return; }
+
+  window._approvalReviewId = approvalId;
+
+  var el = document.getElementById('s-actions');
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  el.classList.add('active');
+  S.screen = 'actions';
+
+  var cfg = getClinicConfig ? getClinicConfig() : {};
+  var hasEdited = a.editedContent && a.editedContent !== a.aiContent;
+  var displayContent = a.editedContent || a.aiContent;
+
+  var typeLabels = { soap:'SOAP-journal', hael_plan:'Hael-plan', patient_message:'Patientmeddelande', intake_summary:'Intake-sammanfattning' };
+  var typeLabel = typeLabels[a.type] || a.type;
+
+  var h = '<div style="max-width:900px;margin:0 auto;padding:100px 24px 60px">';
+
+  // ── Header ────────────────────────────────────────────────────────────
+  h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:28px">';
+  h += '<button onclick="window._approvalReviewId=null;rActions()" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:13px;color:var(--muted);font-family:var(--font);padding:0">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Åtgärder</button>';
+  h += '<span style="color:var(--border)">/</span>';
+  h += '<span style="font-size:13px;color:var(--text)">' + e(a.patName) + '</span>';
+  h += '<span style="color:var(--border)">/</span>';
+  h += '<span style="font-size:13px;font-weight:700;color:var(--ink)">' + e(typeLabel) + '</span>';
+  h += '</div>';
+
+  h += '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px">';
+  h += '<div>';
+  h += '<h1 style="font-size:22px;font-weight:700;color:var(--ink);margin:0 0 6px">' + e(a.title) + '</h1>';
+  h += '<div style="display:flex;align-items:center;gap:10px">';
+  h += '<span style="font-size:12px;padding:2px 9px;border-radius:20px;background:rgba(224,118,40,.12);color:#e07628;font-weight:700;letter-spacing:.06em">VÄNTAR GODKÄNNANDE</span>';
+  h += '<span style="font-size:12px;color:var(--muted)">Genererat ' + new Date(a.createdAt).toLocaleString('sv-SE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) + '</span>';
+  if (hasEdited) h += '<span style="font-size:12px;padding:2px 9px;border-radius:20px;background:rgba(63,185,80,.1);color:#3fb950;font-weight:700">REDIGERAT</span>';
+  h += '</div>';
+  h += '</div>';
+  // Action buttons
+  h += '<div style="display:flex;gap:8px;flex-shrink:0">';
+  h += '<button onclick="rejectAIContent(\'' + approvalId + '\')" style="padding:9px 18px;background:none;border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avvisa</button>';
+  h += '<button onclick="approveAIContent(\'' + approvalId + '\')" style="padding:9px 20px;background:var(--teal);border:none;border-radius:8px;font-size:14px;font-weight:700;color:white;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:7px">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  h += 'Signera &amp; godkänn</button>';
+  h += '</div>';
+  h += '</div>';
+
+  // ── Two-tab: Redigera / Diff ───────────────────────────────────────────
+  var activeTab = window._aprTab || 'edit';
+  h += '<div style="border-bottom:1px solid var(--border);margin-bottom:20px;display:flex;gap:0">';
+  ['edit','diff'].forEach(function(tab) {
+    var label = tab === 'edit' ? 'Redigera' : 'Jämför med AI-original';
+    var isOn = activeTab === tab;
+    h += '<button onclick="window._aprTab=\'' + tab + '\';rApprovalReview(\'' + approvalId + '\')" style="'
+       + 'background:none;border:none;border-bottom:2px solid ' + (isOn ? 'var(--orange)' : 'transparent') + ';'
+       + 'padding:8px 16px;font-size:13px;font-weight:' + (isOn ? '700' : '500') + ';'
+       + 'color:' + (isOn ? 'var(--ink)' : 'var(--muted)') + ';cursor:pointer;font-family:var(--font);margin-bottom:-1px">'
+       + label + '</button>';
+  });
+  h += '</div>';
+
+  if (activeTab === 'edit') {
+    // Editable textarea
+    h += '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px">';
+    h += '<div style="padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);display:flex;align-items:center;gap:8px">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+    h += '<span style="font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--teal)">Vela AI</span>';
+    h += '<span style="font-size:12px;color:var(--muted);margin-left:auto">Redigera vid behov innan signering</span>';
+    h += '</div>';
+    h += '<textarea id="apr-edit-' + approvalId + '" '
+       + 'style="width:100%;min-height:320px;background:var(--surface);border:none;outline:none;padding:16px;'
+       + 'font-size:13px;line-height:1.8;color:var(--ink);font-family:var(--font);resize:vertical;box-sizing:border-box" '
+       + 'oninput="window._aprHasEdit_' + approvalId + '=true">'
+       + e(displayContent) + '</textarea>';
+    h += '</div>';
+
+  } else {
+    // Diff view
+    h += '<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px">';
+    h += '<div style="padding:10px 14px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.02);display:flex;align-items:center;gap:16px">';
+    h += '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(248,81,73,.3)"></span><span style="font-size:12px;color:var(--muted)">Borttaget / originalt</span></div>';
+    h += '<div style="display:flex;align-items:center;gap:6px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(63,185,80,.3)"></span><span style="font-size:12px;color:var(--muted)">Tillagt / ändrat</span></div>';
+    h += '</div>';
+    h += '<div style="padding:16px;font-size:13px;line-height:1.9;color:var(--text)">';
+    if (hasEdited) {
+      h += _renderDiff(a.aiContent, a.editedContent);
+    } else {
+      h += '<span style="font-size:13px;color:var(--muted);font-style:italic">Inget redigerat ännu — AI-förslaget visas oförändrat.</span><br><br>';
+      h += '<pre style="font-size:13px;line-height:1.8;white-space:pre-wrap;margin:0;color:var(--text)">' + e(a.aiContent) + '</pre>';
+    }
+    h += '</div></div>';
+  }
+
+  // ── Signatur-footer ───────────────────────────────────────────────────
+  h += '<div style="border:1px solid var(--border);border-radius:10px;padding:16px 20px;display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.02)">';
+  h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+  h += '<div>';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">' + e(cfg.signature||'Behandlare') + '</div>';
+  h += '<div style="font-size:12px;color:var(--muted)">Signaturen sparas med tidstämpel vid godkännande (GDPR-kompatibelt)</div>';
+  h += '</div>';
+  h += '<div style="margin-left:auto;display:flex;gap:8px">';
+  h += '<button onclick="rejectAIContent(\'' + approvalId + '\')" style="padding:8px 16px;background:none;border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avvisa</button>';
+  h += '<button onclick="approveAIContent(\'' + approvalId + '\')" style="padding:8px 18px;background:var(--teal);border:none;border-radius:8px;font-size:13px;font-weight:700;color:white;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Signera &amp; godkänn</button>';
+  h += '</div>';
+  h += '</div>';
+
+  h += '</div>'; // page wrap
+  el.innerHTML = h;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // rActions — Åtgärder screen (GitHub Issues equivalent)
 // ══════════════════════════════════════════════════════════════════════════════
 
 // Issue types with severity + icons
 var _ISSUE_TYPES = {
+  ai_pending: { label: 'Väntar godkännande', color: 'teal',  icon: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>', priority: 0 },
   red_flag:   { label: 'Röd flagga',      color: 'red',   icon: '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',  priority: 1 },
   dropout:    { label: 'Avhoppsrisk',     color: 'amber', icon: '<path d="M22 16.92v3a2 2 0 01-2.18 2A19.8 19.8 0 014.69 13 19.5 19.5 0 012 4.69a2 2 0 011.72-2.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l.91-.91a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>', priority: 2 },
   unread_msg: { label: 'Oläst meddelande',color: 'blue',  icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', priority: 3 },
@@ -9491,6 +9826,26 @@ function _gatherIssues() {
       }
     }
   });
+
+  // AI-generated content pending approval
+  if (typeof getPendingApprovals === 'function') {
+    getPendingApprovals().forEach(function(a) {
+      var typeLabels = { soap:'SOAP-journal', hael_plan:'Hael-plan', patient_message:'Patientmeddelande', intake_summary:'Intake-sammanfattning' };
+      issues.push({
+        id: 'apr_iss_' + a.id,
+        type: 'ai_pending',
+        patId: a.patId,
+        patName: a.patName,
+        title: (typeLabels[a.type]||a.type) + ' väntar signering',
+        meta: 'Genererat ' + new Date(a.createdAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}),
+        age: now - new Date(a.createdAt),
+        aiSuggestion: 'Granska AI-förslaget, redigera vid behov och signera.',
+        closeFn: 'openApprovalReview',
+        closeLabel: 'Granska & signera',
+        approvalId: a.id,
+      });
+    });
+  }
 
   // Sort by priority then age
   issues.sort(function(a,b){
@@ -9780,6 +10135,14 @@ function _handleIssueAction(issueId, fn, visitId, patId) {
       if (idx !== -1) { forms[idx] = intake; saveIntakeForms && saveIntakeForms(forms); }
     }
     _closeIssue(issueId, 'reviewed');
+  } else if (fn === 'openApprovalReview') {
+    // Find the approvalId from the issue
+    var allIssues = _gatherIssues();
+    var theIssue = allIssues.find(function(i){ return i.id === issueId; });
+    if (theIssue && theIssue.approvalId) {
+      window._aprTab = 'edit';
+      rApprovalReview(theIssue.approvalId);
+    }
   } else {
     _closeIssue(issueId, 'manual');
   }
@@ -12779,7 +13142,7 @@ function rWorkspace() {
   var bookingUrl=window.location.origin+window.location.pathname+'#boka';
   var wsDoc=cfg.wsDoc||null;
 
-  var h = '';
+  var h = '<div class="r4-page" style="padding-top:116px;padding-bottom:48px">';
 
   // ─────────────────────────────────────────────────────────────────
   // ROW 1: icon + owner/name + visibility | Pin Watch Fork Star
@@ -12980,6 +13343,7 @@ function rWorkspace() {
 
   h += '</aside>';
   h += '</div>'; // r4-body
+  h += '</div>'; // r4-page
   el.innerHTML = h;
 }
 
@@ -15858,7 +16222,7 @@ Filtrera bort allt som INTE är medicinskt relevant -- vardagsprat, hälsningar,
     if(!cleaned.endsWith('}')){const lb=cleaned.lastIndexOf('}');if(lb>0)cleaned=cleaned.slice(0,lb+1);}
     if(!cleaned){throw new Error('Tomt svar från API. stop_reason: '+(data.stop_reason||'?'));}
     const result = JSON.parse(cleaned);
-    currentSOAP = { ...result, transcript: meetTranscript, date: new Date().toISOString().slice(0,10), note: meetNote };
+    currentSOAP = { ...result, transcript: meetTranscript, date: new Date().toISOString().slice(0,10), note: meetNote, aiGenerated: true };
     go('soap');
   } catch(err) {
     // Don't return to meeting screen — go to manual SOAP with transcript preserved
@@ -16055,6 +16419,9 @@ async function saveSOAPToVisit(goToPlan) {
   const saved = savePat(updPat);
   S.pat = saved;
   S.visitId = vid;
+
+  // Queue for human-in-the-loop approval if AI-generated
+  _maybeQueueSOAPApproval(saved, vid, soapText, mergedSoap);
 
   if (isFirstVisit || !(p.diagnoses||[]).length) {
     setTimeout(() => aiExtractDiagnoses(saved.id), 1500);

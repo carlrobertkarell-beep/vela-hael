@@ -13590,7 +13590,8 @@ function rWorkspace() {
   var now      = new Date();
   var isPublic = cfg.wsPublic !== false;
 
-  var doneBks = bks.filter(function(b){ return b.status==='completed'; }).length;
+  var completedBks = bks.filter(function(b){ return b.status==='completed'; });
+  var doneBks = completedBks.length;
   var activePlans = 0;
   pats.forEach(function(p){
     (p.visits||[]).forEach(function(v){
@@ -35139,7 +35140,7 @@ function getAiProfileContext(userId) {
     short_name: 'Vela',
     description: 'Naprapatjournalsystem och klinikhantering',
     lang: 'sv',
-    start_url: './',
+    start_url: location.href.split('?')[0],
     display: 'standalone',
     orientation: 'any',
     background_color: '#0d1117',
@@ -35158,10 +35159,7 @@ function getAiProfileContext(userId) {
         purpose: 'any maskable'
       }
     ],
-    shortcuts: [
-      { name: 'Kalender', url: './?screen=calendar', description: 'Öppna kalendervy' },
-      { name: 'Ny bokning', url: './?action=book', description: 'Skapa ny bokning' }
-    ]
+    shortcuts: []
   };
   try {
     var blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
@@ -35175,7 +35173,9 @@ function getAiProfileContext(userId) {
 })();
 
 // ── Service Worker: cache-first for fonts, network-first for app ──────────────
-if ('serviceWorker' in navigator) {
+// Blob-URL service workers are blocked on GitHub Pages — skip there
+var _isGHPages = location.hostname.endsWith('.github.io');
+if ('serviceWorker' in navigator && !_isGHPages) {
   var swLines = [
     "const CACHE='vela-v1';",
     "const FONTS=['https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap'];",

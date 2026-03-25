@@ -598,7 +598,7 @@ a:hover { text-decoration: underline; }
 /* Global topbar: always visible on desktop */
 .vela-global-topbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 400;
-  background: #0d1117;
+  background: #161b22;
   border-bottom: 1px solid #30363d;
   display: flex; flex-direction: column;
   font-family: var(--font);
@@ -607,7 +607,7 @@ a:hover { text-decoration: underline; }
 .vela-gtb-row2 {
   height: 45px; display: flex; align-items: stretch;
   padding: 0; overflow-x: auto; overflow-y: hidden;
-  flex-shrink: 0; background: #0d1117;
+  flex-shrink: 0; background: #161b22;
   scrollbar-width: none;
 }
 .vela-gtb-row2::-webkit-scrollbar { display: none; }
@@ -24309,489 +24309,447 @@ function rIntelligence() {
   S.screen = 'intelligence';
 
   var pats = S.patients || [];
-  var bks  = getBookings ? getBookings() : [];
+  var bks  = (typeof getBookings === 'function') ? getBookings() : [];
   var now  = new Date();
-  var thisMonth = now.getMonth(), thisYear = now.getFullYear();
+  var completed = bks.filter(function(b){ return b.status === 'completed'; });
 
-  // ── Pre-compute all metrics ────────────────────────────────────────────────
-  var completedBks = bks.filter(function(b){ return b.status==='completed'; });
-  var noShows      = bks.filter(function(b){ return b.status==='no-show'; });
-  var noShowRate   = bks.length ? Math.round(noShows.length/bks.length*100) : 0;
-
-  var revMonth=0, revYear=0, revTotal=0;
-  bks.forEach(function(b){
-    if (b.status==='cancelled') return;
-    var amt=b.servicePrice||0, d=new Date((b.date||'')+'T12:00');
-    revTotal+=amt;
-    if (d.getFullYear()===thisYear) revYear+=amt;
-    if (d.getMonth()===thisMonth&&d.getFullYear()===thisYear) revMonth+=amt;
-  });
-  var revPerHour = completedBks.length ? Math.round((revTotal/completedBks.length)/(45/60)) : 0;
-
-  var nrsAll=[], improved=0, worsened=0, unchanged=0;
-  var nrsByDiag={};
-  pats.forEach(function(p){
-    var allN=[];
-    (p.visits||[]).forEach(function(v){
-      var diag=(v.form&&v.form.diagnosis||'Okänd').split('(')[0].trim().slice(0,30);
-      (v.logs||[]).forEach(function(l){
-        if(l.nrs!=null){ nrsAll.push(l.nrs); allN.push(l.nrs); nrsByDiag[diag]=nrsByDiag[diag]||[]; nrsByDiag[diag].push(l.nrs); }
-      });
-    });
-    if(allN.length>=2){ var d=allN[0]-allN[allN.length-1]; if(d>0)improved++;else if(d<0)worsened++;else unchanged++; }
-  });
-  var avgNRS = nrsAll.length ? (nrsAll.reduce(function(a,b){return a+b;},0)/nrsAll.length).toFixed(1) : null;
-
-  var diagMap={};
-  pats.forEach(function(p){
-    (p.visits||[]).forEach(function(v){
-      var d=(v.form&&v.form.diagnosis||v.soap&&v.soap.A||'').split('(')[0].trim().slice(0,40);
-      if(d) diagMap[d]=(diagMap[d]||0)+1;
-    });
-  });
-  var diagArr=Object.entries(diagMap).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
-
-  var activePlans=0, adherentPlans=0;
-  pats.forEach(function(p){
-    (p.visits||[]).forEach(function(v){
-      if(!v.plan) return;
-      var tw=v.plan.totalWeeks||4, sd=v.date?new Date(v.date):null;
-      if(!sd||new Date(sd.getTime()+tw*7*86400000)<now) return;
-      activePlans++;
-      var logs=v.logs||[], lastLog=logs.reduce(function(d,l){return l.date&&l.date>d?l.date:d;},'');
-      if(lastLog&&Math.floor((now-new Date(lastLog))/86400000)<=7) adherentPlans++;
-    });
-  });
-  var adherenceRate = activePlans ? Math.round(adherentPlans/activePlans*100) : 0;
-
-  var recidivCount=0;
-  pats.forEach(function(p){
-    var dates=(p.visits||[]).map(function(v){return v.date||'';}).filter(Boolean).sort();
-    for(var i=1;i<dates.length;i++){
-      if(Math.floor((new Date(dates[i])-new Date(dates[i-1]))/86400000)>30){recidivCount++;break;}
-    }
-  });
-  var recidivRate = pats.length ? Math.round(recidivCount/pats.length*100) : 0;
-
-  var engagedPats=pats.filter(function(p){return (p.visits||[]).some(function(v){return (v.logs||[]).length>0;});}).length;
-  var engagementRate = pats.length ? Math.round(engagedPats/pats.length*100) : 0;
-
-  var selfBooked=bks.filter(function(b){return b.source==='portal'||b.source==='online';}).length;
-  var selfBookedRate = bks.length ? Math.round(selfBooked/bks.length*100) : 0;
-
-  var ltvMap={};
-  bks.forEach(function(b){ if(b.patientId&&b.servicePrice&&b.status!=='cancelled') ltvMap[b.patientId]=(ltvMap[b.patientId]||0)+b.servicePrice; });
-  var ltvArr=Object.values(ltvMap);
-  var avgLTV = ltvArr.length ? Math.round(ltvArr.reduce(function(a,b){return a+b;},0)/ltvArr.length) : 0;
-
-  var dropoutHigh=0, dropoutMed=0;
-  if(typeof _clinPriority==='function') pats.forEach(function(p){ var pr=_clinPriority(p); if(pr.level>=3)dropoutHigh++;else if(pr.level>=2)dropoutMed++; });
-
-  // Patient Health Score
-  var patHealthScores=[];
-  pats.forEach(function(p,pi){
-    var nrsList=[]; (p.visits||[]).forEach(function(v){(v.logs||[]).forEach(function(l){if(l.nrs!=null)nrsList.push(l.nrs);});});
-    var nrsScore=50; if(nrsList.length>=2){var drop=nrsList[0]-nrsList[nrsList.length-1]; nrsScore=Math.min(100,Math.max(0,50+drop*8));}
-    var engScore=(p.visits||[]).some(function(v){return (v.logs||[]).length>0;})?75:25;
-    var retScore=Math.min(100,bks.filter(function(b){return b.patientId===p.id&&b.status!=='cancelled';}).length*20);
-    patHealthScores.push(Math.round((nrsScore+engScore+retScore)/3));
-  });
-  var avgHealthScore = patHealthScores.length ? Math.round(patHealthScores.reduce(function(a,b){return a+b;},0)/patHealthScores.length) : 0;
-
-  // Monthly trend (last 6 months)
-  var monthTrend=[];
-  for(var mi=5;mi>=0;mi--){
-    var md=new Date(thisYear,thisMonth-mi,1);
-    var mn=md.getMonth(),my=md.getFullYear();
-    var cnt=bks.filter(function(b){var d=new Date((b.date||'')+'T12:00');return d.getMonth()===mn&&d.getFullYear()===my&&b.status!=='cancelled';}).length;
-    var rev=bks.filter(function(b){var d=new Date((b.date||'')+'T12:00');return d.getMonth()===mn&&d.getFullYear()===my&&b.status!=='cancelled';}).reduce(function(s,b){return s+(b.servicePrice||0);},0);
-    monthTrend.push({label:md.toLocaleDateString('sv-SE',{month:'short'}),cnt:cnt,rev:rev});
-  }
-  var maxTrendCnt=Math.max.apply(null,monthTrend.map(function(m){return m.cnt;}))||1;
-
-  // Services
-  var svcMap={}, svcTotal=0;
-  bks.forEach(function(b){if(b.serviceName){svcMap[b.serviceName]=(svcMap[b.serviceName]||0)+1;svcTotal++;}});
-  var svcArr=Object.entries(svcMap).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
-  var svcColors=['#f0883e','#58a6ff','#3fb950','#d29922','#a371f7','#f85149'];
-
-  // Communications
-  var commTypes={Samtal:0,Mail:0,SMS:0,Möte:0};
-  pats.forEach(function(p){ (p.contactNotes||[]).forEach(function(n){ var t=n.type==='call'?'Samtal':n.type==='email'?'Mail':n.type==='sms'?'SMS':n.type==='meeting'?'Möte':'Samtal'; commTypes[t]=(commTypes[t]||0)+1; }); });
-  var commTotal=Object.values(commTypes).reduce(function(a,b){return a+b;},0);
-
-  var thisMonthBks=bks.filter(function(b){var d=new Date((b.date||'')+'T12:00');return d.getMonth()===thisMonth&&d.getFullYear()===thisYear&&b.status!=='cancelled';});
-
-  // Active nav section
+  // ── Active view ───────────────────────────────────────────────
   var activeView = window._intelView || 'pulse';
 
-  // ── LAYOUT ─────────────────────────────────────────────────────────────────
-  var h = '<div class="gi-wrap">';
-
-  // ── LEFT NAV (GitHub Insights sidebar) ────────────────────────────────────
-  h += '<nav class="gi-nav">';
-  function navItem(id, label) {
-    var on = activeView === id;
-    return '<button class="gi-nav-item'+(on?' gi-nav-on':'')+'" onclick="window._intelView=\''+id+'\';rIntelligence()">'+label+'</button>';
+  // ── Helper: build last-12-weeks time series ───────────────────
+  function weekSeries(n) {
+    var weeks = [];
+    for (var w = n-1; w >= 0; w--) {
+      var d = new Date(now); d.setDate(d.getDate() - w*7);
+      var mo = d.toLocaleDateString('sv-SE',{month:'short'});
+      var wk = Math.ceil(d.getDate()/7);
+      weeks.push({ label: mo + ' v' + wk, ts: d.getTime() });
+    }
+    return weeks;
   }
-  h += navItem('pulse',      'Översikt');
-  h += navItem('kliniska',   'Kliniska');
-  h += navItem('nrs',        'NRS & smärta');
-  h += navItem('diagnoser',  'Diagnoser');
-  h += navItem('verksamhet', 'Intäkter');
-  h += navItem('trend',      'Bokningstrend');
-  h += navItem('tjanster',   'Tjänster');
-  h += navItem('beteende',   'Engagemang');
-  h += navItem('healthscore','Health Score');
-  h += navItem('dropout',    'Avhoppsrisk');
+  var weeks12 = weekSeries(12);
+
+  // ── Chart helpers ─────────────────────────────────────────────
+  function sparkLine(data, color, h, w) {
+    // data = array of numbers. Returns inline SVG polyline.
+    h = h || 60; w = w || 300;
+    if (!data.length) return '<svg width="'+w+'" height="'+h+'"></svg>';
+    var max = Math.max.apply(null, data) || 1;
+    var min = Math.min.apply(null, data.filter(function(v){return v>0;})) || 0;
+    var range = max - min || 1;
+    var pts = data.map(function(v,i){
+      var x = Math.round(i / (data.length-1) * (w-4)) + 2;
+      var y = Math.round(h - 4 - ((v-min)/range)*(h-8));
+      return x+','+y;
+    }).join(' ');
+    return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="overflow:visible">'
+      + '<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'
+      + '<circle cx="'+pts.split(' ').pop().split(',')[0]+'" cy="'+pts.split(' ').pop().split(',')[1]+'" r="3" fill="'+color+'"/>'
+      + '</svg>';
+  }
+
+  function barChart(labels, values, color, h) {
+    h = h || 120;
+    var w = 600;
+    var max = Math.max.apply(null, values) || 1;
+    var bw = Math.floor((w - (labels.length-1)*4) / labels.length);
+    var bars = values.map(function(v,i){
+      var bh = Math.round((v/max)*(h-24));
+      var x = i*(bw+4);
+      var y = h-24-bh;
+      return '<rect x="'+x+'" y="'+y+'" width="'+bw+'" height="'+bh+'" rx="2" fill="'+color+'" fill-opacity="'+(0.5+0.5*(v/max))+'"/>'
+        + '<text x="'+(x+bw/2)+'" y="'+(h-4)+'" text-anchor="middle" font-size="10" fill="#8b949e" font-family="inherit">'+labels[i]+'</text>';
+    }).join('');
+    return '<svg width="100%" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="display:block">'+bars+'</svg>';
+  }
+
+  function areaChart(data, color, h, w) {
+    h = h||120; w = w||600;
+    if (data.length < 2) return '';
+    var max = Math.max.apply(null, data)||1;
+    var pts = data.map(function(v,i){
+      var x = Math.round(i/(data.length-1)*(w-4))+2;
+      var y = Math.round(h-8 - (v/max)*(h-16));
+      return x+','+y;
+    });
+    var ptsStr = pts.join(' ');
+    var first = pts[0], last = pts[pts.length-1];
+    var area = 'M '+first+' '+ptsStr.slice(ptsStr.indexOf(' ')+1)+' L '+last.split(',')[0]+','+(h-4)+' L '+first.split(',')[0]+','+(h-4)+' Z';
+    return '<svg width="100%" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="display:block">'
+      + '<path d="'+area+'" fill="'+color+'" fill-opacity="0.12"/>'
+      + '<polyline points="'+ptsStr+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linejoin="round"/>'
+      + '</svg>';
+  }
+
+  // ── Data computations ─────────────────────────────────────────
+  // Visits per week (last 12 weeks)
+  var visitsPerWeek = weeks12.map(function(wk, i){
+    var next = i < weeks12.length-1 ? weeks12[i+1].ts : Date.now()+1;
+    return completed.filter(function(b){
+      var t = b.date ? new Date(b.date).getTime() : 0;
+      return t >= wk.ts && t < next;
+    }).length;
+  });
+
+  // Revenue per week
+  var revenuePerWeek = weeks12.map(function(wk, i){
+    var next = i < weeks12.length-1 ? weeks12[i+1].ts : Date.now()+1;
+    return completed.filter(function(b){
+      var t = b.date ? new Date(b.date).getTime() : 0;
+      return t >= wk.ts && t < next;
+    }).reduce(function(s,b){ return s + (b.price||b.servicePrice||0); }, 0);
+  });
+
+  // NRS trend (average pain score per week from visit soap)
+  var nrsPerWeek = weeks12.map(function(wk, i){
+    var next = i < weeks12.length-1 ? weeks12[i+1].ts : Date.now()+1;
+    var scores = [];
+    pats.forEach(function(p){
+      (p.visits||[]).forEach(function(v){
+        var t = v.date ? new Date(v.date).getTime() : 0;
+        if (t >= wk.ts && t < next && v.soap && v.soap.S) {
+          var m = v.soap.S.match(/(\d+)\s*\/\s*10|NRS\s*(\d+)|smärta\s*(\d+)/i);
+          if (m) scores.push(parseInt(m[1]||m[2]||m[3]));
+        }
+      });
+    });
+    return scores.length ? Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length*10)/10 : 0;
+  });
+
+  // New patients per week
+  var newPatsPerWeek = weeks12.map(function(wk, i){
+    var next = i < weeks12.length-1 ? weeks12[i+1].ts : Date.now()+1;
+    return pats.filter(function(p){
+      var t = p.createdAt ? new Date(p.createdAt).getTime() : 0;
+      return t >= wk.ts && t < next;
+    }).length;
+  });
+
+  // Dropout risk timeline
+  var dropoutByWeek = weeks12.map(function(wk, i){
+    var next = i < weeks12.length-1 ? weeks12[i+1].ts : Date.now()+1;
+    return pats.filter(function(p){
+      var last = (p.visits||[]).slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0];
+      if (!last || !last.date) return false;
+      var t = new Date(last.date).getTime();
+      return t >= wk.ts && t < next && (Date.now()-t) > 21*86400000;
+    }).length;
+  });
+
+  // Service distribution
+  var svcMap = {};
+  completed.forEach(function(b){ svcMap[b.serviceName||'Övrigt'] = (svcMap[b.serviceName||'Övrigt']||0)+1; });
+  var svcArr = Object.entries(svcMap).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
+
+  // Summary stats
+  var totalVisits = completed.length;
+  var totalRevenue = completed.reduce(function(s,b){return s+((b.price||b.servicePrice)||0);},0);
+  var avgNRS = nrsPerWeek.filter(function(v){return v>0;});
+  var avgNRSVal = avgNRS.length ? Math.round(avgNRS.reduce(function(a,b){return a+b;})/avgNRS.length*10)/10 : 0;
+  var dropoutCount = (typeof _scanDropoutRisks === 'function') ? _scanDropoutRisks().length : 0;
+  var retentionRate = pats.length > 1 ? Math.round((1 - dropoutCount/pats.length)*100) : 100;
+  var weekTrend = visitsPerWeek.slice(-4).reduce(function(a,b){return a+b;},0) > visitsPerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
+
+  // Week labels (short)
+  var wkLabels = weeks12.map(function(w,i){ return i%3===0 ? w.label.split(' ')[0] : ''; });
+
+  // ── CSS ───────────────────────────────────────────────────────
+  var css = '<style>'
+    + '.gi2{display:flex;min-height:calc(100vh - 107px);font-family:var(--font)}'
+    + '.gi2-nav{width:200px;flex-shrink:0;border-right:1px solid #30363d;padding:16px 0;position:sticky;top:107px;height:calc(100vh - 107px);overflow-y:auto}'
+    + '.gi2-nav-item{display:flex;align-items:center;gap:8px;padding:7px 16px;font-size:14px;color:#8b949e;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:var(--font);white-space:nowrap}'
+    + '.gi2-nav-item:hover{background:rgba(177,186,196,.06);color:#e6edf3}'
+    + '.gi2-nav-item.active{color:#e6edf3;font-weight:600;border-left:3px solid #e07628;padding-left:13px}'
+    + '.gi2-main{flex:1;min-width:0;padding:24px 32px 60px}'
+    + '.gi2-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid #30363d}'
+    + '.gi2-title{font-size:20px;font-weight:600;color:#e6edf3}'
+    + '.gi2-subtitle{font-size:13px;color:#8b949e;margin-top:2px}'
+    + '.gi2-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}'
+    + '@media(max-width:900px){.gi2-stats{grid-template-columns:repeat(2,1fr);}}'
+    + '.gi2-stat{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px}'
+    + '.gi2-stat-val{font-size:28px;font-weight:700;color:#e6edf3;line-height:1}'
+    + '.gi2-stat-label{font-size:12px;color:#8b949e;margin-top:4px}'
+    + '.gi2-stat-trend{font-size:12px;margin-top:6px;display:flex;align-items:center;gap:4px}'
+    + '.gi2-chart-card{background:#161b22;border:1px solid #30363d;border-radius:6px;margin-bottom:20px;overflow:hidden}'
+    + '.gi2-chart-header{padding:16px 20px 0;display:flex;align-items:flex-start;justify-content:space-between}'
+    + '.gi2-chart-title{font-size:14px;font-weight:600;color:#e6edf3}'
+    + '.gi2-chart-sub{font-size:12px;color:#8b949e;margin-top:2px}'
+    + '.gi2-chart-body{padding:12px 20px 16px}'
+    + '.gi2-ai-strip{background:rgba(224,118,40,.05);border-top:1px solid rgba(224,118,40,.15);padding:12px 20px;display:flex;align-items:flex-start;gap:10px}'
+    + '.gi2-ai-text{font-size:13px;color:#e6edf3;line-height:1.6;flex:1}'
+    + '.gi2-ai-cta{flex-shrink:0;padding:5px 12px;background:none;border:1px solid #e07628;border-radius:6px;font-size:12px;font-weight:600;color:#e07628;cursor:pointer;font-family:var(--font);white-space:nowrap}'
+    + '.gi2-ai-cta:hover{background:rgba(224,118,40,.1)}'
+    + '.gi2-axis{display:flex;justify-content:space-between;padding:0 2px;margin-top:4px}'
+    + '.gi2-axis span{font-size:10px;color:#8b949e}'
+    + '.gi2-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}'
+    + '.gi2-bar-label{font-size:13px;color:#8b949e;width:140px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+    + '.gi2-bar-track{flex:1;background:#21262d;border-radius:3px;height:12px;overflow:hidden}'
+    + '.gi2-bar-fill{height:100%;border-radius:3px;transition:width .4s}'
+    + '.gi2-bar-val{font-size:12px;color:#8b949e;width:40px;text-align:right;flex-shrink:0}'
+    + '</style>';
+
+  // ── Nav items ─────────────────────────────────────────────────
+  function navI(id, label, icon) {
+    var a = activeView === id;
+    return '<button class="gi2-nav-item'+(a?' active':'')+'" onclick="window._intelView=\''+id+'\';rIntelligence()">'
+      + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="flex-shrink:0;opacity:'+(a?1:.7)+'">'+icon+'</svg>'
+      + label+'</button>';
+  }
+
+  // ── AI interpretation helper ──────────────────────────────────
+  function aiStrip(text, actionLabel, actionFn) {
+    var h2 = '<div class="gi2-ai-strip">';
+    h2 += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e07628" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+    h2 += '<span class="gi2-ai-text">'+text+'</span>';
+    if (actionLabel) {
+      h2 += '<button class="gi2-ai-cta" onclick="'+actionFn+'">'+actionLabel+' →</button>';
+    }
+    h2 += '</div>';
+    return h2;
+  }
+
+  // ── Trend arrow ───────────────────────────────────────────────
+  function trendBadge(curr, prev, unit) {
+    if (!prev) return '';
+    var pct = prev > 0 ? Math.round((curr-prev)/prev*100) : 0;
+    var up = pct >= 0;
+    var col = up ? '#3fb950' : '#f85149';
+    return '<span class="gi2-stat-trend" style="color:'+col+'">'
+      + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+col+'" stroke-width="2.5"><polyline points="'+(up?'18 15 12 9 6 15':'6 9 12 15 18 9')+'"/></svg>'
+      + (up?'+':'')+pct+'% '+(unit||'vs föregående period')+'</span>';
+  }
+
+  // ── BUILD PAGE ────────────────────────────────────────────────
+  var h = css;
+  h += '<div class="gi2">';
+
+  // Left nav (GitHub Insights left sidebar style)
+  h += '<nav class="gi2-nav">';
+  h += navI('pulse',       'Översikt',       '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>');
+  h += navI('besok',       'Besöksvolym',    '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
+  h += navI('intakter',    'Intäkter',       '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>');
+  h += navI('nrs',         'NRS & smärta',   '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>');
+  h += navI('patienter',   'Patienter',      '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>');
+  h += navI('tjanster',    'Tjänster',       '<circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4"/>');
+  h += navI('dropout',     'Avhoppsrisk',    '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>');
   h += '</nav>';
 
-  // ── MAIN CONTENT ───────────────────────────────────────────────────────────
-  h += '<div class="gi-main">';
+  // Main content
+  h += '<div class="gi2-main">';
 
-  // Period selector row (like GitHub's "Period: 1 week")
-  var periodLabel = { pulse:'Senaste månaden', kliniska:'Alla tider', nrs:'Alla tider', diagnoser:'Alla tider', verksamhet:'År '+thisYear, trend:'6 månader', tjanster:'Alla bokningar', beteende:'Alla tider', healthscore:'Nu', dropout:'Nu' }[activeView] || 'Alla tider';
-  h += '<div class="gi-toprow">';
-  h += '<div class="gi-period-info">';
-  var rangeLabel = {
-    pulse: now.toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'}),
-    verksamhet: '1 jan '+thisYear+' — '+now.toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'}),
-    trend: monthTrend[0].label+' — '+monthTrend[5].label+' '+thisYear,
-  }[activeView] || now.toLocaleDateString('sv-SE',{day:'numeric',month:'long',year:'numeric'});
-  h += rangeLabel;
-  h += '</div>';
-  h += '<div class="gi-period-btn">Period: '+periodLabel+' <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></div>';
-  h += '<button class="gi-ai-btn" onclick="_generateIntelligenceReport()">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Generera AI-analys</button>';
-  h += '</div>';
-
-  // ── VIEW CONTENT ───────────────────────────────────────────────────────────
-
-  function statBox(value, label, color) {
-    return '<div class="gi-statbox"><div class="gi-statbox-val" style="color:'+(color||'var(--ink)')+'">'+value+'</div><div class="gi-statbox-lbl">'+label+'</div></div>';
-  }
-  function kpiRow(label, sub, value, color) {
-    return '<div class="gi-kpi-row"><div class="gi-kpi-left"><div class="gi-kpi-label">'+label+'</div><div class="gi-kpi-sub">'+sub+'</div></div><div class="gi-kpi-val" style="color:'+(color||'var(--ink)')+'">'+value+'</div></div>';
-  }
-  function sectionTitle(t, sub) {
-    return '<div class="gi-section-title">'+t+'</div>'+(sub?'<div class="gi-section-sub">'+sub+'</div>':'');
-  }
-  function bar(pct, color) {
-    return '<div class="gi-bar-bg"><div class="gi-bar-fill" style="width:'+pct+'%;background:'+(color||'var(--orange)')+'"></div></div>';
-  }
-
+  // ── PULSE (Översikt) ─────────────────────────────────────────
   if (activeView === 'pulse') {
-    // ── OVERVIEW (Pulse) ─────────────────────────────────────────────────────
-    h += sectionTitle('Översikt', 'Nyckeltal för kliniken');
-    h += '<div class="gi-stat-row">';
-    h += statBox(pats.length, 'Patienter');
-    h += statBox(completedBks.length, 'Genomförda besök');
-    h += statBox(activePlans, 'Aktiva Hael-planer');
-    h += statBox(dropoutHigh||0, 'Hög avhoppsrisk', dropoutHigh>0?'#f85149':undefined);
-    h += '</div>';
+    var prev4v = visitsPerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
+    var curr4v = visitsPerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
+    var prev4r = revenuePerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
+    var curr4r = revenuePerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
 
-    // Summary box (like GitHub's Summary)
-    h += '<div class="gi-summary-wrap">';
-    h += '<div class="gi-summary-box">';
-    h += '<div class="gi-summary-title">Sammanfattning</div>';
-    h += '<div class="gi-summary-body">';
-    var summaryLines = [];
-    if (pats.length) summaryLines.push('<b>'+pats.length+' patienter</b> totalt, varav <b>'+activePlans+'</b> har aktiva rehabplaner.');
-    if (completedBks.length) summaryLines.push('<b>'+completedBks.length+' besök</b> genomförda. Denna månad: <b>'+thisMonthBks.length+'</b>.');
-    if (avgNRS) summaryLines.push('Genomsnittlig NRS: <b>'+avgNRS+'</b>. <b>'+improved+' patienter</b> visar förbättring.');
-    if (revTotal) summaryLines.push('Total intäkt: <b>'+revTotal.toLocaleString('sv-SE')+' kr</b>. Denna månad: <b>'+(revMonth||0).toLocaleString('sv-SE')+' kr</b>.');
-    if (!summaryLines.length) summaryLines.push('Lägg till patienter och bokningar för att se en sammanfattning.');
-    h += summaryLines.join('<br>');
+    h += '<div class="gi2-header"><div>';
+    h += '<div class="gi2-title">Kliniken — Översikt</div>';
+    h += '<div class="gi2-subtitle">De senaste 12 veckorna · Uppdaterad nu</div>';
     h += '</div></div>';
 
-    // Top metrics (like GitHub's Top Committers)
-    h += '<div class="gi-top-box">';
-    h += '<div class="gi-summary-title">Patient Health Score</div>';
-    var hsBands=[{lbl:'Utmärkt',min:80,col:'#3fb950'},{lbl:'God',min:60,col:'#58a6ff'},{lbl:'Låg',min:40,col:'#d29922'},{lbl:'Kritisk',min:0,col:'#f85149'}];
-    if (patHealthScores.length) {
-      h += '<div style="margin-bottom:10px"><span style="font-size:32px;font-weight:800;color:'+(avgHealthScore>=70?'#3fb950':avgHealthScore>=50?'#d29922':'#f85149')+'">'+avgHealthScore+'</span><span style="font-size:13px;color:var(--text2);margin-left:6px">/ 100 genomsnitt</span></div>';
-      hsBands.forEach(function(band){
-        var cnt=patHealthScores.filter(function(s){return s>=band.min;}).length;
-        var pct=patHealthScores.length?Math.round(cnt/patHealthScores.length*100):0;
-        h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
-        h += '<span style="width:10px;height:10px;border-radius:50%;background:'+band.col+';flex-shrink:0"></span>';
-        h += '<span style="font-size:13px;color:var(--text);flex:1">'+band.lbl+'</span>';
-        h += '<span style="font-size:13px;font-weight:600;color:var(--ink)">'+cnt+'</span>';
-        h += '<div style="width:80px;height:4px;background:var(--border);border-radius:2px"><div style="width:'+pct+'%;height:100%;background:'+band.col+';border-radius:2px"></div></div>';
-        h += '</div>';
-      });
-    } else {
-      h += '<div style="color:var(--text2);font-size:13px">Inga data ännu.</div>';
-    }
-    h += '</div></div>'; // summary-wrap
+    // 4 stat boxes
+    h += '<div class="gi2-stats">';
+    h += '<div class="gi2-stat"><div class="gi2-stat-val">'+totalVisits+'</div><div class="gi2-stat-label">Genomförda besök</div>'+trendBadge(curr4v,prev4v,'4 v')+'</div>';
+    h += '<div class="gi2-stat"><div class="gi2-stat-val">'+(totalRevenue>0?totalRevenue.toLocaleString('sv-SE')+'kr':'–')+'</div><div class="gi2-stat-label">Total intäkt</div>'+trendBadge(curr4r,prev4r,'4 v')+'</div>';
+    h += '<div class="gi2-stat"><div class="gi2-stat-val">'+pats.length+'</div><div class="gi2-stat-label">Aktiva patienter</div></div>';
+    h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(retentionRate>=80?'#3fb950':'#f85149')+'">'+retentionRate+'%</div><div class="gi2-stat-label">Retention</div></div>';
+    h += '</div>';
 
-  } else if (activeView === 'kliniska') {
-    // ── KLINISKA ─────────────────────────────────────────────────────────────
-    h += sectionTitle('Kliniska parametrar', 'Behandlingsutfall och patienthälsa');
-    h += '<div class="gi-stat-row">';
-    h += statBox(improved, 'NRS förbättrade', '#3fb950');
-    h += statBox(unchanged, 'NRS oförändrade', '#d29922');
-    h += statBox(worsened, 'NRS försämrade', '#f85149');
-    h += statBox(avgNRS||'—', 'Genomsnittlig NRS');
+    // Besök-area chart
+    h += '<div class="gi2-chart-card">';
+    h += '<div class="gi2-chart-header"><div><div class="gi2-chart-title">Besöksvolym — senaste 12 veckor</div><div class="gi2-chart-sub">Genomförda besök per vecka</div></div></div>';
+    h += '<div class="gi2-chart-body">'+areaChart(visitsPerWeek,'#3fb950',120,600);
+    h += '<div class="gi2-axis">'+wkLabels.map(function(l){return '<span>'+l+'</span>';}).join('')+'</div>';
     h += '</div>';
-    h += '<div class="gi-content-row">';
-    h += '<div class="gi-content-box" style="flex:1">';
-    h += '<div class="gi-box-title">Patientmönster</div>';
-    h += kpiRow('Recidivfrekvens', 'Återkom efter >30 dagars paus', recidivRate+'%', recidivRate>30?'#f85149':'#3fb950');
-    h += kpiRow('Följsamhetsindex', 'Aktiva planer med loggning senaste 7 dagar', adherenceRate+'%', adherenceRate<60?'#f85149':adherenceRate<80?'#d29922':'#3fb950');
-    h += kpiRow('NRS förbättrade', 'Av patienter med ≥2 mätningar', improved+' / '+(improved+worsened+unchanged));
-    h += kpiRow('Aktiva Hael-planer', 'Pågående rehabprogram', activePlans+'');
+    var aiVisit = curr4v > prev4v
+      ? 'Positiv trend — besöksvolymen ökade med '+(curr4v-prev4v)+' besök de senaste 4 veckorna. Håll den höga beläggningen.'
+      : (curr4v < prev4v
+        ? 'Besöksvolymen har minskat med '+(prev4v-curr4v)+' besök de senaste 4 veckorna. '+dropoutCount+' patienter visar avhoppsrisk.'
+        : 'Stabil besöksvolym. Inga dramatiska förändringar att rapportera.');
+    var needAction = curr4v < prev4v && dropoutCount > 0;
+    h += aiStrip(aiVisit, needAction?'Visa avhoppsrisk':null, "window._actionsType='dropout';go('actions')");
     h += '</div>';
-    h += '<div class="gi-content-box" style="flex:1">';
-    h += '<div class="gi-box-title">NRS per diagnos</div>';
-    if (Object.keys(nrsByDiag).length) {
-      Object.entries(nrsByDiag).slice(0,6).forEach(function(entry){
-        var vals=entry[1], avg=(vals.reduce(function(a,b){return a+b;},0)/vals.length).toFixed(1);
-        var col=parseFloat(avg)>=7?'#f85149':parseFloat(avg)>=4?'#d29922':'#3fb950';
-        h += kpiRow(entry[0].slice(0,28), vals.length+' mätningar', avg, col);
-      });
-    } else {
-      h += '<div style="color:var(--text2);font-size:13px;margin-top:12px">Inga NRS-data ännu.</div>';
+
+    // Intäkter sparkline
+    if (totalRevenue > 0) {
+      h += '<div class="gi2-chart-card">';
+      h += '<div class="gi2-chart-header"><div><div class="gi2-chart-title">Intäktstrend</div><div class="gi2-chart-sub">Intäkter per vecka (kr)</div></div></div>';
+      h += '<div class="gi2-chart-body">'+areaChart(revenuePerWeek,'#58a6ff',100,600);
+      h += '<div class="gi2-axis">'+wkLabels.map(function(l){return '<span>'+l+'</span>';}).join('')+'</div>';
+      h += '</div>';
+      var revTrend = curr4r > prev4r ? 'Intäkterna stiger. ' : (curr4r < prev4r ? 'Intäkterna minskar. ' : 'Intäkterna är stabila. ');
+      h += aiStrip(revTrend + 'Genomsnittlig intäkt per besök: ' + (totalVisits>0?Math.round(totalRevenue/totalVisits).toLocaleString('sv-SE')+'kr':'–'));
+      h += '</div>';
     }
+
+  // ── BESÖKSVOLYM ───────────────────────────────────────────────
+  } else if (activeView === 'besok') {
+    h += '<div class="gi2-header"><div><div class="gi2-title">Besöksvolym</div><div class="gi2-subtitle">Genomförda besök per vecka</div></div></div>';
+
+    h += '<div class="gi2-chart-card">';
+    h += '<div class="gi2-chart-header"><div><div class="gi2-chart-title">Besök per vecka — 12 veckor</div></div></div>';
+    h += '<div class="gi2-chart-body">'+areaChart(visitsPerWeek,'#3fb950',160,600);
+    h += '<div class="gi2-axis">'+weeks12.map(function(w,i){return '<span>'+(i%2===0?w.label.replace('v','v.'):'')+'</span>';}).join('')+'</div>';
+    h += '</div>';
+    var peakWk = visitsPerWeek.indexOf(Math.max.apply(null,visitsPerWeek));
+    var aiText = 'Totalt '+totalVisits+' besök de senaste 12 veckorna.';
+    if (peakWk >= 0) aiText += ' Toppar under '+weeks12[peakWk].label+' med '+visitsPerWeek[peakWk]+' besök.';
+    var low4 = visitsPerWeek.slice(-4).filter(function(v){return v===0;}).length;
+    if (low4 > 1) aiText += ' <strong style="color:#f85149">'+low4+' veckor utan besök</strong> — kontrollera kalender och bokningar.';
+    h += aiStrip(aiText, low4>0?'Ny bokning':null, "openBookingDialog&&openBookingDialog()");
+    h += '</div>';
+
+    // Bar chart
+    h += '<div class="gi2-chart-card">';
+    h += '<div class="gi2-chart-header"><div><div class="gi2-chart-title">Fördelning per veckodag</div></div></div>';
+    h += '<div class="gi2-chart-body">';
+    var days = ['Mån','Tis','Ons','Tor','Fre','Lör','Sön'];
+    var byday = [0,0,0,0,0,0,0];
+    completed.forEach(function(b){ if(b.date){ var d=new Date(b.date).getDay(); byday[(d+6)%7]++; }});
+    var maxD = Math.max.apply(null,byday)||1;
+    byday.forEach(function(v,i){
+      h += '<div class="gi2-bar-row">';
+      h += '<span class="gi2-bar-label">'+days[i]+'</span>';
+      h += '<div class="gi2-bar-track"><div class="gi2-bar-fill" style="width:'+Math.round(v/maxD*100)+'%;background:#3fb950"></div></div>';
+      h += '<span class="gi2-bar-val">'+v+'</span>';
+      h += '</div>';
+    });
     h += '</div></div>';
 
+  // ── INTÄKTER ──────────────────────────────────────────────────
+  } else if (activeView === 'intakter') {
+    h += '<div class="gi2-header"><div><div class="gi2-title">Intäkter</div><div class="gi2-subtitle">Ekonomisk översikt</div></div></div>';
+    if (totalRevenue === 0) {
+      h += '<div style="padding:40px;text-align:center;color:#8b949e;font-size:14px">Ingen intäktsdata ännu — lägg till priser på dina tjänster i Inställningar.</div>';
+    } else {
+      h += '<div class="gi2-stats">';
+      h += '<div class="gi2-stat"><div class="gi2-stat-val">'+totalRevenue.toLocaleString('sv-SE')+'kr</div><div class="gi2-stat-label">Total intäkt</div></div>';
+      h += '<div class="gi2-stat"><div class="gi2-stat-val">'+(totalVisits>0?Math.round(totalRevenue/totalVisits).toLocaleString('sv-SE')+'kr':'–')+'</div><div class="gi2-stat-label">Snitt per besök</div></div>';
+      var monthlyRev = revenuePerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
+      h += '<div class="gi2-stat"><div class="gi2-stat-val">'+monthlyRev.toLocaleString('sv-SE')+'kr</div><div class="gi2-stat-label">Senaste 4 veckor</div></div>';
+      h += '<div class="gi2-stat"><div class="gi2-stat-val">'+Math.round(monthlyRev*13/1000)+'k kr</div><div class="gi2-stat-label">Prognos (år)</div></div>';
+      h += '</div>';
+      h += '<div class="gi2-chart-card">';
+      h += '<div class="gi2-chart-header"><div><div class="gi2-chart-title">Intäkt per vecka (kr)</div></div></div>';
+      h += '<div class="gi2-chart-body">'+areaChart(revenuePerWeek,'#58a6ff',160,600);
+      h += '<div class="gi2-axis">'+wkLabels.map(function(l){return '<span>'+l+'</span>';}).join('')+'</div>';
+      h += '</div>';
+      var revAI = curr4r > prev4r
+        ? 'Intäkterna ökade med '+Math.round((curr4r-prev4r)/100)*100+' kr de senaste 4 veckorna (+'+Math.round((curr4r-prev4r)/Math.max(prev4r,1)*100)+'%). Bra momentum.'
+        : 'Intäkterna minskade med '+Math.round((prev4r-curr4r)/100)*100+' kr. Överväg att höja priser eller öka bokningsfrekvensen.';
+      h += aiStrip(revAI);
+      h += '</div>';
+    }
+
+  // ── NRS & SMÄRTA ──────────────────────────────────────────────
   } else if (activeView === 'nrs') {
-    // ── NRS & SMÄRTA ─────────────────────────────────────────────────────────
-    h += sectionTitle('NRS & smärta', 'Smärtreduktion och behandlingsrespons');
-    h += '<div class="gi-stat-row">';
-    h += statBox(nrsAll.length, 'Totala NRS-mätningar');
-    h += statBox(avgNRS||'—', 'Genomsnitt');
-    h += statBox(Math.min.apply(null,nrsAll)||'—', 'Lägst');
-    h += statBox(Math.max.apply(null,nrsAll)||'—', 'Högst');
-    h += '</div>';
-    // NRS distribution bar
-    if (nrsAll.length) {
-      h += '<div class="gi-content-box">';
-      h += '<div class="gi-box-title">Fördelning NRS 0–10</div>';
-      for (var nr=0; nr<=10; nr++) {
-        var cnt=nrsAll.filter(function(n){return n===nr;}).length;
-        var pct=Math.round(cnt/nrsAll.length*100);
-        var col=nr>=7?'#f85149':nr>=4?'#d29922':'#3fb950';
-        h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:5px">';
-        h += '<span style="font-size:12px;color:var(--text2);width:16px;text-align:right">'+nr+'</span>';
-        h += '<div style="flex:1;height:14px;background:var(--surface2);border-radius:3px"><div style="height:100%;width:'+pct+'%;background:'+col+';border-radius:3px"></div></div>';
-        h += '<span style="font-size:12px;color:var(--text2);width:28px">'+cnt+'</span>';
-        h += '</div>';
-      }
+    h += '<div class="gi2-header"><div><div class="gi2-title">NRS & Smärttrend</div><div class="gi2-subtitle">Genomsnittlig smärtnivå från journaler</div></div></div>';
+    var hasNRS = nrsPerWeek.some(function(v){return v>0;});
+    if (!hasNRS) {
+      h += '<div style="padding:40px;text-align:center;color:#8b949e;font-size:14px">NRS-data samlas automatiskt från SOAP-journaler. Dokumentera NRS i Subjektivt-fältet (ex: "NRS 4/10").</div>';
+    } else {
+      h += '<div class="gi2-chart-card">';
+      h += '<div class="gi2-chart-header"><div><div class="gi2-chart-title">Genomsnittlig NRS per vecka</div><div class="gi2-chart-sub">Lägre = bättre. Hämtas från journalnoteringar.</div></div></div>';
+      h += '<div class="gi2-chart-body">'+areaChart(nrsPerWeek,'#f78166',140,600);
+      h += '<div class="gi2-axis">'+wkLabels.map(function(l){return '<span>'+l+'</span>';}).join('')+'</div>';
+      h += '</div>';
+      var nrsLast = nrsPerWeek.filter(function(v){return v>0;}).slice(-3);
+      var nrsTrend = nrsLast.length > 1 ? nrsLast[nrsLast.length-1] - nrsLast[0] : 0;
+      var nrsAI = nrsTrend < 0
+        ? 'Positiv trend — genomsnittlig smärta minskar. Patienterna svarar bra på behandling.'
+        : (nrsTrend > 0.5
+          ? 'Smärtnivåerna stiger. Granska behandlingsprotokoll och överväg att justera Hael-planerna.'
+          : 'Stabil smärtnivå. Snitt: '+(avgNRSVal||0)+'/10.');
+      h += aiStrip(nrsAI, nrsTrend>0.5?'Granska åtgärder':null, "go('actions')");
       h += '</div>';
     }
 
-  } else if (activeView === 'diagnoser') {
-    // ── DIAGNOSER ────────────────────────────────────────────────────────────
-    h += sectionTitle('Diagnosfördelning', 'Vanligaste behandlade diagnoser');
-    h += '<div class="gi-stat-row">';
-    h += statBox(diagArr.length, 'Unika diagnoser');
-    h += statBox(pats.filter(function(p){return (p.visits||[]).some(function(v){return v.form&&v.form.diagnosis;});}).length, 'Diagnosatte patienter');
+  // ── PATIENTER ─────────────────────────────────────────────────
+  } else if (activeView === 'patienter') {
+    h += '<div class="gi2-header"><div><div class="gi2-title">Patienttillväxt</div><div class="gi2-subtitle">Nya patienter per vecka</div></div></div>';
+    h += '<div class="gi2-chart-card">';
+    h += '<div class="gi2-chart-header"><div><div class="gi2-chart-title">Nya patienter — 12 veckor</div></div></div>';
+    h += '<div class="gi2-chart-body">'+areaChart(newPatsPerWeek,'#e07628',120,600);
+    h += '<div class="gi2-axis">'+wkLabels.map(function(l){return '<span>'+l+'</span>';}).join('')+'</div>';
     h += '</div>';
-    h += '<div class="gi-content-box">';
-    var maxD=diagArr[0]?diagArr[0][1]:1;
-    diagArr.forEach(function(d,i){
-      var pct=Math.round(d[1]/maxD*100);
-      h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">';
-      h += '<span style="font-size:13px;color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+e(d[0])+'</span>';
-      h += '<div style="width:200px;height:10px;background:var(--surface2);border-radius:4px;flex-shrink:0"><div style="height:100%;width:'+pct+'%;background:var(--orange);border-radius:4px"></div></div>';
-      h += '<span style="font-size:13px;font-weight:600;color:var(--ink);width:24px;text-align:right">'+d[1]+'</span>';
-      h += '</div>';
-    });
-    if (!diagArr.length) h += '<div style="color:var(--text2);font-size:13px">Inga diagnosregistrerade besök ännu.</div>';
+    var newLast4 = newPatsPerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
+    var newPrev4 = newPatsPerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
+    var patAI = 'Totalt '+pats.length+' patienter. '+newLast4+' nya de senaste 4 veckorna.';
+    patAI += newLast4 > newPrev4 ? ' Tillväxten är positiv.' : (newLast4 < newPrev4 ? ' Färre nya patienter — aktivera din bokningssida?' : ' Stabil tillväxt.');
+    h += aiStrip(patAI, newLast4 < newPrev4 ? 'Dela bokningslänk' : null, "go('settings')");
     h += '</div>';
 
-  } else if (activeView === 'verksamhet') {
-    // ── INTÄKTER ─────────────────────────────────────────────────────────────
-    h += sectionTitle('Intäkter', 'Ekonomisk översikt');
-    h += '<div class="gi-stat-row">';
-    h += statBox(revMonth?(revMonth.toLocaleString('sv-SE')+' kr'):'—', 'Denna månad');
-    h += statBox(revYear?(revYear.toLocaleString('sv-SE')+' kr'):'—', 'År '+thisYear);
-    h += statBox(revTotal?(revTotal.toLocaleString('sv-SE')+' kr'):'—', 'Totalt');
-    h += statBox(revPerHour?(revPerHour.toLocaleString('sv-SE')+' kr'):'—', 'Per timme');
-    h += '</div>';
-    h += '<div class="gi-content-box">';
-    h += '<div class="gi-box-title">Verksamhetsmått</div>';
-    h += kpiRow('Genomsnittligt LTV', 'Total intäkt per patient', avgLTV+' kr');
-    h += kpiRow('No-show-frekvens', noShows.length+' uteblivna av '+bks.length+' bokningar', noShowRate+'%', noShowRate>15?'#f85149':noShowRate>8?'#d29922':'#3fb950');
-    h += kpiRow('Besök denna månad', 'Bekräftade + genomförda', thisMonthBks.length+'');
-    h += kpiRow('Genomförda totalt', 'Alla slutförda besök', completedBks.length+'', '#3fb950');
-    h += '</div>';
-
-  } else if (activeView === 'trend') {
-    // ── BOKNINGSTREND ─────────────────────────────────────────────────────────
-    h += sectionTitle('Bokningstrend', 'Antal bokningar per månad, senaste 6 månader');
-    h += '<div class="gi-content-box">';
-    h += '<div class="gi-box-title">Bokningar per månad</div>';
-    h += '<div style="display:flex;align-items:flex-end;gap:16px;height:120px;margin:16px 0 8px;padding:0 8px">';
-    monthTrend.forEach(function(m){
-      var h2=Math.max(4,Math.round((m.cnt/maxTrendCnt)*100));
-      h += '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">';
-      h += '<div style="font-size:12px;color:var(--text2)">'+m.cnt+'</div>';
-      h += '<div style="width:100%;height:'+h2+'px;background:var(--orange);border-radius:3px 3px 0 0"></div>';
-      h += '</div>';
-    });
-    h += '</div>';
-    h += '<div style="display:flex;gap:16px;padding:0 8px">';
-    monthTrend.forEach(function(m){
-      h += '<div style="flex:1;text-align:center;font-size:12px;color:var(--text2)">'+m.label+'</div>';
-    });
-    h += '</div></div>';
-
-    // Säsongsprediktion
-    h += '<div class="gi-content-box" style="margin-top:12px">';
-    h += '<div class="gi-box-title">Säsongsprediktion — nästa 3 månader</div>';
-    h += '<div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">';
-    for(var pm=1;pm<=3;pm++){
-      var predMonth=new Date(thisYear,thisMonth+pm,1);
-      var predM=predMonth.getMonth(),predY=predMonth.getFullYear();
-      var lastY=bks.filter(function(b){var d=new Date((b.date||'')+'T12:00');return d.getMonth()===predM&&d.getFullYear()===predY-1;}).length;
-      var tf=monthTrend.length>=2?(monthTrend[monthTrend.length-1].cnt/(monthTrend[monthTrend.length-2].cnt||1)):1;
-      var predicted=Math.round((lastY||thisMonthBks.length)*Math.min(1.4,Math.max(0.6,tf)));
-      h += '<div style="flex:1;min-width:100px;border:1px solid var(--border);border-radius:6px;padding:14px;text-align:center">';
-      h += '<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)">'+predMonth.toLocaleDateString('sv-SE',{month:'long'})+'</div>';
-      h += '<div style="font-size:28px;font-weight:800;color:var(--ink);margin:6px 0">~'+predicted+'</div>';
-      h += '<div style="font-size:12px;color:var(--text2)">förv. besök</div>';
-      h += '</div>';
-    }
-    h += '</div></div>';
-
+  // ── TJÄNSTER ──────────────────────────────────────────────────
   } else if (activeView === 'tjanster') {
-    // ── TJÄNSTER ─────────────────────────────────────────────────────────────
-    h += sectionTitle('Tjänstefördelning', 'Bokningar per tjänst');
-    h += '<div class="gi-stat-row">';
-    h += statBox(svcArr.length, 'Tjänster med bokningar');
-    h += statBox(svcTotal, 'Totala bokningar');
-    h += '</div>';
-    h += '<div class="gi-content-box">';
-    if (svcArr.length && svcTotal) {
-      h += '<div style="height:8px;border-radius:4px;overflow:hidden;display:flex;margin-bottom:16px">';
-      svcArr.forEach(function(s,i){ h += '<div style="width:'+Math.round(s[1]/svcTotal*100)+'%;background:'+svcColors[i]+'" title="'+e(s[0])+'"></div>'; });
-      h += '</div>';
-      svcArr.forEach(function(s,i){
-        var pct=Math.round(s[1]/svcTotal*100);
-        h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
-        h += '<span style="width:10px;height:10px;border-radius:50%;background:'+svcColors[i]+';flex-shrink:0"></span>';
-        h += '<span style="font-size:14px;color:var(--ink);flex:1">'+e(s[0])+'</span>';
-        h += '<span style="font-size:13px;color:var(--text2)">'+s[1]+' bokn.</span>';
-        h += '<span style="font-size:13px;font-weight:600;color:var(--ink);width:36px;text-align:right">'+pct+'%</span>';
-        h += '</div>';
-      });
+    h += '<div class="gi2-header"><div><div class="gi2-title">Tjänster</div><div class="gi2-subtitle">Vilka tjänster bokas mest</div></div></div>';
+    if (!svcArr.length) {
+      h += '<div style="padding:40px;text-align:center;color:#8b949e;font-size:14px">Ingen tjänstedata. Lägg till tjänster under Inställningar.</div>';
     } else {
-      h += '<div style="color:var(--text2);font-size:13px">Inga bokningar med tjänstedata ännu.</div>';
-    }
-    h += '</div>';
-
-  } else if (activeView === 'beteende') {
-    // ── ENGAGEMANG ───────────────────────────────────────────────────────────
-    h += sectionTitle('Patientengagemang & beteende', 'Aktivitet och kommunikation');
-    h += '<div class="gi-stat-row">';
-    h += statBox(engagementRate+'%', 'Portal-engagemang', engagementRate<50?'#f85149':engagementRate<70?'#d29922':'#3fb950');
-    h += statBox(selfBookedRate+'%', 'Självbokade');
-    h += statBox(adherenceRate+'%', 'Följsamhet rehabplan', adherenceRate<60?'#f85149':'#3fb950');
-    h += statBox(commTotal||0, 'Kontakttillfällen');
-    h += '</div>';
-    h += '<div class="gi-content-row">';
-    h += '<div class="gi-content-box" style="flex:1">';
-    h += '<div class="gi-box-title">Bokningsbeteende</div>';
-    h += kpiRow('Självbokade via portal', 'Bokat utan behandlarassistans', selfBookedRate+'%');
-    h += kpiRow('No-show-frekvens', 'Uteblivna bokningar', noShowRate+'%', noShowRate>15?'#f85149':undefined);
-    h += kpiRow('Recidivpatienter', 'Återkom efter >30 dagars paus', recidivRate+'%');
-    h += kpiRow('Aktiva rehabplaner', 'Pågående Hael-program', activePlans+'');
-    h += '</div>';
-    h += '<div class="gi-content-box" style="flex:1">';
-    h += '<div class="gi-box-title">Kommunikationslogg</div>';
-    if (commTotal) {
-      Object.entries(commTypes).forEach(function(entry){
-        var pct=Math.round(entry[1]/commTotal*100);
-        h += '<div style="margin-bottom:10px">';
-        h += '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><span style="color:var(--ink)">'+entry[0]+'</span><span style="color:var(--text2)">'+entry[1]+'</span></div>';
-        h += bar(pct);
-        h += '</div>';
-      });
-    } else {
-      h += '<div style="color:var(--text2);font-size:13px;margin-top:8px">Lägg till kontaktnotat på patienter.</div>';
-    }
-    h += '</div></div>';
-
-  } else if (activeView === 'healthscore') {
-    // ── HEALTH SCORE ─────────────────────────────────────────────────────────
-    h += sectionTitle('Patient Health Score', 'Viktat mått: klinisk progress + följsamhet + engagemang');
-    h += '<div class="gi-stat-row">';
-    var hsColor = avgHealthScore>=70?'#3fb950':avgHealthScore>=50?'#d29922':'#f85149';
-    h += statBox(avgHealthScore, 'Genomsnitt', hsColor);
-    h += statBox(patHealthScores.filter(function(s){return s>=80;}).length, 'Utmärkt (80+)', '#3fb950');
-    h += statBox(patHealthScores.filter(function(s){return s<40;}).length, 'Kritisk (<40)', '#f85149');
-    h += statBox(patHealthScores.length, 'Totalt patienter');
-    h += '</div>';
-    h += '<div class="gi-content-box">';
-    h += '<div class="gi-box-title">Fördelning per patient</div>';
-    var hsBands2=[{lbl:'80–100 Utmärkt',min:80,max:101,col:'#3fb950'},{lbl:'60–79 God',min:60,max:80,col:'#58a6ff'},{lbl:'40–59 Låg',min:40,max:60,col:'#d29922'},{lbl:'0–39 Kritisk',min:0,max:40,col:'#f85149'}];
-    hsBands2.forEach(function(band){
-      var cnt=patHealthScores.filter(function(s){return s>=band.min&&s<band.max;}).length;
-      var pct=patHealthScores.length?Math.round(cnt/patHealthScores.length*100):0;
-      h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">';
-      h += '<span style="font-size:13px;color:var(--text);width:130px;flex-shrink:0">'+band.lbl+'</span>';
-      h += '<div style="flex:1;height:14px;background:var(--surface2);border-radius:3px"><div style="height:100%;width:'+pct+'%;background:'+band.col+';border-radius:3px"></div></div>';
-      h += '<span style="font-size:13px;font-weight:600;color:var(--ink);width:20px;text-align:right">'+cnt+'</span>';
-      h += '</div>';
-    });
-    h += '</div>';
-    // Low score patient list
-    var lowPats=pats.filter(function(p,i){return patHealthScores[i]<40;});
-    if (lowPats.length) {
-      h += '<div class="gi-content-box" style="margin-top:12px">';
-      h += '<div class="gi-box-title" style="color:#f85149">⚠ Patienter under 40 — kräver uppmärksamhet</div>';
-      lowPats.slice(0,8).forEach(function(p){
-        var score=patHealthScores[pats.indexOf(p)];
-        h += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2);cursor:pointer" onclick="openPat(\''+e(p.id)+'\')">';
-        h += '<div style="width:8px;height:8px;border-radius:50%;background:#f85149;flex-shrink:0"></div>';
-        h += '<span style="font-size:14px;color:var(--teal);flex:1">'+e(p.name)+'</span>';
-        h += '<span style="font-size:14px;font-weight:700;color:#f85149">'+score+'</span>';
+      var svcTotal = svcArr.reduce(function(s,v){return s+v[1];},0);
+      h += '<div class="gi2-chart-card"><div class="gi2-chart-header"><div><div class="gi2-chart-title">Bokningar per tjänst</div></div></div>';
+      h += '<div class="gi2-chart-body">';
+      var colors = ['#3fb950','#58a6ff','#e07628','#a371f7','#f78166','#d29922'];
+      svcArr.forEach(function(sv,i){
+        h += '<div class="gi2-bar-row">';
+        h += '<span class="gi2-bar-label">'+e(sv[0])+'</span>';
+        h += '<div class="gi2-bar-track"><div class="gi2-bar-fill" style="width:'+Math.round(sv[1]/svcTotal*100)+'%;background:'+colors[i%colors.length]+'"></div></div>';
+        h += '<span class="gi2-bar-val">'+sv[1]+'</span>';
         h += '</div>';
       });
       h += '</div>';
+      h += aiStrip('"'+e(svcArr[0][0])+'" är din mest bokade tjänst ('+Math.round(svcArr[0][1]/svcTotal*100)+'% av alla besök). Överväg att höja kapaciteten eller priset.');
+      h += '</div>';
     }
 
+  // ── AVHOPPSRISK ───────────────────────────────────────────────
   } else if (activeView === 'dropout') {
-    // ── AVHOPPSRISK ──────────────────────────────────────────────────────────
-    h += sectionTitle('Avhoppsrisk', 'Patienter med risk att avbryta behandling');
-    h += '<div class="gi-stat-row">';
-    h += statBox(dropoutHigh, 'Hög risk', dropoutHigh>0?'#f85149':undefined);
-    h += statBox(dropoutMed, 'Medelhög risk', dropoutMed>0?'#d29922':undefined);
-    h += statBox(pats.length-(dropoutHigh+dropoutMed), 'Låg risk', '#3fb950');
-    h += statBox(pats.length, 'Totalt');
+    h += '<div class="gi2-header"><div><div class="gi2-title">Avhoppsrisk</div><div class="gi2-subtitle">Patienter som riskerar att avsluta behandlingen</div></div></div>';
+    h += '<div class="gi2-stats">';
+    h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(retentionRate>=80?'#3fb950':'#f85149')+'">'+retentionRate+'%</div><div class="gi2-stat-label">Retention</div></div>';
+    h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(dropoutCount>0?'#f85149':'#3fb950')+'">'+dropoutCount+'</div><div class="gi2-stat-label">Hög risk nu</div></div>';
+    h += '<div class="gi2-stat"><div class="gi2-stat-val">'+pats.length+'</div><div class="gi2-stat-label">Totalt patienter</div></div>';
+    h += '<div class="gi2-stat"><div class="gi2-stat-val">'+Math.max(0,pats.length-dropoutCount)+'</div><div class="gi2-stat-label">Aktiva & stabila</div></div>';
     h += '</div>';
-    h += '<div class="gi-content-box">';
-    h += '<div class="gi-box-title">Riskfaktorer</div>';
-    h += kpiRow('Ingen loggning senaste 14 dagar', 'Signal: ej aktiv i portalen', '—');
-    h += kpiRow('NRS oförändrad ≥4 veckor', 'Signal: utebliven klinisk progress', '—');
-    h += kpiRow('Ingen återbokning', 'Signal: avslutad behandling utan plan', '—');
-    h += kpiRow('Utebliven bokning (no-show)', 'Signal: minskad följsamhet', noShowRate+'%', noShowRate>15?'#f85149':undefined);
+
+    h += '<div class="gi2-chart-card">';
+    h += '<div class="gi2-chart-header"><div><div class="gi2-chart-title">Avhoppstrend per vecka</div><div class="gi2-chart-sub">Antal patienter som ej återkommit efter senaste besök</div></div></div>';
+    h += '<div class="gi2-chart-body">'+areaChart(dropoutByWeek,'#f85149',120,600);
+    h += '<div class="gi2-axis">'+wkLabels.map(function(l){return '<span>'+l+'</span>';}).join('')+'</div>';
     h += '</div>';
-    if (typeof _clinPriority === 'function') {
-      var highRiskPats=pats.filter(function(p){return _clinPriority(p).level>=3;});
-      if (highRiskPats.length) {
-        h += '<div class="gi-content-box" style="margin-top:12px">';
-        h += '<div class="gi-box-title" style="color:#f85149">Hög avhoppsrisk</div>';
-        highRiskPats.slice(0,8).forEach(function(p){
-          var pr=_clinPriority(p);
-          h += '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border2);cursor:pointer" onclick="openPat(\''+e(p.id)+'\')">';
-          h += '<div style="width:8px;height:8px;border-radius:50%;background:#f85149;flex-shrink:0"></div>';
-          h += '<span style="font-size:14px;color:var(--teal);flex:1">'+e(p.name)+'</span>';
-          h += '<span style="font-size:12px;color:var(--text2)">'+e((pr.signals||[]).slice(0,2).join(' · '))+'</span>';
-          h += '</div>';
-        });
+    var dAI = dropoutCount > 0
+      ? dropoutCount+' patienter har hög avhoppsrisk. Jag kan generera personliga återaktiveringsmeddelanden för varje patient.'
+      : 'Inga patienter med hög avhoppsrisk för tillfället. Bra jobbat!';
+    h += aiStrip(dAI, dropoutCount>0?'Hantera i Åtgärder':null, "window._actionsType='dropout';go('actions')");
+    h += '</div>';
+
+    // List at-risk patients
+    if (dropoutCount > 0 && typeof _scanDropoutRisks === 'function') {
+      var risks = _scanDropoutRisks().slice(0,8);
+      h += '<div class="gi2-chart-card"><div class="gi2-chart-header"><div><div class="gi2-chart-title">Patienter att följa upp</div></div></div>';
+      h += '<div class="gi2-chart-body">';
+      risks.forEach(function(r){
+        var p = pats.find(function(x){return x.id===r.patId;});
+        if (!p) return;
+        var last = (p.visits||[]).slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0];
+        var days = last&&last.date ? Math.floor((Date.now()-new Date(last.date).getTime())/86400000) : '?';
+        h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #21262d">';
+        h += '<span style="font-size:14px;color:#e6edf3;cursor:pointer" onclick="openPat(\''+p.id+'\');go(\'detail\')">'+e(p.name)+'</span>';
+        h += '<span style="font-size:12px;color:#f85149">'+days+' dagar sedan</span>';
         h += '</div>';
-      }
+      });
+      h += '</div></div>';
     }
   }
 
-  h += '<div id="intel-ai-result" style="display:none;margin-top:16px;border:1px solid var(--border);border-radius:6px;padding:16px;background:var(--surface)"></div>';
-  h += '</div>'; // gi-main
-  h += '</div>'; // gi-wrap
+  h += '</div>'; // gi2-main
+  h += '</div>'; // gi2
+
   el.innerHTML = h;
 }
+
+
 
 async function _generateIntelligenceReport() {
   var key = typeof getKey==='function' ? getKey() : null;

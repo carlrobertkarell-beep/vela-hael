@@ -596,13 +596,39 @@ button, input, textarea, select { font-family: inherit; }
 /* Global topbar: always visible on desktop */
 .vela-global-topbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 400;
-  height: 62px; background: #161b22;
+  background: #0d1117;
   border-bottom: 1px solid #30363d;
-  display: flex; align-items: center;
+  display: flex; flex-direction: column;
   font-family: var(--font);
 }
-.vela-gtb-row1 { height: 62px; display: flex; align-items: center; gap: 0; width: 100%; }
-.vela-gtb-row2 { display: none; }
+.vela-gtb-row1 { height: 62px; display: flex; align-items: center; gap: 0; width: 100%; background: #161b22; border-bottom: 1px solid #30363d; flex-shrink: 0; }
+.vela-gtb-row2 {
+  height: 45px; display: flex; align-items: stretch;
+  padding: 0; overflow-x: auto; overflow-y: hidden;
+  flex-shrink: 0; background: #0d1117;
+  scrollbar-width: none;
+}
+.vela-gtb-row2::-webkit-scrollbar { display: none; }
+.vela-gtb-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 0 16px; border: none; background: none;
+  font-size: 14px; font-weight: 400; color: #8b949e;
+  cursor: pointer; font-family: var(--font); white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color .12s, border-color .12s;
+}
+.vela-gtb-tab:hover { color: #e6edf3; border-bottom-color: #30363d; }
+.vela-gtb-tab.active { color: #e6edf3; font-weight: 500; border-bottom-color: #f78166; }
+.vela-gtb-tab svg { opacity: .7; flex-shrink: 0; }
+.vela-gtb-tab.active svg { opacity: 1; }
+.vela-gtb-tab-badge {
+  background: rgba(177,186,196,.12); color: #8b949e;
+  font-size: 12px; font-weight: 500; padding: 0 6px;
+  border-radius: 20px; min-width: 18px; text-align: center;
+}
+.vela-gtb-tab.active .vela-gtb-tab-badge {
+  background: rgba(247,129,102,.12); color: #f78166;
+}
 .vela-gtb-left {
   display: flex; align-items: center; gap: 10px;
   padding: 0 16px 0 12px; flex-shrink: 0;
@@ -699,11 +725,11 @@ button, input, textarea, select { font-family: inherit; }
 
 /* Push content down when topbar is visible */
 .app-shell-with-topbar {
-  padding-top: 62px;
+  padding-top: 107px;
 }
 @media (max-width: 768px) {
-  .vela-global-topbar { height: 52px; }
-  .app-shell-with-topbar { padding-top: 52px; }
+  .vela-global-topbar { height: 97px; }
+  .app-shell-with-topbar { padding-top: 97px; }
 }
 
 /* ── GITHUB-EXACT BUTTON TOKENS ─────────────────────────────── */
@@ -866,15 +892,15 @@ button:not([class]) { border-radius: 6px; }
 
 /* ── MOBILE RESPONSIVE ────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .nav-sidebar { position: fixed; top: 52px; bottom: 0; left: 0; width: 260px !important; z-index: 350; transform: translateX(-100%); box-shadow: 4px 0 24px rgba(0,0,0,.5); }
+  .nav-sidebar { position: fixed; top: 97px; bottom: 0; left: 0; width: 260px !important; z-index: 350; transform: translateX(-100%); box-shadow: 4px 0 24px rgba(0,0,0,.5); }
   .nav-sidebar.open { transform: translateX(0); }
   .nav-collapse-btn { display: none; }
-  .main-content { padding-top: 52px !important; }
+  .main-content { padding-top: 0 !important; }
   .app-shell { display: block; height: auto; min-height: 100vh; }
-  .vela-global-topbar { height: 52px; }
+  .vela-global-topbar { height: 97px; }
   .vela-gtb-search { display: none; }
+  .vela-gtb-tab { padding: 0 10px; font-size: 13px; }
   .vai-decisions { flex-direction: column; }
-  .r4-body { display:flex; gap:24px; margin-top:16px; align-items:flex-start; }
   .r4-body > aside { display: none; }
   .r4-body { flex-direction: column; }
   .r4-branchbar{display:flex;align-items:center;justify-content:space-between;padding:12px 0;gap:8px;flex-wrap:wrap}
@@ -5212,7 +5238,7 @@ function go(scr){
     } else {
       // Clinic screen: restore all clinic chrome
       if (_gtbWrap)     _gtbWrap.style.display      = '';
-      if (_appShell)   { _appShell.style.display     = ''; _appShell.style.paddingTop = '62px';
+      if (_appShell)   { _appShell.style.display     = ''; _appShell.style.paddingTop = '107px';
       if (typeof _initAIPanel === 'function') { _initAIPanel(); } }
       if (_navSidebar)  _navSidebar.style.display    = '';
       if (_mainContent) _mainContent.style.marginLeft = '';
@@ -9078,7 +9104,7 @@ function _renderGlobalTopbar() {
 
   // Search center
   h += '<div style="flex:1;display:flex;justify-content:center;padding:0 8px;min-width:0">';
-  h += '<div class="vela-gtb-search" id="vela-gtb-search-btn" style="max-width:320px;width:100%">';
+  h += '<div class="vela-gtb-search" id="vela-gtb-search-btn" style="max-width:280px;width:100%">';
   h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
   h += '<span>S\u00f6k eller hoppa till...</span>';
   h += '<kbd style="font-size:11px;background:rgba(177,186,196,.08);border:1px solid rgba(177,186,196,.15);border-radius:4px;padding:1px 6px;color:#6e7681;white-space:nowrap;font-family:var(--font-mono)">/</kbd>';
@@ -9106,7 +9132,60 @@ function _renderGlobalTopbar() {
   }
   h += '</div></div>';
 
+  // ── Row 2: GitHub-style tab row ───────────────────────────────
+  var scr2 = S.screen || 'dashboard';
+  var tabMap2 = {
+    dashboard:'home', list:'home', detail:'home', editpat:'home',
+    calendar:'calendar',
+    meeting:'journal', soap:'journal', manualsoap:'journal', 'sbs-soap':'journal', editex:'journal',
+    hael:'hael', form:'hael', doc:'hael', journaldoc:'hael',
+    intelligence:'intelligence', retention:'intelligence',
+    actions:'actions', 'patjournal':'actions',
+    activity:'activity',
+    settings:'settings', profile:'settings', availability:'settings',
+  };
+  var activeTab2 = tabMap2[scr2] || 'home';
+
+  var retQ2 = getRetentionQueue ? getRetentionQueue() : [];
+  var alerts2 = retQ2.filter(function(q){ return !q.sentAt && !q.approved; }).length;
+  var pending2 = typeof getPendingApprovals === 'function' ? getPendingApprovals().length : 0;
+  var unread2 = 0;
+  try { unread2 = (S.patients||[]).reduce(function(acc,p){ return acc+(p.messages||[]).filter(function(m){return m.from==='patient'&&!m.read;}).length; }, 0); } catch(e2){}
+  var gmailUnread2 = 0;
+  try { gmailUnread2 = (window._gmailState&&window._gmailState.threads||[]).filter(function(t){return t.unread;}).length; } catch(e3){}
+
+  var TABS2 = [
+    { id:'home',         label:'Klinik',        dest:'dashboard',    icon:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
+    { id:'calendar',     label:'Kalender',       dest:'calendar',     icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z' },
+    { id:'journal',      label:'Besök',          dest:'manualsoap',   icon:'M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z' },
+    { id:'hael',         label:'Hael',           dest:'hael',         icon:'M22 12h-4l-3 9L9 3l-3 9H2' },
+    { id:'actions',      label:'Åtgärder',       dest:'actions',      icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z', badge:(alerts2+pending2)||null, badgeColor:'red' },
+    { id:'activity',     label:'Aktivitet',      dest:'activity',     icon:'M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z', badge:(unread2+gmailUnread2)||null },
+    { id:'intelligence', label:'Insikter',       dest:'intelligence', icon:'M18 20V10M12 20V4M6 20v-6' },
+    { id:'settings',     label:'Inställningar',  dest:'settings',     icon:'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z' },
+  ];
+
+  h += '<div class="vela-gtb-row2">';
+  TABS2.forEach(function(tab) {
+    var isActive = activeTab2 === tab.id;
+    h += '<button class="vela-gtb-tab'+(isActive?' active':'')+'" data-dest="'+tab.dest+'">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+tab.icon+'"/></svg>';
+    h += tab.label;
+    if (tab.badge) {
+      var badgeStyle = tab.badgeColor === 'red' ? 'background:rgba(248,81,73,.15);color:#f85149' : '';
+      h += ' <span class="vela-gtb-tab-badge"'+(badgeStyle?' style="'+badgeStyle+'"':'')+'>'+tab.badge+'</span>';
+    }
+    h += '</button>';
+  });
+  h += '</div>';
+
   wrap.innerHTML = h;
+
+  // Wire tab buttons
+  wrap.querySelectorAll('.vela-gtb-tab').forEach(function(btn) {
+    var dest = btn.getAttribute('data-dest');
+    if (dest) btn.onclick = function() { go(dest); };
+  });
 
   var hamburger = document.getElementById('vela-gtb-hamburger');
   if (hamburger) hamburger.onclick = function() { _toggleClinicSidebar(); };
@@ -9354,9 +9433,9 @@ function rTopbar() {
   // ── Show / hide sidebar based on current screen ───────────────
   var sb = document.getElementById('nav-sidebar');
   // Screens that get sidebar
-  var SB_SCREENS = ['dashboard','list','intelligence','actions','retention','activity','settings','hael','calendar'];
-  // Screens that are full-bleed (no sidebar)
-  var NO_SB = ['detail','soap','manualsoap','sbs-soap','form','doc','journaldoc','meeting','editpat','patjournal','editex','loading','public-plan'];
+  // GitHub: sidebar only on settings. All other screens use tab row navigation.
+  var SB_SCREENS = ['settings', 'availability'];
+  var NO_SB = [];
   if (sb) {
     var wantSidebar = SB_SCREENS.indexOf(scr) !== -1;
     if (wantSidebar) { sb.classList.remove('vela-sb-hidden'); }
@@ -13338,7 +13417,7 @@ function rWorkspace() {
   var bookingUrl=window.location.origin+window.location.pathname+'#boka';
   var wsDoc=cfg.wsDoc||null;
 
-  var h = '<div class="r4-page" style="padding-top:24px;padding-bottom:48px">';
+  var h = '<div class="r4-page" style="padding-top:24px;padding-bottom:60px">';
 
   // ─────────────────────────────────────────────────────────────────
   // ROW 1: icon + owner/name + visibility | Pin Watch Fork Star

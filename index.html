@@ -131,7 +131,7 @@ button, input, textarea, select { font-family: inherit; }
 
 /* ── APP SHELL ──────────────────────────────────────────────── */
 .app-shell { display: flex; height: 100vh; overflow: hidden; transition: padding-top .12s ease; }
-.main-content { flex: 1; overflow-y: auto; background: var(--bg); }
+.main-content { flex: 1; overflow-y: auto; background: var(--bg); padding-top: 62px; }
 .screen { display: none; min-height: 100%; }
 .screen.active { display: block; }
 .platform-screen.active { 
@@ -9067,6 +9067,7 @@ function _toggleClinicSidebar() {
 function _renderGlobalTopbar() {
   var wrap = document.getElementById('vela-global-topbar-wrap');
   if (!wrap) return;
+  wrap.className = 'vela-global-topbar'; // must set class every render — ensures fixed position/styling
   var cfg = getClinicConfig ? getClinicConfig() : {};
   var clinicName = cfg.name || 'Min klinik';
   var email = (typeof _authUser !== 'undefined' && _authUser && _authUser.email) ? _authUser.email : '';

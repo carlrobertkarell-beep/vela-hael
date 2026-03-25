@@ -35184,8 +35184,7 @@ if ('serviceWorker' in navigator) {
     "self.addEventListener('fetch',function(e){var url=e.request.url;if(url.includes('fonts.googleapis.com')||url.includes('fonts.gstatic.com')){e.respondWith(caches.match(e.request).then(function(r){return r||fetch(e.request).then(function(res){var clone=res.clone();caches.open(CACHE).then(function(c){c.put(e.request,clone);});return res;});}));return;}e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request);}));});",
   ];
   try {
-    var swBlob = new Blob([swLines.join('
-')], {type: 'application/javascript'});
+    var swBlob = new Blob([swLines.join(' ')], {type: 'application/javascript'});
     var swUrl = URL.createObjectURL(swBlob);
     navigator.serviceWorker.register(swUrl, {scope: './'})
       .then(function(reg) { console.log('[Vela SW] registered:', reg.scope); })

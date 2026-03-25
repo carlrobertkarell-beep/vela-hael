@@ -255,8 +255,8 @@ a:hover { text-decoration: underline; }
 .hael-ex-card.open .hael-ex-expand { display:block; }
 .hael-done-check { width:28px;height:28px;border-radius:50%;background:rgba(26,122,74,.15);border:1.5px solid rgba(26,122,74,.3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0; }
 .hael-done-check.checked { background:rgba(26,122,74,.3);border-color:#3fb950; }
-.hael-log-btn { width:100%;padding:16px;background:linear-gradient(135deg,var(--teal),#b85e18);color:white;border:none;border-radius: 6px;font-size:17px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em;box-shadow:0 8px 24px rgba(224,118,40,.35);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:10px; }
-.hael-log-btn:hover { transform:translateY(-1px);box-shadow:0 12px 28px rgba(224,118,40,.4); }
+.hael-log-btn { width:100%;padding:16px;background:linear-gradient(135deg,var(--teal),#b85e18);color:white;border:none;border-radius: 6px;font-size:17px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:10px; }
+.hael-log-btn:hover { transform:translateY(-1px); }
 .hael-log-btn:active { transform:scale(.98); }
 .hael-nrs-grid { display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin:12px 0; }
 .hael-nrs-tile { width:42px;height:42px;border-radius: 6px;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);font-size:16px;font-weight:800;cursor:pointer;color:rgba(255,255,255,.5);transition:all .15s;display:flex;align-items:center;justify-content:center;font-family:var(--font); }
@@ -332,7 +332,7 @@ a:hover { text-decoration: underline; }
 .ss-card { background:var(--bg);border-radius:11px;padding:11px;text-align:center; }
 .ss-val { font-size:20px;font-weight:800;color:var(--teal); }
 .ss-lbl { font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em; }
-.ambient-finish-btn { width:100%;padding:15px;background:var(--teal);color:white;border:none;border-radius: 6px;font-size:16px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em;box-shadow:0 6px 20px rgba(224,118,40,.3); }
+.ambient-finish-btn { width:100%;padding:15px;background:var(--teal);color:white;border:none;border-radius: 6px;font-size:16px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em; }
 .ambient-finish-btn:hover { opacity:.92; }
 
 /* ══ AMBIENT AI SESSION ══════════════════════════════════════════════════════ */
@@ -387,7 +387,7 @@ a:hover { text-decoration: underline; }
 .ss-card { background:var(--bg);border-radius:11px;padding:11px;text-align:center; }
 .ss-val { font-size:20px;font-weight:800;color:var(--teal); }
 .ss-lbl { font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em; }
-.ambient-finish-btn { width:100%;padding:15px;background:var(--teal);color:white;border:none;border-radius: 6px;font-size:16px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em;box-shadow:0 6px 20px rgba(224,118,40,.3); }
+.ambient-finish-btn { width:100%;padding:15px;background:var(--teal);color:white;border:none;border-radius: 6px;font-size:16px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em; }
 .ambient-finish-btn:hover { opacity:.92; }
 
 /* ══ BOOKING DIALOG REBUILD ══════════════════════════════════════════════════ */
@@ -927,6 +927,17 @@ button:not([class]) { border-radius: 6px; }
   min-height: 100%; max-width: 1280px;
   margin: 0 auto; padding: 24px 32px 60px;
 }
+/* ── GitHub-exact page centering (all screens) ─────── */
+.vela-page-wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 32px 60px;
+  font-family: var(--font);
+}
+@media (max-width: 768px) {
+  .vela-page-wrap { padding: 16px 16px 60px; }
+}
+
 .page-header {
   display: flex; align-items: flex-start; justify-content: space-between;
   padding: 28px 0 20px; border-bottom: 1px solid #30363d;
@@ -1280,7 +1291,7 @@ button:not([class]) { border-radius: 6px; }
 .inbox-drawer {
   position:fixed; top:0; right:0; bottom:0; z-index:301;
   width:420px; max-width:100vw; background:#161b22;
-  box-shadow:-4px 0 32px rgba(0,0,0,.12); display:flex; flex-direction:column;
+   display:flex; flex-direction:column;
   animation:slideInRight .22s ease;
 }
 @keyframes slideInRight { from{transform:translateX(100%)} to{transform:translateX(0)} }
@@ -1668,8 +1679,8 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .hael-ex-card.open .hael-ex-expand { display:block; }
 .hael-done-check { width:28px;height:28px;border-radius:50%;background:rgba(26,122,74,.15);border:1.5px solid rgba(26,122,74,.3);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;flex-shrink:0; }
 .hael-done-check.checked { background:rgba(26,122,74,.3);border-color:#3fb950; }
-.hael-log-btn { width:100%;padding:16px;background:linear-gradient(135deg,var(--teal),#b85e18);color:white;border:none;border-radius: 6px;font-size:17px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em;box-shadow:0 8px 24px rgba(224,118,40,.35);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:10px; }
-.hael-log-btn:hover { transform:translateY(-1px);box-shadow:0 12px 28px rgba(224,118,40,.4); }
+.hael-log-btn { width:100%;padding:16px;background:linear-gradient(135deg,var(--teal),#b85e18);color:white;border:none;border-radius: 6px;font-size:17px;font-weight:800;cursor:pointer;font-family:var(--font);letter-spacing:-.01em;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:10px; }
+.hael-log-btn:hover { transform:translateY(-1px); }
 .hael-log-btn:active { transform:scale(.98); }
 .hael-nrs-grid { display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin:12px 0; }
 .hael-nrs-tile { width:42px;height:42px;border-radius: 6px;border:1.5px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);font-size:16px;font-weight:800;cursor:pointer;color:rgba(255,255,255,.5);transition:all .15s;display:flex;align-items:center;justify-content:center;font-family:var(--font); }
@@ -8053,6 +8064,16 @@ var _bk2State = {
   svcId: '', svcName: '', notes: '',
 };
 
+// Format YYYY-MM-DD → "Mån 25 mar"
+function _fmtBookingDate(dateStr) {
+  if (!dateStr) return '';
+  var d = new Date(dateStr + 'T12:00');
+  if (isNaN(d)) return dateStr;
+  var days   = ['Sön','Mån','Tis','Ons','Tor','Fre','Lör'];
+  var months = ['jan','feb','mar','apr','maj','jun','jul','aug','sep','okt','nov','dec'];
+  return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()];
+}
+
 function openBookingDialog(date, time, existingPatId) {
   document.getElementById('bk-dialog-ov')?.remove();
   document.getElementById('bk2-overlay')?.remove();
@@ -9387,45 +9408,93 @@ function _initAIPanel() {
 // ── Auto-generate AI briefings from clinic state ───────────────
 function _generateAIBriefings() {
   if (!S.patients || !S.patients.length) return;
+  var now  = new Date();
+  var pats = S.patients || [];
+  var bks  = (typeof getBookings === 'function') ? getBookings() : [];
+  var completed = bks.filter(function(b){ return b.status==='completed'; });
 
-  // Pending approvals → AI
+  // ── AI: Pending approvals (priority 1) ───────────────────────
   var pending = typeof getPendingApprovals === 'function' ? getPendingApprovals() : [];
-  if (pending.length > 0 && !_AI_PANEL_QUEUE.find(function(q){return q.id==='vai_pending_approval';})) {
+  if (pending.length > 0 && !_AI_PANEL_QUEUE.find(function(q){ return q.role==='ai'; })) {
     pushAIPanel({
       role: 'ai',
-      title: pending.length + ' AI-dokument väntar din signatur',
-      message: 'Jag har genererat <span class="num">'+pending.length+'</span> dokument som behöver granskas och signeras innan de sparas i journalen.',
+      title: pending.length + ' AI-dokument väntar signatur',
+      message: 'Jag har genererat <strong>'+pending.length+'</strong> dokument som behöver granskas och signeras.',
       decisions: [
         { label: 'Granska nu', text: 'Gå till Åtgärder', fn: "go('actions')" },
-        { label: 'Senare', text: 'Påminn om 1 timme', fn: "_closeAIPanel()" },
+        { label: 'Senare', text: 'Stäng', fn: "_closeAIPanel()" },
       ],
-      priority: 1,
-      autoShow: false,
+      priority: 1, autoShow: false,
     });
   }
 
-  // Dropout risk → HR
+  // ── CFO: Intäktsanalys ────────────────────────────────────────
+  var totalRev   = completed.reduce(function(s,b){ return s+(b.price||b.servicePrice||0); }, 0);
+  var weekRev    = completed.filter(function(b){ return b.date && (Date.now()-new Date(b.date).getTime()) < 7*86400000; }).reduce(function(s,b){ return s+(b.price||b.servicePrice||0); }, 0);
+  var prevWkRev  = completed.filter(function(b){ var a=b.date?(Date.now()-new Date(b.date).getTime())/86400000:999; return a>=7&&a<14; }).reduce(function(s,b){ return s+(b.price||b.servicePrice||0); }, 0);
+  if (totalRev > 0 && !_AI_PANEL_QUEUE.find(function(q){ return q.role==='cfo'; })) {
+    var diff = weekRev - prevWkRev;
+    var pct  = prevWkRev > 0 ? Math.round(Math.abs(diff)/prevWkRev*100) : 0;
+    if (Math.abs(diff) > 200) {
+      pushAIPanel({
+        role: 'cfo',
+        title: 'Veckans intäkter: ' + weekRev.toLocaleString('sv-SE') + ' kr',
+        message: diff < 0
+          ? 'Intäkterna är <strong style="color:#f85149">' + pct + '% lägre</strong> än förra veckan (' + weekRev.toLocaleString('sv-SE') + ' vs ' + prevWkRev.toLocaleString('sv-SE') + ' kr). Snitt per besök: ' + (completed.length ? Math.round(totalRev/completed.length) : 0) + ' kr.'
+          : 'Stark vecka — <strong style="color:#3fb950">+' + pct + '%</strong> jämfört med förra veckan. ' + weekRev.toLocaleString('sv-SE') + ' kr här veckan.',
+        decisions: [
+          { label: 'Se intäktsgraf', text: 'Insökter', fn: "window._intelView='intakter';go('intelligence')" },
+          { label: 'Stäng', text: '', fn: "_closeAIPanel()" },
+        ],
+        priority: diff < 0 ? 2 : 6, autoShow: false,
+      });
+    }
+  }
+
+  // ── CEO: Veckobriefing ────────────────────────────────────────
+  var wkBks    = bks.filter(function(b){ return b.date && (Date.now()-new Date(b.date).getTime()) < 7*86400000; }).length;
+  var newPatsW = pats.filter(function(p){ return p.createdAt && (Date.now()-new Date(p.createdAt).getTime()) < 7*86400000; }).length;
+  var dropout  = (typeof _scanDropoutRisks==='function') ? _scanDropoutRisks().length : 0;
+  var retention = pats.length > 0 ? Math.round((1 - dropout/pats.length)*100) : 100;
+  if (!_AI_PANEL_QUEUE.find(function(q){ return q.role==='ceo'; })) {
+    pushAIPanel({
+      role: 'ceo',
+      title: 'Briefing — ' + now.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'}),
+      message: 'Denna vecka: <strong>'+wkBks+'</strong> bokningar'
+        + (newPatsW > 0 ? ', <strong style="color:#3fb950">+'+newPatsW+' nya patienter</strong>' : '')
+        + '. Totalt <strong>'+pats.length+'</strong> patienter. '
+        + 'Retention: <strong style="color:'+(retention>=80?'#3fb950':'#f85149')+'">'+retention+'%</strong>.'
+        + (dropout > 0 ? ' <strong style="color:#f85149">'+dropout+' avhoppsrisker</strong> kräver uppmärksamhet.' : ' Ingen avhoppsrisk.'),
+      decisions: [
+        { label: 'Insöktsöversikt', text: 'Alla mätvärden', fn: "go('intelligence')" },
+        { label: 'Stäng', text: '', fn: "_closeAIPanel()" },
+      ],
+      priority: 5, autoShow: false,
+    });
+  }
+
+  // ── HR: Avhoppsrisk ───────────────────────────────────────────
   if (typeof _scanDropoutRisks === 'function') {
     var risks = _scanDropoutRisks().filter(function(d){
-      var p = (S.patients||[]).find(function(x){ return x.id===d.patId; });
+      var p = pats.find(function(x){ return x.id===d.patId; });
       return p && (p.visits||[]).length > 0;
     });
-    if (risks.length >= 1 && !_AI_PANEL_QUEUE.find(function(q){return q.role==='hr';})) {
+    if (risks.length >= 1 && !_AI_PANEL_QUEUE.find(function(q){ return q.role==='hr'; })) {
       pushAIPanel({
         role: 'hr',
-        title: risks.length+' patienter med hög avhoppsrisk',
-        message: 'Som din HR-AI: <strong>'+risks.length+'</strong> patienter har inte hört av sig på 3+ veckor och riskerar att avsluta sin rehabilitering. Jag kan skicka personliga återaktiverings-SMS automatiskt.',
+        title: risks.length + ' patienter med hög avhoppsrisk',
+        message: 'Som din HR-AI: <strong>'+risks.length+'</strong> patienter har inte hört av sig på 3+ veckor och riskerar att avbryta rehabiliteringen.',
         decisions: [
-          { label: 'Aktivera AI-SMS', text: 'Skicka med AI nu', fn: "go('retention')" },
+          { label: 'Skicka återaktivering', text: 'AI skickar SMS', fn: "go('retention')" },
           { label: 'Granska lista', text: 'Visa riskpatienter', fn: "go('actions')" },
           { label: 'Avvisa', text: 'Inget nu', fn: "_closeAIPanel()" },
         ],
-        priority: 3,
-        autoShow: false,
+        priority: 3, autoShow: false,
       });
     }
   }
 }
+
 
 function rTopbar() {
   _renderGlobalTopbar();
@@ -13456,7 +13525,63 @@ function rWorkspace() {
   // ══ MAIN ══════════════════════════════════════════════════════════
   h += '<div class="r4-main">';
 
-  // BRANCH BAR (no box, just inline row)
+  // ── ACTIVITY GRAPH (52-week GitHub-style commit graph) ──────────
+  var _agBks = bks.slice().filter(function(b){ return b.status==='completed' && b.date; });
+  // Build a map: YYYY-MM-DD → count
+  var _agMap = {};
+  _agBks.forEach(function(b){ _agMap[b.date] = (_agMap[b.date]||0) + 1; });
+  // Also count from patient visit records
+  pats.forEach(function(p){
+    (p.visits||[]).forEach(function(v){
+      if (v.date) _agMap[v.date] = (_agMap[v.date]||0) + ((_agBks.find(function(b){ return b.patientId===p.id && b.date===v.date; })) ? 0 : 1);
+    });
+  });
+  var _agMax = Math.max.apply(null, Object.values(_agMap).concat([1]));
+  // Build 52 weeks × 7 days grid
+  var _agToday = new Date(); _agToday.setHours(0,0,0,0);
+  var _agStart = new Date(_agToday); _agStart.setDate(_agStart.getDate() - 364);
+  // Find Monday of start week
+  _agStart.setDate(_agStart.getDate() - (_agStart.getDay()||7) + 1);
+
+  h += '<div style="margin:20px 0 24px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+  h += '<span style="font-size:13px;color:#8b949e">'+Object.values(_agMap).reduce(function(a,b){return a+b;},0)+' besök det senaste \u00e5ret</span>';
+  h += '<div style="display:flex;align-items:center;gap:4px"><span style="font-size:11px;color:#8b949e">Mindre</span>';
+  ['#161b22','#0e4429','#006d32','#26a641','#39d353'].forEach(function(col){
+    h += '<div style="width:10px;height:10px;border-radius:2px;background:'+col+'"></div>';
+  });
+  h += '<span style="font-size:11px;color:#8b949e">Mer</span></div>';
+  h += '</div>';
+  // Grid
+  h += '<div style="display:flex;gap:2px;overflow-x:auto">';
+  var _agCur = new Date(_agStart);
+  var _agMonths = [];
+  var _agWeekIdx = 0;
+  while (_agCur <= _agToday) {
+    h += '<div style="display:flex;flex-direction:column;gap:2px">';
+    // Month label (first week of month)
+    var _agMonthLabel = '';
+    for (var d = 0; d < 7; d++) {
+      var _agD = new Date(_agCur); _agD.setDate(_agD.getDate() + d);
+      if (_agD > _agToday) { h += '<div style="width:10px;height:10px"></div>'; continue; }
+      var _agKey = _agD.toISOString().slice(0,10);
+      var _agCount = _agMap[_agKey] || 0;
+      var _agCol;
+      if (_agCount === 0) _agCol = '#21262d';
+      else if (_agCount === 1) _agCol = '#0e4429';
+      else if (_agCount <= 3) _agCol = '#006d32';
+      else if (_agCount <= 5) _agCol = '#26a641';
+      else _agCol = '#39d353';
+      var _agTitle = _agCount > 0 ? _agCount+' bes\u00f6k '+_agKey : 'Inga bes\u00f6k '+_agKey;
+      h += '<div style="width:10px;height:10px;border-radius:2px;background:'+_agCol+'" title="'+_agTitle+'"></div>';
+    }
+    h += '</div>';
+    _agCur.setDate(_agCur.getDate() + 7);
+    _agWeekIdx++;
+  }
+  h += '</div></div>';
+
+    // BRANCH BAR (no box, just inline row)
   h += '<div class="r4-branchbar">';
   // Left
   h += '<div class="r4-bb-l">';
@@ -15198,7 +15323,7 @@ function rDoc(){
   const followup=(plan.form&&plan.form.followup)||"--";
 
   // -- HERO HEADER ----------------------------------------------------------
-  let h=`<div style="background:var(--bg);min-height:100vh;padding-bottom:60px">
+  let h=`<div style="background:#0d1117;min-height:100vh;padding-bottom:60px">
   <div style="background:var(--navy);padding:16px 20px 0">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
       <button class="btn-ghost btn" onclick="go(S.pat?'detail':'list')" style="font-size:13px;color:rgba(255,255,255,.6);padding:6px 0"><- Kundkort</button>
@@ -18590,8 +18715,7 @@ function printHomeCard(vid) {
   .login-title{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--navy);font-weight:400;margin-bottom:4px}
   .login-sub{font-size:13px;color:var(--text3);margin-bottom:28px}
   .login-field{width:100%;padding:12px 14px;border:1px solid #30363d;border-radius:8px;font-size:16px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none;margin-bottom:10px;background:var(--surface)}
-  .login-field:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(26,122,138,0.08)}
-  .login-btn{width:100%;padding:13px;background:var(--navy);color:white;border:none;border-radius:8px;font-size:16px;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px;font-weight:600;letter-spacing:.02em}
+  .login-field:focus{border-color:var(--teal);padding:13px;background:var(--navy);color:white;border:none;border-radius:8px;font-size:16px;font-family:'DM Sans',sans-serif;cursor:pointer;margin-top:4px;font-weight:600;letter-spacing:.02em}
   .login-btn:hover{background:#2a4a5a}
   .login-err{font-size:13px;color:#c07070;margin-top:8px;min-height:18px}
   .login-hint{font-size:13px;color:var(--text3);margin-top:16px;line-height:1.6}
@@ -25122,7 +25246,7 @@ function rSettings() {
   const el = document.getElementById('s-settings');
   if (!el) return;
   window._settingsActiveTab = window._settingsActiveTab || 'general';
-  el.innerHTML = '<div class="vela-settings-wrap"><div class="vela-settings-nav" id="vela-settings-nav"></div><div class="vela-settings-content" id="vela-settings-content"></div></div>';
+  el.innerHTML = '<div class="vela-settings-wrap"><div class="vela-settings-nav" id="vela-settings-nav"></div><div class="vela-settings-content" id="vela-settings-content" style="max-width:1280px;margin:0 auto;padding:0 32px"></div></div>';
   _renderSettingsNav();
   _renderSettingsContent(window._settingsActiveTab);
 }

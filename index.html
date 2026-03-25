@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="manifest" href="vela-manifest.json">
+
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%23161b22'/><polyline points='180 96 156 96 138 168 102 24 84 96 60 96 12 96' fill='none' stroke='%23e07628' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <title>Vela</title>
 
@@ -18501,108 +18501,7 @@ ${plan.followupNote ? `<div class="card"><div class="fu">${plan.followupNote}</d
   <div class="vai-body" id="vai-body"></div>
 </div>
 <!-- ── END AI PANEL ─────────────────────────────────────────── -->
-
-<script>
-// ── PWA: inline manifest via blob URL ────────────────────────────────────────
-(function() {
-  var manifest = {
-    name: 'Vela',
-    short_name: 'Vela',
-    description: 'Naprapatjournalsystem och klinikhantering',
-    lang: 'sv',
-    start_url: './',
-    display: 'standalone',
-    orientation: 'any',
-    background_color: '#0d1117',
-    theme_color: '#161b22',
-    icons: [
-      {
-        src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%23161b22'/><polyline points='180 96 156 96 138 168 102 24 84 96 60 96 12 96' fill='none' stroke='%23e07628' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/></svg>",
-        sizes: '192x192',
-        type: 'image/svg+xml',
-        purpose: 'any maskable'
-      },
-      {
-        src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%23161b22'/><polyline points='480 256 416 256 368 448 272 64 224 256 160 256 32 256' fill='none' stroke='%23e07628' stroke-width='40' stroke-linecap='round' stroke-linejoin='round'/></svg>",
-        sizes: '512x512',
-        type: 'image/svg+xml',
-        purpose: 'any maskable'
-      }
-    ],
-    shortcuts: [
-      { name: 'Kalender', url: './?screen=calendar', description: 'Öppna kalendervy' },
-      { name: 'Ny bokning', url: './?action=book', description: 'Skapa ny bokning' }
-    ]
-  };
-  try {
-    var blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
-    var url = URL.createObjectURL(blob);
-    var existing = document.querySelector('link[rel="manifest"]');
-    if (existing) existing.href = url;
-    else { var l = document.createElement('link'); l.rel = 'manifest'; l.href = url; document.head.appendChild(l); }
-  } catch(e) {}
-})();
-
-// ── Service Worker: cache-first for app shell ─────────────────────────────────
-if ('serviceWorker' in navigator) {
-  var swCode = `
-const CACHE = 'vela-v1';
-const FONTS = [
-  'https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap',
-];
-self.addEventListener('install', function(e) {
-  self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then(function(c) {
-    return c.addAll(FONTS).catch(function(){});
-  }));
-});
-self.addEventListener('activate', function(e) {
-  e.waitUntil(
-    caches.keys().then(function(keys) {
-      return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));
-    }).then(function(){ return self.clients.claim(); })
-  );
-});
-self.addEventListener('fetch', function(e) {
-  var url = e.request.url;
-  // Cache-first for fonts
-  if (url.includes('fonts.googleapis.com') || url.includes('fonts.gstatic.com')) {
-    e.respondWith(caches.match(e.request).then(function(r) {
-      return r || fetch(e.request).then(function(res) {
-        var clone = res.clone();
-        caches.open(CACHE).then(function(c){ c.put(e.request, clone); });
-        return res;
-      });
-    }));
-    return;
-  }
-  // Network-first for everything else (API calls, app HTML)
-  e.respondWith(
-    fetch(e.request).catch(function() { return caches.match(e.request); })
-  );
-});
 `;
-  try {
-    var swBlob = new Blob([swCode], {type: 'application/javascript'});
-    var swUrl = URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swUrl, {scope: './'})
-      .then(function(reg) { console.log('[Vela SW] registered, scope:', reg.scope); })
-      .catch(function(err) { console.warn('[Vela SW] registration failed:', err); });
-  } catch(e) { console.warn('[Vela SW] blob SW not supported:', e); }
-}
-
-// ── Reactive theme-color meta tag ─────────────────────────────────────────────
-function _updateThemeColorMeta() {
-  var isLight = document.body.classList.contains('light')
-    || (window._velaTheme === 'system' && !window.matchMedia('(prefers-color-scheme: dark)').matches);
-  var color = isLight ? '#ffffff' : '#161b22';
-  document.querySelectorAll('meta[name="theme-color"]').forEach(function(m) { m.content = color; });
-}
-document.addEventListener('DOMContentLoaded', _updateThemeColorMeta);
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', _updateThemeColorMeta);
-</script>
-</body>
-</html>`;
 
   // Generate QR code via data URL (encode filename hint)
   const qrData = encodeURIComponent('Hael-plan: ' + (plan.patientName||'Patient') + ' -- ' + today);
@@ -35230,5 +35129,77 @@ function getAiProfileContext(userId) {
     document.body.appendChild(diagDiv);
   }
 })();</script>
+<script>
+// ── PWA: inline manifest via blob URL ────────────────────────────────────────
+(function() {
+  var manifest = {
+    name: 'Vela',
+    short_name: 'Vela',
+    description: 'Naprapatjournalsystem och klinikhantering',
+    lang: 'sv',
+    start_url: './',
+    display: 'standalone',
+    orientation: 'any',
+    background_color: '#0d1117',
+    theme_color: '#161b22',
+    icons: [
+      {
+        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23161b22'/%3E%3Cpolyline points='180 96 156 96 138 168 102 24 84 96 60 96 12 96' fill='none' stroke='%23e07628' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+        sizes: '192x192',
+        type: 'image/svg+xml',
+        purpose: 'any maskable'
+      },
+      {
+        src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23161b22'/%3E%3Cpolyline points='480 256 416 256 368 448 272 64 224 256 160 256 32 256' fill='none' stroke='%23e07628' stroke-width='40' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E",
+        sizes: '512x512',
+        type: 'image/svg+xml',
+        purpose: 'any maskable'
+      }
+    ],
+    shortcuts: [
+      { name: 'Kalender', url: './?screen=calendar', description: 'Öppna kalendervy' },
+      { name: 'Ny bokning', url: './?action=book', description: 'Skapa ny bokning' }
+    ]
+  };
+  try {
+    var blob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+    var url = URL.createObjectURL(blob);
+    var existing = document.querySelector('link[rel="manifest"]');
+    if (existing) { existing.href = url; } else {
+      var l = document.createElement('link'); l.rel = 'manifest'; l.href = url;
+      document.head.appendChild(l);
+    }
+  } catch(e) {}
+})();
+
+// ── Service Worker: cache-first for fonts, network-first for app ──────────────
+if ('serviceWorker' in navigator) {
+  var swLines = [
+    "const CACHE='vela-v1';",
+    "const FONTS=['https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap'];",
+    "self.addEventListener('install',function(e){self.skipWaiting();e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(FONTS).catch(function(){});}));});",
+    "self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(keys){return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));}).then(function(){return self.clients.claim();}));});",
+    "self.addEventListener('fetch',function(e){var url=e.request.url;if(url.includes('fonts.googleapis.com')||url.includes('fonts.gstatic.com')){e.respondWith(caches.match(e.request).then(function(r){return r||fetch(e.request).then(function(res){var clone=res.clone();caches.open(CACHE).then(function(c){c.put(e.request,clone);});return res;});}));return;}e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request);}));});",
+  ];
+  try {
+    var swBlob = new Blob([swLines.join('
+')], {type: 'application/javascript'});
+    var swUrl = URL.createObjectURL(swBlob);
+    navigator.serviceWorker.register(swUrl, {scope: './'})
+      .then(function(reg) { console.log('[Vela SW] registered:', reg.scope); })
+      .catch(function(err) { console.warn('[Vela SW] failed:', err); });
+  } catch(e) { console.warn('[Vela SW] not supported:', e); }
+}
+
+// ── Reactive theme-color meta ─────────────────────────────────────────────────
+function _updateThemeColorMeta() {
+  var isLight = document.body.classList.contains('light')
+    || (window._velaTheme === 'system' && !window.matchMedia('(prefers-color-scheme: dark)').matches);
+  var color = isLight ? '#ffffff' : '#161b22';
+  document.querySelectorAll('meta[name="theme-color"]').forEach(function(m) { m.content = color; });
+}
+document.addEventListener('DOMContentLoaded', _updateThemeColorMeta);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', _updateThemeColorMeta);
+</script>
 </body>
 </html>

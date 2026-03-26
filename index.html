@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774548805 -->
+<!-- vela-build:1774549013 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -20059,10 +20059,18 @@ async function sbDeletePat(id) {
 
 async function sbLoadAll() {
   try {
-    const res = await fetchWithTimeout(
+    // Try with specific columns first, fall back to select=* if 400
+    let res = await fetchWithTimeout(
       SB_URL + '/rest/v1/patients?select=id,data,updated_at&order=updated_at.desc&limit=500',
       { headers: sbHeaders() }
     );
+    if (res.status === 400) {
+      // updated_at column may not exist — try without it
+      res = await fetchWithTimeout(
+        SB_URL + '/rest/v1/patients?select=id,data&limit=500',
+        { headers: sbHeaders() }
+      );
+    }
     if (!res.ok) return null;
     const rows = await res.json();
     return rows.map(r => {
@@ -36850,7 +36858,7 @@ function getAiProfileContext(userId) {
 
 // ── Service Worker — offline cache + PWA ─────────────────────────────────────
 // GitHub Pages blocks blob: SW registration. We use a workaround:
-// SW via blob: URL — works on GitHub Pages (blob: is supported), just not in some sandboxed iframes
+// SW via blob: URL — NOT supported on GitHub Pages (blob: scheme blocked by browser)
 var _isGHPages = location.hostname.endsWith('.github.io');
 var _blobProtoOk = (function() {
   try {
@@ -36862,7 +36870,7 @@ var _blobProtoOk = (function() {
   } catch(e) { return false; }
 })();
 
-if ('serviceWorker' in navigator && _blobProtoOk) {
+if ('serviceWorker' in navigator && !_isGHPages && _blobProtoOk) {
   var _swCode = [
     "const CACHE_NAME='vela-v3';",
     "const APP_SHELL=[location.href];",

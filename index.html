@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774541336 -->
+<!-- vela-build:1774547772 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%23161b22'/><polyline points='180 96 156 96 138 168 102 24 84 96 60 96 12 96' fill='none' stroke='%23e07628' stroke-width='16' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAADoklEQVR42u3dMW7bUBRFQa0iTTpXWqHXm53EcOF0LoKQ0X/nDYGzgHwNgguZpB6PA68fP99+6/weLmCBB1iAgyywQRbYICsH24eiDGwfhDKofQBKoHboysB20MqgdsDKoHawyqB2oEqhdpjKgHaQyqB2gMqgdnBKoXZoyoB2YEqhdlj39+v9+SfncSNoB/V/MUN9M2qHBHQGtAN6HWiob0DtcF6HGeiLQTsYoFOoHQrQQOtS0FADncIM9EWgHQjQKdQOA2igdQtoqIFOYQYaaKAF9Cn3bwANdB401ECPvRkJ6ItBO4jX310H9IWoHcLr738GGug8aKiBHnszP9BA555OARro1PODQAOdBw010GMfhgUa6NzT3UADnXr/BtBA50FDDfTIuQE00DnQZgfQmbkBNNBrQEMN9Mi5ATTQOdBmB9CZuQE00GtAQw30yLkBNNA50GYH0Jm5ATTQa0BDDfTIuQE00DnQZgfQmbkBNNBrQEMN9Mi5ATTQOdBmB9CZuQE00GtAQw30yLkBNNA50GYH0Jm5ATTQa0BDDfTIuQE00DnQZgfQmbkBNNBrQEMN9FhkQAOdAm12AJ2ZG0ADvQY01ECPxQU00DlcQAOdggU00HnQUAM9FhXQQOdQAQ10ChTQQOdBQ/2XoL87RAF90vk+YJ4H+qTZcdoZAz0QM9BArwB9yvQ5HjTUzzG7dfP/zr7l8G1L7utDoIEGWv5ieep34UADDbTMjlP/Ugk00EDLo2BAC2ig5XUKQAMNtMyOxr3YQAMNtPbOjtOflAEaaKC1c3ZMeJYRaKCB1s7ZMeFJc6CBBlr7ZseUd4EADTTQ2jc7prypCWiggdau2THpXXpAAw20ds2OSW86BRpooLVndkx7FzXQQAOtPbNj2i8FAA000NoxOyb+lgvQQAOtHbNj4i9tAQ000OrPjqm/hQg00ECrPzum/lIt0EADrfbsmPxb4kADDbTas2MqZqCBBlrt2TF5bgANNNBqz47JmIEGGmh1Z8f0uQE00ECrOzumYwYa6B7oz8uHbXYk5sbX5cMGGmilZkdmbgANNNDKzQ6gBTTQmoJ64r8LaKCboKEGOjM3gAYaaKVRj58bQAOdAw010Jm5ATTQSdBQQ53CDDTQOdBQ70WdxAy0cqChVgoz0MqBhlopzFArhxlq5TADrRxoqJXCDLVymKFWDjPUymEGWznIUCuJGWrlMIOtHGSwlYQMtpKQwVYSMuAAu4AH9h+uD5Ne/nnyHjKuAAAAAElFTkSuQmCC">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23161b22'/><polyline points='30 16 26 16 23 28 17 4 14 16 10 16 2 16' fill='none' stroke='%23e07628' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23161b22'/><polyline points='30 16 26 16 23 28 17 4 14 16 10 16 2 16' fill='none' stroke='%23e07628' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg>">
 <title>Vela</title>
@@ -24563,9 +24563,88 @@ async function generateRetentionMessage(signal, pat) {
 // VELA COMMUNICATIONS ENGINE — Resend (mail) + 46elks (SMS) + retention dispatcher
 // ══════════════════════════════════════════════════════════════════════════════
 
+// ── API-nyckel lagring — obfuskerat (XOR + base64) ───────────────────────────
+// Inte kryptering i kryptografisk mening, men hindrar nycklar från att synas
+// i klartext vid en snabb titt på localStorage. Riktig kryptering kräver server.
+// Per-installation salt — generated once and stored, never leaves the browser
+function _velaGetSalt() {
+  var k = 'vela:inst-salt';
+  var s = '';
+  try { s = localStorage.getItem(k) || ''; } catch {}
+  if (!s) {
+    s = 'vela' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    try { localStorage.setItem(k, s); } catch {}
+  }
+  return s;
+}
+
+function _velaObfuscate(str) {
+  try {
+    var salt = _velaGetSalt();
+    var out = '';
+    for (var i = 0; i < str.length; i++) {
+      out += String.fromCharCode(str.charCodeAt(i) ^ salt.charCodeAt(i % salt.length));
+    }
+    return 'v2:' + btoa(out);
+  } catch(e) { return str; }
+}
+function _velaDeobfuscate(str) {
+  try {
+    // v2 format with per-install salt
+    if (str && str.startsWith('v2:')) {
+      var salt = _velaGetSalt();
+      var decoded = atob(str.slice(3));
+      var out = '';
+      for (var i = 0; i < decoded.length; i++) {
+        out += String.fromCharCode(decoded.charCodeAt(i) ^ salt.charCodeAt(i % salt.length));
+      }
+      return out;
+    }
+    // Legacy v1 with fixed salt
+    var salt1 = 'vela2026';
+    var decoded1 = atob(str);
+    var out1 = '';
+    for (var i = 0; i < decoded1.length; i++) {
+      out1 += String.fromCharCode(decoded1.charCodeAt(i) ^ salt1.charCodeAt(i % salt1.length));
+    }
+    return out1;
+  } catch(e) { return str; }
+}
+
 function _velaGetApiKey(id) {
-  try { return (JSON.parse(localStorage.getItem('vela:api-keys') || '{}')||{})[id] || ''; }
-  catch { return ''; }
+  try {
+    var raw = localStorage.getItem('vela:api-keys');
+    if (!raw) return '';
+    var obj = JSON.parse(raw) || {};
+    var val = obj[id] || '';
+    // Deobfuscate if stored in v2 format or legacy base64
+    if (val && (val.startsWith('v2:') || _isBase64Like(val))) {
+      try { val = _velaDeobfuscate(val); } catch(e) {}
+    }
+    return val;
+  } catch { return ''; }
+}
+
+function _isBase64Like(s) {
+  return s && s.length > 8 && /^[A-Za-z0-9+/=]+$/.test(s) && s.indexOf(':') === -1;
+}
+
+function _velaSetApiKey(id, val) {
+  try {
+    var obj = {};
+    try { obj = JSON.parse(localStorage.getItem('vela:api-keys') || '{}') || {}; } catch {}
+    obj[id] = _velaObfuscate(val);
+    localStorage.setItem('vela:api-keys', JSON.stringify(obj));
+  } catch {}
+}
+
+function _velaDeleteApiKey(id) {
+  try {
+    var obj = {};
+    try { obj = JSON.parse(localStorage.getItem('vela:api-keys') || '{}') || {}; } catch {}
+    delete obj[id];
+    localStorage.setItem('vela:api-keys', JSON.stringify(obj));
+  } catch {}
 }
 
 // ── MAIL via Resend ───────────────────────────────────────────────────────────
@@ -24952,10 +25031,7 @@ async function _velaSendTestSms() {
 
 async function _velaSaveAndTestKey(service, keyVal) {
   if (!keyVal) return;
-  var keys = {};
-  try { keys = JSON.parse(localStorage.getItem('vela:api-keys')||'{}'); } catch {}
-  keys[service] = keyVal;
-  localStorage.setItem('vela:api-keys', JSON.stringify(keys));
+  _velaSetApiKey(service, keyVal.trim());
 
   if (service === 'resend') {
     showAutoSaveToast('Resend-nyckel sparad — testar...');
@@ -25001,7 +25077,7 @@ function _queueReminderChain(bk) {
       channel:      channel,
       msg:          { subject: 'Påminnelse om din tid', body: body, channel: channel },
       scheduledFor: sendAt.toISOString(),
-      approved:     true, // reminders auto-approved
+      approved:     getRetentionMode() === 'auto', // respects clinic setting
       addedAt:      new Date().toISOString(),
     });
     saveRetentionQueue(q);
@@ -25046,7 +25122,7 @@ function queueRetentionAction(signal, msg) {
     triggerId: signal.triggerId, label: signal.label,
     channel: signal.channel, msg: msg,
     scheduledFor: scheduledFor.toISOString(),
-    approved: mode === 'auto',
+    approved: false, // Always requires manual review — behandlaren godkänner i Åtgärder-fliken
     addedAt: now.toISOString(),
   });
   saveRetentionQueue(q);
@@ -27554,7 +27630,7 @@ function _stComms(cfg) {
       h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>';
       h += '<div style="flex:1"><span style="font-size:14px;font-weight:700;color:#3fb950">SMS aktiverat</span>';
       h += '<span style="font-size:13px;color:#8b949e;margin-left:10px">Avsändare: <strong style="color:#e6edf3">' + e(smsName.slice(0,11) || '—') + '</strong></span></div>';
-      h += '<button onclick="var k={}; try{k=JSON.parse(localStorage.getItem(\'vela:api-keys\')||\'{}\')}catch(x){}; delete k[\'46elks\']; localStorage.setItem(\'vela:api-keys\',JSON.stringify(k)); localStorage.setItem(\'vela:sms-enabled\',\'off\'); showAutoSaveToast(\'46elks frånkopplat\'); _renderSettingsContent(\'sms\')" style="padding:5px 12px;background:none;border:1px solid rgba(248,81,73,.3);border-radius:6px;font-size:12px;color:#f85149;cursor:pointer;font-family:var(--font)">Koppla från</button>';
+      h += '<button onclick="_velaDeleteApiKey(\'46elks\'); localStorage.setItem(\'vela:sms-enabled\',\'off\'); showAutoSaveToast(\'46elks frånkopplat\'); _renderSettingsContent(\'sms\')" style="padding:5px 12px;background:none;border:1px solid rgba(248,81,73,.3);border-radius:6px;font-size:12px;color:#f85149;cursor:pointer;font-family:var(--font)">Koppla från</button>';
       h += '</div>';
     } else {
       h += '<div style="background:rgba(210,153,34,.07);border:1px solid rgba(210,153,34,.25);border-radius:8px;padding:14px 16px;margin-bottom:20px">';
@@ -36012,9 +36088,9 @@ function getAiProfileContext(userId) {
   } catch(e) {}
 })();
 
-// ── Service Worker: cache-first for fonts, network-first for app ──────────────
-// Blob-URL service workers are blocked on GitHub Pages and non-standard blob
-// protocol environments (e.g. sandboxed iframes where blob:// becomes blob-request://)
+// ── Service Worker — offline cache + PWA ─────────────────────────────────────
+// GitHub Pages blocks blob: SW registration. We use a workaround:
+// SW via blob: URL — works on GitHub Pages (blob: is supported), just not in some sandboxed iframes
 var _isGHPages = location.hostname.endsWith('.github.io');
 var _blobProtoOk = (function() {
   try {
@@ -36025,22 +36101,77 @@ var _blobProtoOk = (function() {
     return ok;
   } catch(e) { return false; }
 })();
-if ('serviceWorker' in navigator && !_isGHPages && _blobProtoOk) {
-  var swLines = [
-    "const CACHE='vela-v1';",
-    "const FONTS=['https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap'];",
-    "self.addEventListener('install',function(e){self.skipWaiting();e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(FONTS).catch(function(){});}));});",
-    "self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(keys){return Promise.all(keys.filter(function(k){return k!==CACHE;}).map(function(k){return caches.delete(k);}));}).then(function(){return self.clients.claim();}));});",
-    "self.addEventListener('fetch',function(e){var url=e.request.url;if(url.includes('fonts.googleapis.com')||url.includes('fonts.gstatic.com')){e.respondWith(caches.match(e.request).then(function(r){return r||fetch(e.request).then(function(res){var clone=res.clone();caches.open(CACHE).then(function(c){c.put(e.request,clone);});return res;});}));return;}e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request);}));});",
-  ];
+
+if ('serviceWorker' in navigator && _blobProtoOk) {
+  var _swCode = [
+    "const CACHE_NAME='vela-v3';",
+    "const APP_SHELL=[location.href];",
+    // Install: cache fonts + app shell
+    "self.addEventListener('install',function(e){",
+    "  self.skipWaiting();",
+    "  e.waitUntil(caches.open(CACHE_NAME).then(function(c){",
+    "    return c.addAll([",
+    "      'https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap'",
+    "    ]).catch(function(){});",
+    "  }));",
+    "});",
+    // Activate: clean old caches
+    "self.addEventListener('activate',function(e){",
+    "  e.waitUntil(caches.keys().then(function(keys){",
+    "    return Promise.all(keys.filter(function(k){return k!==CACHE_NAME;}).map(function(k){return caches.delete(k);}));",
+    "  }).then(function(){return self.clients.claim();}));",
+    "});",
+    // Fetch: fonts cache-first, API network-first, app shell fallback
+    "self.addEventListener('fetch',function(e){",
+    "  var url=e.request.url;",
+    "  if(url.includes('fonts.googleapis.com')||url.includes('fonts.gstatic.com')){",
+    "    e.respondWith(caches.match(e.request).then(function(r){",
+    "      return r||fetch(e.request).then(function(res){",
+    "        caches.open(CACHE_NAME).then(function(c){c.put(e.request,res.clone());});",
+    "        return res;",
+    "      });",
+    "    }));",
+    "    return;",
+    "  }",
+    // Network-first for API calls
+    "  if(url.includes('supabase.co')||url.includes('anthropic.com')||url.includes('46elks.com')||url.includes('resend.com')){",
+    "    e.respondWith(fetch(e.request).catch(function(){return new Response(JSON.stringify({ok:false,err:'offline'}),{headers:{'Content-Type':'application/json'}});}));",
+    "    return;",
+    "  }",
+    // Network-first with cache fallback for everything else
+    "  e.respondWith(fetch(e.request).then(function(res){",
+    "    if(res.ok&&e.request.method==='GET'){",
+    "      caches.open(CACHE_NAME).then(function(c){c.put(e.request,res.clone());});",
+    "    }",
+    "    return res;",
+    "  }).catch(function(){return caches.match(e.request);}));",
+    "});",
+  ].join('\n');
+
   try {
-    var swBlob = new Blob([swLines.join(' ')], {type: 'application/javascript'});
-    var swUrl = URL.createObjectURL(swBlob);
-    navigator.serviceWorker.register(swUrl, {scope: './'})
-      .then(function(reg) { console.log('[Vela SW] registered:', reg.scope); })
-      .catch(function(err) { console.warn('[Vela SW] failed:', err); });
+    var _swBlob = new Blob([_swCode], {type: 'application/javascript'});
+    var _swUrl = URL.createObjectURL(_swBlob);
+    navigator.serviceWorker.register(_swUrl, {scope: './'})
+      .then(function(reg) {
+        console.log('[Vela SW] registered, scope:', reg.scope);
+        // Check for updates periodically
+        setInterval(function(){ reg.update(); }, 60*60*1000);
+      })
+      .catch(function(err) { console.warn('[Vela SW] registration failed:', err.message); });
   } catch(e) { console.warn('[Vela SW] not supported:', e); }
 }
+
+// Show offline banner when connection drops
+window.addEventListener('online',  function(){ var b=document.getElementById('vela-offline-banner'); if(b) b.remove(); });
+window.addEventListener('offline', function(){
+  if (document.getElementById('vela-offline-banner')) return;
+  var banner = document.createElement('div');
+  banner.id = 'vela-offline-banner';
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#d29922;color:#0d1117;font-size:13px;font-weight:700;text-align:center;padding:6px;font-family:var(--font,sans-serif)';
+  banner.textContent = '⚡ Offline — ändringar sparas lokalt och synkas när du är online igen';
+  document.body.appendChild(banner);
+});
+
 
 // ── Reactive theme-color meta ─────────────────────────────────────────────────
 function _updateThemeColorMeta() {

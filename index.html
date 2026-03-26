@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774511888 -->
+<!-- vela-build:1774512787 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -10885,6 +10885,11 @@ function _launchPortalUI(patId) {
 // ══════════════════════════════════════════════════════════════════════════════
 
 // Generate a secure portal token for a patient
+function _generateIntakeLink(patId) {
+  var base = location.origin + location.pathname;
+  return base + '#intake=' + encodeURIComponent(patId);
+}
+
 function _portalToken(patId) {
   // Simple deterministic token: base64(patId + clinic_secret)
   var secret = (getClinicConfig().id || 'vela') + '_portal_2025';
@@ -14688,7 +14693,33 @@ function _detMessages(p) {
     h += '</div>';
   }
   h += '</div>';
+
+  // ── SMS-kvittenser från Supabase ──────────────────────────────────────────
+  h += '<div style="margin-top:20px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h += '<div style="font-size:13px;font-weight:700;color:#e6edf3;display:flex;align-items:center;gap:7px">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+  h += 'SMS-kvittenser</div>';
+  h += '<button onclick="_reloadSmsLog(\'' + p.id + '\')" style="background:none;border:none;font-size:12px;color:#8b949e;cursor:pointer;font-family:var(--font);padding:2px 6px">↻ Ladda om</button>';
+  h += '</div>';
+  h += '<div id="sms-log-container" style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:2px 14px 4px">';
+  h += '<div style="font-size:13px;color:#8b949e;padding:12px 0;text-align:center">Laddar...</div>';
+  h += '</div>';
+  h += '</div>';
+
+  h += '</div>'; // section-outer
+
+  // Async-load after render
+  setTimeout(function() { _reloadSmsLog(p.id); }, 0);
   return h;
+}
+
+async function _reloadSmsLog(patId) {
+  var el = document.getElementById('sms-log-container');
+  if (!el) return;
+  el.innerHTML = '<div style="font-size:13px;color:#8b949e;padding:12px 0;text-align:center">Laddar...</div>';
+  var entries = await _sbFetchSmsLog(patId);
+  el.innerHTML = _renderSmsLog(entries);
 }
 
 // ── Intake tab ─────────────────────────────────────────────────────────────────
@@ -24470,6 +24501,29 @@ function _markRetentionSent(itemId, ok, err) {
 }
 
 // ── Settings helper: save API key with validation ─────────────────────────────
+// ── Test SMS directly from Settings ──────────────────────────────────────────
+async function _velaSendTestSms() {
+  var numEl  = document.getElementById('sms-test-number');
+  var bodyEl = document.getElementById('sms-test-body');
+  var resEl  = document.getElementById('sms-test-result');
+  if (!numEl || !bodyEl || !resEl) return;
+  var num  = numEl.value.trim();
+  var body = bodyEl.value.trim() || 'Testmeddelande från Vela — SMS fungerar!';
+  if (!num) { resEl.textContent = 'Ange ett telefonnummer.'; return; }
+  resEl.textContent = 'Skickar...';
+  var result = await _velaSendSMS(num, body);
+  if (result.ok) {
+    resEl.innerHTML = '<span style="color:var(--green)">✓ Skickat! 46elks-ID: ' + (result.id||'–') + '</span>';
+  } else {
+    var hint = result.err === 'no_key'
+      ? 'Ingen 46elks-nyckel sparad under Inställningar → Kommunikation → API-nycklar.'
+      : result.err === 'invalid_key_format'
+      ? 'Nyckeln ska vara i formatet <em>username:password</em>.'
+      : result.err || 'Okänt fel';
+    resEl.innerHTML = '<span style="color:var(--red)">✗ Misslyckades — ' + hint + '</span>';
+  }
+}
+
 async function _velaSaveAndTestKey(service, keyVal) {
   if (!keyVal) return;
   var keys = {};
@@ -26933,6 +26987,17 @@ function _stComms(cfg) {
       }
       h += '</div>';
     });
+    h += '</div>';
+
+    // ── Test-SMS ──────────────────────────────────────────────────────────────
+    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 18px;margin-bottom:14px">';
+    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3;margin-bottom:8px">Skicka test-SMS via 46elks</div>';
+    h += '<div style="display:flex;gap:8px;align-items:center">';
+    h += '<input id="sms-test-number" class="field" placeholder="+46701234567" style="flex:1;max-width:200px" value="' + e(clinic.phone||'') + '">';
+    h += '<input id="sms-test-body" class="field" placeholder="Testmeddelande från Vela" style="flex:2">';
+    h += '<button onclick="_velaSendTestSms()" class="act-btn act-btn-primary" style="flex-shrink:0">Skicka →</button>';
+    h += '</div>';
+    h += '<div id="sms-test-result" style="margin-top:8px;font-size:13px;color:#8b949e;min-height:18px"></div>';
     h += '</div>';
 
     // SMS triggers

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774516348 -->
+<!-- vela-build:1774521682 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -9811,7 +9811,7 @@ function rTopbar() {
     nh += nsep('Inst\u00e4llningar');
     nh += '<button class="nav-item" onclick="go(\'dashboard\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nav-item-label">\u2190 Klinik</span></button>';
     var _stSecs = [
-      ['Arbetsyta','general'],['Tj\u00e4nster','services'],['Kommunikation','comms'],
+      ['Arbetsyta','general'],['Tj\u00e4nster','services'],['SMS','sms'],['Kommunikation','comms'],
       ['API-nycklar','apikey'],['Din profil','profile'],['Preferenser','preferences']
     ];
     _stSecs.forEach(function(s) {
@@ -24407,28 +24407,25 @@ function _mailDetailRow(label, value) {
 async function _velaSendSMS(to, body) {
   var key = _velaGetApiKey('46elks');
   if (!key) { console.warn('Vela: 46elks API-nyckel saknas'); return { ok:false, err:'no_key' }; }
-
-  // 46elks uses Basic Auth: username:password, key stored as "user:password"
-  var parts = key.split(':');
-  if (parts.length < 2) { return { ok:false, err:'invalid_key_format' }; }
-  var auth = btoa(parts[0] + ':' + parts.slice(1).join(':'));
+  if (key.indexOf(':') === -1) { return { ok:false, err:'invalid_key_format' }; }
 
   var cfg = getClinicConfig();
   var from = (cfg.smsName || cfg.name || 'Kliniken').replace(/[^a-zA-Z0-9åäöÅÄÖ ]/g,'').slice(0,11);
 
-  try {
-    var fd = new URLSearchParams();
-    fd.append('from', from);
-    fd.append('to', to.replace(/\s/g,''));
-    fd.append('message', body);
+  // Route via Supabase Edge Function to avoid CORS block on direct browser→46elks calls
+  var edgeFnUrl = SB_URL + '/functions/v1/send-sms';
 
-    var res = await fetch('https://api.46elks.com/a1/sms', {
+  try {
+    var res = await fetch(edgeFnUrl, {
       method: 'POST',
-      headers: { 'Authorization': 'Basic ' + auth, 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: fd.toString()
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SB_KEY,
+      },
+      body: JSON.stringify({ to: to.replace(/\s/g,''), message: body, from: from, apiKey: key })
     });
     var data = await res.json();
-    if (!res.ok || data.status === 'failed') throw new Error(data.message || '46elks error');
+    if (!data.ok) throw new Error(data.err || '46elks error');
     return { ok: true, id: data.id };
   } catch(err) {
     console.error('Vela SMS error:', err);
@@ -26425,6 +26422,7 @@ function _renderSettingsContent(tab) {
   else if (tab === 'integrations')  el.innerHTML = _stIntegrations();
   else if (tab === 'profile')       el.innerHTML = _stUserProfile();
   else if (tab === 'preferences')   el.innerHTML = _stPreferences();
+  else if (tab === 'sms')           { window._commsTab = 'sms'; el.innerHTML = _stComms(cfg); }
 }
 
 
@@ -27223,103 +27221,117 @@ function _stComms(cfg) {
     });
     h += '</div>';
 
-  // ═══ SMS ════════════════════════════════════════════════════
+  // ═══ SMS — unified single-flow panel ══════════════════════════════════════
   } else if (tab === 'sms') {
-    var smsItems = [
-      {id:'sms_booking',  label:'Bokningsbekräftelse',    sub:'Direkt vid ny bokning',
-        icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
-        tpl:'Bokning bekräftad hos [klinik] — [datum] kl [tid]. Adress: [adress]. Frågor: [telefon]'},
-      {id:'sms_reminder', label:'Påminnelse',              sub:'24h innan besöket',
-        icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-        tpl:'Påminnelse: tid hos [klinik] imorgon [datum] kl [tid]. Adress: [adress]. Avboka: [länk]'},
-      {id:'sms_cancel',   label:'Avbokningsbekräftelse',  sub:'Direkt vid avbokning',
-        icon:'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
-        tpl:'Din tid hos [klinik] [datum] är avbokad. Ny tid: [länk]'},
-      {id:'sms_plan',     label:'Hael-plan klar',          sub:'När planen skickas till patienten',
-        icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
-        tpl:'Din rehabplan från [klinik] är klar: [länk] · Frågor: [telefon]'},
-      {id:'sms_after',    label:'Uppföljning efter besök', sub:'3h efter avslutat besök',
-        icon:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-        tpl:'Hoppas besöket gick bra! Hör av dig om du har frågor. [telefon] / [klinik]'},
-      {id:'sms_followup', label:'Uppföljning 7 dagar',     sub:'7 dagar efter senaste besök',
-        icon:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
-        tpl:'Hur mår du? Dags för uppföljning? Boka enkelt: [länk] · [klinik]'},
-      {id:'sms_checkin',  label:'Träningspåminnelse',      sub:'Dagar utan loggning i Hael',
-        icon:'<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
-        tpl:'Glöm inte träningen! Logga i din Hael-plan: [länk]'},
+    var elksKey    = (_velaGetApiKey && _velaGetApiKey('46elks')) || '';
+    var smsEnabled = localStorage.getItem('vela:sms-enabled') !== 'off';
+    var smsName    = cfg.smsName || cfg.name || '';
+    var keyOk      = elksKey && elksKey.indexOf(':') !== -1;
+    var svcItems = [
+      {id:'sms_booking',  label:'Bokningsbekräftelse', sub:'Direkt vid ny bokning',    icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', tpl:'Bokning bekräftad hos [klinik] — [datum] kl [tid]. Adress: [adress]. Frågor: [telefon]'},
+      {id:'sms_reminder', label:'Påminnelse',           sub:'24h innan besöket',        icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',           tpl:'Påminnelse: tid hos [klinik] imorgon [datum] kl [tid]. Avboka: [länk]'},
+      {id:'sms_cancel',   label:'Avbokning',            sub:'Direkt vid avbokning',     icon:'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>', tpl:'Din tid hos [klinik] [datum] är avbokad. Ny tid: [länk]'},
+      {id:'sms_plan',     label:'Hael-plan klar',       sub:'När planen skickas',       icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',                            tpl:'Din rehabplan från [klinik] är klar: [länk]'},
+      {id:'sms_after',    label:'Uppföljning',          sub:'3h efter besök',           icon:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',     tpl:'Hoppas besöket gick bra! Frågor: [telefon] — [klinik]'},
+      {id:'sms_followup', label:'Uppföljning 7 dagar',  sub:'7 dagar efter senaste besök', icon:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>',                              tpl:'Hur mår du? Dags för uppföljning? Boka: [länk] · [klinik]'},
     ];
 
-    // SMS provider picker
-    var smsProv = localStorage.getItem('vela:sms-provider') || '';
-    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">';
-    [{id:'46elks',name:'46elks',tag:'Svensk · GDPR-säker',col:'#2563eb'},{id:'twilio',name:'Twilio',tag:'Global · Kraftfull',col:'#F22F46'}].forEach(function(p) {
-      var conn = smsProv===p.id;
-      h += '<div style="background:#161b22;border:1.5px solid '+(conn?'var(--teal)':'var(--border)')+';border-radius:13px;padding:14px;position:relative">';
-      if(conn) h += '<div style="position:absolute;top:-7px;right:12px;background:var(--teal);color:#fff;font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px">Aktiv</div>';
-      h += '<div style="display:flex;align-items:center;gap:9px;margin-bottom:7px">';
-      h += '<div style="width:30px;height:30px;border-radius:8px;background:'+p.col+'18;display:flex;align-items:center;justify-content:center">';
-      h += svgIcon('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',14)+'</div>';
-      h += '<div><div style="font-size:13px;font-weight:700;color:#e6edf3">'+p.name+'</div>';
-      h += '<div style="font-size:12px;color:#8b949e">'+p.tag+'</div></div></div>';
-      if(conn) {
-        h += '<button onclick="localStorage.removeItem(\'vela:sms-provider\');_renderSettingsContent(\'comms\')" style="width:100%;padding:7px;background:none;border:1px solid #30363d;border-radius:8px;font-size:13px;color:#8b949e;cursor:pointer;font-family:var(--font)">Koppla från</button>';
-      } else {
-        h += '<button onclick="localStorage.setItem(\'vela:sms-provider\',\''+p.id+'\');showAutoSaveToast(\''+p.name+' valt\');_renderSettingsContent(\'comms\')" class="btn btn-p" style="width:100%;padding:7px;font-size:13px">Välj '+p.name+' →</button>';
-      }
+    // ── STEG 1: Anslut 46elks ────────────────────────────────────────────────
+    h += '<div style="max-width:680px">';
+
+    // Status banner
+    if (keyOk && smsEnabled) {
+      h += '<div style="background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.25);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:20px">';
+      h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>';
+      h += '<div style="flex:1"><span style="font-size:14px;font-weight:700;color:#3fb950">SMS aktiverat</span>';
+      h += '<span style="font-size:13px;color:#8b949e;margin-left:10px">Avsändare: <strong style="color:#e6edf3">' + e(smsName.slice(0,11) || '—') + '</strong></span></div>';
+      h += '<button onclick="var k={}; try{k=JSON.parse(localStorage.getItem(\'vela:api-keys\')||\'{}\')}catch(x){}; delete k[\'46elks\']; localStorage.setItem(\'vela:api-keys\',JSON.stringify(k)); localStorage.setItem(\'vela:sms-enabled\',\'off\'); showAutoSaveToast(\'46elks frånkopplat\'); _renderSettingsContent(\'sms\')" style="padding:5px 12px;background:none;border:1px solid rgba(248,81,73,.3);border-radius:6px;font-size:12px;color:#f85149;cursor:pointer;font-family:var(--font)">Koppla från</button>';
       h += '</div>';
-    });
+    } else {
+      h += '<div style="background:rgba(210,153,34,.07);border:1px solid rgba(210,153,34,.25);border-radius:8px;padding:14px 16px;margin-bottom:20px">';
+      h += '<div style="font-size:14px;font-weight:700;color:#d29922;margin-bottom:4px">46elks ej konfigurerat</div>';
+      h += '<div style="font-size:13px;color:#8b949e;line-height:1.6">Fyll i dina API-uppgifter nedan för att aktivera SMS-utskick.</div>';
+      h += '</div>';
+    }
+
+    // ── Inställningskortet ────────────────────────────────────────────────────
+    h += '<div style="border:1px solid #30363d;border-radius:10px;overflow:hidden;margin-bottom:20px">';
+
+    // Header
+    h += '<div style="padding:14px 18px;border-bottom:1px solid #30363d;background:#161b22;display:flex;align-items:center;gap:10px">';
+    h += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+    h += '<div style="flex:1"><div style="font-size:14px;font-weight:700;color:#e6edf3">46elks SMS</div>';
+    h += '<div style="font-size:12px;color:#8b949e">Svensk SMS-leverantör · GDPR-säker</div></div>';
+    h += '<a href="https://dashboard.46elks.com" target="_blank" style="font-size:12px;color:#58a6ff;text-decoration:none">Öppna dashboard ↗</a>';
     h += '</div>';
 
-    // ── Test-SMS ──────────────────────────────────────────────────────────────
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 18px;margin-bottom:14px">';
-    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3;margin-bottom:8px">Skicka test-SMS via 46elks</div>';
-    h += '<div style="display:flex;gap:8px;align-items:center">';
-    h += '<input id="sms-test-number" class="field" placeholder="+46701234567" style="flex:1;max-width:200px" value="' + e(clinic.phone||'') + '">';
-    h += '<input id="sms-test-body" class="field" placeholder="Testmeddelande från Vela" style="flex:2">';
-    h += '<button onclick="_velaSendTestSms()" class="act-btn act-btn-primary" style="flex-shrink:0">Skicka →</button>';
+    h += '<div style="padding:18px">';
+
+    // API-nyckel
+    h += '<div style="margin-bottom:16px">';
+    h += '<label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;margin-bottom:6px">API-uppgifter</label>';
+    h += '<div style="display:flex;gap:8px">';
+    h += '<input id="sms-elks-key" class="field" type="password" placeholder="u1xxxxxx:ditt_password" value="' + e(elksKey) + '" style="flex:1;font-family:var(--font-mono);font-size:13px">';
+    h += '<button onclick="_velaSaveAndTestKey(\'46elks\',document.getElementById(\'sms-elks-key\').value)" class="act-btn act-btn-primary" style="white-space:nowrap">Spara</button>';
     h += '</div>';
-    h += '<div id="sms-test-result" style="margin-top:8px;font-size:13px;color:#8b949e;min-height:18px"></div>';
+    h += '<div style="font-size:12px;color:#6e7681;margin-top:5px">Hitta under <strong>Account</strong> i 46elks dashboard. Format: <code style="background:#21262d;padding:1px 5px;border-radius:3px;font-family:var(--font-mono)">username:password</code></div>';
     h += '</div>';
 
-    // SMS triggers
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">';
-    h += '<div style="padding:13px 18px;border-bottom:1px solid #30363d">';
-    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3">SMS-triggers</div>';
-    h += '<div style="font-size:13px;color:#8b949e;margin-top:1px">[klinik] → <strong style="color:var(--teal)">'+e(clinicName)+'</strong> · [adress] → <strong style="color:var(--teal)">'+e(clinic.address||'saknas')+' </strong>· bytts ut live</div>';
+    // Avsändarnamn + aktivera toggle
+    h += '<div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;margin-bottom:16px">';
+    h += '<div><label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;margin-bottom:6px">Avsändarnamn</label>';
+    h += '<input id="sms-name" class="field" placeholder="Max 11 tecken — t.ex. Kansei" maxlength="11" value="' + e(smsName) + '" oninput="var cfg=getClinicConfig();cfg.smsName=this.value.slice(0,11);saveClinicConfig(cfg)" style="width:100%;box-sizing:border-box">';
+    h += '<div style="font-size:12px;color:#6e7681;margin-top:4px">Visas som avsändare. Max 11 tecken, inga specialtecken.</div></div>';
+    h += '<div style="padding-bottom:22px"><label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;margin-bottom:8px">SMS aktiv</label>';
+    h += '<div onclick="var on=localStorage.getItem(\'vela:sms-enabled\')!==\'off\';localStorage.setItem(\'vela:sms-enabled\',on?\'off\':\'on\');_renderSettingsContent(\'sms\')" ';
+    h += 'style="width:40px;height:22px;border-radius:11px;background:' + (smsEnabled ? 'var(--teal)' : 'var(--border)') + ';position:relative;cursor:pointer;transition:background .2s">';
+    h += '<div style="position:absolute;top:4px;left:' + (smsEnabled ? '20px' : '4px') + ';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div>';
+    h += '</div></div></div>';
+
+    // ── Test-SMS direkt här ───────────────────────────────────────────────────
+    h += '<div style="background:var(--bg);border:1px solid #30363d;border-radius:8px;padding:14px 16px">';
+    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3;margin-bottom:10px;display:flex;align-items:center;gap:7px">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>';
+    h += 'Skicka test-SMS</div>';
+    h += '<div style="display:flex;gap:8px;margin-bottom:8px">';
+    h += '<input id="sms-test-number" class="field" placeholder="+46701234567" style="width:160px">';
+    h += '<input id="sms-test-body" class="field" placeholder="Testmeddelande från Vela" style="flex:1">';
+    h += '<button onclick="_velaSendTestSms()" class="act-btn act-btn-primary" style="white-space:nowrap">Skicka →</button>';
+    h += '</div>';
+    h += '<div id="sms-test-result" style="font-size:13px;color:#8b949e;min-height:18px"></div>';
     h += '</div>';
 
-    smsItems.forEach(function(sms,i) {
+    h += '</div></div>'; // padding + card
+
+    // ── SMS-mallar ────────────────────────────────────────────────────────────
+    h += '<div style="border:1px solid #30363d;border-radius:10px;overflow:hidden;margin-bottom:16px">';
+    h += '<div style="padding:12px 18px;border-bottom:1px solid #30363d;background:#161b22">';
+    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3">Automatiska SMS-mallar</div>';
+    h += '<div style="font-size:12px;color:#8b949e;margin-top:2px">[klinik] [datum] [tid] [adress] [telefon] [länk] byts ut automatiskt</div>';
+    h += '</div>';
+
+    svcItems.forEach(function(sms, i) {
       var stored = null; try{stored=JSON.parse(localStorage.getItem('vela:sms:'+sms.id)||'null');}catch(ex){}
-      var on   = stored ? stored.active : (i < 4);
-      var text = stored ? stored.text   : sms.tpl;
+      var on   = stored ? stored.active !== false : (i < 4);
+      var text = stored ? stored.text : sms.tpl;
       var preview = resolveVars(text);
-
-      h += '<div style="padding:12px 18px;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
-      h += '<div style="display:flex;align-items:center;gap:11px;margin-bottom:7px">';
-      // SVG icon — NO emoji
-      h += '<div style="width:30px;height:30px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--teal)">';
-      h += svgIcon(sms.icon,14)+'</div>';
-      h += '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:#e6edf3">'+sms.label+'</div>';
-      h += '<div style="font-size:13px;color:#8b949e">'+sms.sub+'</div></div>';
-      // Toggle
-      h += '<div style="width:32px;height:18px;border-radius:9px;background:'+(on?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;flex-shrink:0;transition:background .2s" onclick="_toggleSms2(\''+sms.id+'\')">';
-      h += '<div style="position:absolute;top:2px;left:'+(on?'14px':'2px')+';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div></div>';
+      h += '<div style="padding:14px 18px;' + (i > 0 ? 'border-top:1px solid var(--border2)' : '') + '">';
+      h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
+      h += '<div style="width:28px;height:28px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round">' + sms.icon + '</svg></div>';
+      h += '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:#e6edf3">' + sms.label + '</div>';
+      h += '<div style="font-size:12px;color:#8b949e">' + sms.sub + '</div></div>';
+      h += '<div onclick="_toggleSms2(\'' + sms.id + '\')" style="width:32px;height:18px;border-radius:9px;background:' + (on ? 'var(--teal)' : 'var(--border)') + ';position:relative;cursor:pointer;flex-shrink:0;transition:background .2s">';
+      h += '<div style="position:absolute;top:2px;left:' + (on ? '14px' : '2px') + ';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div></div>';
       h += '</div>';
-      // Text field + live preview
-      h += '<div style="background:var(--bg);border:1px solid #30363d;border-radius:9px;overflow:hidden">';
-      h += '<textarea id="sms-text-'+sms.id+'" onchange="_saveSmsText(\''+sms.id+'\',this.value);this.nextElementSibling.textContent=this.value" style="width:100%;background:none;border:none;border-bottom:1px solid var(--border2);outline:none;font-size:13px;color:#e6edf3;font-family:var(--font);resize:none;line-height:1.6;padding:8px 11px" rows="2">'+e(text)+'</textarea>';
-      h += '<div style="padding:5px 11px;font-size:12px;color:var(--teal);line-height:1.5">'+e(preview)+'</div>';
-      h += '</div>';
-      h += '<div style="font-size:12px;color:#8b949e;margin-top:3px">Variabler: [klinik] [adress] [datum] [tid] [telefon] [länk]</div>';
-      h += '</div>';
+      h += '<div style="background:var(--bg);border:1px solid #30363d;border-radius:7px;overflow:hidden">';
+      h += '<textarea id="sms-text-' + sms.id + '" oninput="_saveSmsText(\'' + sms.id + '\',this.value)" style="width:100%;background:none;border:none;border-bottom:1px solid var(--border2);outline:none;font-size:13px;color:#e6edf3;font-family:var(--font);resize:none;padding:8px 11px;box-sizing:border-box" rows="2">' + e(text) + '</textarea>';
+      h += '<div style="padding:5px 11px;font-size:12px;color:var(--teal);line-height:1.5">' + e(preview) + '</div>';
+      h += '</div></div>';
     });
     h += '</div>';
 
-    // Multi-clinic note
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:11px;padding:12px 15px;margin-top:12px;display:flex;gap:10px;align-items:flex-start">';
-    h += svgIcon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',13);
-    h += '<div style="font-size:13px;color:#e6edf3;line-height:1.65"><strong style="color:var(--teal)">Multi-klinik:</strong> [klinik] och [adress] byts automatiskt per klinik. En ägare med 10 kliniker behöver bara ett template — rätt info går till rätt patient.</div>';
-    h += '</div>';
+    h += '</div>'; // max-width wrapper
 
   // ═══ SIGNATUR ════════════════════════════════════════════════
   } else if (tab === 'signature') {

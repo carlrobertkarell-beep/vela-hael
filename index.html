@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774512787 -->
+<!-- vela-build:1774514305 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -3150,6 +3150,30 @@ function saveClinicConfig(cfg) {
 function getSignatory() {
   const cfg = getClinicConfig();
   return cfg.signatory || cfg.name || 'Kliniken';
+}
+
+// ── Journal number — format: K-YYYY-NNNN (pseudonymiserat, GDPR-säkert) ──────
+// Prefix = upp till 3 bokstäver från kliniknamnet, versaler.
+// Räknaren lagras i localStorage per år och synkas ej till Supabase
+// (inget personuppgiftsinnehåll — OK som intern referens).
+function _nextJournalNr() {
+  try {
+    var cfg    = getClinicConfig();
+    var jCfg   = cfg.journalNr || {};
+    // Prefix: use saved setting, or auto-derive from clinic name
+    var prefix = (jCfg.prefix || (cfg.name||'').replace(/[^a-zA-ZåäöÅÄÖ]/g,'').slice(0,3).toUpperCase() || 'VEL');
+    var sep    = jCfg.sep !== undefined ? jCfg.sep : '-';
+    var pad    = jCfg.pad || 4;
+    var useYr  = jCfg.year !== false; // default true
+    var year   = new Date().getFullYear();
+    var key    = 'vela:journalnr:' + year;
+    var seq    = (parseInt(localStorage.getItem(key) || '0', 10) || 0) + 1;
+    localStorage.setItem(key, String(seq));
+    var yearPart = useYr ? (year + sep) : '';
+    return prefix + sep + yearPart + String(seq).padStart(pad, '0');
+  } catch(e) {
+    return 'J-' + Date.now();
+  }
 }
 
 function _applyClinicConfig(cfg) {
@@ -9260,7 +9284,7 @@ function _renderGlobalTopbar() {
   // ── Row 2: GitHub-style tab row ───────────────────────────────
   var scr2 = S.screen || 'dashboard';
   var tabMap2 = {
-    dashboard:'home', list:'home', detail:'home', editpat:'home',
+    dashboard:'home', list:'patients', detail:'patients', editpat:'patients',
     calendar:'calendar',
     meeting:'journal', soap:'journal', manualsoap:'journal', 'sbs-soap':'journal', editex:'journal',
     hael:'hael', form:'hael', doc:'hael', journaldoc:'hael',
@@ -9281,6 +9305,7 @@ function _renderGlobalTopbar() {
 
   var TABS2 = [
     { id:'home',         label:'Klinik',        dest:'dashboard',    icon:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
+    { id:'patients',     label:'Patienter',      dest:'list',         icon:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', badge:(S.patients||[]).length||null },
     { id:'calendar',     label:'Kalender',       dest:'calendar',     icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z' },
     { id:'journal',      label:'Besök',          dest:'manualsoap',   icon:'M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z' },
     { id:'hael',         label:'Hael',           dest:'hael',         icon:'M22 12h-4l-3 9L9 3l-3 9H2' },
@@ -14603,6 +14628,7 @@ function _detJournal(p, visits) {
       h += '<div class="item-row-body">';
       h += '<div class="item-row-title">';
       h += e(v.date||'Okänt datum');
+      if (v.journalNr) h += '<span style="font-size:11px;font-weight:600;color:#8b949e;background:#21262d;border:1px solid #30363d;border-radius:4px;padding:1px 6px;font-family:var(--font-mono);margin-left:2px">' + e(v.journalNr) + '</span>';
       if (vNrsLast !== null) h += '<span class="status-pill ' + (vNrsLast>=7?'red':vNrsLast>=4?'amber':'green') + '" style="font-size:12px">NRS ' + vNrsLast + '</span>';
       if (hasSOAP) h += '<span class="status-pill teal" style="font-size:12px">Besök</span>';
       if (hasPlan) h += '<span class="status-pill blue" style="font-size:12px">Hael-plan</span>';
@@ -15095,7 +15121,7 @@ async function doGen(){
   // Inject phase instruction into form
   const ph = S.pat ? getCurrentPhase(S.pat) : 1;
   S.form.phaseInstruction = getPhasePromptAddition(ph);
-const key=getKey();if(!key){document.getElementById("ferr").innerHTML=`<div class="errbox">API-nyckel saknas. Klicka på Inställningar uppe till höger.</div>`;return;}document.getElementById("ferr").innerHTML="";const btn=document.getElementById("gbtn");if(btn)btn.disabled=true;const f=S.form;const diag=f.diagnosis==="Annan / fritext"?f.customDiag:f.diagnosis;const ff={...f,diagnosis:diag};S.loadMode='plan';S.loadStep=1;go("loading");try{S.loadStep=2;rLoading();const gen=await callAPI(buildPr(ff),[],key);S.loadStep=3;rLoading();const vid=S.visitId||("v_"+Date.now());const np={...gen,patientName:f.name||"Patient",diagnosis:diag,form:ff,visitId:vid};S.plan=np;let pat=S.pat||{id:"pat_"+Date.now(),name:f.name,birthYear:f.birthYear,diagnosis:diag,visits:[]};pat={...pat,name:ff.name||pat.name,birthdate:ff.birthdate||pat.birthdate,birthYear:birthdateToYear(ff.birthdate||pat.birthdate||""),diagnosis:diag};const nv={id:vid,date:new Date().toISOString().slice(0,10),form:ff,plan:np,status:"Aktiv",note:"",service:(window._pendingService||{}).name||"",servicePrice:(window._pendingService||{}).price||0};window._pendingService=null;const ei=(pat.visits||[]).findIndex(v=>v.id===vid);pat.visits=ei>=0?pat.visits.map(v=>v.id===vid?nv:v):[nv,...(pat.visits||[])];const sv=savePat(pat);S.pat=sv;S.visitId=vid;go("doc");if(ei<0&&!(pat.consents&&pat.consents.length))setTimeout(()=>showConsentPopup(sv.id),500);if(ei<0){setTimeout(()=>aiExtractDiagnoses(sv.id),1200);incrementMonthlyPlanCount();}setTimeout(()=>reviewPlanRisk(sv.id,vid),2000);}catch(err){go("form");document.getElementById("ferr").innerHTML=`<div class="errbox">Fel: ${e(err.message||"Okänt fel")}. Kontrollera API-nyckeln.</div>`;if(btn)btn.disabled=false;}}
+const key=getKey();if(!key){document.getElementById("ferr").innerHTML=`<div class="errbox">API-nyckel saknas. Klicka på Inställningar uppe till höger.</div>`;return;}document.getElementById("ferr").innerHTML="";const btn=document.getElementById("gbtn");if(btn)btn.disabled=true;const f=S.form;const diag=f.diagnosis==="Annan / fritext"?f.customDiag:f.diagnosis;const ff={...f,diagnosis:diag};S.loadMode='plan';S.loadStep=1;go("loading");try{S.loadStep=2;rLoading();const gen=await callAPI(buildPr(ff),[],key);S.loadStep=3;rLoading();const vid=S.visitId||("v_"+Date.now());const np={...gen,patientName:f.name||"Patient",diagnosis:diag,form:ff,visitId:vid};S.plan=np;let pat=S.pat||{id:"pat_"+Date.now(),name:f.name,birthYear:f.birthYear,diagnosis:diag,visits:[]};pat={...pat,name:ff.name||pat.name,birthdate:ff.birthdate||pat.birthdate,birthYear:birthdateToYear(ff.birthdate||pat.birthdate||""),diagnosis:diag};const nv={id:vid,journalNr:_nextJournalNr(),date:new Date().toISOString().slice(0,10),form:ff,plan:np,status:"Aktiv",note:"",service:(window._pendingService||{}).name||"",servicePrice:(window._pendingService||{}).price||0};window._pendingService=null;const ei=(pat.visits||[]).findIndex(v=>v.id===vid);pat.visits=ei>=0?pat.visits.map(v=>v.id===vid?nv:v):[nv,...(pat.visits||[])];const sv=savePat(pat);S.pat=sv;S.visitId=vid;go("doc");if(ei<0&&!(pat.consents&&pat.consents.length))setTimeout(()=>showConsentPopup(sv.id),500);if(ei<0){setTimeout(()=>aiExtractDiagnoses(sv.id),1200);incrementMonthlyPlanCount();}setTimeout(()=>reviewPlanRisk(sv.id,vid),2000);}catch(err){go("form");document.getElementById("ferr").innerHTML=`<div class="errbox">Fel: ${e(err.message||"Okänt fel")}. Kontrollera API-nyckeln.</div>`;if(btn)btn.disabled=false;}}
 function buildPr(f, locked=[]) {
   const age = new Date().getFullYear() - birthdateToYear(f.birthdate||f.birthYear);
   const lang = f.knowledge==="låg" ? "enkelt vardagsspråk -- undvik anatomiska termer"
@@ -17002,6 +17028,7 @@ async function saveSOAPToVisit(goToPlan) {
     const svc = window._pendingService || {};
     const newVisit = {
       id: vid,
+      journalNr: currentSOAP.journalNr || _nextJournalNr(),
       date: currentSOAP.date,
       form: null, plan: null, status: window._soapVisitStatus || 'completed',
       note: soapText,
@@ -17114,6 +17141,7 @@ function startManualSOAP() {
   const draft = checkJournalDraft();
   currentSOAP = {
     soap: {S:'',O:'',A:'',P:''},
+    journalNr: _nextJournalNr(),
     diagnosis: S.pat.diagnosis||'',
     customDiagnosis: '',
     icd10: '',
@@ -17219,6 +17247,7 @@ function rManualSOAP(bk) {
       <span style="color:var(--border);font-size:16px">/</span>
       <span style="font-size:14px;font-weight:700;color:#e6edf3">${e(p.name)}</span>
       <span style="font-size:13px;color:#8b949e">· Besöksjournal</span>
+      ${currentSOAP && currentSOAP.journalNr ? `<span style="font-size:12px;color:#8b949e;background:#21262d;border:1px solid #30363d;border-radius:4px;padding:1px 7px;font-family:var(--font-mono);margin-left:4px">${e(currentSOAP.journalNr)}</span>` : ''}
       <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
         <span id="soap-autosave-label" style="font-size:12px;color:#8b949e;display:none">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -17242,23 +17271,21 @@ function rManualSOAP(bk) {
           ${soapFields.map((f, i) => `
           <div style="border-bottom:${i < 3 ? '1px solid #30363d' : 'none'};background:#161b22">
             <!-- Field header -->
-            <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border2)">
-              <div style="width:26px;height:26px;border-radius:7px;background:${f.color}20;border:1px solid ${f.color}40;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <span style="font-size:13px;font-weight:800;color:${f.color}">${f.l}</span>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px">
+              <div style="width:22px;height:22px;border-radius:5px;background:${f.color}20;border:1px solid ${f.color}40;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <span style="font-size:11px;font-weight:800;color:${f.color}">${f.l}</span>
               </div>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#e6edf3">${f.label}</div>
-                <div style="font-size:11px;color:#8b949e">${f.desc}</div>
+              <div style="flex:1;min-width:0">
+                <span style="font-size:13px;font-weight:700;color:#e6edf3">${f.label}</span>
+                <span style="font-size:12px;color:#6e7681;margin-left:6px">${f.desc}</span>
               </div>
-              <div style="margin-left:auto">
-                ${micBtnHTML('ms-' + f.l, f.l)}
-              </div>
+              ${micBtnHTML('ms-' + f.l, f.l)}
             </div>
             <!-- Textarea -->
             <textarea id="ms-${f.l}"
               placeholder="${f.ph}"
-              oninput="triggerClinicalAnalysis(collectMSOAPText());autoSaveJournalDraft()"
-              style="width:100%;min-height:90px;border:none;background:transparent;padding:12px 16px;font-size:14px;color:#e6edf3;font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.7"
+              oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';triggerClinicalAnalysis(collectMSOAPText());autoSaveJournalDraft()"
+              style="width:100%;min-height:64px;border:none;border-top:1px solid var(--border2);background:var(--bg);padding:10px 14px;font-size:14px;color:#e6edf3;font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.65"
               >${e(soap[f.l] || '')}</textarea>
           </div>`).join('')}
         </div>
@@ -17446,6 +17473,9 @@ function rEditPat() {
     <span class="slabel">Födelsedatum</span>
     <input class="field" id="ep-birthdate" value="${e(p.birthdate||'')}" placeholder="891022 eller 1989-10-22" style="margin-bottom:11px">
 
+    <span class="slabel">Telefon</span>
+    <input class="field" id="ep-phone" type="tel" value="${e(p.phone||'')}" placeholder="+46701234567" style="margin-bottom:11px">
+
     <span class="slabel">E-post</span>
     <input class="field" id="ep-email" type="email" value="${e(p.email||'')}" placeholder="patient@exempel.se" style="margin-bottom:11px">
 
@@ -17465,6 +17495,9 @@ function rEditPat() {
       <button class="btn btn-p" style="flex:1;padding:12px" onclick="saveEditPat()">Spara ändringar</button>
       <button class="btn" style="flex:1;padding:12px" onclick="go('detail')">Avbryt</button>
     </div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border2)">
+      <button onclick="confDel('pat','${p.id}','${e(p.name)}')" style="width:100%;padding:10px;background:none;border:1px solid var(--red);border-radius:8px;color:var(--red);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font)">Radera patient permanent</button>
+    </div>
   </div>`;
   document.getElementById('ep-diag').onchange = function() {
     document.getElementById('ep-custom-wrap').style.display = this.value==='Annan / fritext'?'block':'none';
@@ -17476,12 +17509,13 @@ function saveEditPat() {
   const name = document.getElementById('ep-name').value.trim();
   if (!name) { alert('Namn är obligatoriskt.'); return; }
   const birthdate = parseBirthdate(document.getElementById('ep-birthdate').value.trim());
+  const phone = document.getElementById('ep-phone').value.trim();
   const email = document.getElementById('ep-email').value.trim();
   const birthYear = birthdateToYear(birthdate);
   const diagnosis = document.getElementById('ep-diag').value;
   const customDiag = document.getElementById('ep-custom')&&document.getElementById('ep-custom').value.trim()||'';
   const notes = document.getElementById('ep-notes').value.trim();
-  const updated = {...p, name, birthdate, email, birthYear, diagnosis, customDiag, notes};
+  const updated = {...p, name, birthdate, phone, email, birthYear, diagnosis, customDiag, notes};
   S.pat = savePat(updated);
   go('detail');
 }
@@ -19126,6 +19160,15 @@ async function sbUpsertPat(p) {
     );
     return ins.ok;
   } catch(e) { return false; }
+}
+
+async function sbDeletePat(id) {
+  try {
+    await fetchWithTimeout(
+      SB_URL + '/rest/v1/patients?id=eq.' + encodeURIComponent(id),
+      { method: 'DELETE', headers: sbHeaders() }
+    );
+  } catch(e) { console.warn('Vela: sbDeletePat failed', e); }
 }
 
 async function sbLoadAll() {
@@ -24545,6 +24588,70 @@ async function _velaSaveAndTestKey(service, keyVal) {
   _renderSettingsContent && _renderSettingsContent('comms');
 }
 
+// ── Queue a booking reminder (mail or SMS) N hours before appointment ─────────
+function _queueReminderChain(bk) {
+  var hours = parseInt(localStorage.getItem('vela:reminder-hours') || '24', 10);
+  if (!hours || !bk || !bk.date || !bk.time) return; // reminder disabled or incomplete booking
+
+  var pat = (S.patients || []).find(function(p) { return p.id === bk.patientId; });
+  var channel = (pat && pat.phone && localStorage.getItem('vela:sms-enabled') !== 'off') ? 'sms' : 'mail';
+
+  // Calculate scheduled time: bk.date + bk.time, minus N hours
+  try {
+    var apptTs = new Date(bk.date + 'T' + bk.time + ':00');
+    var sendAt  = new Date(apptTs.getTime() - hours * 3600000);
+    if (sendAt <= new Date()) return; // appointment too soon — skip
+
+    var cfg     = getClinicConfig();
+    var dateStr = apptTs.toLocaleDateString('sv-SE', { weekday:'long', day:'numeric', month:'long' });
+    var body    = channel === 'sms'
+      ? 'Påminnelse: tid hos ' + (cfg.name || 'kliniken') + ' ' + dateStr + ' kl ' + bk.time + '. Frågor: ' + (cfg.phone || '')
+      : 'Påminnelse om din tid hos ' + (cfg.name || 'kliniken') + ' ' + dateStr + ' kl ' + bk.time + '.';
+
+    var q = getRetentionQueue();
+    q.push({
+      id:           'rem_' + bk.id,
+      patId:        bk.patientId,
+      patName:      bk.patientName,
+      triggerId:    'booking_reminder',
+      label:        'Bokningspåminnelse',
+      channel:      channel,
+      msg:          { subject: 'Påminnelse om din tid', body: body, channel: channel },
+      scheduledFor: sendAt.toISOString(),
+      approved:     true, // reminders auto-approved
+      addedAt:      new Date().toISOString(),
+    });
+    saveRetentionQueue(q);
+  } catch(ex) {
+    console.warn('Vela: _queueReminderChain failed', ex);
+  }
+}
+
+// ── Send intake link immediately via mail (or log for SMS) ────────────────────
+async function _queueIntakeSend(patId, patName, intakeLink, bkDate, bkTime) {
+  var pat = (S.patients || []).find(function(p) { return p.id === patId; });
+  var cfg = getClinicConfig();
+  var firstName = (patName || '').split(' ')[0] || 'dig';
+
+  var subject = 'Inför ditt besök hos ' + (cfg.name || 'kliniken');
+  var body    = 'Hej ' + firstName + ',\n\n'
+    + 'Välkommen till ' + (cfg.name || 'kliniken') + '!'
+    + (bkDate ? ' Din tid är ' + bkDate + (bkTime ? ' kl ' + bkTime : '') + '.' : '')
+    + '\n\nInnan besöket ber vi dig fylla i ett kort formulär (2–3 min):\n\n'
+    + intakeLink
+    + '\n\nMed vänliga hälsningar,\n' + (cfg.signatory || cfg.name || 'Kliniken');
+
+  if (pat && pat.email) {
+    var result = await _velaSendMail(pat.email, subject, body);
+    if (!result.ok) console.warn('Vela: intake mail failed', result.err);
+  } else if (pat && pat.phone && localStorage.getItem('vela:sms-enabled') !== 'off') {
+    var smsBody = 'Fyll i formuläret inför ditt besök: ' + intakeLink;
+    var result2 = await _velaSendSMS(pat.phone, smsBody);
+    await _sbLogSms(patId, pat.phone, smsBody, result2.id, result2.ok, 'intake_send', result2.err);
+  }
+  // If no contact info, silently skip — link already copied to clipboard by caller
+}
+
 function queueRetentionAction(signal, msg) {
   var q = getRetentionQueue();
   var mode = getRetentionMode();
@@ -27516,6 +27623,71 @@ function _stGeneral(cfg) {
   });
   h += '</div></div></div>';
 
+  // ── Journalnumrering ──────────────────────────────────────────────────────
+  var jCfg = cfg.journalNr || {};
+  var jPrefix  = jCfg.prefix  !== undefined ? jCfg.prefix  : (cfg.name||'').replace(/[^a-zA-ZåäöÅÄÖ]/g,'').slice(0,3).toUpperCase() || 'VEL';
+  var jSep     = jCfg.sep     !== undefined ? jCfg.sep     : '-';
+  var jYear    = jCfg.year    !== undefined ? jCfg.year    : true;
+  var jPad     = jCfg.pad     !== undefined ? jCfg.pad     : 4;
+  var jSeq     = parseInt(localStorage.getItem('vela:journalnr:' + new Date().getFullYear()) || '0', 10);
+
+  function jPreview(pre, sep, yr, pad) {
+    var y = yr ? new Date().getFullYear() + sep : '';
+    return (pre||'J') + sep + y + String(jSeq + 1).padStart(parseInt(pad)||4,'0');
+  }
+
+  h += '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:24px">';
+  h += '<div style="padding:16px 20px;border-bottom:1px solid #30363d;background:#161b22">';
+  h += '<div style="font-size:14px;font-weight:700;color:#e6edf3;margin-bottom:4px">Journalnumrering</div>';
+  h += '<div style="font-size:13px;color:#8b949e">Unikt löpnummer per besöksjournal. Innehåller aldrig personuppgifter — GDPR-säkert (Art. 4(5)). Återställs ej vid namnbyte.</div>';
+  h += '</div>';
+  h += '<div style="padding:20px">';
+
+  // Live preview
+  h += '<div id="jnr-preview" style="font-size:22px;font-weight:700;color:var(--teal);font-family:var(--font-mono);letter-spacing:.04em;margin-bottom:18px">' + e(jPreview(jPrefix, jSep, jYear, jPad)) + '</div>';
+
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px">';
+
+  // Prefix
+  h += '<div><label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;margin-bottom:6px">Prefix</label>';
+  h += '<input id="jnr-prefix" class="field" maxlength="6" placeholder="KAN" value="' + e(jPrefix) + '" oninput="_jnrPreview()" style="width:100%;box-sizing:border-box;font-family:var(--font-mono)">';
+  h += '<div style="font-size:12px;color:#8b949e;margin-top:4px">Max 6 tecken, versaler</div></div>';
+
+  // Separator
+  h += '<div><label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;margin-bottom:6px">Separator</label>';
+  h += '<select id="jnr-sep" class="field" onchange="_jnrPreview()" style="width:100%;box-sizing:border-box;font-family:var(--font-mono)">';
+  ['-','/','.','_',''].forEach(function(s) {
+    h += '<option value="' + s + '"' + (jSep===s?' selected':'') + '>' + (s||'(ingen)') + '</option>';
+  });
+  h += '</select></div>';
+
+  // Pad length
+  h += '<div><label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;margin-bottom:6px">Löpnummer längd</label>';
+  h += '<select id="jnr-pad" class="field" onchange="_jnrPreview()" style="width:100%;box-sizing:border-box">';
+  [3,4,5,6].forEach(function(n) {
+    h += '<option value="' + n + '"' + (jPad===n?' selected':'') + '>' + n + ' siffror</option>';
+  });
+  h += '</select></div>';
+
+  h += '</div>';
+
+  // Include year toggle
+  h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">';
+  h += '<div id="jnr-year-toggle" onclick="_jnrToggleYear()" style="width:32px;height:18px;border-radius:9px;background:' + (jYear?'var(--teal)':'var(--border)') + ';position:relative;cursor:pointer;flex-shrink:0;transition:background .2s">';
+  h += '<div style="position:absolute;top:2px;left:' + (jYear?'14px':'2px') + ';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div>';
+  h += '</div>';
+  h += '<span style="font-size:13px;color:#e6edf3">Inkludera år i numret</span>';
+  h += '<span style="font-size:12px;color:#8b949e;margin-left:4px">— t.ex. KAN-2026-0001 vs KAN-0001</span>';
+  h += '</div>';
+
+  // Current counter info
+  h += '<div style="background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:10px 14px;font-size:13px;color:#8b949e;margin-bottom:4px">';
+  h += 'Senaste nummer detta år: <strong style="color:#e6edf3;font-family:var(--font-mono)">' + (jSeq || '—') + '</strong>';
+  h += ' &nbsp;·&nbsp; Nästa blir: <strong style="color:var(--teal);font-family:var(--font-mono)" id="jnr-preview-sm">' + e(jPreview(jPrefix, jSep, jYear, jPad)) + '</strong>';
+  h += '</div>';
+
+  h += '</div></div>';
+
   // Danger zone — like GitHub
   h += '<div style="border:1px solid rgba(248,81,73,.4);border-radius:6px;overflow:hidden;margin-bottom:24px">';
   h += '<div style="padding:16px 20px;background:rgba(248,81,73,.05)">';
@@ -27531,6 +27703,32 @@ function _stGeneral(cfg) {
   return h;
 }
 
+function _jnrPreview() {
+  var pre = (document.getElementById('jnr-prefix')?.value || 'J').replace(/[^a-zA-ZåäöÅÄÖ0-9]/g,'').toUpperCase().slice(0,6);
+  var sep = document.getElementById('jnr-sep')?.value ?? '-';
+  var pad = parseInt(document.getElementById('jnr-pad')?.value || '4', 10);
+  var yr  = window._jnrYearOn !== undefined ? window._jnrYearOn : true;
+  var y   = yr ? new Date().getFullYear() + sep : '';
+  var seq = parseInt(localStorage.getItem('vela:journalnr:' + new Date().getFullYear()) || '0', 10);
+  var preview = pre + sep + y + String(seq + 1).padStart(pad, '0');
+  var el  = document.getElementById('jnr-preview');
+  var el2 = document.getElementById('jnr-preview-sm');
+  if (el)  el.textContent  = preview;
+  if (el2) el2.textContent = preview;
+}
+
+function _jnrToggleYear() {
+  var tog = document.getElementById('jnr-year-toggle');
+  if (!tog) return;
+  window._jnrYearOn = window._jnrYearOn === undefined
+    ? !(getClinicConfig().journalNr?.year !== false)
+    : !window._jnrYearOn;
+  var on = window._jnrYearOn;
+  tog.style.background = on ? 'var(--teal)' : 'var(--border)';
+  tog.firstElementChild.style.left = on ? '14px' : '2px';
+  _jnrPreview();
+}
+
 function _saveGeneralSettings() {
   var cfg = getClinicConfig ? getClinicConfig() : {};
   var fields = {
@@ -27543,6 +27741,21 @@ function _saveGeneralSettings() {
   });
   var accentEl = document.getElementById('st-accent');
   if (accentEl) cfg.accent = accentEl.value;
+
+  // Journal number config
+  var jPre = document.getElementById('jnr-prefix');
+  var jSep = document.getElementById('jnr-sep');
+  var jPad = document.getElementById('jnr-pad');
+  if (jPre || jSep || jPad) {
+    cfg.journalNr = {
+      prefix: (jPre ? jPre.value.replace(/[^a-zA-ZåäöÅÄÖ0-9]/g,'').toUpperCase().slice(0,6) : (cfg.journalNr?.prefix||'VEL')),
+      sep:    jSep ? jSep.value : (cfg.journalNr?.sep||'-'),
+      pad:    jPad ? parseInt(jPad.value,10) : (cfg.journalNr?.pad||4),
+      year:   window._jnrYearOn !== undefined ? window._jnrYearOn : (cfg.journalNr?.year !== false),
+    };
+    window._jnrYearOn = undefined; // reset toggle state
+  }
+
   if (typeof saveClinicConfig === 'function') saveClinicConfig(cfg);
   showAutoSaveToast('Arbetsytans inställningar sparade ✓');
   if (typeof _renderGlobalTopbar === 'function') _renderGlobalTopbar();

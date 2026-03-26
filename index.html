@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774547772 -->
+<!-- vela-build:1774548337 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -5381,7 +5381,7 @@ function go(scr){
 
   if (!_isPlatformScreen) rTopbar();
   if (!_isPlatformScreen && typeof _generateAIBriefings === 'function') setTimeout(_generateAIBriefings, 300);
-  const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,availability:rAvailability,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,profile:rProfile,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){}};
+  const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,availability:rAvailability,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,profile:rProfile,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){},retention:rActions,'patient-portal':function(){},'intake':function(){}};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
 }
@@ -9871,7 +9871,7 @@ function rTopbar() {
     var act = btn.getAttribute('data-action');
     if (act === 'search') btn.onclick = function() { openCommandPalette && openCommandPalette(); };
     else if (act === 'newbooking') btn.onclick = function() { openBookingDialog && openBookingDialog(); };
-    else if (act === 'waitlist') btn.onclick = function() { go('list'); };
+    else if (act === 'waitlist') btn.onclick = function() { openWaitlistDialog && openWaitlistDialog(); };
     else if (act === 'velaask') btn.onclick = function() { go('ask-full'); };
   });
   nav.querySelectorAll('.nav-item[data-therapist]').forEach(function(btn) {
@@ -21385,9 +21385,21 @@ function renderPublicPlanProgressGraph(pat, blurred) {
   }
 
   return `<div style="margin:12px 14px 0;background:var(--navy);border-radius:6px;padding:18px 20px">
-    <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px">Din smärtutveckling (NRS)</div>
-    <div style="font-size:13px;font-weight:600;margin-bottom:12px;color:${trend}">${arrow}${diff>0?' · '+diff+' enheter':''}</div>
-    <svg width="100%" viewBox="0 0 ${W} ${H+28}" style="overflow:visible">${svgContent}</svg>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4)">Smärtutveckling (NRS)</div>
+      <div style="font-size:12px;font-weight:600;color:${trend}">${arrow}${diff>0?' · '+diff+' enheter':''}</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.25);margin-bottom:4px;padding:0 1px">
+      <span>${pts[0].date ? new Date(pts[0].date+'T12:00').toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : ''}</span>
+      <span>${pts[Math.floor(pts.length/2)].date ? new Date(pts[Math.floor(pts.length/2)].date+'T12:00').toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : ''}</span>
+      <span>${pts[pts.length-1].date ? new Date(pts[pts.length-1].date+'T12:00').toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : ''}</span>
+    </div>
+    <svg width="100%" viewBox="0 0 ${W} ${H}" style="overflow:visible">${svgContent}</svg>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,.3);margin-top:6px;padding:0 1px">
+      <span>Start: <strong style="color:rgba(255,255,255,.6)">${first}/10</strong></span>
+      <span style="font-size:10px;color:rgba(255,255,255,.2)">${pts.length} mätpunkter</span>
+      <span>Nu: <strong style="color:${trend}">${last}/10</strong></span>
+    </div>
   </div>`;
 }
 
@@ -21436,6 +21448,72 @@ async function _hpQuickNrs(nrs, patId, visitId) {
       + '<div style="width:40px;height:40px;border-radius:50%;background:'+col+'18;border:2px solid '+col+';display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:'+col+'">'+nrs+'</div>'
       + '<div><div style="font-size:13px;font-weight:700;color:#e6edf3">Sparad! NRS '+nrs+' loggad.</div>'
       + '<div style="font-size:12px;color:rgba(255,255,255,.4)">'+today+'</div></div></div>';
+  }
+}
+
+// ── Patient portal: free-text contact form ───────────────────────────────────
+function _portalContactForm(patId, visitId) {
+  return '<div style="margin:16px 0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:18px">'
+    + '<div style="font-size:13px;font-weight:700;color:#e6edf3;margin-bottom:12px;display:flex;align-items:center;gap:8px">'
+    + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--hp-teal,#e07628)" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+    + 'Skicka meddelande till kliniken</div>'
+    + '<textarea id="portal-msg-input" placeholder="Skriv ditt meddelande här... t.ex. frågor om övningar, om du haft mer ont, eller vill ändra din tid." '
+    + 'style="width:100%;min-height:80px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;font-size:14px;color:#e6edf3;font-family:var(--hp-font,sans-serif);resize:none;outline:none;box-sizing:border-box;line-height:1.6" '
+    + 'oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'"></textarea>'
+    + '<div style="display:flex;justify-content:flex-end;margin-top:10px">'
+    + '<button onclick="_portalSendMessage(\'' + patId + '\',\'' + visitId + '\')" '
+    + 'style="padding:10px 20px;background:var(--hp-teal,#e07628);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--hp-font,sans-serif)">'
+    + 'Skicka →</button>'
+    + '</div>'
+    + '<div id="portal-msg-status" style="font-size:13px;color:rgba(255,255,255,.5);margin-top:8px;min-height:16px"></div>'
+    + '</div>';
+}
+
+async function _portalSendMessage(patId, visitId) {
+  var input  = document.getElementById('portal-msg-input');
+  var status = document.getElementById('portal-msg-status');
+  var text   = input ? input.value.trim() : '';
+  if (!text) { if (status) status.textContent = 'Skriv ett meddelande först.'; return; }
+
+  if (status) status.textContent = 'Skickar...';
+  var btn = document.querySelector('[onclick*="_portalSendMessage"]');
+  if (btn) btn.disabled = true;
+
+  try {
+    // Load patient from Supabase
+    var res = await fetch(SB_URL + '/rest/v1/patients?id=eq.' + encodeURIComponent(patId) + '&select=data', {
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
+    });
+    var rows = await res.json();
+    if (!rows.length) throw new Error('patient not found');
+    var pat = typeof rows[0].data === 'string' ? JSON.parse(rows[0].data) : rows[0].data;
+
+    // Add message
+    if (!pat.messages) pat.messages = [];
+    pat.messages.unshift({
+      id: 'msg_' + Date.now(),
+      from: 'patient',
+      type: 'message',
+      text: text,
+      ts: new Date().toISOString(),
+      read: false,
+      visitId: visitId || null,
+    });
+
+    // Push back
+    var upsertRes = await fetch(SB_URL + '/rest/v1/patients?id=eq.' + encodeURIComponent(patId), {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ data: pat, updated_at: new Date().toISOString() })
+    });
+
+    if (upsertRes.ok) {
+      if (input) input.value = '';
+      if (status) status.innerHTML = '<span style="color:#3fb950;font-weight:600">✓ Meddelande skickat! Kliniken svarar inom kort.</span>';
+    } else throw new Error('upsert failed');
+  } catch(err) {
+    if (status) status.textContent = 'Kunde inte skicka — försök igen.';
+    if (btn) btn.disabled = false;
   }
 }
 
@@ -22204,6 +22282,7 @@ function renderPublicPlan(plan, pat) {
   if (!_hasStats) _html += zpLockedFeatureSection(patIdSafe, visitIdSafe);
   if (_hasMsgs) _html += pubMsgSectionHTML(pat, plan.visitId||'');
   _html += pubBookingRequestHTML(pat, plan);
+  _html += _portalContactForm(patIdSafe, visitIdSafe);
   if (_access.features.includes('symptom_journal')) _html += renderSymptomJournal(pat?.id||'', plan.visitId||visitIdSafe, plan);
 
   // Close content, open sidebar
@@ -25027,6 +25106,114 @@ async function _velaSendTestSms() {
       : result.err || 'Okänt fel';
     resEl.innerHTML = '<span style="color:var(--red)">✗ Misslyckades — ' + hint + '</span>';
   }
+}
+
+// ── Missing functions — systematic fix ───────────────────────────────────────
+
+// Toggle AI mail auto-responder setting
+function _toggleAiMail() {
+  var on = localStorage.getItem('vela:ai-mail') === 'on';
+  localStorage.setItem('vela:ai-mail', on ? 'off' : 'on');
+  showAutoSaveToast('AI-svar ' + (on ? 'avstängt' : 'aktiverat') + ' ✓');
+  _renderSettingsContent && _renderSettingsContent('comms');
+}
+
+// Copy intake link to clipboard
+function _copyIntakeLink(link) {
+  if (!link) { showAutoSaveToast('Ingen länk att kopiera'); return; }
+  navigator.clipboard.writeText(link).then(function() {
+    showAutoSaveToast('Länk kopierad ✓');
+  }).catch(function() {
+    prompt('Kopiera länken:', link);
+  });
+}
+
+// Share Hael plan (native share or copy)
+function _haelShareHandler() {
+  var url = window.location.href;
+  if (navigator.share) {
+    navigator.share({ title: 'Min Hael-plan', url: url }).catch(function(){});
+  } else {
+    navigator.clipboard.writeText(url).then(function() {
+      showAutoSaveToast('Länk kopierad ✓');
+    });
+  }
+}
+
+// Open IMAP setup — placeholder (shows coming soon)
+function _openImapSetup() {
+  showAutoSaveToast('IMAP-konfiguration kommer i nästa version');
+}
+
+// Resend intake link for a specific booking
+function _sendIntakeNow(bkId) {
+  var bk = getBooking && getBooking(bkId);
+  if (!bk) return;
+  var link = bk.intakeLink || _generateIntakeLink(bk.patientId);
+  _queueIntakeSend(bk.patientId, bk.patientName, link, bk.date, bk.time);
+  showAutoSaveToast('Intake-formulär skickat igen ✓');
+  document.getElementById('bk-detail-ov')?.remove();
+}
+
+// Toggle role dropdown for user management
+function _toggleRoleDropdown(ddId) {
+  var existing = document.getElementById(ddId);
+  if (existing) { existing.remove(); return; }
+  // Will be built by _velaRoleSelect caller context — just close others
+  document.querySelectorAll('[id^="role-dd-"]').forEach(function(el){ el.remove(); });
+}
+
+// Toggle SMS template on/off
+function _toggleSms2(smsId) {
+  var stored = null;
+  try { stored = JSON.parse(localStorage.getItem('vela:sms:' + smsId) || 'null'); } catch(ex) {}
+  var on = stored ? stored.active !== false : true;
+  var text = stored ? stored.text : '';
+  localStorage.setItem('vela:sms:' + smsId, JSON.stringify({ active: !on, text: text }));
+  _renderSettingsContent && _renderSettingsContent('sms');
+}
+
+// Save SMS template text
+function _saveSmsText(smsId, text) {
+  var stored = null;
+  try { stored = JSON.parse(localStorage.getItem('vela:sms:' + smsId) || 'null'); } catch(ex) {}
+  var on = stored ? stored.active !== false : true;
+  localStorage.setItem('vela:sms:' + smsId, JSON.stringify({ active: on, text: text }));
+}
+
+// Remove user from team
+function _velaRemoveUser(email) {
+  if (!confirm('Ta bort ' + email + ' från teamet?')) return;
+  var cfg = getClinicConfig();
+  cfg.teamMembers = (cfg.teamMembers || []).filter(function(u) { return u.email !== email; });
+  saveClinicConfig(cfg);
+  showAutoSaveToast(email + ' borttagen ✓');
+  _renderSettingsContent && _renderSettingsContent('users');
+}
+
+// Select role for a user
+function _velaRoleSelect(email, role) {
+  // Close any open dropdowns
+  document.querySelectorAll('[id^="role-dd-"]').forEach(function(el){ el.remove(); });
+  var cfg = getClinicConfig();
+  cfg.teamMembers = (cfg.teamMembers || []).map(function(u) {
+    return u.email === email ? Object.assign({}, u, { role: role }) : u;
+  });
+  saveClinicConfig(cfg);
+  showAutoSaveToast('Roll uppdaterad ✓');
+  _renderSettingsContent && _renderSettingsContent('users');
+}
+
+// Gmail filter (stub — wires to gmail state)
+function _gmailSetFilter(filter) {
+  window._gmailFilter = filter;
+  if (typeof rInbox === 'function') rInbox();
+}
+
+// Intelligence briefing trigger
+function _generateIntelligenceBriefing() {
+  if (typeof rIntelligence === 'function') rIntelligence();
+  else go('intelligence');
 }
 
 async function _velaSaveAndTestKey(service, keyVal) {

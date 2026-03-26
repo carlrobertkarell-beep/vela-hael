@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774549013 -->
+<!-- vela-build:1774549240 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -20058,26 +20058,23 @@ async function sbDeletePat(id) {
 }
 
 async function sbLoadAll() {
-  try {
-    // Try with specific columns first, fall back to select=* if 400
-    let res = await fetchWithTimeout(
-      SB_URL + '/rest/v1/patients?select=id,data,updated_at&order=updated_at.desc&limit=500',
-      { headers: sbHeaders() }
-    );
-    if (res.status === 400) {
-      // updated_at column may not exist — try without it
-      res = await fetchWithTimeout(
-        SB_URL + '/rest/v1/patients?select=id,data&limit=500',
-        { headers: sbHeaders() }
-      );
-    }
-    if (!res.ok) return null;
-    const rows = await res.json();
-    return rows.map(r => {
-      const d = typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
-      return d || null;
-    }).filter(Boolean);
-  } catch(e) { return null; }
+  const urls = [
+    SB_URL + '/rest/v1/patients?select=id,data,updated_at&order=updated_at.desc&limit=500',
+    SB_URL + '/rest/v1/patients?select=id,data&limit=500',
+    SB_URL + '/rest/v1/patients?select=*&limit=500',
+  ];
+  for (var i = 0; i < urls.length; i++) {
+    try {
+      var res = await fetchWithTimeout(urls[i], { headers: sbHeaders() });
+      if (!res.ok) continue;
+      var rows = await res.json();
+      return rows.map(function(r) {
+        var d = r.data ? (typeof r.data === 'string' ? JSON.parse(r.data) : r.data) : r;
+        return d || null;
+      }).filter(Boolean);
+    } catch(e) { continue; }
+  }
+  return null;
 }
 
 async function syncFromCloud() {

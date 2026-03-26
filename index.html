@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774548337 -->
+<!-- vela-build:1774548805 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -819,10 +819,302 @@ a:hover { text-decoration: underline; }
   background: var(--teal); border: 1.5px solid var(--bg);
 }
 
-/* Push content down when topbar is visible */
-.app-shell-with-topbar {
-  padding-top: 107px;
+/* ═══════════════════════════════════════════════════════════════════════════
+   VELA UI DEPTH PACKAGE — Sprint 3 overhaul
+   Fixes: flat surfaces · no click feedback · weak hover · no focus glow ·
+          missing skeleton loaders · anemic typography hierarchy · no lift
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Enhanced shadow scale ──────────────────────────────────────────────── */
+:root {
+  --shadow-xs:  0 1px 2px rgba(0,0,0,.4), 0 0 0 .5px rgba(255,255,255,.03);
+  --shadow-sm:  0 2px 4px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.5), 0 2px 4px rgba(0,0,0,.3), 0 0 0 .5px rgba(255,255,255,.04);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,.6), 0 4px 12px rgba(0,0,0,.4), 0 0 0 .5px rgba(255,255,255,.05);
+  --shadow-xl:  0 20px 60px rgba(0,0,0,.7), 0 8px 24px rgba(0,0,0,.5);
+  --shadow-accent: 0 0 0 3px rgba(224,118,40,.25), 0 4px 16px rgba(224,118,40,.15);
+  --glow-accent: 0 0 0 3px rgba(224,118,40,.3);
+  --glow-green:  0 0 0 3px rgba(63,185,80,.3);
+  /* Tighter background scale for more perceived depth */
+  --bg:       #080d13;
+  --surface:  #0f1419;
+  --surface2: #161c24;
+  --surface3: #1e2530;
+  --navy:     #0f1419;
 }
+
+/* ── Buttons — all variants with press feedback ─────────────────────────── */
+.act-btn {
+  position: relative; overflow: hidden;
+  box-shadow: var(--shadow-xs);
+  transition: background .12s, border-color .12s, box-shadow .12s, transform .1s !important;
+}
+.act-btn:hover {
+  background: #2a3140 !important;
+  border-color: rgba(177,186,196,.35) !important;
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+.act-btn:active {
+  transform: translateY(1px) scale(.98) !important;
+  box-shadow: none !important;
+}
+.act-btn-primary {
+  background: var(--teal) !important;
+  color: #fff !important;
+  border-color: var(--teal) !important;
+  box-shadow: 0 2px 8px rgba(224,118,40,.4), var(--shadow-xs) !important;
+}
+.act-btn-primary:hover {
+  background: #c96920 !important;
+  box-shadow: 0 4px 16px rgba(224,118,40,.5), var(--shadow-sm) !important;
+}
+.act-btn-primary:active {
+  box-shadow: 0 1px 4px rgba(224,118,40,.3) !important;
+}
+.act-btn-danger:hover {
+  box-shadow: 0 2px 8px rgba(248,81,73,.3) !important;
+}
+
+/* ── .gh-btn same treatment ─────────────────────────────────────────────── */
+.gh-btn {
+  box-shadow: var(--shadow-xs);
+  transition: background .12s, box-shadow .12s, transform .1s !important;
+}
+.gh-btn:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.gh-btn:active { transform: scale(.98) translateY(1px) !important; box-shadow: none !important; }
+.gh-btn-primary { box-shadow: 0 2px 8px rgba(46,160,67,.4), var(--shadow-xs) !important; }
+.gh-btn-primary:hover { box-shadow: 0 4px 16px rgba(46,160,67,.5) !important; transform: translateY(-1px); }
+
+/* ── nav-item hover — brighter, with left glow ──────────────────────────── */
+.nav-item:hover {
+  background: rgba(224,118,40,.07) !important;
+  color: #e6edf3 !important;
+}
+.nav-item.active {
+  background: rgba(224,118,40,.12) !important;
+  box-shadow: inset 3px 0 0 var(--teal);
+  border-left: none !important;
+  padding-left: 16px !important;
+  color: var(--teal) !important;
+}
+
+/* ── Fields — glow on focus ─────────────────────────────────────────────── */
+.field {
+  background: #0b1018 !important;
+  border: 1px solid #2a3140 !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.3);
+  transition: border-color .15s, box-shadow .15s !important;
+}
+.field:hover { border-color: #3d4d60 !important; }
+.field:focus {
+  border-color: var(--teal) !important;
+  box-shadow: 0 0 0 3px rgba(224,118,40,.18), inset 0 1px 3px rgba(0,0,0,.2) !important;
+  outline: none !important;
+}
+
+/* ── Item rows — lift on hover ──────────────────────────────────────────── */
+.item-list {
+  border: 1px solid #1e2530 !important;
+  box-shadow: var(--shadow-sm) !important;
+  background: #0f1419 !important;
+}
+.item-row {
+  border-bottom-color: #1a2030 !important;
+  transition: background .12s, transform .12s, box-shadow .12s !important;
+}
+.item-row.clickable:hover {
+  background: rgba(224,118,40,.05) !important;
+  transform: translateX(2px);
+}
+.item-row.clickable:active { transform: translateX(1px); }
+
+/* ── Cards everywhere — real depth ──────────────────────────────────────── */
+.item-list,
+div[style*="border:1px solid #30363d"][style*="border-radius"],
+div[style*="border: 1px solid #30363d"][style*="border-radius"] {
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Page header ─────────────────────────────────────────────────────────── */
+.page-header {
+  border-bottom-color: #1e2530 !important;
+}
+.page-title {
+  font-size: 22px !important;
+  letter-spacing: -.03em !important;
+  font-weight: 800 !important;
+  background: linear-gradient(135deg, #e6edf3 0%, #8b949e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Section titles — uppercase tracking ────────────────────────────────── */
+.section-title-sm {
+  letter-spacing: .1em !important;
+  color: #4a5568 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+}
+
+/* ── Status pills — subtle glow ─────────────────────────────────────────── */
+.status-pill.green { box-shadow: 0 0 8px rgba(63,185,80,.15); }
+.status-pill.amber { box-shadow: 0 0 8px rgba(210,153,34,.15); }
+.status-pill.red   { box-shadow: 0 0 8px rgba(248,81,73,.15); }
+.status-pill.teal  { box-shadow: 0 0 8px rgba(224,118,40,.2); }
+
+/* ── Subnav tabs — underline slides in ──────────────────────────────────── */
+.subnav-tab {
+  transition: color .15s, border-color .15s !important;
+  position: relative;
+}
+.subnav-tab.active {
+  color: var(--teal) !important;
+  border-bottom-color: var(--teal) !important;
+}
+.subnav-tab:not(.active):hover { color: #c6cdd6 !important; }
+
+/* ── Topbar — frosted glass feel ────────────────────────────────────────── */
+.vela-global-topbar {
+  background: rgba(8,13,19,.92) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid rgba(255,255,255,.06) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.03), var(--shadow-sm) !important;
+}
+
+/* ── Sidebar — deeper background ────────────────────────────────────────── */
+.nav-sidebar {
+  background: #06090e !important;
+  border-right-color: rgba(255,255,255,.06) !important;
+}
+
+/* ── Overlays / dialogs — glassmorphism ─────────────────────────────────── */
+.bk-dialog,
+div[style*="border-radius:20px"][style*="background:#161b22"],
+div[style*="border-radius: 20px"][style*="background:#161b22"] {
+  background: rgba(15,20,25,.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: var(--shadow-xl) !important;
+}
+
+/* ── Calendar chips — depth ─────────────────────────────────────────────── */
+.vcal-chip {
+  box-shadow: var(--shadow-xs) !important;
+  transition: filter .12s, box-shadow .12s, transform .1s !important;
+}
+.vcal-chip:hover {
+  filter: brightness(1.12);
+  transform: scale(1.02);
+  box-shadow: var(--shadow-md) !important;
+  z-index: 5;
+}
+.vcal-col.today { background: rgba(224,118,40,.025) !important; }
+.vcal-day-hdr.today .vcal-day-num {
+  background: var(--teal) !important;
+  box-shadow: 0 2px 8px rgba(224,118,40,.4) !important;
+}
+
+/* ── Skeleton loaders ────────────────────────────────────────────────────── */
+@keyframes vela-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.vela-skeleton {
+  background: linear-gradient(90deg, #0f1419 25%, #1a2232 50%, #0f1419 75%);
+  background-size: 800px 100%;
+  animation: vela-shimmer 1.6s ease infinite;
+  border-radius: 6px;
+}
+
+/* ── Screen transitions — screens slide in ──────────────────────────────── */
+@keyframes vela-screen-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.screen.active {
+  animation: vela-screen-in .18s ease both;
+}
+/* Don't animate public plan or full-screen modes */
+#s-public-plan.active, #s-loading.active, #s-meeting.active {
+  animation: none;
+}
+
+/* ── Toast — more polished ───────────────────────────────────────────────── */
+#vela-toast {
+  box-shadow: var(--shadow-lg) !important;
+  border: 1px solid rgba(255,255,255,.1) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* ── Treatment side panel ────────────────────────────────────────────────── */
+.tx-panel {
+  box-shadow: -8px 0 40px rgba(0,0,0,.6), -1px 0 0 rgba(255,255,255,.05) !important;
+  border-left: 1px solid rgba(255,255,255,.06) !important;
+}
+
+/* ── KPI / stat cards — inset top border for accent ─────────────────────── */
+div[style*="border:1px solid #30363d"][style*="border-radius:8px"],
+div[style*="border: 1px solid #30363d"][style*="border-radius: 8px"] {
+  transition: box-shadow .15s, border-color .15s, transform .15s;
+}
+
+/* ── Compact section card hover (patient card KPI chips) ─────────────────── */
+.r4-main > div, .r4-aside > div {
+  transition: box-shadow .2s;
+}
+
+/* ── Focus ring on interactive non-field elements ───────────────────────── */
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-accent) !important;
+}
+
+/* ── Scrollbars — subtle ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.08); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.16); }
+
+/* ── Ripple effect for buttons ───────────────────────────────────────────── */
+@keyframes vela-ripple {
+  from { transform: scale(0); opacity: .4; }
+  to   { transform: scale(3); opacity: 0; }
+}
+.act-btn::after, .gh-btn::after {
+  content: '';
+  position: absolute; width: 100%; height: 100%;
+  top: 0; left: 0; pointer-events: none;
+  background: radial-gradient(circle, rgba(255,255,255,.15) 0%, transparent 70%);
+  opacity: 0;
+  transform: scale(0);
+  transform-origin: center;
+  transition: opacity .4s, transform .4s !important;
+}
+.act-btn:active::after, .gh-btn:active::after {
+  transform: scale(2.5);
+  opacity: 1;
+  transition: none !important;
+}
+
+/* ── Topbar search — glow on focus ──────────────────────────────────────── */
+#vela-search-input:focus {
+  box-shadow: 0 0 0 3px rgba(224,118,40,.2) !important;
+  border-color: rgba(224,118,40,.5) !important;
+}
+
+/* ── Modal backdrops — blur + vignette ───────────────────────────────────── */
+#bk-detail-ov,
+#waitlist-ov,
+#booking-dialog-ov {
+  background: radial-gradient(ellipse at center, rgba(0,0,0,.5) 0%, rgba(0,0,0,.75) 100%) !important;
+  backdrop-filter: blur(6px) !important;
+}
+
+</style>
+
 @media (max-width: 768px) {
   .vela-global-topbar { height: 97px; }
   .app-shell-with-topbar { padding-top: 97px; }
@@ -19230,6 +19522,287 @@ function printHomeCard(vid) {
   .pub-wrap{max-width:600px;margin:0 auto;padding:0 0 40px}
   .pub-loading{text-align:center;padding:80px 20px;color:var(--muted);font-size:14px}
 
+/* ══════════════════════════════════════════════════════════════════════════
+   VELA UI DEPTH — v2
+   Shadow hierarchy · Active states · Focus rings · Hover lift · Micro-animations
+   Inspired by GitHub Primer — precision without excess
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Shadow tokens (richer than before) ──────────────────────────────────── */
+:root {
+  --sh-xs:  0 1px 2px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.02);
+  --sh-sm:  0 2px 6px rgba(0,0,0,.4),  0 1px 2px rgba(0,0,0,.3);
+  --sh-md:  0 4px 14px rgba(0,0,0,.45),0 2px 4px rgba(0,0,0,.3);
+  --sh-lg:  0 12px 32px rgba(0,0,0,.55),0 4px 10px rgba(0,0,0,.3);
+  --sh-xl:  0 20px 60px rgba(0,0,0,.6), 0 8px 20px rgba(0,0,0,.35);
+  --sh-inset: inset 0 1px 0 rgba(255,255,255,.06), inset 0 -1px 0 rgba(0,0,0,.2);
+  /* Accent glow — orange */
+  --sh-accent: 0 0 0 3px rgba(224,118,40,.25), 0 2px 8px rgba(224,118,40,.15);
+}
+body[data-theme="light"] {
+  --sh-xs:  0 1px 0 rgba(31,35,40,.04), 0 1px 3px rgba(31,35,40,.08);
+  --sh-sm:  0 1px 0 rgba(31,35,40,.04), 0 2px 6px rgba(31,35,40,.10);
+  --sh-md:  0 1px 0 rgba(31,35,40,.04), 0 4px 12px rgba(31,35,40,.12);
+  --sh-lg:  0 1px 0 rgba(31,35,40,.04), 0 8px 24px rgba(31,35,40,.14);
+  --sh-xl:  0 2px 0 rgba(31,35,40,.04), 0 16px 40px rgba(31,35,40,.16);
+  --sh-inset: inset 0 1px 0 rgba(255,255,255,.8), inset 0 -1px 0 rgba(31,35,40,.06);
+  --sh-accent: 0 0 0 3px rgba(224,118,40,.2), 0 2px 8px rgba(224,118,40,.1);
+}
+
+/* ── Universal focus ring ─────────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* Remove native outline everywhere so only focus-visible shows */
+* { outline: none; }
+*:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+
+/* ── Button depth — .act-btn ─────────────────────────────────────────────── */
+.act-btn {
+  box-shadow: var(--sh-xs), var(--sh-inset);
+  transition: background .12s, border-color .12s, box-shadow .12s, transform .08s !important;
+  position: relative;
+}
+.act-btn:hover {
+  box-shadow: var(--sh-sm), var(--sh-inset);
+  transform: translateY(-1px);
+}
+.act-btn:active {
+  transform: translateY(0) scale(.98);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.06) !important;
+}
+.act-btn-primary {
+  box-shadow: 0 1px 0 rgba(255,255,255,.1) inset, var(--sh-sm);
+  background: linear-gradient(180deg, var(--teal) 0%, var(--teal-dk) 100%);
+  color: #fff !important;
+}
+.act-btn-primary:hover {
+  background: linear-gradient(180deg, #ec8535 0%, var(--teal) 100%);
+  box-shadow: var(--sh-accent);
+}
+.act-btn-primary:active {
+  background: var(--teal-dk);
+}
+.act-btn:focus-visible {
+  box-shadow: var(--sh-accent) !important;
+}
+
+/* ── Legacy .btn depth ───────────────────────────────────────────────────── */
+.btn {
+  box-shadow: var(--sh-xs), var(--sh-inset) !important;
+  transition: background .12s, box-shadow .12s, transform .08s, border-color .12s !important;
+}
+.btn:hover  { transform: translateY(-1px); box-shadow: var(--sh-sm) !important; }
+.btn:active { transform: scale(.98); box-shadow: none !important; }
+.btn-p {
+  background: linear-gradient(180deg, var(--teal) 0%, var(--teal-dk) 100%) !important;
+  color: #fff !important;
+  box-shadow: var(--sh-sm), 0 1px 0 rgba(255,255,255,.1) inset !important;
+}
+.btn-p:hover { box-shadow: var(--sh-accent) !important; }
+
+/* ── Item rows — deeper hover ────────────────────────────────────────────── */
+.item-row.clickable {
+  transition: background .12s, box-shadow .12s !important;
+}
+.item-row.clickable:hover {
+  background: rgba(177,186,196,.07) !important;
+  box-shadow: inset 2px 0 0 var(--teal) !important;
+}
+.item-row.clickable:active {
+  background: rgba(177,186,196,.03) !important;
+}
+
+/* ── Item list container — lifted card ───────────────────────────────────── */
+.item-list {
+  box-shadow: var(--sh-sm) !important;
+}
+
+/* ── Fields / inputs ─────────────────────────────────────────────────────── */
+.field {
+  transition: border-color .15s, box-shadow .15s !important;
+  box-shadow: var(--sh-xs) !important;
+  height: 36px;
+}
+.field:hover:not(:focus) {
+  border-color: rgba(177,186,196,.4) !important;
+}
+.field:focus {
+  border-color: var(--teal) !important;
+  box-shadow: var(--sh-accent) !important;
+}
+textarea.field { height: auto; }
+
+/* ── Nav sidebar items ───────────────────────────────────────────────────── */
+.nav-item {
+  transition: background .1s, color .1s, box-shadow .1s !important;
+  border-radius: 6px !important;
+}
+.nav-item:hover {
+  background: rgba(177,186,196,.08) !important;
+}
+.nav-item.active {
+  background: rgba(224,118,40,.12) !important;
+  box-shadow: inset 2px 0 0 var(--teal) !important;
+  color: var(--teal) !important;
+}
+
+/* ── Subnav tabs — animated underline ────────────────────────────────────── */
+.subnav-tab {
+  position: relative;
+  transition: color .12s !important;
+}
+.subnav-tab::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: 50%; right: 50%;
+  height: 2px;
+  background: var(--teal);
+  transition: left .2s, right .2s !important;
+  border-radius: 2px 2px 0 0;
+}
+.subnav-tab.active::after  { left: 0; right: 0; }
+.subnav-tab:hover::after   { left: 25%; right: 25%; }
+.subnav-tab.active { border-bottom-color: transparent !important; }
+
+/* ── Cards & panels — elevated surfaces ─────────────────────────────────── */
+.page-header {
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* Section containers — subtle left accent only, no card wrapping */
+.section {
+  margin-bottom: 16px !important;
+}
+.section-title { margin-bottom: 14px !important; }
+
+/* ── Overlays / modals — glasmorfism ─────────────────────────────────────── */
+.bk-dialog {
+  box-shadow: var(--sh-xl) !important;
+  border: 1px solid rgba(255,255,255,.06) !important;
+}
+
+/* ── Status pills — richer ───────────────────────────────────────────────── */
+.status-pill {
+  box-shadow: 0 1px 2px rgba(0,0,0,.2) !important;
+  font-weight: 600 !important;
+}
+
+/* ── Calendar chips — depth ──────────────────────────────────────────────── */
+.vcal-chip {
+  box-shadow: var(--sh-xs) !important;
+  transition: filter .12s, transform .08s, box-shadow .12s !important;
+}
+.vcal-chip:hover {
+  filter: brightness(1.1) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: var(--sh-sm) !important;
+  z-index: 10;
+}
+.vcal-chip:active {
+  transform: scale(.97) !important;
+}
+
+/* ── Treatment panel — elevation ─────────────────────────────────────────── */
+.tx-panel {
+  box-shadow: var(--sh-xl) !important;
+  border-left: 1px solid rgba(255,255,255,.06) !important;
+}
+
+/* ── Topbar — subtle bottom shadow ───────────────────────────────────────── */
+.vela-global-topbar, #vela-global-topbar-wrap {
+  box-shadow: 0 1px 0 var(--border), 0 2px 8px rgba(0,0,0,.25) !important;
+}
+
+/* ── Page title — tighter spacing, better weight ─────────────────────────── */
+.page-title {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.03em !important;
+}
+.page-subtitle {
+  font-size: 14px !important;
+  color: var(--text) !important;
+  margin-top: 5px !important;
+}
+
+/* ── Quick action rows in sidebar ────────────────────────────────────────── */
+.item-row-icon {
+  transition: transform .15s !important;
+}
+.item-row.clickable:hover .item-row-icon {
+  transform: scale(1.15) !important;
+}
+
+/* ── Toast notifications ─────────────────────────────────────────────────── */
+#auto-save-toast, [id$="-toast"], .toast {
+  box-shadow: var(--sh-lg) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+}
+
+/* ── Skeleton pulse (loading states) ─────────────────────────────────────── */
+@keyframes vela-skeleton {
+  0%   { opacity: .5; }
+  50%  { opacity: .85; }
+  100% { opacity: .5; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #21262d 25%, #30363d 50%, #21262d 75%);
+  background-size: 200% 100%;
+  animation: vela-skeleton-slide 1.5s ease infinite;
+  border-radius: 4px;
+}
+@keyframes vela-skeleton-slide {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Page transitions — smooth screen switches ───────────────────────────── */
+.screen {
+  animation: vela-screen-in .18s ease both;
+}
+@keyframes vela-screen-in {
+  from { opacity: .6; transform: translateY(4px); }
+  to   { opacity: 1;  transform: translateY(0); }
+}
+
+/* ── Booking dialog ─────────────────────────────────────────────────────── */
+.bk-header { box-shadow: 0 1px 0 rgba(255,255,255,.06) !important; }
+
+/* ── Vcal toolbar ────────────────────────────────────────────────────────── */
+.vcal-toolbar {
+  box-shadow: 0 1px 0 var(--border) !important;
+}
+.vcal-today-btn, .vcal-nav {
+  box-shadow: var(--sh-xs) !important;
+  transition: background .1s, box-shadow .1s, transform .08s !important;
+}
+.vcal-today-btn:hover, .vcal-nav:hover {
+  box-shadow: var(--sh-sm) !important;
+  transform: translateY(-1px) !important;
+}
+.vcal-today-btn:active, .vcal-nav:active {
+  transform: scale(.96) !important;
+}
+.vcal-view-tab.active {
+  box-shadow: var(--sh-xs) !important;
+}
+
+/* ── Jdoc (journal document) ─────────────────────────────────────────────── */
+.dcontrols {
+  box-shadow: 0 1px 0 var(--border) !important;
+}
+
+/* ── Settings sidebar ────────────────────────────────────────────────────── */
+.vela-settings-nav {
+  box-shadow: var(--sh-sm) !important;
+}
+
+/* ── Suppress transitions during print ───────────────────────────────────── */
+@media print { *, *::before, *::after { transition: none !important; animation: none !important; } }
+
 /* ── PRINT / PDF ─────────────────────────────────────────────────────────────
    Applies to both rJournalDoc (SOAP) and rDoc (Hael-plan)
    Browser: File → Print → Save as PDF · A4 · inga marginaler
@@ -36368,6 +36941,45 @@ function _updateThemeColorMeta() {
   document.querySelectorAll('meta[name="theme-color"]').forEach(function(m) { m.content = color; });
 }
 document.addEventListener('DOMContentLoaded', _updateThemeColorMeta);
+
+// ── Vela UI runtime enhancements ─────────────────────────────────────────────
+(function _velaUIRuntime() {
+  // Ripple on all buttons
+  function addRipple(e) {
+    var btn = e.currentTarget;
+    var r = btn.querySelector('.vela-ripple-el');
+    if (r) r.remove();
+    var circle = document.createElement('span');
+    var rect = btn.getBoundingClientRect();
+    var size = Math.max(rect.width, rect.height);
+    circle.className = 'vela-ripple-el';
+    circle.style.cssText = 'position:absolute;border-radius:50%;pointer-events:none;' +
+      'background:rgba(255,255,255,.12);width:' + size + 'px;height:' + size + 'px;' +
+      'left:' + (e.clientX - rect.left - size/2) + 'px;' +
+      'top:' + (e.clientY - rect.top - size/2) + 'px;' +
+      'animation:vela-ripple .5s ease forwards;';
+    btn.appendChild(circle);
+    setTimeout(function(){ if (circle.parentNode) circle.remove(); }, 520);
+  }
+
+  function wireButtons() {
+    document.querySelectorAll('.act-btn, .gh-btn, .vcal-new-btn, .vcal-today-btn').forEach(function(btn) {
+      if (!btn._velaRipple) {
+        btn._velaRipple = true;
+        btn.addEventListener('click', addRipple);
+      }
+    });
+  }
+
+  // Wire immediately and on DOM mutations (for dynamically rendered buttons)
+  wireButtons();
+  var _rObs = new MutationObserver(function(muts) {
+    var shouldWire = muts.some(function(m){ return m.addedNodes.length > 0; });
+    if (shouldWire) wireButtons();
+  });
+  _rObs.observe(document.body, { childList: true, subtree: true });
+})();
+
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', _updateThemeColorMeta);
 </script>
 </body>

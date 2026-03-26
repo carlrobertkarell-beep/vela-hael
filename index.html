@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774549240 -->
+<!-- vela-build:1774549492 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -20026,22 +20026,35 @@ function setSyncStatus(state, msg) {
 
 async function sbUpsertPat(p) {
   try {
+    // Write data blob + sync normalized columns simultaneously
+    var payload = {
+      data:       p,
+      updated_at: new Date().toISOString(),
+      // Normalized columns — kept in sync so Supabase queries/reports work
+      name:      p.name      || null,
+      email:     p.email     || null,
+      phone:     p.phone     || null,
+      birthdate: p.birthdate || null,
+      diagnosis: p.diagnosis || null,
+      notes:     p.notes     || null,
+      address:   p.address   || null,
+    };
     const res = await fetchWithTimeout(
       SB_URL + '/rest/v1/patients?id=eq.' + encodeURIComponent(p.id),
       {
         method: 'PATCH',
         headers: { ...sbHeaders(), 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ data: p, updated_at: new Date().toISOString() })
+        body: JSON.stringify(payload)
       }
     );
     if (res.ok) return true;
-    // Try insert if not found
+    // Row doesn't exist — insert
     const ins = await fetchWithTimeout(
       SB_URL + '/rest/v1/patients',
       {
         method: 'POST',
         headers: { ...sbHeaders(), 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ id: p.id, data: p, updated_at: new Date().toISOString() })
+        body: JSON.stringify(payload)
       }
     );
     return ins.ok;
@@ -20080,12 +20093,13 @@ async function sbLoadAll() {
 async function syncFromCloud() {
   setSyncStatus('syncing', 'Hämtar...');
 
-  // Try new schema first
-  var cloudPats = await sbLoadAllPatients();
+  // Try new normalized schema first, fall back to simple data-blob schema
+  var cloudPats = null;
+  try { cloudPats = await sbLoadAllPatients(); } catch(e) {}
 
-  // Fall back to old schema if new returns empty
+  // Fall back to old schema (just id + data JSON blob)
   if (!cloudPats || cloudPats.length === 0) {
-    cloudPats = await sbLoadAll(); // old function
+    cloudPats = await sbLoadAll();
   }
 
   if (!cloudPats) {

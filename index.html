@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774549492 -->
+<!-- vela-build:1774549783 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -19550,14 +19550,11 @@ body[data-theme="light"] {
 }
 
 /* ── Universal focus ring ─────────────────────────────────────────────────── */
-:focus-visible {
+*:focus-visible {
   outline: 2px solid var(--teal);
   outline-offset: 2px;
   border-radius: 4px;
 }
-/* Remove native outline everywhere so only focus-visible shows */
-* { outline: none; }
-*:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 
 /* ── Button depth — .act-btn ─────────────────────────────────────────────── */
 .act-btn {
@@ -19757,15 +19754,6 @@ textarea.field { height: auto; }
 @keyframes vela-skeleton-slide {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
-}
-
-/* ── Page transitions — smooth screen switches ───────────────────────────── */
-.screen {
-  animation: vela-screen-in .18s ease both;
-}
-@keyframes vela-screen-in {
-  from { opacity: .6; transform: translateY(4px); }
-  to   { opacity: 1;  transform: translateY(0); }
 }
 
 /* ── Booking dialog ─────────────────────────────────────────────────────── */

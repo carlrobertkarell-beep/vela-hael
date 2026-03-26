@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774514305 -->
+<!-- vela-build:1774515138 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -13632,7 +13632,7 @@ function rWorkspace() {
     });
   });
 
-  // File rows
+  // ── Recent activity rows (last 8 items) ──────────────────────────
   var rows = [];
   bks.filter(function(b){ return b.status==='completed'; })
     .sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; })
@@ -13641,19 +13641,32 @@ function rWorkspace() {
     });
   pats.slice().sort(function(a,b){ return (b.createdAt||'')>(a.createdAt||'')?1:-1; }).forEach(function(p){
     if (rows.length < 8 && !rows.find(function(r){ return r.id===p.id; }))
-      rows.push({ name:p.name, msg:'Patient', time:p.createdAt||'', id:p.id, type:'p' });
+      rows.push({ name:p.name, msg:'Ny patient', time:p.createdAt||'', id:p.id, type:'p' });
   });
   rows.sort(function(a,b){ return (b.time||'')>(a.time||'')?1:-1; }).splice(8);
 
   var lastBk = bks.slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; })[0];
-  var commitMsg  = lastBk ? (lastBk.patientName||'')+(lastBk.serviceName?' — '+lastBk.serviceName:'') : 'Inga aktiviteter ännu';
+  var commitMsg  = lastBk ? 'Senaste: '+(lastBk.patientName||'')+(lastBk.serviceName?' — '+lastBk.serviceName:'') : 'Inga aktiviteter ännu';
   var commitTime = lastBk ? _wsTimeAgo(new Date((lastBk.date||new Date().toISOString().slice(0,10))+'T12:00')) : 'aldrig';
   var commitHash = bks.length ? Number(bks.length).toString(16).padStart(7,'a').slice(-7) : 'a000000';
 
+  // ── Tjänster — senaste 12 mån ───────────────────────────────────
+  var twelveMonthsAgo = new Date(now); twelveMonthsAgo.setFullYear(twelveMonthsAgo.getFullYear()-1);
   var svcMap={}, svcTotal=0;
-  bks.forEach(function(b){ if(b.serviceName){svcMap[b.serviceName]=(svcMap[b.serviceName]||0)+1; svcTotal++;} });
-  var svcArr=Object.keys(svcMap).map(function(k){return{name:k,pct:Math.round(svcMap[k]/svcTotal*100)};}).sort(function(a,b){return b.pct-a.pct;}).slice(0,5);
-  var svcCols=['#f0883e','#58a6ff','#3fb950','#d29922','#a371f7'];
+  bks.filter(function(b){
+    return b.serviceName && b.date && new Date(b.date+'T00:00') >= twelveMonthsAgo;
+  }).forEach(function(b){ svcMap[b.serviceName]=(svcMap[b.serviceName]||0)+1; svcTotal++; });
+  // Also count from visits if no bookings
+  if (!svcTotal) {
+    pats.forEach(function(p){
+      (p.visits||[]).filter(function(v){ return v.service && v.date && new Date(v.date+'T00:00') >= twelveMonthsAgo; })
+        .forEach(function(v){ svcMap[v.service]=(svcMap[v.service]||0)+1; svcTotal++; });
+    });
+  }
+  var svcArr=Object.keys(svcMap).map(function(k){return{name:k,count:svcMap[k],pct:Math.round(svcMap[k]/Math.max(svcTotal,1)*100)};})
+    .sort(function(a,b){return b.count-a.count;}).slice(0,6);
+  // Colorblind-friendly palette — no red+green clash
+  var svcCols=['#58a6ff','#a371f7','#e07628','#d29922','#79c0ff','#ffa657'];
 
   var therapists = getTherapists ? getTherapists() : [];
   if (!therapists.length && cfg.signature) therapists=[{name:cfg.signature}];
@@ -13663,16 +13676,16 @@ function rWorkspace() {
   var wsName=cfg.name||'Arbetsyta';
   var ownerSlug=(cfg.signature||'behandlare').toLowerCase().replace(/[^a-z0-9]+/g,'-');
   var bookingUrl=window.location.origin+window.location.pathname+'#boka';
-  var wsDoc=cfg.wsDoc||null;
+
+  // Watch/Star state
+  var isWatching = localStorage.getItem('vela:ws-watching') === '1';
+  var isStarred  = localStorage.getItem('vela:ws-starred')  === '1';
 
   var h = '<div class="r4-page" style="padding-top:24px;padding-bottom:60px">';
 
-  // ─────────────────────────────────────────────────────────────────
-  // ROW 1: icon + owner/name + visibility | Pin Watch Fork Star
-  // ─────────────────────────────────────────────────────────────────
+  // ── ROW 1: owner / name / visibility + action buttons ────────────
   h += '<div class="r4-namerow">';
   h += '<div class="r4-namerow-l">';
-  // repo icon
   h += '<svg class="r4-repo-ic" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"><path d="M2 2.5A2.5 2.5 0 0 1 4.5 0h8.75a.75.75 0 0 1 .75.75v12.5a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1 0-1.5h1.75v-2h-8a1 1 0 0 0-.714 1.7.75.75 0 0 1-1.072 1.05A2.495 2.495 0 0 1 2 11.5Zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 0 1 1-1h8ZM5 12.25v3.25a.25.25 0 0 0 .4.2l1.45-1.087a.25.25 0 0 1 .3 0L8.6 15.7a.25.25 0 0 0 .4-.2v-3.25a.25.25 0 0 0-.25-.25h-3.5a.25.25 0 0 0-.25.25Z"/></svg>';
   h += '<span class="r4-owner" onclick="go(\'profile\')">'+e(ownerSlug)+'</span>';
   h += '<span class="r4-slash">/</span>';
@@ -13680,116 +13693,145 @@ function rWorkspace() {
   h += '<button class="r4-visbadge r4-visbadge-'+(isPublic?'pub':'prv')+'" onclick="_wsTogglePublic()">'+(isPublic?'Offentlig':'Privat')+'</button>';
   h += '</div>';
   h += '<div class="r4-namerow-r">';
-  // Pin
-  h += '<button class="r4-btn-plain"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M4.456.734a1.75 1.75 0 0 1 2.826.504l.613 1.327a3.081 3.081 0 0 0 2.084 1.707l2.454.584c.515.123.744.751.375 1.144l-2.1 2.269a3.072 3.072 0 0 0-.67 2.28l.45 3.104a.75.75 0 0 1-1.018.786L7 13.478l-2.47 1.055a.75.75 0 0 1-1.018-.786l.45-3.104a3.07 3.07 0 0 0-.67-2.28L1.19 6.093c-.37-.393-.14-1.021.375-1.144l2.454-.584a3.081 3.081 0 0 0 2.084-1.707l.613-1.327a.25.25 0 0 0-.044-.252l-.2-.21a.75.75 0 0 1 1.068-1.054l.2.21Z"/></svg> Lägg till</button>';
-  // Watch
-  h += '<div class="r4-split-group"><button class="r4-split-main"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 2c1.981 0 3.671.992 4.933 2.078 1.27 1.091 2.187 2.345 2.637 3.023a1.62 1.62 0 0 1 0 1.798c-.45.678-1.367 1.932-2.637 3.023C11.67 13.008 9.981 14 8 14c-1.981 0-3.671-.992-4.933-2.078C1.797 10.83.88 9.576.43 8.898a1.62 1.62 0 0 1 0-1.798c.45-.677 1.366-1.931 2.637-3.022C4.33 2.992 6.019 2 8 2Zm0 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM8 5.5a2.5 2.5 0 1 1-.001 5.001A2.5 2.5 0 0 1 8 5.5Z"/></svg> Bevaka</button><button class="r4-split-num">0 <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button></div>';
-  // Fork
-  h += '<div class="r4-split-group"><button class="r4-split-main"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5.001A.75.75 0 0 0 5 3.25Zm6.75.75a.75.75 0 1 0 .001-1.5.75.75 0 0 0-.001 1.5Zm-3 8.75a.75.75 0 1 0-1.5.001.75.75 0 0 0 1.5-.001Z"/></svg> Dela</button><button class="r4-split-num">0 <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button></div>';
-  // Star
-  h += '<div class="r4-split-group"><button class="r4-split-main r4-split-star"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg> Spara</button><button class="r4-split-num">0 <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button></div>';
+
+  // Lägg till patient
+  h += '<button class="r4-btn-plain" onclick="go(\'list\')" title="Lägg till patient">';
+  h += '<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"/></svg> Patient</button>';
+
+  // Bevaka — avisering om nya bokningar
+  h += '<div class="r4-split-group">';
+  h += '<button class="r4-split-main" onclick="_wsToggleWatch()" title="'+(isWatching?'Stäng av notiser':'Få notis vid ny bokning')+'" style="'+(isWatching?'color:var(--teal)':'')+'">';
+  h += '<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 2c1.981 0 3.671.992 4.933 2.078 1.27 1.091 2.187 2.345 2.637 3.023a1.62 1.62 0 0 1 0 1.798c-.45.678-1.367 1.932-2.637 3.023C11.67 13.008 9.981 14 8 14c-1.981 0-3.671-.992-4.933-2.078C1.797 10.83.88 9.576.43 8.898a1.62 1.62 0 0 1 0-1.798c.45-.677 1.366-1.931 2.637-3.022C4.33 2.992 6.019 2 8 2Zm0 1.5a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13ZM8 5.5a2.5 2.5 0 1 1-.001 5.001A2.5 2.5 0 0 1 8 5.5Z"/></svg>';
+  h += (isWatching ? ' Bevakar' : ' Bevaka') + '</button>';
+  h += '</div>';
+
+  // Dela — kopiera boknings-URL
+  h += '<div class="r4-split-group">';
+  h += '<button class="r4-split-main" onclick="_wsShareLink()" title="Kopiera bokningslänk">';
+  h += '<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M7.543 3.625a.75.75 0 0 1 .914 0l3.75 3a.75.75 0 0 1-1.914.75L9 6.424V12.5a.75.75 0 0 1-1.5 0V6.424L6.207 7.375a.75.75 0 0 1-.914-1.2l2.25-1.55ZM2.5 14a.75.75 0 0 1 0-1.5h11a.75.75 0 0 1 0 1.5h-11Z"/></svg>';
+  h += ' Dela</button>';
+  h += '</div>';
+
+  // Spara / Stjärna — bokmärk arbetsytan
+  h += '<div class="r4-split-group">';
+  h += '<button class="r4-split-main r4-split-star" onclick="_wsToggleStar()" title="'+(isStarred?'Ta bort bokmärke':'Bokmärk arbetsytan')+'" style="'+(isStarred?'':'')+'">'; 
+  h += '<svg viewBox="0 0 16 16" width="14" height="14" fill="'+(isStarred?'#d29922':'currentColor')+'"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>';
+  h += (isStarred ? ' Sparad' : ' Spara') + '</button>';
+  h += '</div>';
+
   h += '</div></div>'; // namerow
 
-  // ─────────────────────────────────────────────────────────────────
-  // TAB ROW (Code | Patienter | Hael | Aktivitet | Insikter | Inställningar)
-  // ─────────────────────────────────────────────────────────────────
-    // Navigation tabs moved to topbar row2
-
-  // ─────────────────────────────────────────────────────────────────
-  // BODY: two-column (main 74% + aside 26%)
-  // ─────────────────────────────────────────────────────────────────
+  // ── BODY ──────────────────────────────────────────────────────────
   h += '<div class="r4-body">';
-
-  // ══ MAIN ══════════════════════════════════════════════════════════
   h += '<div class="r4-main">';
 
-  // ── ACTIVITY GRAPH (52-week GitHub-style commit graph) ──────────
+  // ── ACTIVITY GRAPH — 52 veckor ──────────────────────────────────
   var _agBks = bks.slice().filter(function(b){ return b.status==='completed' && b.date; });
-  // Build a map: YYYY-MM-DD → count
   var _agMap = {};
   _agBks.forEach(function(b){ _agMap[b.date] = (_agMap[b.date]||0) + 1; });
-  // Also count from patient visit records
   pats.forEach(function(p){
     (p.visits||[]).forEach(function(v){
       if (v.date) _agMap[v.date] = (_agMap[v.date]||0) + ((_agBks.find(function(b){ return b.patientId===p.id && b.date===v.date; })) ? 0 : 1);
     });
   });
   var _agMax = Math.max.apply(null, Object.values(_agMap).concat([1]));
-  // Build 52 weeks × 7 days grid
   var _agToday = new Date(); _agToday.setHours(0,0,0,0);
   var _agStart = new Date(_agToday); _agStart.setDate(_agStart.getDate() - 364);
-  // Find Monday of start week
   _agStart.setDate(_agStart.getDate() - (_agStart.getDay()||7) + 1);
+
+  var totalVisitsYear = Object.values(_agMap).reduce(function(a,b){return a+b;},0);
 
   h += '<div style="margin:20px 0 24px">';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
-  h += '<span style="font-size:13px;color:#8b949e">'+Object.values(_agMap).reduce(function(a,b){return a+b;},0)+' besök det senaste \u00e5ret</span>';
-  h += '<div style="display:flex;align-items:center;gap:4px"><span style="font-size:11px;color:#8b949e">Mindre</span>';
-  ['#161b22','#0e4429','#006d32','#26a641','#39d353'].forEach(function(col){
-    h += '<div style="width:10px;height:10px;border-radius:2px;background:'+col+'"></div>';
+  h += '<span style="font-size:13px;color:#8b949e">' + totalVisitsYear + ' besök senaste 12 månaderna</span>';
+  // Legend inline with label
+  h += '<div style="display:flex;align-items:center;gap:4px">';
+  h += '<span style="font-size:11px;color:#6e7681">Färre&nbsp;</span>';
+  ['#21262d','#0e4429','#006d32','#26a641','#39d353'].forEach(function(col){
+    h += '<div style="width:11px;height:11px;border-radius:2px;background:'+col+'"></div>';
   });
-  h += '<span style="font-size:11px;color:#8b949e">Mer</span></div>';
+  h += '<span style="font-size:11px;color:#6e7681">&nbsp;Fler</span>';
   h += '</div>';
+  h += '</div>';
+
+  // Month labels row
+  var _agMonthRow = '';
+  var _agLabelCur = new Date(_agStart);
+  var _agWeeks = [];
+  var _agPrevMonth = -1;
+  while (_agLabelCur <= _agToday) {
+    var _agLM = _agLabelCur.getMonth();
+    _agWeeks.push(_agLM !== _agPrevMonth ? _agLabelCur.toLocaleDateString('sv-SE',{month:'short'}) : '');
+    _agPrevMonth = _agLM;
+    _agLabelCur.setDate(_agLabelCur.getDate() + 7);
+  }
+  h += '<div style="display:flex;gap:2px;margin-bottom:2px">';
+  _agWeeks.forEach(function(lbl){
+    h += '<div style="width:12px;flex-shrink:0;font-size:9px;color:#6e7681;white-space:nowrap;overflow:visible;line-height:1">'+(lbl||'')+'</div>';
+  });
+  h += '</div>';
+
   // Grid
   h += '<div style="display:flex;gap:2px;overflow-x:auto">';
   var _agCur = new Date(_agStart);
-  var _agMonths = [];
-  var _agWeekIdx = 0;
+  var todayKey = _agToday.toISOString().slice(0,10);
   while (_agCur <= _agToday) {
     h += '<div style="display:flex;flex-direction:column;gap:2px">';
-    // Month label (first week of month)
-    var _agMonthLabel = '';
     for (var d = 0; d < 7; d++) {
       var _agD = new Date(_agCur); _agD.setDate(_agD.getDate() + d);
       if (_agD > _agToday) { h += '<div style="width:10px;height:10px"></div>'; continue; }
       var _agKey = _agD.toISOString().slice(0,10);
       var _agCount = _agMap[_agKey] || 0;
       var _agCol;
-      if (_agCount === 0) _agCol = '#161b22';
+      if (_agCount === 0) _agCol = '#21262d';
       else if (_agCount === 1) _agCol = '#0e4429';
       else if (_agCount <= 3) _agCol = '#006d32';
       else if (_agCount <= 5) _agCol = '#26a641';
       else _agCol = '#39d353';
-      var _agTitle = _agCount > 0 ? _agCount+' bes\u00f6k '+_agKey : 'Inga bes\u00f6k '+_agKey;
-      h += '<div style="width:10px;height:10px;border-radius:2px;background:'+_agCol+'" title="'+_agTitle+'"></div>';
+      var isToday = _agKey === todayKey;
+      var _agTitle = (_agCount > 0 ? _agCount+' besök ' : 'Inga besök ')+_agKey;
+      h += '<div style="width:10px;height:10px;border-radius:2px;background:'+_agCol+';'+(isToday?'outline:2px solid #58a6ff;outline-offset:1px':'')+'" title="'+_agTitle+'"></div>';
     }
     h += '</div>';
     _agCur.setDate(_agCur.getDate() + 7);
-    _agWeekIdx++;
   }
-  h += '</div></div>';
+  h += '</div>';
+  h += '<div style="font-size:11px;color:#6e7681;margin-top:4px">Idag markerad med blå ram · Håll muspekaren för detaljer</div>';
+  h += '</div>';
 
-    // BRANCH BAR (no box, just inline row)
+  // ── BRANCH BAR ──────────────────────────────────────────────────
   h += '<div class="r4-branchbar">';
-  // Left
   h += '<div class="r4-bb-l">';
   h += '<button class="r4-branch-btn"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.492 2.492 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-2.25 0a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm4.75.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm-9 8.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg> '+e(cfg.signature||'Behandlare')+' <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button>';
   h += '<a class="r4-metalink" onclick="go(\'settings\');window._settingsActiveTab=\'services\'"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.492 2.492 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-2.25 0a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm4.75.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm-9 8.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg> <b>'+svcs.length+'</b> tjänster</a>';
   h += '<a class="r4-metalink" onclick="go(\'list\')"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M0 1.75C0 .784.784 0 1.75 0h7.586a.25.25 0 0 1 .177.073l2.914 2.914a.25.25 0 0 1 .073.177v7.586A1.75 1.75 0 0 1 10.75 12H1.75A1.75 1.75 0 0 1 0 10.25Zm1.75-.25a.25.25 0 0 0-.25.25v8.5c0 .138.112.25.25.25h9a.25.25 0 0 0 .25-.25V3.5H8.25a.75.75 0 0 1-.75-.75ZM9 1.99l2.001 2H9Z"/></svg> <b>'+pats.length+'</b> patienter</a>';
   h += '</div>';
-  // Right
   h += '<div class="r4-bb-r">';
   h += '<div class="r4-gofile" onclick="openCommandPalette()"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg> Sök patient... <kbd>t</kbd></div>';
-  h += '<div class="r4-bb-grp"><button class="r4-addbtn" onclick="go(\'list\')">Lägg till patient <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button></div>';
+  h += '<div class="r4-bb-grp"><button class="r4-addbtn" onclick="go(\'list\')">Ny patient <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button></div>';
   h += '<div class="r4-bb-grp"><button class="r4-codebtn" onclick="openBookingDialog()"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M8 4a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 4Z"/></svg> Ny bokning <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button></div>';
-  h += '</div></div>'; // branchbar
+  h += '</div></div>';
 
-  // COMMIT ROW (top of file box, rounded top)
+  // ── SENASTE AKTIVITET ────────────────────────────────────────────
   h += '<div class="r4-commitrow">';
   if (savedAv) h += '<img src="'+savedAv+'" class="r4-av20" alt="">';
   else h += '<span class="r4-av20 r4-av20i">'+ownerInit+'</span>';
-  h += '<a class="r4-commit-who" onclick="go(\'profile\')">'+e(cfg.signature||'Behandlare')+'</a>';
-  h += '<span class="r4-commit-msg">'+e(commitMsg)+'</span>';
+  h += '<span style="font-size:12px;color:#8b949e;flex-shrink:0">Senaste aktivitet</span>';
+  h += '<span class="r4-commit-msg" style="color:#e6edf3">'+e(commitMsg)+'</span>';
   h += '<span style="flex:1"></span>';
-  h += '<code class="r4-sha">'+commitHash+'</code>';
-  h += '<span class="r4-dot">·</span>';
   h += '<span class="r4-commit-t">'+commitTime+'</span>';
   h += '<a class="r4-commits-ct" onclick="go(\'calendar\')">';
   h += '<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M11.93 8.5a4.002 4.002 0 0 1-7.86 0H.75a.75.75 0 0 1 0-1.5h3.32a4.002 4.002 0 0 1 7.86 0h3.32a.75.75 0 0 1 0 1.5Z"/></svg>';
-  h += ' <b>'+doneBks+'</b> besök</a>';
+  h += ' <b>'+doneBks+'</b> genomförda besök</a>';
   h += '</div>';
 
-  // FILE TABLE
+  // ── FILTA-RADEN: förklaringstext ──────────────────────────────────
+  h += '<div style="padding:6px 16px 8px;border-bottom:1px solid #21262d;display:flex;align-items:center;gap:8px">';
+  h += '<svg viewBox="0 0 16 16" width="13" height="13" fill="#8b949e"><path d="M0 1.75C0 .784.784 0 1.75 0h7.586a.25.25 0 0 1 .177.073l2.914 2.914a.25.25 0 0 1 .073.177v7.586A1.75 1.75 0 0 1 10.75 12H1.75A1.75 1.75 0 0 1 0 10.25Z"/></svg>';
+  h += '<span style="font-size:12px;color:#6e7681">Senaste '+ rows.length +' aktiviteterna — besök och nya patienter</span>';
+  h += '</div>';
+
+  // ── FILE TABLE ────────────────────────────────────────────────────
   h += '<table class="r4-files">';
   if (!rows.length) {
     h += '<tr><td colspan="3" style="padding:40px;text-align:center;color:#8b949e;font-size:14px">'
@@ -13799,6 +13841,7 @@ function rWorkspace() {
   } else {
     rows.forEach(function(row){
       var col = row.type==='p'?'#58a6ff':'var(--teal)';
+      var typeLabel = row.type==='p'?'Patient':'Besök';
       h += '<tr class="r4-frow" onclick="_wsOpen(\''+e(row.id||'')+'\')"><td class="r4-ftd1"><svg viewBox="0 0 16 16" width="16" height="16" fill="'+col+'"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0 1 13.25 16h-9.5A1.75 1.75 0 0 1 2 14.25Zm1.75-.25a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 0 0 .25-.25V6h-2.75A1.75 1.75 0 0 1 9 4.25V1.5Zm6.75.062V4.25c0 .138.112.25.25.25h2.688Z"/></svg></td>';
       h += '<td class="r4-ftd2"><a class="r4-fname">'+e(row.name)+'</a></td>';
       h += '<td class="r4-ftd3"><span class="r4-fmsg">'+e(row.msg)+'</span></td>';
@@ -13807,7 +13850,7 @@ function rWorkspace() {
   }
   h += '</table>';
 
-  // ── TODAY'S SCHEDULE (replaces static README) ──────────────────
+  // ── DAGENS SCHEMA ────────────────────────────────────────────────
   var todayStr = now.toISOString().slice(0,10);
   var todayBks = bks.filter(function(b){ return b.date === todayStr; })
     .sort(function(a,b){ return (a.time||'')>(b.time||'')?1:-1; });
@@ -13819,13 +13862,14 @@ function rWorkspace() {
   h += '<div class="r4-readme">';
   h += '<div class="r4-readme-hdr">';
   h += '<svg viewBox="0 0 16 16" width="14" height="14" fill="#8b949e"><path d="M4.75 0a.75.75 0 0 1 .75.75V2h5V.75a.75.75 0 0 1 1.5 0V2h1.25c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 16H2.75A1.75 1.75 0 0 1 1 14.25V3.75C1 2.784 1.784 2 2.75 2H4V.75A.75.75 0 0 1 4.75 0ZM2.5 7.5v6.75c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V7.5Zm10.75-4H2.75a.25.25 0 0 0-.25.25V6h11V3.75a.25.25 0 0 0-.25-.25Z"/></svg>';
-  h += '<span class="r4-readme-title">'+todayName+'</span>';
+  h += '<span class="r4-readme-title">Dagens schema</span>';
+  h += '<span style="font-size:13px;color:#8b949e;margin-left:6px">— '+todayName+'</span>';
   h += '<span style="margin-left:auto;font-size:12px;color:#8b949e">'+todayBks.length+' bokningar</span>';
   h += '</div>';
 
   if (todayBks.length === 0) {
     h += '<div style="padding:32px 16px;text-align:center">';
-    h += '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#30363d" stroke-width="1.5" style="margin-bottom:8px;display:block;margin-left:auto;margin-right:auto"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+    h += '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#30363d" stroke-width="1.5" style="margin-bottom:8px;display:block;margin-left:auto;margin-right:auto"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x1="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
     h += '<p style="font-size:14px;color:#8b949e;margin:0 0 10px">Inga bokningar idag</p>';
     h += '<button onclick="openBookingDialog()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 14px;background:#238636;border:1px solid rgba(240,246,252,.1);border-radius:6px;font-size:13px;font-weight:500;color:#fff;cursor:pointer;font-family:var(--font)">';
     h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
@@ -13836,12 +13880,11 @@ function rWorkspace() {
     todayBks.forEach(function(bk) {
       var status = bk.status === 'completed' ? 'completed' : bk.status === 'cancelled' ? 'cancelled' : 'upcoming';
       var statusCol = status === 'completed' ? '#3fb950' : status === 'cancelled' ? '#f85149' : '#58a6ff';
-      var statusDot = '<span style="width:8px;height:8px;border-radius:50%;background:'+statusCol+';flex-shrink:0"></span>';
-      h += '<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid #21262d;cursor:pointer" ';
-      h += 'onmouseenter="this.style.background=\'rgba(177,186,196,.04)\'" onmouseleave="this.style.background=\'none\'"';
+      h += '<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid #21262d;cursor:pointer"';
+      h += ' onmouseenter="this.style.background=\'rgba(177,186,196,.04)\'" onmouseleave="this.style.background=\'none\'"';
       if (bk.patientId) h += ' onclick="openPat(\''+bk.patientId+'\');go(\'detail\')"';
       h += '>';
-      h += statusDot;
+      h += '<span style="width:8px;height:8px;border-radius:50%;background:'+statusCol+';flex-shrink:0"></span>';
       h += '<span style="font-size:13px;color:#8b949e;width:44px;flex-shrink:0">'+(bk.time||'--:--')+'</span>';
       h += '<span style="font-size:14px;color:#e6edf3;flex:1">'+e(bk.patientName||'Patient')+'</span>';
       h += '<span style="font-size:12px;color:#8b949e">'+e(bk.serviceName||'')+'</span>';
@@ -13855,39 +13898,32 @@ function rWorkspace() {
       h += '</div>';
     }
   }
-  h += '</div>'; // readme
+  h += '</div>';
 
   h += '</div>'; // r4-main
 
-  // ══ SIDEBAR — NO BOXES, only <hr> separators ═══════════════════════
+  // ══ SIDEBAR ═══════════════════════════════════════════════════════
   h += '<aside class="r4-aside">';
 
-  // ── OM (About) ────────────────────────────────────────────────
+  // Om
   h += '<section class="r4-asec">';
-  h += '<h2 class="r4-ah2">Om ';
-  h += '<button class="r4-a-gear" onclick="go(\'settings\');window._settingsActiveTab=\'workspace\'" title="Redigera">';
-  h += '<svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 0a8.2 8.2 0 0 1 .701.031C9.444.095 9.99.645 10.16 1.29l.288 1.107c.018.066.079.158.212.224.231.114.454.243.668.386.123.082.233.09.299.071l1.103-.303c.644-.176 1.392.021 1.82.63.27.385.506.792.704 1.218.315.675.111 1.422-.364 1.891l-.814.806c-.049.048-.098.147-.088.294.016.257.016.515 0 .772-.01.147.038.246.088.294l.814.806c.475.469.679 1.216.364 1.891a7.977 7.977 0 0 1-.704 1.217c-.428.61-1.176.807-1.82.63l-1.103-.303c-.066-.019-.176-.011-.299.071a5.909 5.909 0 0 1-.668.386c-.133.066-.194.158-.212.224l-.288 1.107c-.17.645-.715 1.195-1.458 1.26a8.006 8.006 0 0 1-1.402 0c-.743-.065-1.289-.615-1.458-1.26l-.288-1.107c-.018-.066-.079-.158-.212-.224a5.738 5.738 0 0 1-.668-.386c-.123-.082-.233-.09-.299-.071l-1.103.303c-.644.176-1.392-.021-1.82-.63a8.12 8.12 0 0 1-.704-1.218c-.315-.675-.111-1.422.363-1.891l.815-.806c.05-.048.098-.147.088-.294a6.214 6.214 0 0 1 0-.772c.01-.147-.038-.246-.088-.294l-.815-.806C.635 6.045.431 5.298.746 4.623a7.92 7.92 0 0 1 .704-1.217c.428-.61 1.176-.807 1.82-.63l1.102.302c.067.019.177.011.3-.071.214-.143.437-.272.668-.386.133-.066.194-.158.212-.224l.288-1.107C5.37.645 5.916.095 6.699.03 7.1.01 7.35 0 8 0Zm-.571 1.525c-.036.006-.108.036-.137.146l-.289 1.105c-.147.561-.549.967-.998 1.189-.173.086-.34.183-.5.29-.417.278-.97.277-1.398.006l-.606-.595c-.01-.01-.072-.03-.112-.003a7.011 7.011 0 0 0-.618 1.072.115.115 0 0 0 .049.148l.815.806c.014.014.066.078.066.172v.572c0 .094-.052.158-.066.172l-.815.806a.115.115 0 0 0-.049.148 7.01 7.01 0 0 0 .618 1.072c.04.027.102.007.112-.003l.606-.595c.428-.271.981-.272 1.398.006.16.107.327.204.501.29.447.222.85.629.997 1.189l.289 1.105c.029.11.101.14.137.146a6.6 6.6 0 0 0 1.142 0c.036-.006.108-.036.137-.146l.289-1.105c.147-.560.549-.967.998-1.189.173-.086.34-.183.5-.29.417-.278.97-.277 1.397-.006l.607.595c.01.01.072.03.112.003a7.011 7.011 0 0 0 .618-1.072.115.115 0 0 0-.049-.148l-.815-.806c-.014-.014-.066-.078-.066-.172v-.572c0-.094.052-.158.066-.172l.815-.806a.115.115 0 0 0 .049-.148 7.01 7.01 0 0 0-.618-1.072c-.04-.027-.102-.007-.112.003l-.607.595c-.427.271-.98.272-1.397-.006a5.261 5.261 0 0 0-.501-.29c-.447-.222-.85-.629-.997-1.189l-.289-1.105c-.029-.11-.101-.14-.137-.146a6.6 6.6 0 0 0-1.142 0ZM8 6a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z"/></svg>'
-  h += '</button></h2>';
+  h += '<h2 class="r4-ah2">Om <button class="r4-a-gear" onclick="go(\'settings\');window._settingsActiveTab=\'workspace\'" title="Redigera"><svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor"><path d="M8 0a8.2 8.2 0 0 1 .701.031C9.444.095 9.99.645 10.16 1.29l.288 1.107c.018.066.079.158.212.224.231.114.454.243.668.386.123.082.233.09.299.071l1.103-.303c.644-.176 1.392.021 1.82.63.27.385.506.792.704 1.218.315.675.111 1.422-.364 1.891l-.814.806c-.049.048-.098.147-.088.294.016.257.016.515 0 .772-.01.147.038.246.088.294l.814.806c.475.469.679 1.216.364 1.891a7.977 7.977 0 0 1-.704 1.217c-.428.61-1.176.807-1.82.63l-1.103-.303c-.066-.019-.176-.011-.299.071a5.909 5.909 0 0 1-.668.386c-.133.066-.194.158-.212.224l-.288 1.107c-.17.645-.715 1.195-1.458 1.26a8.006 8.006 0 0 1-1.402 0c-.743-.065-1.289-.615-1.458-1.26l-.288-1.107c-.018-.066-.079-.158-.212-.224a5.738 5.738 0 0 1-.668-.386c-.123-.082-.233-.09-.299-.071l-1.103.303c-.644.176-1.392-.021-1.82-.63a8.12 8.12 0 0 1-.704-1.218c-.315-.675-.111-1.422.363-1.891l.815-.806c.05-.048.098-.147.088-.294a6.214 6.214 0 0 1 0-.772c.01-.147-.038-.246-.088-.294l-.815-.806C.635 6.045.431 5.298.746 4.623a7.92 7.92 0 0 1 .704-1.217c.428-.61 1.176-.807 1.82-.63l1.102.302c.067.019.177.011.3-.071.214-.143.437-.272.668-.386.133-.066.194-.158.212-.224l.288-1.107C5.37.645 5.916.095 6.699.03 7.1.01 7.35 0 8 0Zm-.571 1.525c-.036.006-.108.036-.137.146l-.289 1.105c-.147.561-.549.967-.998 1.189-.173.086-.34.183-.5.29-.417.278-.97.277-1.398.006l-.606-.595c-.01-.01-.072-.03-.112-.003a7.011 7.011 0 0 0-.618 1.072.115.115 0 0 0 .049.148l.815.806c.014.014.066.078.066.172v.572c0 .094-.052.158-.066.172l-.815.806a.115.115 0 0 0-.049.148 7.01 7.01 0 0 0 .618 1.072c.04.027.102.007.112-.003l.606-.595c.428-.271.981-.272 1.398.006.16.107.327.204.501.29.447.222.85.629.997 1.189l.289 1.105c.029.11.101.14.137.146a6.6 6.6 0 0 0 1.142 0c.036-.006.108-.036.137-.146l.289-1.105c.147-.560.549-.967.998-1.189.173-.086.34-.183.5-.29.417-.278.97-.277 1.397-.006l.607.595c.01.01.072.03.112.003a7.011 7.011 0 0 0 .618-1.072.115.115 0 0 0-.049-.148l-.815-.806c-.014-.014-.066-.078-.066-.172v-.572c0-.094.052-.158.066-.172l.815-.806a.115.115 0 0 0 .049-.148 7.01 7.01 0 0 0-.618-1.072c-.04-.027-.102-.007-.112.003l-.607.595c-.427.271-.98.272-1.397-.006a5.261 5.261 0 0 0-.501-.29c-.447-.222-.85-.629-.997-1.189l-.289-1.105c-.029-.11-.101-.14-.137-.146a6.6 6.6 0 0 0-1.142 0ZM8 6a2 2 0 1 1 0 4 2 2 0 0 1 0-4Z"/></svg></button></h2>';
   if (cfg.bio) {
     h += '<p style="font-size:14px;color:#e6edf3;line-height:1.5;margin:0 0 10px">'+e(cfg.bio)+'</p>';
   } else {
-    h += '<p style="font-size:13px;color:#8b949e;font-style:italic;margin:0 0 10px;line-height:1.5">Ingen beskrivning, webbplats eller ämnen.</p>';
+    h += '<p style="font-size:13px;color:#8b949e;font-style:italic;margin:0 0 10px;line-height:1.5">Ingen beskrivning. Lägg till i <a onclick="go(\'settings\')" style="color:#58a6ff;cursor:pointer">Inställningar</a>.</p>';
   }
   if (cfg.website) {
-    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
-    h += '<svg viewBox="0 0 16 16" width="14" height="14" fill="#8b949e" style="flex-shrink:0"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25Zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0Z"/></svg>';
-    h += '<a href="'+e(cfg.website)+'" target="_blank" style="font-size:13px;color:#58a6ff;text-decoration:none">'+e(cfg.website.replace(/^https?:\/\//,''))+'</a>';
-    h += '</div>';
+    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><svg viewBox="0 0 16 16" width="14" height="14" fill="#8b949e" style="flex-shrink:0"><path d="M7.775 3.275a.75.75 0 0 0 1.06 1.06l1.25-1.25a2 2 0 1 1 2.83 2.83l-2.5 2.5a2 2 0 0 1-2.83 0 .75.75 0 0 0-1.06 1.06 3.5 3.5 0 0 0 4.95 0l2.5-2.5a3.5 3.5 0 0 0-4.95-4.95l-1.25 1.25Zm-4.69 9.64a2 2 0 0 1 0-2.83l2.5-2.5a2 2 0 0 1 2.83 0 .75.75 0 0 0 1.06-1.06 3.5 3.5 0 0 0-4.95 0l-2.5 2.5a3.5 3.5 0 0 0 4.95 4.95l1.25-1.25a.75.75 0 0 0-1.06-1.06l-1.25 1.25a2 2 0 0 1-2.83 0Z"/></svg>';
+    h += '<a href="'+e(cfg.website)+'" target="_blank" style="font-size:13px;color:#58a6ff;text-decoration:none">'+e(cfg.website.replace(/^https?:\/\//,''))+'</a></div>';
   }
   if (cfg.address) {
-    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
-    h += '<svg viewBox="0 0 16 16" width="14" height="14" fill="#8b949e"><path d="m12.596 11.596-3.535 3.536a1.5 1.5 0 0 1-2.122 0l-3.535-3.536a6.5 6.5 0 1 1 9.192 0Zm-1.06-1.06a5 5 0 1 0-7.072 0L8 14.07l3.536-3.534ZM8 9a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 9Z"/></svg>';
-    h += '<span style="font-size:13px;color:#8b949e">'+e(cfg.address)+'</span>';
-    h += '</div>';
+    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><svg viewBox="0 0 16 16" width="14" height="14" fill="#8b949e"><path d="m12.596 11.596-3.535 3.536a1.5 1.5 0 0 1-2.122 0l-3.535-3.536a6.5 6.5 0 1 1 9.192 0Zm-1.06-1.06a5 5 0 1 0-7.072 0L8 14.07l3.536-3.534ZM8 9a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 9Z"/></svg>';
+    h += '<span style="font-size:13px;color:#8b949e">'+e(cfg.address)+'</span></div>';
   }
   h += '</section>';
 
-  // ── BESÖK-STATISTIK (GitHub: Deployments) ─────────────────────
+  // Besök-statistik
   h += '<section class="r4-asec">';
   h += '<h2 class="r4-ah2">Besök <span style="font-size:13px;font-weight:400;background:#21262d;color:#8b949e;border-radius:20px;padding:1px 7px">'+completedBks.length+'</span></h2>';
   if (completedBks.length === 0) {
@@ -13905,43 +13941,49 @@ function rWorkspace() {
   }
   h += '</section>';
 
-  // ── BOKNINGSSIDA (GitHub: Packages) ───────────────────────────
-  var isPublic = cfg.wsPublic !== false;
+  // Bokningssida
   h += '<section class="r4-asec">';
   h += '<h2 class="r4-ah2">Bokningssida</h2>';
   if (isPublic) {
     var bookUrl = window.location.origin + window.location.pathname + '#boka';
-    h += '<p style="font-size:13px;color:#3fb950;margin-bottom:6px;display:flex;align-items:center;gap:6px">';
-    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg> Aktiv</p>';
+    h += '<p style="font-size:13px;color:#3fb950;margin-bottom:6px;display:flex;align-items:center;gap:6px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg> Aktiv</p>';
     h += '<a href="'+bookUrl+'" target="_blank" style="font-size:13px;color:#58a6ff;cursor:pointer;text-decoration:none">Öppna bokningssida ↗</a>';
   } else {
     h += '<p style="font-size:13px;color:#8b949e;margin:0">Privat — aktivera i Inställningar.</p>';
   }
   h += '</section>';
 
-  // ── TJÄNSTER / LANGUAGES BAR ───────────────────────────────────
+  // Tjänster — senaste 12 mån
   if (svcArr.length) {
     h += '<section class="r4-asec">';
-    h += '<h2 class="r4-ah2">Tjänster</h2>';
-    var svcColors2 = ['#f0883e','#3fb950','#58a6ff','#a371f7','#f78166','#d29922'];
-    var svcTotal2  = svcArr.reduce(function(s,v){return s+v.pct;},0) || 1;
-    // Language bar
-    h += '<div style="display:flex;border-radius:6px;overflow:hidden;height:8px;margin-bottom:10px">';
+    h += '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">';
+    h += '<h2 class="r4-ah2" style="margin:0">Tjänster</h2>';
+    h += '<span style="font-size:11px;color:#6e7681">senaste 12 mån &middot; ' + svcTotal + ' besök</span>';
+    h += '</div>';
+    var svcTotal2 = svcArr.reduce(function(s,v){return s+v.pct;},0) || 1;
+    // Bar — single solid bar, no gap
+    h += '<div style="display:flex;border-radius:4px;overflow:hidden;height:7px;margin-bottom:14px">';
     svcArr.forEach(function(sv,i){
-      h += '<div style="flex:'+(sv.pct/svcTotal2*100)+';background:'+svcColors2[i%svcColors2.length]+'" title="'+e(sv.name)+'"></div>';
+      h += '<div style="flex:' + (sv.pct/svcTotal2*100) + ';background:' + svcCols[i%svcCols.length] + '" title="' + e(sv.name) + ' ' + sv.pct + '%"></div>';
     });
     h += '</div>';
+    // Legend — name · count · %
     svcArr.forEach(function(sv, i){
-      h += '<div style="display:inline-flex;align-items:center;gap:6px;margin-right:12px;margin-bottom:4px">';
-      h += '<span style="width:10px;height:10px;border-radius:50%;background:'+svcColors2[i%svcColors2.length]+';flex-shrink:0"></span>';
-      h += '<span style="font-size:12px;color:#e6edf3">'+e(sv.name)+'</span>';
-      h += '<span style="font-size:12px;color:#8b949e">'+sv.pct+'%</span>';
+      h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">';
+      h += '<div style="display:flex;align-items:center;gap:7px">';
+      h += '<span style="width:9px;height:9px;border-radius:2px;background:' + svcCols[i%svcCols.length] + ';flex-shrink:0"></span>';
+      h += '<span style="font-size:13px;color:#e6edf3">' + e(sv.name) + '</span>';
+      h += '</div>';
+      h += '<div style="display:flex;align-items:center;gap:8px">';
+      h += '<span style="font-size:12px;color:#8b949e">' + sv.count + ' besök</span>';
+      h += '<span style="font-size:12px;color:#6e7681;font-family:var(--font-mono);width:32px;text-align:right">' + sv.pct + '%</span>';
+      h += '</div>';
       h += '</div>';
     });
     h += '</section>';
   }
 
-  // ── BEHANDLARE (GitHub: Contributors) ─────────────────────────
+  // Behandlare
   h += '<section class="r4-asec" style="border-bottom:none;padding-bottom:0">';
   h += '<h2 class="r4-ah2">Behandlare <span style="font-size:13px;font-weight:400;background:#21262d;color:#8b949e;border-radius:20px;padding:1px 7px">'+therapists.length+'</span></h2>';
   therapists.forEach(function(t){
@@ -13957,12 +13999,35 @@ function rWorkspace() {
   h += '</section>';
 
   h += '</aside>';
-  h += '</div>'; // r4-body
-  h += '</div>'; // r4-page
+  h += '</div>';
+  h += '</div>';
   el.innerHTML = h;
 }
 
 function _wsOpen(id) { if (id) openPat(id); }
+
+function _wsToggleWatch() {
+  var on = localStorage.getItem('vela:ws-watching') === '1';
+  localStorage.setItem('vela:ws-watching', on ? '0' : '1');
+  showAutoSaveToast(on ? 'Notiser avstängda' : 'Du bevakar arbetsytan — notis vid ny bokning ✓');
+  rWorkspace();
+}
+
+function _wsShareLink() {
+  var url = window.location.origin + window.location.pathname + '#boka';
+  navigator.clipboard.writeText(url).then(function() {
+    showAutoSaveToast('Bokningslänk kopierad ✓');
+  }).catch(function() {
+    prompt('Kopiera bokningslänken:', url);
+  });
+}
+
+function _wsToggleStar() {
+  var on = localStorage.getItem('vela:ws-starred') === '1';
+  localStorage.setItem('vela:ws-starred', on ? '0' : '1');
+  showAutoSaveToast(on ? 'Bokmärke borttaget' : 'Arbetsyta sparad som favorit ✓');
+  rWorkspace();
+}
 function _wsTogglePublic() {
   var cfg=getClinicConfig?getClinicConfig():{};
   cfg.wsPublic=cfg.wsPublic===false;

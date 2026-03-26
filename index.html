@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774515138 -->
+<!-- vela-build:1774516348 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -8555,8 +8555,34 @@ function _bk2Save() {
   _queueReminderChain(bk);
   if (intakeSent) _queueIntakeSend(patId, patName, intakeLink, bkDate, bkTime);
 
+  // ── Send booking confirmation ──────────────────────────────────────────────
+  var _bkPat = (S.patients||[]).find(function(p){ return p.id === patId; });
+  if (_bkPat) {
+    // SMS confirmation if patient has phone and SMS is enabled
+    if (_bkPat.phone && localStorage.getItem('vela:sms-enabled') !== 'off') {
+      var _smsTpl = null;
+      try { _smsTpl = JSON.parse(localStorage.getItem('vela:sms:sms_booking')||'null'); } catch(ex) {}
+      var _smsCfg = getClinicConfig();
+      var _smsBody = (_smsTpl && _smsTpl.active !== false && _smsTpl.text)
+        ? _smsTpl.text
+          .replace(/\[klinik\]/g, _smsCfg.name||'Kliniken')
+          .replace(/\[datum\]/g, bkDate)
+          .replace(/\[tid\]/g, bkTime)
+          .replace(/\[adress\]/g, _smsCfg.address||'')
+          .replace(/\[telefon\]/g, _smsCfg.phone||'')
+        : 'Bokning bekräftad hos ' + (_smsCfg.name||'Kliniken') + ' — ' + bkDate + ' kl ' + bkTime + (bk.serviceName ? ' (' + bk.serviceName + ')' : '') + '.';
+      _velaSendSMS(_bkPat.phone, _smsBody).then(function(res){
+        _sbLogSms(patId, _bkPat.phone, _smsBody, res.id, res.ok, 'sms_booking', res.err);
+      });
+    }
+    // Mail confirmation if patient has email and Resend key exists
+    if (_bkPat.email && _velaGetApiKey('resend')) {
+      sendBookingConfirmationWithPortal(bk, _bkPat);
+    }
+  }
+
   document.getElementById('bk2-overlay')?.remove();
-  _showBk2Confirmation(bk, patName, email, intakeSent);
+  _showBk2Confirmation(bk, patName, email || (_bkPat&&_bkPat.phone) || '', intakeSent);
 
   if (S.screen === 'calendar') rCalendar();
   if (S.screen === 'dashboard' || S.screen === 'calendar') rCalendar();
@@ -9172,7 +9198,7 @@ function _openUserMenu(evt) {
   function wire(id, fn2) { var el = document.getElementById(id); if (el) el.onclick = fn2; }
 
   wire('um-settings', function(){ _closeUserMenu(); window._settingsActiveTab='general'; go('settings'); });
-  wire('um-profile',  function(){ _closeUserMenu(); go('profile'); });
+  wire('um-profile',  function(){ _closeUserMenu(); window._settingsActiveTab='profile'; go('settings'); });
   wire('um-billing',  function(){ _closeUserMenu(); window._settingsActiveTab='billing'; go('settings'); });
   wire('um-apikey',   function(){ _closeUserMenu(); window._settingsActiveTab='apikey'; go('settings'); });
   wire('um-integrations', function(){ _closeUserMenu(); window._settingsActiveTab='integrations'; go('settings'); });
@@ -9783,13 +9809,14 @@ function rTopbar() {
 
   } else if (scr === 'settings') {
     nh += nsep('Inst\u00e4llningar');
-    var settingsSections = [
-      ['Profil','behandlare'],['Arbetsyta','workspace'],['Tj\u00e4nster','services'],
-      ['Synlighet','visibility'],['Team','team'],['Integrationer','integrations']
+    nh += '<button class="nav-item" onclick="go(\'dashboard\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span class="nav-item-label">\u2190 Klinik</span></button>';
+    var _stSecs = [
+      ['Arbetsyta','general'],['Tj\u00e4nster','services'],['Kommunikation','comms'],
+      ['API-nycklar','apikey'],['Din profil','profile'],['Preferenser','preferences']
     ];
-    settingsSections.forEach(function(s) {
+    _stSecs.forEach(function(s) {
       var active2 = (window._settingsActiveTab === s[1]);
-      nh += '<button class="nav-item'+(active2?' active':'')+'" onclick="window._settingsActiveTab=\''+s[1]+'\';rSettings&&rSettings();rTopbar&&rTopbar()">'
+      nh += '<button class="nav-item'+(active2?' active':'')+'" onclick="window._settingsActiveTab=\''+s[1]+'\';rSettings&&rSettings()">'
         + '<span class="nav-item-label">'+s[0]+'</span></button>';
     });
 
@@ -14487,12 +14514,16 @@ function rDetail(){
   if (diag) h += '<span class="meta-item"><span class="meta-value">' + e(diag.split('(')[0].trim().slice(0,45)) + '</span></span><span class="meta-sep">·</span>';
   h += '<span class="meta-item"><span class="meta-label">Besök</span><span class="meta-value">' + visits.length + '</span></span>';
   if (lastVisit?.date) h += '<span class="meta-sep">·</span><span class="meta-item"><span class="meta-label">Senast</span><span class="meta-value">' + _relativeDate(lastVisit.date) + '</span></span>';
+  if (p.phone) h += '<span class="meta-sep">·</span><span class="meta-item"><a href="tel:' + e(p.phone) + '" style="color:#58a6ff;text-decoration:none;font-size:13px">' + e(p.phone) + '</a></span>';
   if (p.email) h += '<span class="meta-sep">·</span><span class="meta-item" style="color:#8b949e;font-size:13px">' + e(p.email) + '</span>';
+  if (age && age > 0 && age < 120) h += '<span class="meta-sep">·</span><span class="meta-item"><span class="meta-value">' + age + ' år</span></span>';
   h += '</div>';
   h += '</div></div>';
   // Actions
   h += '<div class="page-actions">';
   h += '<button onclick="newVisit()" class="act-btn act-btn-primary">Ta emot</button>';
+  h += '<button onclick="go(\'editpat\')" class="act-btn" style="font-size:13px">Redigera</button>';
+  h += '<button onclick="confDel(\'pat\',\'' + p.id + '\',\'' + e(p.name) + '\')" class="act-btn" style="font-size:13px;color:#f85149;border-color:rgba(248,81,73,.3)">Radera</button>';
   h += '<button onclick="go(\'list\')" class="act-btn" style="font-size:13px">← Tillbaka</button>';
   h += '</div></div>';
 
@@ -14542,323 +14573,304 @@ function rDetail(){
 // ── Overview tab ─────────────────────────────────────────────────────────────
 function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData) {
   var h = '';
+  var now = new Date();
 
-  // Diagnoses row
-  const diagList = p.diagnoses?.length ? p.diagnoses : (p.diagnosis ? [p.diagnosis] : []);
-  h += '<div class="section">';
-  h += '<div class="section-title-sm">Diagnoser <button onclick="openDiagEditor(\'' + p.id + '\')" style="background:none;border:none;color:var(--teal);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);margin-left:6px">Redigera</button></div>';
-  h += '<div style="display:flex;gap:6px;flex-wrap:wrap">';
+  // ── Computed stats ──────────────────────────────────────────────
+  var allNrs = visits.reduce(function(acc,v){
+    return acc.concat((v.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;}));
+  },[]);
+  // Also pull nrs from form.pain
+  visits.forEach(function(v){ if (v.form && v.form.pain != null && !allNrs.length) allNrs.push(v.form.pain); });
+  var nrsTrend = allNrs.length >= 2 ? (allNrs[allNrs.length-1] - allNrs[0]) : null;
+  var totalVisits = visits.length;
+  var completedVisits = visits.filter(function(v){ return v.status === 'completed'; }).length;
+  var hasPlan = visits.some(function(v){ return v.plan; });
+  var activePlan = visits.find(function(v){
+    if (!v.plan || !v.date) return false;
+    var weeks = v.plan.totalWeeks || v.plan.form?.followup || 4;
+    return new Date(v.date).getTime() + weeks*7*86400000 > now.getTime();
+  });
+  var daysSinceLastVisit = lastVisit && lastVisit.date
+    ? Math.floor((now - new Date(lastVisit.date)) / 86400000) : null;
+  var diagList = p.diagnoses?.length ? p.diagnoses : (p.diagnosis ? [p.diagnosis] : []);
+  var age = p.birthdate || p.birthYear
+    ? (new Date().getFullYear() - birthdateToYear(p.birthdate||p.birthYear||'')) : null;
+  var upcomingBks = (getBookings ? getBookings() : []).filter(function(b){
+    return b.patientId === p.id && b.date >= now.toISOString().slice(0,10) && b.status !== 'cancelled';
+  }).sort(function(a,b){ return (a.date+a.time) > (b.date+b.time) ? 1 : -1; });
+  var nextBk = upcomingBks[0] || null;
+
+  // ── 2-COLUMN LAYOUT ─────────────────────────────────────────────
+  h += '<div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start">';
+
+  // ════ LEFT COLUMN ════════════════════════════════════════════════
+  h += '<div style="min-width:0">';
+
+  // ── KLINISK SAMMANFATTNING ──────────────────────────────────────
+  h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:18px 20px;margin-bottom:16px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">';
+  h += '<div style="font-size:13px;font-weight:700;color:#e6edf3;display:flex;align-items:center;gap:8px">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>';
+  h += 'Klinisk status</div>';
+  h += '<button onclick="go(\'editpat\')" style="background:none;border:1px solid #30363d;border-radius:6px;padding:3px 10px;font-size:12px;color:#8b949e;cursor:pointer;font-family:var(--font)">Redigera profil</button>';
+  h += '</div>';
+
+  // KPI chips
+  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">';
+
+  // NRS
+  var nrsDisplay = nrs !== null ? nrs + '/10' : '—';
+  var nrsCol = nrs===null ? '#8b949e' : nrs>=7 ? '#f85149' : nrs>=4 ? '#d29922' : '#3fb950';
+  h += _kpiChip('NRS smärta', nrsDisplay, nrsCol,
+    nrsTrend !== null ? (nrsTrend < 0 ? '↓ ' + Math.abs(nrsTrend).toFixed(1) + ' förbättring' : nrsTrend > 0 ? '↑ ' + nrsTrend.toFixed(1) + ' ökning' : 'Stabil') : '');
+
+  // Besök
+  h += _kpiChip('Besök totalt', totalVisits + ' st', '#58a6ff',
+    completedVisits ? completedVisits + ' genomförda' : 'Inga genomförda');
+
+  // Senast
+  h += _kpiChip('Senaste besök',
+    daysSinceLastVisit === null ? '—' : daysSinceLastVisit === 0 ? 'Idag' : daysSinceLastVisit === 1 ? 'Igår' : daysSinceLastVisit + ' dagar',
+    daysSinceLastVisit !== null && daysSinceLastVisit > 90 ? '#f85149' : '#8b949e',
+    lastVisit ? lastVisit.date : '');
+
+  // Nästa tid
+  h += _kpiChip('Nästa bokning',
+    nextBk ? nextBk.date : '—',
+    nextBk ? '#3fb950' : '#8b949e',
+    nextBk ? (nextBk.time||'') + ' ' + (nextBk.serviceName||'') : 'Ingen tid bokad');
+
+  h += '</div>';
+
+  // Diagnoser
+  h += '<div style="margin-bottom:12px">';
+  h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681;margin-bottom:6px">Diagnoser</div>';
+  h += '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">';
   if (diagList.length) {
-    diagList.forEach(function(d,i) {
+    diagList.forEach(function(d,i){
       h += '<span style="padding:3px 10px;background:' + (i===0?'rgba(224,118,40,.1)':'#21262d') + ';border:1px solid ' + (i===0?'rgba(224,118,40,.2)':'var(--border)') + ';border-radius:20px;font-size:13px;font-weight:' + (i===0?'600':'500') + ';color:' + (i===0?'var(--teal)':'var(--text)') + '">' + e(d) + '</span>';
     });
   } else {
     h += '<span style="font-size:13px;color:#8b949e">Ingen diagnos registrerad</span>';
-    h += '<button onclick="openDiagEditor(\'' + p.id + '\')" class="act-btn" style="font-size:13px;padding:3px 10px">Lägg till</button>';
   }
+  h += '<button onclick="openDiagEditor(\'' + p.id + '\')" style="background:none;border:none;color:var(--teal);font-size:12px;cursor:pointer;font-family:var(--font);padding:2px 6px">+ Lägg till</button>';
   h += '</div></div>';
 
-  // NRS trend card
-  const allNrs = visits.reduce(function(acc,v){ return acc.concat((v.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;})); },[]);
-  if (allNrs.length >= 2) {
-    const trend = allNrs[allNrs.length-1] - allNrs[0];
-    h += '<div class="item-list section">';
-    h += '<div class="item-row">';
-    h += '<div class="item-row-icon"><div class="status-dot ' + (nrs>=7?'red':nrs>=4?'amber':'green') + '"></div></div>';
-    h += '<div class="item-row-body">';
-    h += '<div class="item-row-title">Smärtutveckling (NRS)';
-    var _tc = trend<0?'green':trend>0?'red':'muted';
-      var _tl = trend<0?'Förbättrad':trend>0?'Försämrad':'Stabil';
-      var _ta = trend<0?'↓':trend>0?'↑':'';
-      h += '<span class="status-pill ' + _tc + '">' + _ta + ' ' + _tl + ' ' + Math.abs(trend).toFixed(1) + '</span>';
-    h += '</div>';
-    h += '<div class="item-row-meta">Från ' + allNrs[0] + ' → nu ' + allNrs[allNrs.length-1] + ' · ' + allNrs.length + ' mätpunkter</div>';
-    h += '</div></div></div>';
+  // Fas
+  if (typeof renderPhaseBar === 'function') {
+    h += renderPhaseBar(p);
   }
 
-  // AI briefing slot
-  h += '<div id="pat-intel-slot" class="section"></div>';
+  h += '</div>';
 
-  // Quick actions
-  h += '<div class="section">';
-  h += '<div class="section-title-sm">Åtgärder</div>';
-  h += '<div class="item-list">';
-  const actions = [
-    { icon:'<path d="M5 3l14 9-14 9V3z"/>', label:'Ta emot nu', desc:'Starta besök och journalföring', action:'newVisit()', primary:true },
-    { icon:'<path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', label:'Dokumentera besök', desc:'Manuell SOAP-anteckning', action:'newVisit()' },
-    { icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', label:'Ny Hael-plan', desc:'Generera rehabiliteringsplan', action:'prepVisitForm(\'' + p.id + '\');go(\'form\')' },
-    { icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', label:'Skicka intake', desc:'Skicka formulär till patient', action:'sendIntakeLink(\'' + p.id + '\')' },
-  ];
-  actions.forEach(function(a) {
-    h += '<div class="item-row clickable" onclick="' + a.action + '">';
-    h += '<div class="item-row-icon">';
-    h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + (a.primary?'var(--teal)':'var(--text2)') + '" stroke-width="2" stroke-linecap="round">' + a.icon + '</svg>';
+  // ── AI BRIEFING SLOT ────────────────────────────────────────────
+  h += '<div id="pat-intel-slot" style="margin-bottom:16px"></div>';
+
+  // ── SENASTE JOURNAL SNIPPET ─────────────────────────────────────
+  if (lastVisit && lastVisit.soap && (lastVisit.soap.S || lastVisit.soap.A || lastVisit.soap.P)) {
+    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px 18px;margin-bottom:16px">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
+    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3">Senaste journal — ' + (lastVisit.date||'') + (lastVisit.journalNr ? ' <span style="font-size:11px;color:#6e7681;font-family:var(--font-mono);background:#21262d;border:1px solid #30363d;border-radius:3px;padding:1px 5px">'+e(lastVisit.journalNr)+'</span>' : '') + '</div>';
+    h += '<button onclick="window._detailTab=\'journal\';rDetail()" style="background:none;border:none;font-size:12px;color:#58a6ff;cursor:pointer;font-family:var(--font)">Alla besök →</button>';
     h += '</div>';
-    h += '<div class="item-row-body"><div class="item-row-title">' + a.label + '</div>';
-    h += '<div class="item-row-meta">' + a.desc + '</div></div>';
-    h += '<div class="item-row-action"><div style="color:#8b949e;font-size:18px;line-height:1">›</div></div>';
+    var soap = lastVisit.soap;
+    var soapFields = [['S','Subjektivt',soap.S],['O','Objektivt',soap.O],['A','Bedömning',soap.A],['P','Plan',soap.P]];
+    var soapCols = {S:'#3b82f6',O:'#8b5cf6',A:'#0891b2',P:'#059669'};
+    soapFields.filter(function(f){return f[2];}).forEach(function(f){
+      h += '<div style="display:flex;gap:10px;margin-bottom:8px">';
+      h += '<span style="font-size:11px;font-weight:800;color:'+soapCols[f[0]]+';background:'+soapCols[f[0]]+'18;border-radius:4px;padding:2px 6px;flex-shrink:0;height:fit-content;margin-top:1px">'+f[0]+'</span>';
+      h += '<span style="font-size:13px;color:#e6edf3;line-height:1.6">' + e((f[2]||'').slice(0,180)) + ((f[2]||'').length>180?'…':'') + '</span>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  // ── AKTIV HAEL-PLAN ─────────────────────────────────────────────
+  if (activePlan && activePlan.plan) {
+    var pl = activePlan.plan;
+    var plWeeks = pl.totalWeeks || pl.form?.followup || 4;
+    var plStart = new Date(activePlan.date);
+    var plEnd = new Date(plStart.getTime() + plWeeks*7*86400000);
+    var plDaysLeft = Math.max(0, Math.ceil((plEnd - now) / 86400000));
+    var plProgress = Math.min(100, Math.round((1 - plDaysLeft/(plWeeks*7)) * 100));
+    h += '<div style="background:#161b22;border:1px solid rgba(224,118,40,.2);border-radius:10px;padding:16px 18px;margin-bottom:16px">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3;display:flex;align-items:center;gap:7px">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Aktiv Hael-plan</div>';
+    h += '<button onclick="S.visitId=\''+activePlan.id+'\';S.plan=activePlan.plan;go(\'doc\')" style="background:none;border:1px solid rgba(224,118,40,.3);border-radius:6px;padding:3px 10px;font-size:12px;color:var(--teal);cursor:pointer;font-family:var(--font)">Visa plan →</button>';
+    h += '</div>';
+    h += '<div style="font-size:13px;color:#8b949e;margin-bottom:8px">' + (pl.form?.diagnosis||pl.patientName||'') + ' · ' + plWeeks + ' veckor · ' + (pl.exercises||[]).length + ' övningar</div>';
+    h += '<div style="background:#21262d;border-radius:4px;height:6px;margin-bottom:6px"><div style="background:var(--teal);height:6px;border-radius:4px;width:'+plProgress+'%"></div></div>';
+    h += '<div style="font-size:12px;color:#8b949e">' + plProgress + '% · ' + plDaysLeft + ' dagar kvar (avslutas ' + plEnd.toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) + ')</div>';
+    h += '</div>';
+  }
+
+  // ── ÅTGÄRDER ────────────────────────────────────────────────────
+  h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden;margin-bottom:16px">';
+  h += '<div style="padding:10px 16px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Snabbåtgärder</div>';
+  var actions = [
+    { svg:'<path d="M5 3l14 9-14 9V3z"/>', col:'var(--teal)', label:'Ta emot nu', desc:'Starta besök och journalföring', fn:'newVisit()' },
+    { svg:'<path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', col:'#58a6ff', label:'Dokumentera manuellt', desc:'SOAP utan inspelning', fn:'newVisit()' },
+    { svg:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', col:'#a371f7', label:'Ny Hael-plan', desc:'Generera rehabiliteringsplan', fn:'prepVisitForm(\''+p.id+'\');go(\'form\')' },
+    { svg:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', col:'#d29922', label:'Skicka intake', desc:'Formulär till patient', fn:'sendIntakeLink(\''+p.id+'\')' },
+  ];
+  actions.forEach(function(a, i){
+    h += '<div class="item-row clickable" onclick="'+a.fn+'" style="'+(i>0?'border-top:1px solid #21262d':'')+'">';
+    h += '<div class="item-row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="'+a.col+'" stroke-width="2" stroke-linecap="round">'+a.svg+'</svg></div>';
+    h += '<div class="item-row-body"><div class="item-row-title">'+a.label+'</div><div class="item-row-meta">'+a.desc+'</div></div>';
+    h += '<div class="item-row-action"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>';
     h += '</div>';
   });
-  h += '</div></div>';
+  h += '</div>';
 
-
-  // ── Contact notes timeline ──────────────────────────────────────────────
+  // ── KONTAKTHISTORIK ─────────────────────────────────────────────
   var notes = (p.contactNotes||[]).concat(
     (p.quickNotes||[]).filter(function(qn){
       return !(p.contactNotes||[]).some(function(cn){ return cn.ts===qn.ts; });
     }).map(function(qn){ return { type:'other', text:qn.text, ts:qn.ts }; })
   ).sort(function(a,b){ return (b.ts||'')>(a.ts||'')?1:-1; });
 
-  h += '<div class="det-card" style="margin-top:16px">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px 8px">';
-  h += '<div style="font-size:13px;font-weight:700;color:#e6edf3">Kontakthistorik</div>';
-  h += '<button data-patid="' + p.id + '" onclick="openQuickNote(this.dataset.patid)" style="display:flex;align-items:center;gap:5px;padding:5px 12px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.2);border-radius:7px;font-size:13px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)">';
-  h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
-  h += 'Nytt notat</button>';
+  h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid #30363d">';
+  h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Kontakthistorik</div>';
+  h += '<button data-patid="'+p.id+'" onclick="openQuickNote(this.dataset.patid)" style="display:flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.2);border-radius:6px;font-size:12px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)">';
+  h += '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Nytt notat</button>';
   h += '</div>';
-
   if (!notes.length) {
-    h += '<div style="padding:16px 18px;font-size:13px;color:#8b949e">Inga kontaktnotat ännu.</div>';
+    h += '<div style="padding:16px;font-size:13px;color:#8b949e">Inga notat ännu.</div>';
   } else {
     var typeIcons = {
-      call:    '<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>',
-      email:   '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
-      sms:     '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>',
-      meeting: '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>',
-      other:   '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+      call:'<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>',
+      email:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+      sms:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>',
+      meeting:'<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>',
+      other:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
     };
     var typeLabels = { call:'Samtal', email:'Mail', sms:'SMS', meeting:'Möte', other:'Notat' };
-    var dirLabels  = { 'in':'↙ Ink.', 'out':'↗ Utg.' };
-
-    h += '<div style="padding:0 18px 14px">';
-    notes.slice(0,10).forEach(function(n) {
+    notes.slice(0,8).forEach(function(n){
       var d = new Date(n.ts);
-      var dateStr = d.toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) + ' ' + d.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
-      var icon = typeIcons[n.type] || typeIcons.other;
-      var label = typeLabels[n.type] || 'Notat';
-      h += '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border2)">';
-      // Icon
-      h += '<div style="width:28px;height:28px;border-radius:7px;background:#21262d;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">';
-      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round">' + icon + '</svg>';
-      h += '</div>';
-      // Content
-      h += '<div style="flex:1;min-width:0">';
-      h += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">';
-      h += '<span style="font-size:12px;font-weight:700;color:#e6edf3">' + label + '</span>';
-      if (n.dir) h += '<span style="font-size:11px;color:#8b949e">' + (dirLabels[n.dir]||'') + '</span>';
-      h += '<span style="font-size:11px;color:#8b949e;margin-left:auto">' + dateStr + '</span>';
-      h += '</div>';
-      h += '<div style="font-size:13px;color:#e6edf3;line-height:1.5">' + e(n.text) + '</div>';
-      h += '</div></div>';
+      var ds = d.toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) + ' ' + d.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
+      h += '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid #21262d">';
+      h += '<div style="width:26px;height:26px;border-radius:6px;background:#21262d;display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="1.8" stroke-linecap="round">'+(typeIcons[n.type]||typeIcons.other)+'</svg></div>';
+      h += '<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">';
+      h += '<span style="font-size:12px;font-weight:700;color:#e6edf3">'+(typeLabels[n.type]||'Notat')+'</span>';
+      h += '<span style="font-size:11px;color:#6e7681;margin-left:auto">'+ds+'</span></div>';
+      h += '<div style="font-size:13px;color:#c9d1d9;line-height:1.5">'+e(n.text)+'</div></div></div>';
     });
-    if (notes.length > 10) {
-      h += '<div style="font-size:13px;color:#8b949e;padding:8px 0">+' + (notes.length-10) + ' äldre notat</div>';
-    }
-    h += '</div>';
+    if (notes.length > 8) h += '<div style="padding:8px 16px;font-size:12px;color:#8b949e">+' + (notes.length-8) + ' äldre</div>';
   }
   h += '</div>';
 
-  return h;
-}
+  h += '</div>'; // left column
 
-// ── Besök tab ───────────────────────────────────────────────────────────────
-function _detJournal(p, visits) {
-  var h = '<div class="section">';
+  // ════ RIGHT COLUMN — SIDEBAR ═════════════════════════════════════
+  h += '<div style="display:flex;flex-direction:column;gap:14px">';
+
+  // ── PATIENTINFO ──────────────────────────────────────────────────
+  h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px">';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
-  h += '<div class="section-title-sm">' + visits.length + ' besök registrerade</div>';
-  h += '<button onclick="newVisit()" class="act-btn act-btn-primary" style="font-size:13px">+ Nytt besök</button>';
-  h += '</div>';
+  h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Patientinfo</div>';
+  h += '<div style="display:flex;gap:6px">';
+  h += '<button onclick="go(\'editpat\')" style="background:none;border:1px solid #30363d;border-radius:5px;padding:2px 8px;font-size:11px;color:#8b949e;cursor:pointer;font-family:var(--font)">Redigera</button>';
+  h += '<button onclick="confDel(\'pat\',\''+p.id+'\',\''+e(p.name)+'\')" style="background:none;border:1px solid rgba(248,81,73,.3);border-radius:5px;padding:2px 8px;font-size:11px;color:#f85149;cursor:pointer;font-family:var(--font)">Radera</button>';
+  h += '</div></div>';
 
-  if (!visits.length) {
-    h += '<div class="item-list"><div class="empty-state">';
-    h += '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
-    h += '<div class="empty-state-title">Inga journalanteckningar</div>';
-    h += '<div class="empty-state-sub">Ta emot patienten och dokumentera besöket för att skapa en journal.</div>';
-    h += '<button onclick="newVisit()" class="act-btn act-btn-primary">Ta emot nu</button>';
-    h += '</div></div>';
-  } else {
-    h += '<div class="item-list">';
-    visits.forEach(function(v) {
-      const vNrs = (v.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;});
-      const vNrsLast = vNrs.length ? vNrs[vNrs.length-1] : (v.form?.pain ?? null);
-      const hasSOAP = v.soap && (v.soap.S||v.soap.O||v.soap.A||v.soap.P);
-      const hasPlan = !!v.plan;
-      const status = v.status==='completed'?'green':v.status==='no-show'?'red':'muted';
-      const statusLabel = v.status==='completed'?'Genomförd':v.status==='no-show'?'Uteblev':'Registrerad';
-
-      h += '<div class="item-row clickable" onclick="S.visitId=\'' + v.id + '\';window._detailTab=\'journal\';if(arguments[0])arguments[0].stopPropagation();_openVisitDetail && _openVisitDetail(\'' + (v.id||'') + '\')">';
-      h += '<div class="item-row-icon">';
-      h += '<div class="status-dot ' + status + '"></div>';
-      h += '</div>';
-      h += '<div class="item-row-body">';
-      h += '<div class="item-row-title">';
-      h += e(v.date||'Okänt datum');
-      if (v.journalNr) h += '<span style="font-size:11px;font-weight:600;color:#8b949e;background:#21262d;border:1px solid #30363d;border-radius:4px;padding:1px 6px;font-family:var(--font-mono);margin-left:2px">' + e(v.journalNr) + '</span>';
-      if (vNrsLast !== null) h += '<span class="status-pill ' + (vNrsLast>=7?'red':vNrsLast>=4?'amber':'green') + '" style="font-size:12px">NRS ' + vNrsLast + '</span>';
-      if (hasSOAP) h += '<span class="status-pill teal" style="font-size:12px">Besök</span>';
-      if (hasPlan) h += '<span class="status-pill blue" style="font-size:12px">Hael-plan</span>';
-      h += '</div>';
-      h += '<div class="item-row-meta">';
-      if (v.soap?.A) h += e((v.soap.A||'').slice(0,80)) + (v.soap.A?.length>80?'…':'');
-      else if (v.soap?.S) h += e((v.soap.S||'').slice(0,80)) + (v.soap.S?.length>80?'…':'');
-      else h += '<span style="color:#8b949e">Ingen journal skriven</span>';
-      h += '</div></div>';
-      h += '<div class="item-row-action"><span class="status-pill ' + status + '" style="font-size:12px">' + statusLabel + '</span></div>';
-      h += '</div>';
-    });
-    h += '</div>';
+  function infoRow(label, value, href) {
+    if (!value) return '';
+    var val = href
+      ? '<a href="'+href+'" style="color:#58a6ff;text-decoration:none;font-size:13px">'+e(value)+'</a>'
+      : '<span style="font-size:13px;color:#e6edf3">'+e(value)+'</span>';
+    return '<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:8px">'
+      + '<span style="font-size:12px;color:#6e7681;flex-shrink:0">'+label+'</span>'
+      + val + '</div>';
   }
-  h += '</div>';
-  return h;
-}
 
-// ── Hael tab ──────────────────────────────────────────────────────────────────
-function _detHael(p, visits) {
-  const planVisits = visits.filter(function(v){return v.plan;});
-  var h = '<div class="section">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
-  h += '<div class="section-title-sm">' + planVisits.length + ' Hael-planer</div>';
-  h += '<button onclick="prepVisitForm(\'' + p.id + '\');go(\'form\')" class="act-btn act-btn-primary" style="font-size:13px">+ Ny Hael-plan</button>';
-  h += '</div>';
-
-  if (!planVisits.length) {
-    h += '<div class="item-list"><div class="empty-state">';
-    h += '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
-    h += '<div class="empty-state-title">Inga Hael-planer</div>';
-    h += '<div class="empty-state-sub">Skapa en evidensbaserad rehabiliteringsplan med AI-stöd.</div>';
-    h += '<button onclick="prepVisitForm(\'' + p.id + '\');go(\'form\')" class="act-btn act-btn-primary">Skapa Hael-plan</button>';
-    h += '</div></div>';
-  } else {
-    h += '<div class="item-list">';
-    planVisits.forEach(function(v) {
-      const planName = v.plan?.form?.diagnosis || v.form?.diagnosis || 'Hael-plan';
-      const weeks = v.plan?.totalWeeks || v.plan?.form?.followup || 4;
-      const startDate = v.date ? new Date(v.date) : null;
-      const endDate = startDate ? new Date(startDate.getTime() + weeks*7*86400000) : null;
-      const isActive = endDate && endDate > new Date();
-      h += '<div class="item-row clickable" onclick="S.visitId=\'' + v.id + '\';S.plan=v.plan;go(\'doc\')">';
-      h += '<div class="item-row-icon"><div class="status-dot ' + (isActive?'teal':'muted') + '"></div></div>';
-      h += '<div class="item-row-body">';
-      h += '<div class="item-row-title">' + e(planName.split('(')[0].trim());
-      h += '<span class="status-pill ' + (isActive?'teal':'muted') + '" style="font-size:12px">' + (isActive?'Aktiv':'Avslutad') + '</span></div>';
-      h += '<div class="item-row-meta">' + weeks + ' veckor · Startad ' + (v.date||'okänt') + '</div>';
-      h += '</div>';
-      h += '<div class="item-row-action"><button onclick="event.stopPropagation();S.visitId=\'' + v.id + '\';S.plan=v.plan;go(\'doc\')" class="act-btn" style="font-size:13px">Visa plan</button></div>';
-      h += '</div>';
-    });
-    h += '</div>';
-  }
-  h += '</div>';
-  return h;
-}
-
-// ── Messages tab ──────────────────────────────────────────────────────────────
-function _detMessages(p) {
-  var h = '<div class="section">';
-  const msgs = (p.messages||[]).slice().reverse();
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
-  h += '<div class="section-title-sm">Kommunikation</div>';
-  h += '<button onclick="openConsultation && openConsultation(\'' + p.id + '\')" class="act-btn" style="font-size:13px">AI-konsultation</button>';
-  h += '</div>';
-  if (!msgs.length) {
-    h += '<div class="item-list"><div class="empty-state">';
-    h += '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
-    h += '<div class="empty-state-title">Inga meddelanden</div>';
-    h += '<div class="empty-state-sub">Skicka ett intake-formulär eller starta en AI-konsultation.</div>';
-    h += '</div></div>';
-  } else {
-    h += '<div class="item-list">';
-    msgs.slice(0,10).forEach(function(m) {
-      const fromClinic = m.from !== 'patient';
-      const unread = m.from==='patient' && !m.read;
-      h += '<div class="item-row">';
-      h += '<div class="item-row-icon"><div class="status-dot ' + (unread?'blue':fromClinic?'teal':'muted') + '"></div></div>';
-      h += '<div class="item-row-body">';
-      h += '<div class="item-row-title">' + (fromClinic?'Klinik':'Patient') + (m.subject?' · <span style="font-weight:500">'+e(m.subject)+'</span>':'') + '</div>';
-      h += '<div class="item-row-meta">' + e((m.body||'').slice(0,100)) + ((m.body||'').length>100?'…':'') + '</div>';
-      h += '</div>';
-      const d = m.sentAt || m.createdAt;
-      if (d) h += '<div class="item-row-action" style="font-size:13px;color:#8b949e;white-space:nowrap">' + _relativeDate(d.slice(0,10)) + '</div>';
-      h += '</div>';
-    });
-    h += '</div>';
+  if (age && age > 0 && age < 120) h += infoRow('Ålder', age + ' år');
+  if (p.birthdate) h += infoRow('Födelsedat.', p.birthdate);
+  if (p.phone) h += infoRow('Telefon', p.phone, 'tel:'+p.phone);
+  if (p.email) h += infoRow('E-post', p.email, 'mailto:'+p.email);
+  if (p.address) h += infoRow('Adress', p.address);
+  if (!p.phone && !p.email) {
+    h += '<div style="font-size:12px;color:#8b949e;font-style:italic">Ingen kontaktinfo — <button onclick="go(\'editpat\')" style="background:none;border:none;color:#58a6ff;cursor:pointer;font-size:12px;font-family:var(--font);padding:0">lägg till</button></div>';
   }
   h += '</div>';
 
-  // ── SMS-kvittenser från Supabase ──────────────────────────────────────────
-  h += '<div style="margin-top:20px">';
+  // ── KOMMANDE BOKNINGAR ───────────────────────────────────────────
+  h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px">';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
-  h += '<div style="font-size:13px;font-weight:700;color:#e6edf3;display:flex;align-items:center;gap:7px">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
-  h += 'SMS-kvittenser</div>';
-  h += '<button onclick="_reloadSmsLog(\'' + p.id + '\')" style="background:none;border:none;font-size:12px;color:#8b949e;cursor:pointer;font-family:var(--font);padding:2px 6px">↻ Ladda om</button>';
+  h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Kommande tider</div>';
+  h += '<button onclick="openBookingDialog && openBookingDialog(\''+p.id+'\')" style="background:none;border:none;font-size:12px;color:var(--teal);cursor:pointer;font-family:var(--font)">+ Boka</button>';
   h += '</div>';
-  h += '<div id="sms-log-container" style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:2px 14px 4px">';
-  h += '<div style="font-size:13px;color:#8b949e;padding:12px 0;text-align:center">Laddar...</div>';
-  h += '</div>';
-  h += '</div>';
-
-  h += '</div>'; // section-outer
-
-  // Async-load after render
-  setTimeout(function() { _reloadSmsLog(p.id); }, 0);
-  return h;
-}
-
-async function _reloadSmsLog(patId) {
-  var el = document.getElementById('sms-log-container');
-  if (!el) return;
-  el.innerHTML = '<div style="font-size:13px;color:#8b949e;padding:12px 0;text-align:center">Laddar...</div>';
-  var entries = await _sbFetchSmsLog(patId);
-  el.innerHTML = _renderSmsLog(entries);
-}
-
-// ── Intake tab ─────────────────────────────────────────────────────────────────
-function _detIntake(p, intake) {
-  var h = '<div class="section">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
-  h += '<div class="section-title-sm">Intake-formulär</div>';
-  h += '<button onclick="sendIntakeLink && sendIntakeLink(\'' + p.id + '\')" class="act-btn" style="font-size:13px">Skicka formulär</button>';
-  h += '</div>';
-
-  if (!intake) {
-    h += '<div class="item-list"><div class="empty-state">';
-    h += '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2"/></svg>';
-    h += '<div class="empty-state-title">Inget intake-formulär</div>';
-    h += '<div class="empty-state-sub">Skicka ett intake-formulär för att samla patientinformation inför besöket.</div>';
-    h += '<button onclick="sendIntakeLink && sendIntakeLink(\'' + p.id + '\')" class="act-btn act-btn-primary">Skicka intake</button>';
-    h += '</div></div>';
+  if (!upcomingBks.length) {
+    h += '<div style="font-size:13px;color:#8b949e">Ingen tid bokad.</div>';
+    h += '<button onclick="openBookingDialog && openBookingDialog()" style="margin-top:8px;width:100%;padding:7px;background:none;border:1px solid #30363d;border-radius:7px;font-size:13px;color:#8b949e;cursor:pointer;font-family:var(--font)">Boka tid →</button>';
   } else {
-    h += '<div class="item-list">';
-    // Status row
-    h += '<div class="item-row">';
-    h += '<div class="item-row-icon"><div class="status-dot ' + (intake._reviewedAt?'muted':'teal') + '"></div></div>';
-    h += '<div class="item-row-body"><div class="item-row-title">Inkommet svar';
-    if (!intake._reviewedAt) h += '<span class="status-pill teal" style="font-size:12px">Ny</span>';
-    h += '</div>';
-    h += '<div class="item-row-meta">Mottaget ' + new Date(intake.ts||intake.createdAt).toLocaleDateString('sv-SE',{day:'numeric',month:'long'}) + ' · NRS ' + (intake.nrsCurrent??'–') + '</div>';
-    h += '</div>';
-    if (intake.redFlagCount>0) h += '<div class="item-row-action"><span class="status-pill red">' + intake.redFlagCount + ' röda flaggor</span></div>';
-    h += '</div>';
-    // Fields
-    const fields = [
-      {k:'mainComplaint', l:'Huvudbesvär'},
-      {k:'painLocation', l:'Smärtlokal'},
-      {k:'painDuration', l:'Duration'},
-      {k:'previousTreatment', l:'Tidigare behandling'},
-    ];
-    fields.forEach(function(f) {
-      if (intake[f.k]) {
-        h += '<div class="item-row">';
-        h += '<div class="item-row-icon"></div>';
-        h += '<div class="item-row-body"><div class="item-row-title" style="font-weight:500;font-size:13px">' + f.l + '</div>';
-        h += '<div class="item-row-meta">' + e(String(intake[f.k]).slice(0,120)) + '</div></div></div>';
-      }
+    upcomingBks.slice(0,3).forEach(function(bk){
+      var bkDate = bk.date ? new Date(bk.date+'T12:00').toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short'}) : bk.date;
+      h += '<div style="padding:8px 10px;background:var(--bg);border:1px solid #30363d;border-radius:7px;margin-bottom:6px">';
+      h += '<div style="font-size:13px;font-weight:600;color:#e6edf3">'+e(bk.patientName||p.name)+'</div>';
+      h += '<div style="font-size:12px;color:#8b949e;margin-top:2px">'+bkDate+(bk.time?' kl '+bk.time:'')+' · '+(bk.serviceName||'Besök')+'</div>';
+      h += '</div>';
     });
-    h += '</div>';
   }
   h += '</div>';
+
+  // ── SMÄRTGRAF (mini) ─────────────────────────────────────────────
+  if (allNrs.length >= 3) {
+    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px">';
+    h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681;margin-bottom:10px">NRS-trend</div>';
+    var nrsMini = allNrs.slice(-10);
+    var maxNrs = 10, minNrs = 0;
+    var W = 260, H = 50, PAD = 6;
+    var pts = nrsMini.map(function(v,i){
+      var x = PAD + i*(W-PAD*2)/(Math.max(nrsMini.length-1,1));
+      var y = H - PAD - (v-minNrs)/(maxNrs-minNrs)*(H-PAD*2);
+      return x+','+y;
+    }).join(' ');
+    var fillPts = PAD+','+(H-PAD)+' '+pts+' '+(PAD+(nrsMini.length-1)*(W-PAD*2)/Math.max(nrsMini.length-1,1))+','+(H-PAD);
+    var lineCol = nrsTrend < 0 ? '#3fb950' : nrsTrend > 0 ? '#f85149' : '#58a6ff';
+    h += '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;display:block">';
+    h += '<polygon points="'+fillPts+'" fill="'+lineCol+'" fill-opacity=".08"/>';
+    h += '<polyline points="'+pts+'" fill="none" stroke="'+lineCol+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>';
+    // Mark last point
+    var lastPt = nrsMini[nrsMini.length-1];
+    var lx = PAD + (nrsMini.length-1)*(W-PAD*2)/Math.max(nrsMini.length-1,1);
+    var ly = H - PAD - (lastPt-minNrs)/(maxNrs-minNrs)*(H-PAD*2);
+    h += '<circle cx="'+lx+'" cy="'+ly+'" r="3" fill="'+lineCol+'"/>';
+    h += '</svg>';
+    h += '<div style="display:flex;justify-content:space-between;font-size:11px;color:#6e7681;margin-top:2px">';
+    h += '<span>'+allNrs[0]+' NRS start</span><span>Nu: '+allNrs[allNrs.length-1]+'</span></div>';
+    h += '</div>';
+  }
+
+  // ── INTAKE-SAMMANFATTNING ────────────────────────────────────────
+  if (intakeData) {
+    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Intake</div>';
+    h += '<button onclick="window._detailTab=\'intake\';rDetail()" style="background:none;border:none;font-size:12px;color:#58a6ff;cursor:pointer;font-family:var(--font)">Visa →</button>';
+    h += '</div>';
+    var flags = intakeData.redFlagCount || 0;
+    if (flags > 0) h += '<div style="background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:6px;padding:6px 10px;font-size:12px;font-weight:700;color:#f85149;margin-bottom:8px">⚠ '+flags+' röd'+(flags>1?'a':'')+'a flagg'+(flags>1?'or':'a')+'</div>';
+    if (intakeData.mainComplaint) h += '<div style="font-size:13px;color:#e6edf3;line-height:1.5;margin-bottom:4px">'+e(String(intakeData.mainComplaint).slice(0,100))+'</div>';
+    var intakeDate = intakeData.ts ? new Date(intakeData.ts).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : '';
+    if (intakeDate) h += '<div style="font-size:12px;color:#6e7681">Mottaget '+intakeDate+'</div>';
+    h += '</div>';
+  }
+
+  h += '</div>'; // right column
+  h += '</div>'; // 2-col grid
   return h;
+}
+
+// Helper: KPI chip for patient card
+function _kpiChip(label, value, color, sub) {
+  return '<div style="background:var(--bg);border:1px solid #30363d;border-radius:8px;padding:10px 12px">'
+    + '<div style="font-size:11px;color:#6e7681;margin-bottom:4px">'+label+'</div>'
+    + '<div style="font-size:18px;font-weight:700;color:'+color+';font-family:var(--font-mono);line-height:1">'+value+'</div>'
+    + (sub ? '<div style="font-size:11px;color:#8b949e;margin-top:3px">'+e(sub)+'</div>' : '')
+    + '</div>';
 }
 
 
@@ -26371,6 +26383,15 @@ function _renderSettingsNav() {
 
     h += tab('integrations', 'Kopplingar', '<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>');
 
+
+  // ── Din profil ─────────────────────────────────────────────────────────
+  h += group('Din profil');
+  h += tab('profile',      'Profil & inloggning', '<path d=\"M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/>');
+  h += tab('preferences',  'Preferenser',         '<path d=\"M4 6h16M4 12h16M4 18h7\"/>');
+  h += '<div style=\"margin:10px 10px 4px;padding:9px 12px;background:rgba(224,118,40,.06);border:1px solid rgba(224,118,40,.12);border-radius:6px;font-size:11px;color:#8b949e;line-height:1.55\">'
+    + '<strong style=\"color:var(--teal)\">Arbetsyta</strong> = klinikens inställningar. '
+    + '<strong style=\"color:var(--teal)\">Din profil</strong> = dina personliga val.'
+    + '</div>';
   nav.innerHTML = h;
 
   nav.querySelectorAll('.vela-stab').forEach(function(btn) {
@@ -26402,6 +26423,8 @@ function _renderSettingsContent(tab) {
   else if (tab === 'workflow')  el.innerHTML = _stWorkflow();
   else if (tab === 'schedule')      el.innerHTML = _stSchedule();
   else if (tab === 'integrations')  el.innerHTML = _stIntegrations();
+  else if (tab === 'profile')       el.innerHTML = _stUserProfile();
+  else if (tab === 'preferences')   el.innerHTML = _stPreferences();
 }
 
 
@@ -26874,6 +26897,92 @@ function _gmailDisconnect() {
   if (typeof _renderSettingsContent === 'function') _renderSettingsContent('integrations');
 }
 
+
+// ── Användarprofil ────────────────────────────────────────────────────────────
+function _stUserProfile() {
+  var cfg = getClinicConfig();
+  var auth = (typeof _authUser !== 'undefined' && _authUser) ? _authUser : {};
+  var h = '<div style="max-width:640px">';
+  h += '<h2 style="font-size:20px;font-weight:700;color:#e6edf3;margin:0 0 6px">Profil & inloggning</h2>';
+  h += '<p style="font-size:14px;color:#8b949e;margin:0 0 24px">Dina personliga uppgifter. Påverkar inte arbetsytans inställningar.</p>';
+
+  h += '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:20px">';
+  h += '<div style="padding:14px 18px;border-bottom:1px solid #30363d;background:#161b22;font-size:14px;font-weight:700;color:#e6edf3">Inloggningskonto</div>';
+  h += '<div style="padding:18px">';
+  if (auth.email) {
+    h += '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">';
+    h += '<div style="width:40px;height:40px;border-radius:50%;background:rgba(224,118,40,.15);border:1px solid rgba(224,118,40,.3);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--teal)">';
+    h += (auth.email||'?').slice(0,2).toUpperCase() + '</div>';
+    h += '<div><div style="font-size:14px;font-weight:600;color:#e6edf3">' + e(auth.email) + '</div>';
+    h += '<div style="font-size:12px;color:#8b949e">Inloggad</div></div></div>';
+  }
+  h += '<button onclick="sbSignOut&&sbSignOut()" style="padding:8px 16px;background:none;border:1px solid rgba(248,81,73,.3);border-radius:7px;font-size:13px;font-weight:600;color:#f85149;cursor:pointer;font-family:var(--font)">Logga ut</button>';
+  h += '</div></div>';
+
+  h += '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:20px">';
+  h += '<div style="padding:14px 18px;border-bottom:1px solid #30363d;background:#161b22;font-size:14px;font-weight:700;color:#e6edf3">Visningsnamn & signatur</div>';
+  h += '<div style="padding:18px">';
+  h += '<label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;margin-bottom:6px">Ditt namn (visas i journaler och kommunikation)</label>';
+  h += '<input id="prof-sig" class="field" value="' + e(cfg.signature||cfg.therapistName||'') + '" placeholder="Förnamn Efternamn" style="width:100%;box-sizing:border-box;margin-bottom:12px">';
+  h += '<button onclick="_saveProfileSettings()" style="padding:8px 18px;background:#238636;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara</button>';
+  h += '</div></div>';
+  h += '</div>';
+  return h;
+}
+
+function _saveProfileSettings() {
+  var cfg = getClinicConfig();
+  var sig = document.getElementById('prof-sig');
+  if (sig) cfg.signature = sig.value.trim();
+  saveClinicConfig(cfg);
+  showAutoSaveToast('Profil sparad ✓');
+  _renderGlobalTopbar && _renderGlobalTopbar();
+}
+
+// ── Preferenser ───────────────────────────────────────────────────────────────
+function _stPreferences() {
+  var theme = window._velaTheme || localStorage.getItem('vela:theme') || 'dark';
+  var reminderH = parseInt(localStorage.getItem('vela:reminder-hours') || '24', 10);
+  var smsOn = localStorage.getItem('vela:sms-enabled') !== 'off';
+
+  var h = '<div style="max-width:640px">';
+  h += '<h2 style="font-size:20px;font-weight:700;color:#e6edf3;margin:0 0 6px">Preferenser</h2>';
+  h += '<p style="font-size:14px;color:#8b949e;margin:0 0 24px">Dina personliga visnings- och aviseringsinställningar.</p>';
+
+  // Tema
+  h += '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:20px">';
+  h += '<div style="padding:14px 18px;border-bottom:1px solid #30363d;background:#161b22;font-size:14px;font-weight:700;color:#e6edf3">Utseende</div>';
+  h += '<div style="padding:18px;display:flex;gap:8px">';
+  [{k:'dark',l:'🌙 Mörkt'},{k:'light',l:'☀️ Ljust'},{k:'system',l:'💻 System'}].forEach(function(m){
+    var active = theme === m.k;
+    h += '<button onclick="setTheme(\''+m.k+'\')" style="padding:8px 14px;border:1px solid '+(active?'var(--teal)':'var(--border)')+';border-radius:7px;background:'+(active?'rgba(224,118,40,.08)':'none')+';color:'+(active?'var(--teal)':'#8b949e')+';font-size:13px;font-weight:'+(active?700:400)+';cursor:pointer;font-family:var(--font)">'+m.l+'</button>';
+  });
+  h += '</div></div>';
+
+  // Påminnelse
+  h += '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:20px">';
+  h += '<div style="padding:14px 18px;border-bottom:1px solid #30363d;background:#161b22;font-size:14px;font-weight:700;color:#e6edf3">Bokningspåminnelse</div>';
+  h += '<div style="padding:18px">';
+  h += '<label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;margin-bottom:8px">Skickas automatiskt till patient</label>';
+  h += '<select class="field" onchange="localStorage.setItem(\'vela:reminder-hours\',this.value);showAutoSaveToast(\'Sparat ✓\')" style="width:200px">';
+  [[24,'24 h innan'],[48,'48 h innan'],[2,'2 h innan'],[0,'Av']].forEach(function(opt){
+    h += '<option value="'+opt[0]+'"'+(reminderH===opt[0]?' selected':'')+'>'+opt[1]+'</option>';
+  });
+  h += '</select></div></div>';
+
+  // SMS
+  h += '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:20px">';
+  h += '<div style="padding:14px 18px;border-bottom:1px solid #30363d;background:#161b22;font-size:14px;font-weight:700;color:#e6edf3">SMS-automation</div>';
+  h += '<div style="padding:18px;display:flex;align-items:center;justify-content:space-between">';
+  h += '<div><div style="font-size:14px;color:#e6edf3">Aktivera SMS-utskick</div><div style="font-size:13px;color:#8b949e;margin-top:2px">Kräver 46elks API-nyckel under Kommunikation</div></div>';
+  h += '<div onclick="var on=localStorage.getItem(\'vela:sms-enabled\')!==\'off\';localStorage.setItem(\'vela:sms-enabled\',on?\'off\':\'on\');showAutoSaveToast(\'Sparat ✓\');_renderSettingsContent(\'preferences\')" ';
+  h += 'style="width:36px;height:20px;border-radius:10px;background:'+(smsOn?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;flex-shrink:0;transition:background .2s">';
+  h += '<div style="position:absolute;top:3px;left:'+(smsOn?'17px':'3px')+';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div>';
+  h += '</div></div></div>';
+
+  h += '</div>';
+  return h;
+}
 
 function _stSync() {
   var cfg = getClinicConfig();

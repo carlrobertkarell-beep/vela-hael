@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774012249 -->
+<!-- vela-build:1774511888 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -24028,7 +24028,7 @@ function computeRetentionSignals() {
       signals.push({patId:pat.id, patName:pat.name, triggerId:'miss_3m', priority:5,
         label:'3 månader sedan besök', sub: 'Mjuk incheckning',
         icon:'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 5v5l3 3',
-        channel: 'mail', urgency: 'low',
+        channel: pat.phone ? 'sms' : 'mail', urgency: 'low',
         context: {type:'miss_3m', daysSince}});
     }
 
@@ -24037,7 +24037,7 @@ function computeRetentionSignals() {
       signals.push({patId:pat.id, patName:pat.name, triggerId:'miss_6m', priority:6,
         label:'6+ månader borta', sub: 'Återaktivering',
         icon:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2',
-        channel: 'mail', urgency: 'medium',
+        channel: pat.phone ? 'sms' : 'mail', urgency: 'medium',
         context: {type:'miss_6m', daysSince}});
     }
   });
@@ -24285,6 +24285,68 @@ async function _velaSendSMS(to, body) {
   }
 }
 
+// ── Log SMS delivery receipt to Supabase sms_log ─────────────────────────────
+async function _sbLogSms(patId, toNumber, body, elksId, ok, triggerId, errMsg) {
+  try {
+    await fetch(SB_URL + '/rest/v1/sms_log', {
+      method: 'POST',
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify({
+        patient_id: String(patId),
+        to_number:  toNumber  || null,
+        body:       body      || null,
+        elks_id:    elksId    || null,
+        ok:         !!ok,
+        trigger_id: triggerId || null,
+        err:        errMsg    || null,
+        sent_at:    new Date().toISOString()
+      })
+    });
+  } catch(ex) {
+    console.warn('Vela: sms_log write failed', ex);
+  }
+}
+
+// ── Fetch SMS log for one patient from Supabase ───────────────────────────────
+async function _sbFetchSmsLog(patId) {
+  try {
+    var res = await fetch(
+      SB_URL + '/rest/v1/sms_log?patient_id=eq.' + encodeURIComponent(patId) +
+      '&order=sent_at.desc&limit=20',
+      { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } }
+    );
+    if (!res.ok) return [];
+    return await res.json();
+  } catch(ex) {
+    return [];
+  }
+}
+
+// ── Render SMS log rows (used in patient card) ────────────────────────────────
+function _renderSmsLog(entries) {
+  if (!entries || !entries.length) return '<div style="font-size:13px;color:#8b949e;padding:8px 0">Inga SMS-kvittenser ännu.</div>';
+  return entries.map(function(e) {
+    var ts    = e.sent_at ? new Date(e.sent_at).toLocaleString('sv-SE',{dateStyle:'short',timeStyle:'short'}) : '';
+    var badge = e.ok
+      ? '<span style="font-size:11px;font-weight:700;color:#3fb950;background:rgba(63,185,80,.1);border-radius:4px;padding:1px 7px">Levererat</span>'
+      : '<span style="font-size:11px;font-weight:700;color:#f85149;background:rgba(248,81,73,.1);border-radius:4px;padding:1px 7px">Fel</span>';
+    var trigger = e.trigger_id ? '<span style="font-size:11px;color:#8b949e;margin-left:6px">' + e.trigger_id + '</span>' : '';
+    return '<div style="padding:10px 0;border-bottom:1px solid var(--border2)">'
+      + '<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">'
+      + '<span style="font-size:12px;color:#8b949e;flex-shrink:0">' + ts + '</span>'
+      + badge + trigger
+      + (e.elks_id ? '<span style="font-size:11px;color:#6e7681;margin-left:auto;font-family:var(--font-mono)">' + e.elks_id.slice(0,12) + '…</span>' : '')
+      + '</div>'
+      + '<div style="font-size:13px;color:#e6edf3;line-height:1.5">' + (e.body || '') + '</div>'
+      + '</div>';
+  }).join('');
+}
+
 // ── AI message generator — relational, not robotic ────────────────────────────
 async function _velaAiRetentionMsg(pat, trigger, channel) {
   var cfg = getClinicConfig();
@@ -24365,6 +24427,8 @@ async function _dispatchRetentionQueue() {
       var result = { ok: false };
       if (channel === 'sms' && smsEnabled && pat.phone) {
         result = await _velaSendSMS(pat.phone, msg.body);
+        // Kvittens till Supabase sms_log
+        await _sbLogSms(pat.id, pat.phone, msg.body, result.id, result.ok, item.triggerId, result.err);
       } else if (channel === 'mail' && mailEnabled && pat.email) {
         result = await _velaSendMail(pat.email, msg.subject, msg.body);
       } else if (mailEnabled && pat.email) {
@@ -27297,7 +27361,10 @@ function renderActivityLog(pat) {
     if (v.plan) logs.push({ date: v.date, text: 'Hael-plan genererad (' + (v.plan.exercises||[]).length + ' övningar)' });
   });
   (pat.messages||[]).slice(0,5).forEach(function(m) {
-    logs.push({ date: (m.ts||'').slice(0,10), text: (m.from==='patient' ? 'Patientmeddelande' : 'Meddelande skickat') });
+    logs.push({ date: (m.ts||m.sentAt||'').slice(0,10), text: (m.from==='patient' ? 'Patientmeddelande' : (m.channel==='sms' ? 'SMS skickat' : 'Meddelande skickat')) });
+  });
+  (pat._smsLog||[]).slice(0,5).forEach(function(s) {
+    logs.push({ date: (s.sent_at||'').slice(0,10), text: 'SMS' + (s.ok ? ' levererat' : ' (fel)') + (s.trigger_id ? ' — ' + s.trigger_id : '') });
   });
   logs.sort(function(a,b) { return (b.date||'') > (a.date||'') ? 1 : -1; });
   if (!logs.length) return '<div style="font-size:13px;color:#8b949e;padding:12px 0">Ingen aktivitet registrerad.</div>';
@@ -35173,9 +35240,19 @@ function getAiProfileContext(userId) {
 })();
 
 // ── Service Worker: cache-first for fonts, network-first for app ──────────────
-// Blob-URL service workers are blocked on GitHub Pages — skip there
+// Blob-URL service workers are blocked on GitHub Pages and non-standard blob
+// protocol environments (e.g. sandboxed iframes where blob:// becomes blob-request://)
 var _isGHPages = location.hostname.endsWith('.github.io');
-if ('serviceWorker' in navigator && !_isGHPages) {
+var _blobProtoOk = (function() {
+  try {
+    var testBlob = new Blob(['']);
+    var testUrl = URL.createObjectURL(testBlob);
+    var ok = testUrl.startsWith('blob:');
+    URL.revokeObjectURL(testBlob);
+    return ok;
+  } catch(e) { return false; }
+})();
+if ('serviceWorker' in navigator && !_isGHPages && _blobProtoOk) {
   var swLines = [
     "const CACHE='vela-v1';",
     "const FONTS=['https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap'];",

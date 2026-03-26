@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774521682 -->
+<!-- vela-build:1774541336 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -6331,6 +6331,25 @@ function _vcalToolbar(st, now, view) {
   // Title
   h += '<span class="vcal-title">' + _vcalTitle(st, view) + '</span>';
 
+  // Week stats (only in week view)
+  if (view === 'week') {
+    var wBks = getBookings ? getBookings() : [];
+    var weekStats = { total:0, completed:0, revenue:0 };
+    for (var wi=0; wi<7; wi++) {
+      var wd = new Date(st.week); wd.setDate(st.week.getDate()+wi);
+      var wdStr = _calDateStr(wd);
+      wBks.filter(function(b){ return b.date===wdStr && b.status!=='cancelled'; }).forEach(function(b){
+        weekStats.total++;
+        if (b.status==='completed') { weekStats.completed++; weekStats.revenue += (b.price||b.servicePrice||0); }
+      });
+    }
+    h += '<div style="display:flex;align-items:center;gap:12px;margin-left:8px;margin-right:auto">';
+    h += '<span style="font-size:12px;color:#8b949e"><strong style="color:#e6edf3">'+weekStats.total+'</strong> bokningar</span>';
+    if (weekStats.completed) h += '<span style="font-size:12px;color:#8b949e"><strong style="color:#3fb950">'+weekStats.completed+'</strong> genomförda</span>';
+    if (weekStats.revenue) h += '<span style="font-size:12px;color:#8b949e"><strong style="color:var(--teal)">'+weekStats.revenue.toLocaleString('sv-SE')+'</strong> kr</span>';
+    h += '</div>';
+  }
+
   // View tabs
   h += '<div class="vcal-view-tabs">';
   [['week','Vecka'],['day','Dag'],['month','Månad'],['agenda','Schema']].forEach(function(v){
@@ -6366,7 +6385,6 @@ function _vcalTitle(st, view) {
   return 'Schema';
 }
 
-// ── WEEK VIEW ─────────────────────────────────────────────────────────────────
 function _vcalWeekView(st, now) {
   var days = [];
   for (var i = 0; i < 7; i++) {
@@ -6376,19 +6394,30 @@ function _vcalWeekView(st, now) {
   var todayStr = _calDateStr(now);
   var bks = getBookings ? getBookings() : [];
 
+  // Week number
+  var weekNr = (function(d) {
+    var jan4 = new Date(d.getFullYear(), 0, 4);
+    var startOfWeek1 = new Date(jan4);
+    startOfWeek1.setDate(jan4.getDate() - ((jan4.getDay()||7) - 1));
+    return Math.ceil((d - startOfWeek1) / 604800000) + 1;
+  })(st.week);
+
   var h = '<div class="vcal-week">';
 
   // Header row: corner + day headers
   h += '<div class="vcal-week-header">';
-  h += '<div class="vcal-corner"></div>';
+  h += '<div class="vcal-corner" style="display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px"><span style="font-size:10px;color:#6e7681;font-weight:600">v.' + weekNr + '</span></div>';
   days.forEach(function(d) {
     var dStr = _calDateStr(d);
     var isToday = dStr === todayStr;
     var dayBks = bks.filter(function(b){ return b.date===dStr && b.status!=='cancelled'; });
+    var completedBks = dayBks.filter(function(b){ return b.status==='completed'; });
     h += '<div class="vcal-day-hdr' + (isToday?' today':'') + '" onclick="_vcalSetDay(\'' + dStr + '\')" title="Gå till dagvy">';
     h += '<span class="vcal-day-name">' + ['Mån','Tis','Ons','Tor','Fre','Lör','Sön'][d.getDay()===0?6:d.getDay()-1] + '</span>';
     h += '<span class="vcal-day-num">' + d.getDate() + '</span>';
-    if (dayBks.length) h += '<span class="vcal-day-count">' + dayBks.length + '</span>';
+    if (dayBks.length) {
+      h += '<span class="vcal-day-count" title="' + dayBks.length + ' bokningar' + (completedBks.length ? ', ' + completedBks.length + ' genomförda' : '') + '">' + dayBks.length + '</span>';
+    }
     h += '</div>';
   });
   h += '</div>';
@@ -14873,6 +14902,70 @@ function _kpiChip(label, value, color, sub) {
     + '</div>';
 }
 
+// ── Besök tab ─────────────────────────────────────────────────────────────────
+function _detJournal(p, visits) {
+  var patId = p.id;
+  var h = '<div style="max-width:800px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">';
+  h += '<div style="font-size:14px;font-weight:700;color:#e6edf3">'+visits.length+' besök registrerade</div>';
+  h += '<button onclick="newVisit()" class="act-btn act-btn-primary" style="font-size:13px">+ Nytt besök</button>';
+  h += '</div>';
+
+  if (!visits.length) {
+    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:40px;text-align:center">';
+    h += '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#30363d" stroke-width="1.5" style="margin-bottom:12px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+    h += '<div style="font-size:14px;font-weight:600;color:#8b949e;margin-bottom:8px">Inga journalanteckningar</div>';
+    h += '<div style="font-size:13px;color:#6e7681;margin-bottom:16px">Ta emot patienten och dokumentera besöket.</div>';
+    h += '<button onclick="newVisit()" class="act-btn act-btn-primary">Ta emot nu</button>';
+    h += '</div>';
+  } else {
+    visits.forEach(function(v) {
+      var vNrs = (v.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;});
+      var vNrsLast = vNrs.length ? vNrs[vNrs.length-1] : (v.form && v.form.pain != null ? v.form.pain : null);
+      var hasSOAP = v.soap && (v.soap.S||v.soap.O||v.soap.A||v.soap.P);
+      var hasPlan = !!v.plan;
+      var statusColor = v.status==='completed'?'#3fb950':v.status==='no-show'?'#f85149':'#8b949e';
+      var statusLabel = v.status==='completed'?'Genomförd':v.status==='no-show'?'Uteblev':'Registrerad';
+
+      h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px;margin-bottom:10px">';
+
+      // Top row
+      h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
+      h += '<div style="width:8px;height:8px;border-radius:50%;background:'+statusColor+';flex-shrink:0"></div>';
+      h += '<div style="font-size:14px;font-weight:700;color:#e6edf3;flex:1">'+(v.date||'Okänt datum')+'</div>';
+      if (v.journalNr) h += '<span style="font-size:11px;color:#6e7681;background:#21262d;border:1px solid #30363d;border-radius:4px;padding:1px 6px;font-family:var(--font-mono)">'+e(v.journalNr)+'</span>';
+      if (vNrsLast !== null) h += '<span style="font-size:12px;padding:2px 8px;border-radius:12px;background:'+(vNrsLast>=7?'rgba(248,81,73,.1)':vNrsLast>=4?'rgba(210,153,34,.1)':'rgba(63,185,80,.1)')+';color:'+(vNrsLast>=7?'#f85149':vNrsLast>=4?'#d29922':'#3fb950')+'">NRS '+vNrsLast+'</span>';
+      if (hasSOAP) h += '<span style="font-size:12px;padding:2px 8px;border-radius:12px;background:rgba(224,118,40,.08);color:var(--teal)">Journal</span>';
+      if (hasPlan) h += '<span style="font-size:12px;padding:2px 8px;border-radius:12px;background:rgba(88,166,255,.08);color:#58a6ff">Hael-plan</span>';
+      h += '<span style="font-size:12px;color:'+statusColor+'">'+statusLabel+'</span>';
+      h += '</div>';
+
+      // SOAP snippet
+      if (hasSOAP && v.soap.A) {
+        h += '<div style="font-size:13px;color:#8b949e;margin-bottom:10px;line-height:1.5;padding-left:18px">'+e((v.soap.A||'').slice(0,120))+(v.soap.A&&v.soap.A.length>120?'…':'')+'</div>';
+      } else if (hasSOAP && v.soap.S) {
+        h += '<div style="font-size:13px;color:#8b949e;margin-bottom:10px;line-height:1.5;padding-left:18px">'+e((v.soap.S||'').slice(0,120))+(v.soap.S&&v.soap.S.length>120?'…':'')+'</div>';
+      }
+
+      // Action buttons
+      h += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
+      if (hasSOAP) {
+        h += '<button onclick="S.visitId=\''+v.id+'\';go(\'journaldoc\')" style="padding:5px 12px;background:none;border:1px solid #30363d;border-radius:6px;font-size:12px;font-weight:600;color:#e6edf3;cursor:pointer;font-family:var(--font)">📋 Journal</button>';
+        h += '<button onclick="S.visitId=\''+v.id+'\';_exportJournalPDF()" style="padding:5px 12px;background:none;border:1px solid rgba(35,134,54,.4);border-radius:6px;font-size:12px;font-weight:600;color:#3fb950;cursor:pointer;font-family:var(--font)">⬇ PDF journal</button>';
+      }
+      if (hasPlan) {
+        h += '<button onclick="S.visitId=\''+v.id+'\';S.plan=((S.patients||[]).find(function(x){return x.id===\''+patId+'\'})&&(S.patients||[]).find(function(x){return x.id===\''+patId+'\'}).visits||[]).find(function(v2){return v2.id===\''+v.id+'\'})?.plan;go(\'doc\')" style="padding:5px 12px;background:none;border:1px solid rgba(88,166,255,.3);border-radius:6px;font-size:12px;font-weight:600;color:#58a6ff;cursor:pointer;font-family:var(--font)">🏃 Hael-plan</button>';
+        h += '<button onclick="S.visitId=\''+v.id+'\';S.plan=((S.patients||[]).find(function(x){return x.id===\''+patId+'\'})&&(S.patients||[]).find(function(x){return x.id===\''+patId+'\'}).visits||[]).find(function(v2){return v2.id===\''+v.id+'\'})?.plan;_exportHaelPDF()" style="padding:5px 12px;background:none;border:1px solid rgba(35,134,54,.4);border-radius:6px;font-size:12px;font-weight:600;color:#3fb950;cursor:pointer;font-family:var(--font)">⬇ PDF Hael</button>';
+      }
+      h += '</div>';
+      h += '</div>';
+    });
+  }
+  h += '</div>';
+  return h;
+}
+
+
 
 function renderOnboardingGuide(p, steps, nextStep) {
   const firstName = e(p.name?.split(' ')[0] || 'patienten');
@@ -15686,7 +15779,7 @@ function rDoc(){
       <button class="btn btn-p" onclick="sharePlan(S.visitId)" style="white-space:nowrap;font-size:13px;padding:8px 14px;flex-shrink:0">Dela länk</button>
       <button class="btn" onclick="mailPlan(S.visitId)" style="white-space:nowrap;font-size:13px;padding:8px 14px;flex-shrink:0">Maila</button>
       <button class="btn" onclick="printHomeCard(S.visitId)" style="white-space:nowrap;font-size:13px;padding:8px 14px;flex-shrink:0">Hemkort</button>
-      <button class="btn" onclick="window.print()" style="white-space:nowrap;font-size:13px;padding:8px 14px;flex-shrink:0">Skriv ut / PDF</button>
+      <button class="btn" onclick="_exportHaelPDF()" style="white-space:nowrap;font-size:13px;padding:8px 14px;flex-shrink:0;background:#238636;color:#fff;border-color:#238636">⬇ PDF</button>
     </div>
   </div>`;
 
@@ -17642,46 +17735,97 @@ function rJournalDoc() {
   const jdocFlagBanner = renderRedFlagBanner(jdocFlags);
   const el = document.getElementById('s-journaldoc');
   const today = new Date().toLocaleDateString('sv-SE',{year:'numeric',month:'long',day:'numeric'});
-  const soapLabels = {S:'Subjektivt -- Patientens berättelse',O:'Objektivt -- Undersökningsfynd',A:'Bedömning -- Diagnos & funktionsnivå',P:'Plan -- Åtgärder & uppföljning'};
+  const soapLabels = {S:'Subjektivt — Patientens berättelse',O:'Objektivt — Undersökningsfynd',A:'Bedömning — Diagnos & funktionsnivå',P:'Plan — Åtgärder & uppföljning'};
   const meta = v.soapMeta||{};
+  const cfg  = getClinicConfig();
+  const sig  = cfg.signature || cfg.therapistName || cfg.name || '';
+  const age  = p.birthdate||p.birthYear ? (new Date().getFullYear()-birthdateToYear(p.birthdate||p.birthYear||'')) : null;
+
   el.innerHTML = `
-    <div style="background:#21262d;min-height:100vh;"><div style="max-width:680px;margin:0 auto;padding:8px 12px 0">${jdocFlagBanner}</div>
+    <div style="background:#21262d;min-height:100vh;">
+      <div style="max-width:720px;margin:0 auto;padding:8px 12px 0">${jdocFlagBanner}</div>
       <div class="dcontrols">
-        <button class="btn" onclick="go('detail')"><- Tillbaka</button>
-        <button class="btn btn-p" onclick="sharePlan(S.visitId)">Dela länk</button><button class="btn" onclick="mailPlan(S.visitId)">Maila patient</button><button class="btn" onclick="printHomeCard(S.visitId)">Hemkort</button><button class="btn btn-p" onclick="window.print()">Skriv ut / PDF</button>
-        <span class="dhint">Välj "Spara som PDF" · A4 · inga marginaler</span>
+        <button class="btn" onclick="go('detail')">← Tillbaka</button>
+        <button class="btn" onclick="mailPlan(S.visitId)">Maila patient</button>
+        <button class="btn btn-p" onclick="_exportJournalPDF()" style="background:#238636;border-color:#238636">⬇ PDF</button>
+        <span class="dhint">Spara som PDF · A4 · inga marginaler</span>
       </div>
-      <div class="jdoc">
-        <div class="jdoc-hdr">
+
+      <div class="jdoc" style="max-width:720px;margin:0 auto;background:#fff;padding:32px 40px 40px;box-shadow:0 0 0 1px #e0e0e0;font-family:'Plus Jakarta Sans',Arial,sans-serif;color:#111">
+
+        <!-- HEADER -->
+        <div class="jdoc-hdr" style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #e07628;padding-bottom:18px;margin-bottom:22px">
           <div>
-            <div class="jdoc-title">Besöksjournal</div>
-            <div class="jdoc-sub">${e(p.name||'')} · ${v.date||''}</div>
-            <div class="jdoc-meta">
-              ${[['Diagnos',meta.diagnosis||p.diagnosis||'--'],['Födelsedatum',p.birthdate||p.birthYear||'--'],['Ålder',(new Date().getFullYear()-birthdateToYear(p.birthdate||p.birthYear||''))+' år']].map(([l,v2])=>`<div><div class="dml">${l}</div><div class="dmv">${e(String(v2))}</div></div>`).join('')}
+            <div style="font-size:9pt;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#e07628;margin-bottom:6px">${e(cfg.name||'Kliniken')}</div>
+            <div class="jdoc-title" style="font-size:24pt;font-weight:800;color:#111;line-height:1;margin-bottom:4px">Besöksjournal</div>
+            <div style="font-size:11pt;color:#444;margin-bottom:12px">${e(p.name||'')} · ${v.date||''} ${v.journalNr ? '· <span style="font-family:monospace;color:#e07628">'+e(v.journalNr)+'</span>' : ''}</div>
+            <div style="display:flex;gap:20px;flex-wrap:wrap">
+              ${age && age > 0 ? `<div><div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888">Ålder</div><div style="font-size:10pt;font-weight:600">${age} år</div></div>` : ''}
+              ${p.birthdate ? `<div><div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888">Födelsedat.</div><div style="font-size:10pt;font-weight:600">${e(p.birthdate)}</div></div>` : ''}
+              ${(meta.diagnosis||p.diagnosis) ? `<div><div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888">Diagnos</div><div style="font-size:10pt;font-weight:600">${e((meta.diagnosis||p.diagnosis||'').split('(')[0].trim())}</div></div>` : ''}
+              ${meta.icd10 ? `<div><div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#888">ICD-10</div><div style="font-size:10pt;font-weight:600;font-family:monospace">${e(meta.icd10)}</div></div>` : ''}
             </div>
           </div>
-          <img src="${LOGO}" class="jdoc-ftr-logo" style="height:44px;opacity:.6;filter:none">
+          <div style="text-align:right">
+            <div style="font-size:10pt;color:#666">${today}</div>
+            ${cfg.address ? `<div style="font-size:9pt;color:#888;margin-top:4px">${e(cfg.address)}</div>` : ''}
+            ${cfg.phone ? `<div style="font-size:9pt;color:#888">${e(cfg.phone)}</div>` : ''}
+          </div>
         </div>
-        <div class="jdoc-body">
-          ${meta.icd10?`<div class="jdoc-icd"><span class="jdoc-icd-code">${e(meta.icd10)}</span><span class="jdoc-icd-desc">${e(meta.icd10desc||'')}</span></div>`:''}
-          <div class="jdoc-sec">SOAP-journalanteckning</div>
-          ${['S','O','A','P'].map(l=>`
-            <div class="jdoc-soap">
-              <div class="jdoc-soap-hdr">
-                <div class="jdoc-soap-l ${l}">${l}</div>
-                <div class="jdoc-soap-title">${soapLabels[l]}</div>
+
+        <!-- SOAP SECTIONS -->
+        <div style="margin-bottom:28px">
+          ${['S','O','A','P'].map(l => {
+            const colors = {S:['#dbeafe','#1d4ed8'],O:['#ede9fe','#6d28d9'],A:['#cffafe','#0e7490'],P:['#d1fae5','#065f46']};
+            const [bg,col] = colors[l];
+            return `<div class="jdoc-soap" style="margin-bottom:14px;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;page-break-inside:avoid">
+              <div class="jdoc-soap-hdr" style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:#f9fafb;border-bottom:1px solid #e5e7eb">
+                <div class="jdoc-soap-l ${l}" style="width:26px;height:26px;border-radius:5px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:13pt;font-weight:800;color:${col}">${l}</div>
+                <div style="font-size:10pt;font-weight:600;color:#333">${soapLabels[l]}</div>
               </div>
-              <div class="jdoc-soap-body">${e(v.soap[l]||'--')}</div>
-            </div>`).join('')}
+              <div class="jdoc-soap-body" style="padding:12px 16px;font-size:10.5pt;line-height:1.75;color:#111;white-space:pre-wrap;min-height:40px">${e(v.soap[l]||'—')}</div>
+            </div>`;
+          }).join('')}
         </div>
-        <div class="jdoc-ftr">
-          <img src="${LOGO}" class="jdoc-ftr-logo">
-          <div>${CLINIC.name} · ${CLINIC.address}</div>
-          <div>Utfärdad ${today}</div>
+
+        <!-- SIGNATURE BLOCK -->
+        <div style="border-top:1px solid #e5e7eb;padding-top:24px;display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-bottom:28px">
+          <!-- Behandlarsignatur -->
+          <div>
+            <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#888;margin-bottom:20px">Behandlarsignatur</div>
+            <div style="border-bottom:1px solid #333;margin-bottom:6px;height:36px;position:relative">
+              ${sig ? `<div style="position:absolute;bottom:6px;left:0;font-size:11pt;font-weight:600;color:#111;font-style:italic">${e(sig)}</div>` : ''}
+            </div>
+            <div style="font-size:9pt;color:#555">${e(sig||'')}</div>
+            <div style="font-size:8pt;color:#888;margin-top:2px">Naprapath / Legitimerad</div>
+            <div style="font-size:8pt;color:#888">${e(cfg.name||'')}</div>
+          </div>
+          <!-- Stämpel / Klinikkod -->
+          <div>
+            <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#888;margin-bottom:8px">Klinikkod / Stämpel</div>
+            <div style="width:120px;height:60px;border:2px solid #ddd;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fafafa">
+              <div style="text-align:center">
+                <div style="font-size:8pt;font-weight:800;color:#333;letter-spacing:.05em">${e((cfg.name||'').toUpperCase().slice(0,12))}</div>
+                ${cfg.address ? `<div style="font-size:7pt;color:#888">${e(cfg.address.split(',')[0])}</div>` : ''}
+                ${cfg.phone ? `<div style="font-size:7pt;color:#888">${e(cfg.phone)}</div>` : ''}
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- FOOTER -->
+        <div class="jdoc-ftr" style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid #e5e7eb;font-size:8.5pt;color:#888">
+          <div>${e(cfg.name||'')}${cfg.address ? ' · ' + e(cfg.address) : ''}${cfg.phone ? ' · ' + e(cfg.phone) : ''}</div>
+          <div style="text-align:right">
+            <div>Journalnr: <strong style="font-family:monospace;color:#e07628">${e(v.journalNr||'—')}</strong></div>
+            <div>Utfärdad ${today}</div>
+          </div>
+        </div>
+
       </div>
     </div>`;
 }
+
 
 // -- BACKUP EXPORT -------------------------------------------------------------
 
@@ -18833,7 +18977,35 @@ function printPlanAsPDF(vid) {
   const v = (p.visits||[]).find(x=>x.id===vid);
   if (v) { S.plan = v.plan; S.form = v.form || S.form; }
   go('doc');
-  setTimeout(() => window.print(), 600);
+  setTimeout(() => _exportHaelPDF(), 600);
+}
+
+// ── PDF export helpers ────────────────────────────────────────────────────────
+
+function _exportJournalPDF() {
+  // Set document title to include patient name + journal nr for the PDF filename
+  var p = S.pat;
+  var v = p && (p.visits||[]).find(function(x){ return x.id === S.visitId; });
+  var oldTitle = document.title;
+  if (p && v) {
+    var nr = v.journalNr ? ' ' + v.journalNr : '';
+    document.title = 'Journal — ' + (p.name||'Patient') + nr + ' — ' + (v.date||'');
+  }
+  // Make sure we're on the journal doc screen
+  if (S.screen !== 'journaldoc') { go('journaldoc'); setTimeout(_exportJournalPDF, 400); return; }
+  window.print();
+  setTimeout(function(){ document.title = oldTitle; }, 2000);
+}
+
+function _exportHaelPDF() {
+  var p = S.pat;
+  var oldTitle = document.title;
+  if (p && S.plan) {
+    document.title = 'Hael-plan — ' + (p.name||'Patient') + ' — ' + (S.plan.diagnosis||'');
+  }
+  if (S.screen !== 'doc') { go('doc'); setTimeout(_exportHaelPDF, 600); return; }
+  window.print();
+  setTimeout(function(){ document.title = oldTitle; }, 2000);
 }
 
 
@@ -19057,7 +19229,71 @@ function printHomeCard(vid) {
   .login-hint{font-size:13px;color:var(--text3);margin-top:16px;line-height:1.6}
   .pub-wrap{max-width:600px;margin:0 auto;padding:0 0 40px}
   .pub-loading{text-align:center;padding:80px 20px;color:var(--muted);font-size:14px}
-  @media print{body{background:var(--surface)}}
+
+/* ── PRINT / PDF ─────────────────────────────────────────────────────────────
+   Applies to both rJournalDoc (SOAP) and rDoc (Hael-plan)
+   Browser: File → Print → Save as PDF · A4 · inga marginaler
+   ─────────────────────────────────────────────────────────────────────────── */
+@media print {
+  /* Hide everything except the active document */
+  body > *:not(#s-journaldoc):not(#s-doc):not(.vela-global-topbar):not(#app-shell) { display:none !important; }
+  .nav-sidebar, .vela-global-topbar, .dcontrols, .doc-actions,
+  button, .act-btn, .subnav, .page-header, .page-actions,
+  #pat-intel-slot, #vela-global-topbar-wrap { display:none !important; }
+
+  body, html { background:#fff !important; color:#000 !important; font-family:'Plus Jakarta Sans',Arial,sans-serif !important; }
+  #s-journaldoc, #s-doc { display:block !important; background:#fff !important; }
+
+  /* ── SOAP Journal print layout ── */
+  .jdoc {
+    background:#fff !important;
+    color:#000 !important;
+    max-width:none !important;
+    padding:0 !important;
+    box-shadow:none !important;
+    border:none !important;
+  }
+  .jdoc-hdr {
+    display:flex !important;
+    justify-content:space-between !important;
+    align-items:flex-start !important;
+    border-bottom:2px solid #e07628 !important;
+    padding-bottom:16px !important;
+    margin-bottom:20px !important;
+  }
+  .jdoc-title { font-size:22pt !important; font-weight:700 !important; color:#000 !important; }
+  .jdoc-sub   { font-size:12pt !important; color:#444 !important; margin-top:4px !important; }
+  .jdoc-meta  { display:flex !important; gap:24px !important; margin-top:10px !important; font-size:10pt !important; }
+  .jdoc-soap  { page-break-inside:avoid !important; margin-bottom:16px !important; border:1px solid #ddd !important; border-radius:4px !important; overflow:hidden !important; }
+  .jdoc-soap-hdr { display:flex !important; align-items:center !important; gap:10px !important; padding:8px 14px !important; background:#f5f5f5 !important; border-bottom:1px solid #ddd !important; }
+  .jdoc-soap-l { font-size:13pt !important; font-weight:800 !important; width:24px !important; height:24px !important; border-radius:4px !important; display:flex !important; align-items:center !important; justify-content:center !important; }
+  .jdoc-soap-l.S { background:#dbeafe !important; color:#1d4ed8 !important; }
+  .jdoc-soap-l.O { background:#ede9fe !important; color:#6d28d9 !important; }
+  .jdoc-soap-l.A { background:#cffafe !important; color:#0e7490 !important; }
+  .jdoc-soap-l.P { background:#d1fae5 !important; color:#065f46 !important; }
+  .jdoc-soap-body { padding:12px 14px !important; font-size:10.5pt !important; line-height:1.7 !important; white-space:pre-wrap !important; color:#111 !important; background:#fff !important; }
+  .jdoc-sec { font-size:9pt !important; font-weight:700 !important; text-transform:uppercase !important; letter-spacing:.1em !important; color:#e07628 !important; margin:18px 0 10px !important; }
+  .jdoc-icd { display:flex !important; gap:12px !important; margin-bottom:12px !important; padding:8px 12px !important; background:#f9f9f9 !important; border-left:3px solid #e07628 !important; }
+  .jdoc-icd-code { font-weight:700 !important; font-family:monospace !important; }
+  .jdoc-ftr { display:flex !important; justify-content:space-between !important; align-items:center !important; margin-top:32px !important; padding-top:12px !important; border-top:1px solid #ddd !important; font-size:9pt !important; color:#666 !important; }
+  .jdoc-ftr-logo { height:28px !important; opacity:.7 !important; filter:grayscale(1) !important; }
+
+  /* ── Hael-plan print layout ── */
+  #s-doc > div { background:#fff !important; color:#000 !important; }
+  #s-doc .zp-page, #s-doc [style*="background:#0d1117"],
+  #s-doc [style*="background:var(--navy)"],
+  #s-doc [style*="background:#161b22"] {
+    background:#fff !important;
+    color:#000 !important;
+  }
+  #s-doc [style*="color:rgba(255,255,255"] { color:#333 !important; }
+  #s-doc [style*="color:white"] { color:#000 !important; }
+  #s-doc [style*="border-radius"] { border:1px solid #eee !important; }
+
+  /* Page break hints */
+  .jdoc-soap, .zp-ex-card, .hp-exercise { page-break-inside:avoid !important; }
+  @page { size:A4; margin:15mm 18mm; }
+}
 </style>
 </head>
 <body>
@@ -21166,6 +21402,43 @@ function pubToggleEx(btn) {
   if (!isOpen) { body.classList.add('open'); btn.classList.add('open'); }
 }
 
+// ── Patient portal: NRS quick-log ────────────────────────────────────────────
+async function _hpQuickNrs(nrs, patId, visitId) {
+  var confirmEl = document.getElementById('hp-nrs-confirm');
+  var wrapEl    = document.getElementById('hp-nrs-quick');
+  if (confirmEl) confirmEl.textContent = 'Sparar...';
+
+  var today = new Date().toISOString().slice(0,10);
+  var log = { date: today, nrs: nrs, ts: new Date().toISOString(), source: 'portal' };
+
+  try {
+    // Save to Supabase pass_log
+    await fetch(SB_URL + '/rest/v1/pass_log', {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ pat_id: patId, visit_id: visitId||null, logged_at: log.ts, type: 'nrs', data: { nrs: nrs } })
+    });
+  } catch(ex) {}
+
+  // Also update patient in-memory if clinician is viewing
+  var pat = (S.patients||[]).find(function(p){ return p.id === patId; });
+  if (pat && visitId) {
+    var v = (pat.visits||[]).find(function(v2){ return v2.id === visitId; });
+    if (v) { v.logs = v.logs || []; v.logs.push(log); savePat && savePat(pat); }
+  }
+
+  // Update UI
+  var col = nrs <= 3 ? '#3fb950' : nrs <= 6 ? '#d29922' : '#f85149';
+  if (wrapEl) {
+    wrapEl.style.background = 'rgba(63,185,80,.06)';
+    wrapEl.style.borderColor = 'rgba(63,185,80,.2)';
+    wrapEl.innerHTML = '<div style="display:flex;align-items:center;gap:12px">'
+      + '<div style="width:40px;height:40px;border-radius:50%;background:'+col+'18;border:2px solid '+col+';display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:'+col+'">'+nrs+'</div>'
+      + '<div><div style="font-size:13px;font-weight:700;color:#e6edf3">Sparad! NRS '+nrs+' loggad.</div>'
+      + '<div style="font-size:12px;color:rgba(255,255,255,.4)">'+today+'</div></div></div>';
+  }
+}
+
 function zpExpandEx(idx) {
   const body = document.getElementById('zp-exbody-' + idx);
   const card = document.getElementById('zp-ex-' + idx);
@@ -21867,6 +22140,36 @@ function renderPublicPlan(plan, pat) {
     + '<div class="zp-hero-title">' + e(_heroTitle) + '</div>'
     + '<div class="zp-hero-sub">' + e(_heroSub) + '</div>'
     + '</div>';
+
+  // ── NRS SNABB-LOGG (syns alltid tills patienten loggar idag) ──────────────
+  var _todayKey = new Date().toISOString().slice(0,10);
+  var _loggedToday = _logs.some(function(l){ return (l.date||'').slice(0,10) === _todayKey && l.nrs != null; });
+  if (!_loggedToday) {
+    _html += '<div id="hp-nrs-quick" style="margin:0 0 16px;background:rgba(224,118,40,.06);border:1px solid rgba(224,118,40,.18);border-radius:12px;padding:16px 18px">';
+    _html += '<div style="font-size:13px;font-weight:700;color:var(--hp-teal);margin-bottom:12px">Hur ont gör det idag?</div>';
+    _html += '<div style="display:flex;gap:6px;justify-content:space-between;margin-bottom:12px">';
+    for (var _n = 0; _n <= 10; _n++) {
+      var _nc = _n <= 3 ? '#3fb950' : _n <= 6 ? '#d29922' : '#f85149';
+      _html += '<button onclick="_hpQuickNrs('+_n+',\''+patIdSafe+'\',\''+visitIdSafe+'\')" '
+        + 'style="flex:1;padding:10px 0;border:1px solid #30363d;border-radius:8px;background:#161b22;color:'+_nc+';font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);min-width:0;transition:background .1s" '
+        + 'onmouseover="this.style.background=\'rgba(224,118,40,.12)\'" onmouseout="this.style.background=\'#161b22\'">'+_n+'</button>';
+    }
+    _html += '</div>';
+    _html += '<div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.3);padding:0 2px"><span>Ingen smärta</span><span>Outhärdlig</span></div>';
+    _html += '<div id="hp-nrs-confirm" style="font-size:13px;color:#3fb950;margin-top:8px;min-height:18px"></div>';
+    _html += '</div>';
+  } else {
+    var _todayNrs = null;
+    _logs.forEach(function(l){ if ((l.date||'').slice(0,10)===_todayKey && l.nrs!=null) _todayNrs=l.nrs; });
+    if (_todayNrs !== null) {
+      var _tc2 = _todayNrs <= 3 ? '#3fb950' : _todayNrs <= 6 ? '#d29922' : '#f85149';
+      _html += '<div style="margin:0 0 16px;background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.15);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px">';
+      _html += '<div style="width:40px;height:40px;border-radius:50%;background:'+_tc2+'18;border:2px solid '+_tc2+';display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:'+_tc2+'">'+_todayNrs+'</div>';
+      _html += '<div><div style="font-size:13px;font-weight:700;color:#e6edf3">Inloggad idag</div><div style="font-size:12px;color:rgba(255,255,255,.4)">NRS '+_todayNrs+' · '+_todayKey+'</div></div>';
+      _html += '</div>';
+    }
+  }
+
 
   // LAYOUT OPEN
   _html += '<div class="zp-layout"><div class="zp-content">';
@@ -24412,6 +24715,12 @@ async function _velaSendSMS(to, body) {
   var cfg = getClinicConfig();
   var from = (cfg.smsName || cfg.name || 'Kliniken').replace(/[^a-zA-Z0-9åäöÅÄÖ ]/g,'').slice(0,11);
 
+  // Normalize Swedish numbers: 07xx → +467xx, 08xx → +468xx
+  var normalizedTo = to.replace(/\s/g, '');
+  if (/^0[0-9]/.test(normalizedTo)) {
+    normalizedTo = '+46' + normalizedTo.slice(1);
+  }
+
   // Route via Supabase Edge Function to avoid CORS block on direct browser→46elks calls
   var edgeFnUrl = SB_URL + '/functions/v1/send-sms';
 
@@ -24422,7 +24731,7 @@ async function _velaSendSMS(to, body) {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + SB_KEY,
       },
-      body: JSON.stringify({ to: to.replace(/\s/g,''), message: body, from: from, apiKey: key })
+      body: JSON.stringify({ to: normalizedTo, message: body, from: from, apiKey: key })
     });
     var data = await res.json();
     if (!data.ok) throw new Error(data.err || '46elks error');

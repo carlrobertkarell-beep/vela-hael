@@ -14924,6 +14924,8 @@ function quickNewPlan() {
 
 let _listSort   = 'priority';
 let _listFilter = '';
+let _listDiagFilter = '';
+let _listPhaseFilter = '';
 
 function _clinPriority(p) {
   // Returns { level: 0-3, signals: [], primary: string }
@@ -15052,10 +15054,19 @@ function rList() {
   var term = typeof clientTerm === 'function' ? clientTerm(true, true) : 'Klienter';
 
   var filtered = pats.filter(function(p){
-    if (!q) return true;
-    return (p.name||'').toLowerCase().includes(q) ||
+    var matchQ = !q || (p.name||'').toLowerCase().includes(q) ||
            (p.diagnosis||'').toLowerCase().includes(q) ||
            (p.phone||'').toLowerCase().includes(q);
+    var matchDiag = !_listDiagFilter || (p.diagnosis||'').toLowerCase().includes(_listDiagFilter.toLowerCase());
+    var matchPhase = !_listPhaseFilter || (() => {
+      var lastV = (p.visits||[]).slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0];
+      var haelPhase = lastV && (lastV.haelPhase || (lastV.journal && lastV.journal.haelPhase));
+      if (_listPhaseFilter === 'active') return (p.visits||[]).length > 0;
+      if (_listPhaseFilter === 'novisit') return !(p.visits||[]).length;
+      if (_listPhaseFilter === 'risk') return (_clinPriority&&_clinPriority(p)||{}).level >= 2;
+      return true;
+    })();
+    return matchQ && matchDiag && matchPhase;
   });
   filtered.sort(function(a,b){
     var pa = (_clinPriority&&_clinPriority(a)||{}).level||0;
@@ -15099,6 +15110,34 @@ function rList() {
 
   // Fix search icon — replace the bad nested svg
   var searchWrap = headerRow.querySelector('div div div');
+
+  // ── Filter bar ──────────────────────────────────────────────────────────────
+  var allDiags = [...new Set(pats.map(function(p){return p.diagnosis||'';}).filter(Boolean))].sort();
+  var filterBar = mk('div', {style:'display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap'},
+    // Diagnosis filter
+    mk('select', {
+      style:'background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--ink);font-family:var(--font);cursor:pointer',
+      onchange: function(){ _listDiagFilter = this.value; rList(); }
+    },
+      mk('option', {value:'', text:'Alla diagnoser'}),
+      ...allDiags.map(function(d){ var opt=document.createElement('option'); opt.value=d; opt.text=d; opt.selected=(_listDiagFilter===d); return opt; })
+    ),
+    // Phase/status filter
+    mk('select', {
+      style:'background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--ink);font-family:var(--font);cursor:pointer',
+      onchange: function(){ _listPhaseFilter = this.value; rList(); }
+    },
+      ...[['','Alla status'],['active','Aktiva'],['novisit','Inga besök'],['risk','Kräver åtgärd']].map(function(opt){
+        var el = document.createElement('option'); el.value=opt[0]; el.text=opt[1]; el.selected=(_listPhaseFilter===opt[0]); return el;
+      })
+    ),
+    // Clear filters
+    (_listDiagFilter || _listPhaseFilter) ? mk('button', {
+      style:'padding:4px 10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)',
+      text:'✕ Rensa filter',
+      onclick: function(){ _listDiagFilter=''; _listPhaseFilter=''; rList(); }
+    }) : null
+  );
 
   // ── Stats bar ──────────────────────────────────────────────────────────────
   var stats = [
@@ -15199,6 +15238,7 @@ function rList() {
   // ── Mount ──────────────────────────────────────────────────────────────────
   var wrap = mk('div', {style:'max-width:1200px;margin:0 auto;padding:20px 28px 60px;font-family:var(--font)'});
   wrap.appendChild(headerRow);
+  wrap.appendChild(filterBar);
   wrap.appendChild(statsBar);
   wrap.appendChild(tableWrap);
 
@@ -17562,17 +17602,15 @@ async function startListening() {
 function clinicalPanelHTML(context) {
   const placeholder = context === 'meeting'
     ? 'AI-analysen startar automatiskt när transkribering börjar.'
-    : 'Börja skriva i något SOAP-fält -- analysen startar automatiskt.';
-  return `<div style="margin-top:16px;background:#f8fafc;border:1px solid #dde6ee;overflow:hidden">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--navy)">
-      <div style="display:flex;align-items:center;gap:8px">
-        <div id="clin-pulse" style="width:6px;height:6px;border-radius:50%;background:#6a8aaa;flex-shrink:0"></div>
-        <span style="font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:white">Klinisk AI-assistent</span>
-        <span id="clin-status" style="font-size:12px;color:rgba(255,255,255,.45);margin-left:2px">-- väntar på text</span>
-      </div>
+    : 'Börja skriva i något SOAP-fält — analysen startar automatiskt.';
+  return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border)">
+      <div id="clin-pulse" style="width:6px;height:6px;border-radius:50%;background:var(--text2);flex-shrink:0;transition:background .3s"></div>
+      <span style="font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text)">Klinisk AI</span>
+      <span id="clin-status" style="font-size:11px;color:var(--text2);margin-left:2px">— väntar på text</span>
     </div>
-    <div id="clinical-panel-body" style="padding:12px;max-height:480px;overflow-y:auto">
-      <div style="font-size:13px;color:#8b949e;text-align:center;padding:16px">${placeholder}</div>
+    <div id="clinical-panel-body" style="padding:12px;overflow-y:auto">
+      <div style="font-size:13px;color:var(--text);text-align:center;padding:20px 12px">${placeholder}</div>
     </div>
   </div>`;
 }
@@ -17635,37 +17673,69 @@ function renderClinicalPanel(r) {
   if (!panel) return;
   const pulse = document.getElementById('clin-pulse');
   const status = document.getElementById('clin-status');
-  if (pulse) { pulse.style.background = '#4af0a0'; pulse.style.animation = 'none'; }
-  if (status) status.textContent = '-- uppdaterad ' + new Date().toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
-  const probColor = {'Hög':'#3fb950','Medel':'#8a6000','Låg':'#6a7a8a'};
-  const probBg = {'Hög':'var(--green-lt)','Medel':'#fff3cd','Låg':'#f0f2f4'};
+  if (pulse) { pulse.style.background = 'var(--green)'; pulse.style.animation = 'none'; }
+  if (status) status.textContent = '— ' + new Date().toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
+
+  // Update red flag badge in SOAP toolbar
+  const rfBadge = document.getElementById('soap-rf-badge');
+  if (rfBadge) {
+    if (r.redFlags && r.redFlags.length) {
+      rfBadge.textContent = r.redFlags.length + ' flagga' + (r.redFlags.length > 1 ? 'r' : '');
+      rfBadge.style.display = 'inline-flex';
+    } else {
+      rfBadge.style.display = 'none';
+    }
+  }
+
+  const probColor = {'Hög':'var(--green)','Medel':'var(--amber)','Låg':'var(--text)'};
+  const probBg    = {'Hög':'var(--green-lt)','Medel':'var(--amber-lt)','Låg':'rgba(139,148,158,.08)'};
   let h = '';
-  if (r.redFlags&&r.redFlags.length) h+=`<div style="background:#fee;border-left:3px solid #c07070;padding:10px 12px;margin-bottom:10px;border-radius:0 6px 6px 0"><div style="font-size:11px;font-weight:700;color:#c07070;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Röda flaggor</div>${r.redFlags.map(f=>`<div style="font-size:13px;color:#8a2020;margin-bottom:2px">${e(f)}</div>`).join('')}</div>`;
-  if (r.nextStep) h+=`<div style="background:var(--teal-lt);border-left:3px solid var(--teal);padding:10px 12px;margin-bottom:10px;border-radius:0 6px 6px 0"><div style="font-size:11px;font-weight:700;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Nästa steg</div><div style="font-size:13px;color:#1a3a4a;line-height:1.5">${e(r.nextStep)}</div></div>`;
+
+  if (r.redFlags&&r.redFlags.length) h+=`<div style="background:var(--red-lt);border-left:3px solid var(--red);padding:10px 12px;margin-bottom:10px;border-radius:0 6px 6px 0"><div style="font-size:11px;font-weight:700;color:var(--red);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Röda flaggor</div>${r.redFlags.map(f=>`<div style="font-size:13px;color:var(--ink);margin-bottom:2px">↳ ${e(f)}</div>`).join('')}</div>`;
+
+  if (r.nextStep) h+=`<div style="background:var(--teal-lt);border-left:3px solid var(--teal);padding:10px 12px;margin-bottom:10px;border-radius:0 6px 6px 0"><div style="font-size:11px;font-weight:700;color:var(--teal);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Nästa steg</div><div style="font-size:13px;color:var(--ink);line-height:1.55">${e(r.nextStep)}</div></div>`;
+
   if (r.tentativeDiagnosis&&r.tentativeDiagnosis.length){
-    h+=`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Differentialdiagnoser + ICD-10</div>`;
+    h+=`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Differentialdiagnoser</div>`;
     r.tentativeDiagnosis.forEach(d=>{
-      const col=probColor[d.probability]||'#6a7a8a', bg=probBg[d.probability]||'#f0f2f4';
+      const col=probColor[d.probability]||'var(--text)', bg=probBg[d.probability]||'rgba(139,148,158,.08)';
       const icdCode = d.icd10 || '';
-      const icdBtn = icdCode ? `<button onclick="setClinicalICD('${e(icdCode)}','${e(d.name)}')" style="margin-left:6px;background:#e8f0f8;border:1px solid #b0c8e0;border-radius:4px;font-size:11px;font-weight:700;color:#1a4a7a;padding:2px 6px;cursor:pointer;font-family:'DM Mono',monospace">-> Sätt ICD-10</button>` : '';
-      h+=`<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:7px;padding:9px 11px;background:#161b22;border-radius:8px;border:1px solid #e8ecf0">
+      const icdBtn = icdCode ? `<button onclick="setClinicalICD('${e(icdCode)}','${e(d.name)}')" style="margin-left:6px;background:var(--surface3);border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:700;color:var(--ink);padding:2px 6px;cursor:pointer;font-family:var(--font-mono)">Sätt ICD</button>` : '';
+      h+=`<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;padding:9px 11px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
         <span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:${bg};color:${col};flex-shrink:0;margin-top:2px">${e(d.probability)}</span>
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:3px">
-            <span style="font-size:13px;font-weight:600;color:var(--navy)">${e(d.name)}</span>
-            ${icdCode?`<span style="font-size:12px;font-weight:700;font-family:'DM Mono',monospace;color:#1a7a8a;background:#e4f4f7;padding:2px 7px;border-radius:4px">${e(icdCode)}</span>`:''}
+            <span style="font-size:13px;font-weight:600;color:var(--ink)">${e(d.name)}</span>
+            ${icdCode?`<span style="font-size:11px;font-weight:700;font-family:var(--font-mono);color:var(--blue);background:var(--blue-lt);padding:2px 6px;border-radius:4px">${e(icdCode)}</span>`:''}
             ${icdBtn}
           </div>
-          <div style="font-size:13px;color:var(--text3);line-height:1.45">${e(d.reasoning)}</div>
+          <div style="font-size:12px;color:var(--text);line-height:1.45">${e(d.reasoning)}</div>
         </div>
       </div>`;
     });
     h+=`</div>`;
   }
-  if (r.missingInfo&&r.missingInfo.length) h+=`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Komplettera med</div>${r.missingInfo.map(q=>`<div style="font-size:13px;color:#e6edf3;padding:6px 10px;background:#161b22;border-radius:7px;border:1px solid #e8ecf0;margin-bottom:4px;line-height:1.4">-> ${e(q)}</div>`).join('')}</div>`;
-  if (r.priorityTests&&r.priorityTests.length){h+=`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Prioriterade tester</div>`;r.priorityTests.forEach((t,i)=>{h+=`<div style="padding:8px 10px;background:#161b22;border-radius:7px;border:1px solid #e8ecf0;margin-bottom:4px"><div style="display:flex;gap:7px;align-items:center;margin-bottom:3px"><span style="font-size:11px;font-weight:700;background:var(--navy);color:white;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</span><span style="font-size:13px;font-weight:600;color:var(--navy)">${e(t.test)}</span></div><div style="font-size:13px;color:var(--text3);padding-left:23px;line-height:1.4">${e(t.rationale)}</div><div style="font-size:13px;color:#4a9aaa;padding-left:23px;margin-top:2px">Fynd: ${e(t.finding)}</div></div>`;});h+=`</div>`;}
-  if (r.treatmentGuidelines&&r.treatmentGuidelines.length) h+=`<div><div style="font-size:11px;font-weight:700;color:var(--navy);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Behandlingsriktlinjer</div>${r.treatmentGuidelines.map(g=>`<div style="font-size:13px;color:#e6edf3;padding:6px 10px;background:#161b22;border-radius:7px;border:1px solid #e8ecf0;margin-bottom:4px;line-height:1.4">${e(g)}</div>`).join('')}</div>`;
-  panel.innerHTML = h||'<div style="padding:12px;font-size:13px;color:#8b949e">Fortsätt berätta -- analysen uppdateras automatiskt.</div>';
+
+  if (r.missingInfo&&r.missingInfo.length) h+=`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Komplettera med</div>${r.missingInfo.map(q=>`<div style="font-size:13px;color:var(--ink);padding:6px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);margin-bottom:4px;line-height:1.4">→ ${e(q)}</div>`).join('')}</div>`;
+
+  if (r.priorityTests&&r.priorityTests.length){
+    h+=`<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Prioriterade tester</div>`;
+    r.priorityTests.forEach((t,i)=>{
+      h+=`<div style="padding:8px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);margin-bottom:4px">
+        <div style="display:flex;gap:7px;align-items:center;margin-bottom:3px">
+          <span style="font-size:11px;font-weight:700;background:var(--surface3);color:var(--text);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</span>
+          <span style="font-size:13px;font-weight:600;color:var(--ink)">${e(t.test)}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text);padding-left:23px;line-height:1.4">${e(t.rationale)}</div>
+        <div style="font-size:12px;color:var(--blue);padding-left:23px;margin-top:2px">Förväntat fynd: ${e(t.finding)}</div>
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+
+  if (r.treatmentGuidelines&&r.treatmentGuidelines.length) h+=`<div><div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Riktlinjer</div>${r.treatmentGuidelines.map(g=>`<div style="font-size:13px;color:var(--ink);padding:6px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);margin-bottom:4px;line-height:1.4">${e(g)}</div>`).join('')}</div>`;
+
+  panel.innerHTML = h||`<div style="padding:12px;font-size:13px;color:var(--text)">Analysen uppdateras automatiskt.</div>`;
 }
 
 function setClinicalICD(code, diagName) {
@@ -18227,10 +18297,14 @@ function rManualSOAP(bk) {
       <span style="font-size:14px;font-weight:700;color:#e6edf3">${e(p.name)}</span>
       <span style="font-size:13px;color:#8b949e">· Besöksjournal</span>
       ${currentSOAP && currentSOAP.journalNr ? `<span style="font-size:12px;color:#8b949e;background:#21262d;border:1px solid #30363d;border-radius:4px;padding:1px 7px;font-family:var(--font-mono);margin-left:4px">${e(currentSOAP.journalNr)}</span>` : ''}
-      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
         <span id="soap-autosave-label" style="font-size:12px;color:#8b949e;display:none">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
           Autosparad
+        </span>
+        <span id="soap-rf-badge" style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--red);background:var(--red-lt);border:1px solid rgba(248,81,73,.3);border-radius:4px;padding:2px 8px;cursor:pointer" onclick="document.getElementById('clinical-panel-body')?.scrollIntoView({behavior:'smooth'})">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          0 flaggor
         </span>
         <button onclick="finishManualSOAP(false)"
           style="padding:6px 14px;background:#238636;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">
@@ -18245,76 +18319,513 @@ function rManualSOAP(bk) {
       </div>
     </div>
 
-    <!-- Scrollable content -->
-    <div style="flex:1;overflow-y:auto">
-      <div style="max-width:720px;margin:0 auto;padding:28px 24px 80px">
+    <!-- 2-column body: left=form, right=AI -->
+    <div style="flex:1;display:flex;overflow:hidden">
 
-        ${smartIntakeHTML()}
+      <!-- LEFT: SOAP form -->
+      <div style="flex:1;overflow-y:auto;min-width:0">
+        <div style="padding:24px 28px 80px">
 
-        <!-- SOAP fields -->
-        <div style="display:flex;flex-direction:column;gap:0;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:20px">
-          ${soapFields.map((f, i) => `
-          <div style="border-bottom:${i < 3 ? '1px solid #30363d' : 'none'};background:#161b22">
-            <!-- Field header -->
-            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px">
-              <div style="width:22px;height:22px;border-radius:5px;background:${f.color}20;border:1px solid ${f.color}40;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <span style="font-size:11px;font-weight:800;color:${f.color}">${f.l}</span>
+          ${smartIntakeHTML()}
+
+          <!-- SOAP fields -->
+          <div style="display:flex;flex-direction:column;gap:0;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:18px">
+            ${soapFields.map((f, i) => `
+            <div style="border-bottom:${i < 3 ? '1px solid #30363d' : 'none'};background:#161b22">
+              <div style="display:flex;align-items:center;gap:8px;padding:7px 12px">
+                <div style="width:21px;height:21px;border-radius:5px;background:${f.color}20;border:1px solid ${f.color}40;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                  <span style="font-size:11px;font-weight:800;color:${f.color}">${f.l}</span>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <span style="font-size:13px;font-weight:700;color:#e6edf3">${f.label}</span>
+                  <span style="font-size:12px;color:#6e7681;margin-left:6px">${f.desc}</span>
+                </div>
+                ${micBtnHTML('ms-' + f.l, f.l)}
               </div>
-              <div style="flex:1;min-width:0">
-                <span style="font-size:13px;font-weight:700;color:#e6edf3">${f.label}</span>
-                <span style="font-size:12px;color:#6e7681;margin-left:6px">${f.desc}</span>
-              </div>
-              ${micBtnHTML('ms-' + f.l, f.l)}
+              <textarea id="ms-${f.l}"
+                placeholder="${f.ph}"
+                oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';triggerClinicalAnalysis(collectMSOAPText());autoSaveJournalDraft()"
+                style="width:100%;min-height:60px;border:none;border-top:1px solid var(--border2);background:var(--bg);padding:10px 14px;font-size:14px;color:#e6edf3;font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.65"
+                >${e(soap[f.l] || '')}</textarea>
+            </div>`).join('')}
+          </div>
+
+          <!-- Diagnos + ICD-10 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+            <div>
+              <label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--teal);margin-bottom:6px">Diagnos</label>
+              <select id="ms-diag" class="field" style="width:100%;margin-bottom:8px">
+                ${DIAGS.map(d => `<option ${d === (currentSOAP && currentSOAP.diagnosis) ? 'selected' : ''}>${d}</option>`).join('')}
+              </select>
+              <input class="field" id="ms-custom" placeholder="Fritext diagnos (valfritt)..." value="${e(currentSOAP && currentSOAP.customDiagnosis || '')}" style="width:100%">
             </div>
-            <!-- Textarea -->
-            <textarea id="ms-${f.l}"
-              placeholder="${f.ph}"
-              oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';triggerClinicalAnalysis(collectMSOAPText());autoSaveJournalDraft()"
-              style="width:100%;min-height:64px;border:none;border-top:1px solid var(--border2);background:var(--bg);padding:10px 14px;font-size:14px;color:#e6edf3;font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.65"
-              >${e(soap[f.l] || '')}</textarea>
-          </div>`).join('')}
-        </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;margin-bottom:6px">ICD-10 (valfritt)</label>
+              <input class="field" id="ms-icd" placeholder="M54.5" value="${e(currentSOAP && currentSOAP.icd10 || '')}" style="width:100%;margin-bottom:8px;font-family:var(--font-mono,monospace)">
+              <input class="field" id="ms-icddesc" placeholder="Beskrivning..." value="${e(currentSOAP && currentSOAP.icd10desc || '')}" style="width:100%">
+            </div>
+          </div>
 
-        <!-- Diagnos + ICD-10 -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+          <!-- Action buttons -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button onclick="finishManualSOAP(false)"
+              style="padding:13px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:7px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Spara journal
+            </button>
+            <button onclick="finishManualSOAP(true)"
+              style="padding:13px;background:rgba(224,118,40,.1);color:var(--teal);border:1px solid rgba(224,118,40,.25);border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:7px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Spara + rehabplan
+            </button>
+          </div>
+          <button onclick="go('detail')"
+            style="width:100%;margin-top:8px;padding:11px;background:none;border:1px solid #30363d;border-radius:6px;font-size:13px;font-weight:600;color:#8b949e;cursor:pointer;font-family:var(--font)">
+            Avbryt
+          </button>
+
+        </div>
+      </div>
+
+      <!-- RIGHT: AI panel (sticky, always visible) -->
+      <div style="width:320px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;background:var(--surface);display:flex;flex-direction:column">
+        <div style="padding:16px;flex:1">
+          ${clinicalPanelHTML()}
+        </div>
+      </div>
+
+    </div>
+  </div>`;
+}
+
+
+// ── VERKTYG / TOOLS SCREEN ────────────────────────────────────────────────────
+let _toolsActiveTool = null;
+let _toolsUsImages = [];
+let _toolsUsResult = null;
+let _toolsRemissResult = null;
+
+function rTools(tool) {
+  const el = document.getElementById('s-tools');
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  S.screen = 'tools';
+  if (tool !== undefined) _toolsActiveTool = tool || null;
+  if (typeof updateNavLinks === 'function') updateNavLinks();
+  _renderToolsScreen();
+}
+
+function _renderToolsScreen() {
+  const el = document.getElementById('s-tools');
+  if (!el) return;
+  const tool = _toolsActiveTool;
+  const p = S.pat;
+  const toolLabels = { us: 'Bildanalys', remiss: 'Remissgenerator', redflag: 'Flagghistorik' };
+
+  const topbar = `
+    <div style="height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0">
+      ${tool ? `<button onclick="_toolsActiveTool=null;_renderToolsScreen()" style="display:flex;align-items:center;gap:5px;background:none;border:none;color:var(--text);font-size:13px;font-weight:500;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:var(--font)" onmouseover="this.style.color='var(--ink)'" onmouseout="this.style.color='var(--text)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Verktyg</button>
+      <span style="color:var(--border);font-size:16px">/</span>` : ''}
+      <span style="font-size:14px;font-weight:700;color:var(--ink)">${tool ? e(toolLabels[tool]||tool) : 'Verktyg'}</span>
+      ${p && tool ? `<span style="font-size:13px;color:var(--text)">· ${e(p.name)}</span>` : ''}
+    </div>`;
+
+  let content = '';
+  if (!tool)          content = _toolsHub();
+  else if (tool==='us')      content = _toolsUS();
+  else if (tool==='remiss')  content = _toolsRemiss();
+  else if (tool==='redflag') content = _toolsRedFlags();
+
+  el.innerHTML = `<div style="display:flex;flex-direction:column;height:100%;background:var(--bg);font-family:var(--font)">${topbar}<div style="flex:1;overflow:hidden;display:flex;flex-direction:column">${content}</div></div>`;
+  if (tool === 'us') { _toolsUsImages = []; _toolsUsResult = null; }
+}
+
+function _toolsHub() {
+  const tools = [
+    { id:'us',      color:'var(--blue)',  badge:'AI',
+      icon:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>',
+      label:'Bildanalys',
+      desc:'Ladda upp ultraljudsbilder och få AI-assisterad klinisk tolkning. Generera formellt utlåtande eller patientbrev.' },
+    { id:'remiss',  color:'var(--green)', badge:'AI',
+      icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+      label:'Remissgenerator',
+      desc:'Generera formell remiss till röntgen, ortoped, neurolog eller fysioterapeut baserat på journalinnehåll.' },
+    { id:'redflag', color:'var(--red)',   badge:null,
+      icon:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+      label:'Flagghistorik',
+      desc:'Historik över röda flaggor identifierade av AI — patientsäkerhetslogg och spårbarhet.' }
+  ];
+  return `<div style="flex:1;overflow-y:auto"><div style="max-width:820px;margin:0 auto;padding:36px 28px">
+    <div style="margin-bottom:28px">
+      <div style="font-size:20px;font-weight:700;color:var(--ink);margin-bottom:6px">Kliniska verktyg</div>
+      <div style="font-size:13px;color:var(--text)">AI-assisterade verktyg för dokumentation och beslutstöd.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px">
+      ${tools.map(t=>`
+      <button onclick="_toolsActiveTool='${t.id}';_renderToolsScreen()" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;text-align:left;cursor:pointer;font-family:var(--font);transition:border-color .12s" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:36px;height:36px;border-radius:8px;background:rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${t.color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${t.icon}</svg>
+          </div>
+          <span style="font-size:14px;font-weight:700;color:var(--ink);flex:1">${t.label}</span>
+          ${t.badge?`<span style="font-size:10px;background:rgba(224,118,40,.15);color:var(--orange);padding:2px 6px;border-radius:4px;font-weight:700">${t.badge}</span>`:''}
+        </div>
+        <div style="font-size:13px;color:var(--text);line-height:1.55">${t.desc}</div>
+      </button>`).join('')}
+    </div>
+  </div></div>`;
+}
+
+// ── Bildanalys ─────────────────────────────────────────────────────────────
+function _toolsUS() {
+  const p = S.pat;
+  const soap = currentSOAP && currentSOAP.soap || {};
+  const prefill = [soap.O, soap.A].filter(Boolean).join('\n');
+  const patBar = p ? `<div style="margin-bottom:18px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;gap:8px">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span style="font-size:13px;font-weight:600;color:var(--ink)">${e(p.name)}</span>
+    <span style="font-size:12px;color:var(--text)">${e(p.birthdate||p.birthYear||'')}</span>
+  </div>` : '';
+
+  return `<div style="flex:1;display:flex;overflow:hidden">
+    <div style="flex:1;overflow-y:auto;padding:24px 28px;min-width:0">
+      <div style="max-width:520px">
+        ${patBar}
+        <div id="us-dropzone" onclick="document.getElementById('us-file').click()"
+          style="border:2px dashed var(--border);border-radius:6px;padding:28px 20px;text-align:center;cursor:pointer;margin-bottom:14px;transition:border-color .15s;background:var(--surface)"
+          ondragover="event.preventDefault();this.style.borderColor='var(--orange)'"
+          ondragleave="this.style.borderColor='var(--border)'"
+          ondrop="_toolsUSHandleDrop(event)">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:8px"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+          <div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:3px">Dra bilder hit eller klicka</div>
+          <div style="font-size:12px;color:var(--text)">JPG, PNG — flera bilder tillåtna</div>
+          <input type="file" id="us-file" accept="image/*" multiple style="display:none" onchange="_toolsUSHandleFiles(this.files)">
+        </div>
+        <div id="us-thumbs" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div>
-            <label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--teal);margin-bottom:6px">Diagnos</label>
-            <select id="ms-diag" class="field" style="width:100%;margin-bottom:8px">
-              ${DIAGS.map(d => `<option ${d === (currentSOAP && currentSOAP.diagnosis) ? 'selected' : ''}>${d}</option>`).join('')}
-            </select>
-            <input class="field" id="ms-custom" placeholder="Fritext diagnos (valfritt)..." value="${e(currentSOAP && currentSOAP.customDiagnosis || '')}" style="width:100%">
+            <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:5px">Region</label>
+            <input class="field" id="us-region" placeholder="t.ex. Höger axel..." style="width:100%">
           </div>
           <div>
-            <label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;margin-bottom:6px">ICD-10 (valfritt)</label>
-            <input class="field" id="ms-icd" placeholder="M54.5" value="${e(currentSOAP && currentSOAP.icd10 || '')}" style="width:100%;margin-bottom:8px;font-family:var(--font-mono,monospace)">
-            <input class="field" id="ms-icddesc" placeholder="Beskrivning..." value="${e(currentSOAP && currentSOAP.icd10desc || '')}" style="width:100%">
+            <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:5px">Prob / teknik</label>
+            <input class="field" id="us-probe" placeholder="t.ex. 12L4 linjär..." style="width:100%" value="12L4, linjär">
           </div>
         </div>
-
-        <!-- AI clinical panel -->
-        ${clinicalPanelHTML()}
-
-        <!-- Action buttons -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px">
-          <button onclick="finishManualSOAP(false)"
-            style="padding:13px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:7px">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            Spara journal
-          </button>
-          <button onclick="finishManualSOAP(true)"
-            style="padding:13px;background:rgba(224,118,40,.1);color:var(--teal);border:1px solid rgba(224,118,40,.25);border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:7px">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-            Spara + rehabplan
-          </button>
+        <div style="margin-bottom:16px">
+          <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:5px">Klinisk bakgrund &amp; frågeställning</label>
+          <textarea id="us-context" class="field" rows="4" placeholder="Beskriv symtom, klinisk frågeställning, relevanta fynd..." style="width:100%;resize:vertical;font-family:var(--font);line-height:1.6">${e(prefill)}</textarea>
         </div>
-        <button onclick="go('detail')"
-          style="width:100%;margin-top:10px;padding:11px;background:none;border:1px solid #30363d;border-radius:6px;font-size:13px;font-weight:600;color:#8b949e;cursor:pointer;font-family:var(--font)">
-          Avbryt
+        <button onclick="_toolsUSAnalyze()" id="us-analyze-btn"
+          style="width:100%;padding:12px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Analysera bilder
         </button>
-
+      </div>
+    </div>
+    <div id="us-result-panel" style="width:400px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;background:var(--surface);padding:22px">
+      <div style="text-align:center;padding:56px 0">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--surface3)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:10px;display:block;margin-left:auto;margin-right:auto"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+        <div style="font-size:13px;color:var(--text)">Ladda upp bilder och klicka Analysera</div>
       </div>
     </div>
   </div>`;
+}
+
+function _toolsUSHandleDrop(ev) {
+  ev.preventDefault();
+  const dz = document.getElementById('us-dropzone');
+  if (dz) dz.style.borderColor = 'var(--border)';
+  _toolsUSHandleFiles(ev.dataTransfer.files);
+}
+
+function _toolsUSHandleFiles(files) {
+  if (!files || !files.length) return;
+  Array.from(files).forEach(f => {
+    if (!f.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const dataUrl = ev.target.result;
+      _toolsUsImages.push({ base64: dataUrl.split(',')[1], mediaType: f.type, dataUrl });
+      _toolsUSRenderThumbs();
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+function _toolsUSRenderThumbs() {
+  const el = document.getElementById('us-thumbs');
+  if (!el) return;
+  el.innerHTML = _toolsUsImages.map((img, i) => `
+    <div style="position:relative;width:76px;height:60px;border-radius:4px;overflow:hidden;border:1px solid var(--border)">
+      <img src="${img.dataUrl}" style="width:100%;height:100%;object-fit:cover">
+      <button onclick="_toolsUsImages.splice(${i},1);_toolsUSRenderThumbs()"
+        style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.65);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0">
+        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+async function _toolsUSAnalyze() {
+  if (!_toolsUsImages.length) { showAutoSaveToast('Ladda upp minst en bild'); return; }
+  const key = getKey();
+  if (!key) { alert('API-nyckel saknas — konfigurera under Inställningar \u2192 API-nycklar'); return; }
+  const region  = document.getElementById('us-region')?.value.trim() || '';
+  const probe   = document.getElementById('us-probe')?.value.trim() || '';
+  const context = document.getElementById('us-context')?.value.trim() || '';
+  const p = S.pat;
+  const btn = document.getElementById('us-analyze-btn');
+  const rp  = document.getElementById('us-result-panel');
+  if (btn) { btn.disabled = true; btn.textContent = 'Analyserar...'; }
+  if (rp)  rp.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:24px;color:var(--text);font-size:13px"><div style="width:7px;height:7px;border-radius:50%;background:var(--orange);animation:pulse 1s infinite"></div>AI analyserar bilderna...</div>`;
+
+  const patInfo = p ? `Patient: ${p.name}, f.${p.birthdate||p.birthYear||'okänt'}, diagnos: ${p.diagnosis||'okänd'}.` : '';
+  const imgContent = _toolsUsImages.map(img => ({ type:'image', source:{ type:'base64', media_type:img.mediaType, data:img.base64 } }));
+  const textPrompt = `Du är erfaren kliniker som assisterar en leg. naprapat med bildtolkning.
+
+${patInfo}
+Region: ${region||'ej angiven'}
+Teknik: ${probe||'ej angiven'}
+Klinisk frågeställning: ${context||'ej angiven'}
+
+Analysera ultraljudsbilden/bilderna noggrant. Skriv ett formellt utlåtande på svenska i radiologisk stil. Använd "förenliga med"-framing. Inga behandlingsrekommendationer i utlåtandet.
+
+Svara ENBART med JSON:
+{"teknik":"undersökningsteknik och förhållanden","fynd":"detaljerade bildmässiga fynd","konklusion":"sammanfattning förenlig med diagnos","patientVersion":"tillgänglig förklaring utan medicinska termer","redFlags":[],"followUp":"kompletterande undersökning om relevant, annars null"}`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({ model:MODEL_SONNET, max_tokens:2000,
+        system:'Du är klinisk bildtolkare. Svara ALLTID med giltig JSON. Inga backticks.',
+        messages:[{ role:'user', content:[...imgContent,{type:'text',text:textPrompt}] }] })
+    });
+    const data = await res.json();
+    const txt = (data.content||[]).map(b=>b.text||'').join('');
+    const result = JSON.parse(txt.replace(/```json|```/g,'').trim());
+    _toolsUsResult = result;
+    _toolsUSRenderResult(result, region, probe, p);
+  } catch(err) {
+    if (rp) rp.innerHTML = `<div style="padding:20px;font-size:13px;color:var(--red)">Analys misslyckades: ${e(err.message)}</div>`;
+  }
+  if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Analysera igen'; }
+}
+
+function _toolsUSRenderResult(r, region, probe, p) {
+  const rp = document.getElementById('us-result-panel');
+  if (!rp) return;
+  const today = new Date().toLocaleDateString('sv-SE');
+  const clinicName = (typeof getCfg==='function' && getCfg('clinicName')) || 'Kansei Ortopedi & Rehabcenter';
+  const practitioner = (typeof getCfg==='function' && getCfg('clinicianName')) || '';
+  rp.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--ink)">Utlåtande</div>
+      <span style="font-size:11px;color:var(--text2)">${today}</span>
+    </div>
+    ${r.redFlags&&r.redFlags.length?`<div style="background:var(--red-lt);border-left:3px solid var(--red);padding:10px 12px;margin-bottom:12px;border-radius:0 6px 6px 0">
+      <div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Observera</div>
+      ${r.redFlags.map(f=>`<div style="font-size:13px;color:var(--ink)">${e(f)}</div>`).join('')}
+    </div>`:''}
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Teknik</div>
+      <div id="us-out-teknik" style="font-size:13px;color:var(--ink);line-height:1.65;margin-bottom:14px" contenteditable="true">${e(r.teknik)}</div>
+      <div style="border-top:1px solid var(--border);margin-bottom:12px"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Fynd</div>
+      <div id="us-out-fynd" style="font-size:13px;color:var(--ink);line-height:1.65;margin-bottom:14px" contenteditable="true">${e(r.fynd)}</div>
+      <div style="border-top:1px solid var(--border);margin-bottom:12px"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Konklusion</div>
+      <div id="us-out-konklusion" style="font-size:13px;font-weight:500;color:var(--ink);line-height:1.65;margin-bottom:${r.followUp?'14px':'0'}" contenteditable="true">${e(r.konklusion)}</div>
+      ${r.followUp?`<div style="border-top:1px solid var(--border);margin-bottom:12px"></div>
+      <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Uppföljning</div>
+      <div style="font-size:13px;color:var(--ink);line-height:1.65">${e(r.followUp)}</div>`:''}
+      <div style="border-top:1px solid var(--border);margin-top:12px;padding-top:10px">
+        <div style="font-size:11px;color:var(--text2);font-style:italic">AI-assisterat · ${practitioner?e(practitioner)+', ':''}leg. naprapat · ${e(clinicName)}</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:7px">
+      <button onclick="_toolsUSInsertInJournal()" style="padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:7px;text-align:left">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Infoga i journal (O-fältet)
+      </button>
+      <button onclick="_toolsUSGenerateMail()" style="padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:7px;text-align:left">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Generera patientmail
+      </button>
+    </div>`;
+}
+
+function _toolsUSInsertInJournal() {
+  if (!_toolsUsResult) return;
+  const r = _toolsUsResult;
+  const teknik    = document.getElementById('us-out-teknik')?.innerText    || r.teknik;
+  const fynd      = document.getElementById('us-out-fynd')?.innerText      || r.fynd;
+  const konklusion = document.getElementById('us-out-konklusion')?.innerText || r.konklusion;
+  const txt = `[Ultraljud]\nTeknik: ${teknik}\n\nFynd: ${fynd}\n\nKonklusion: ${konklusion}`;
+  if (currentSOAP) { currentSOAP.soap = currentSOAP.soap||{}; currentSOAP.soap.O = (currentSOAP.soap.O?currentSOAP.soap.O+'\n\n':'')+txt; }
+  const oEl = document.getElementById('ms-O') || document.getElementById('sbs-O');
+  if (oEl) { oEl.value = (oEl.value?oEl.value+'\n\n':'')+txt; oEl.style.height='auto'; oEl.style.height=oEl.scrollHeight+'px'; }
+  showAutoSaveToast('Infogat i O-fältet');
+}
+
+async function _toolsUSGenerateMail() {
+  if (!_toolsUsResult) return;
+  const key = getKey();
+  if (!key) return;
+  const r = _toolsUsResult;
+  const p = S.pat;
+  const patientVersion = r.patientVersion || r.konklusion;
+  const prompt = `Skriv ett vänligt och tydligt patientbrev på svenska som förklarar resultaten från en ultraljudsundersökning. Baserat på:\n\n${patientVersion}\n\nBrevet ska vara:\n- Varmt och tillgängligt, inga medicinska termer\n- Förklara vad som hittades och vad det innebär\n- Avsluta med nästa steg\n- Max 150 ord\n\nSvara ENBART med JSON:\n{"subject":"Ämnesrad","body":"Brevtext"}`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:MODEL_HAIKU,max_tokens:600,system:'Svara ALLTID med giltig JSON.',messages:[{role:'user',content:prompt}]})});
+    const data = await res.json();
+    const mail = JSON.parse((data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim());
+    if (typeof openComposeModal==='function') openComposeModal(p?.email||'', mail.subject||'Ultraljudsresultat', mail.body||'');
+    else { navigator.clipboard.writeText((mail.subject||'')+'\n\n'+(mail.body||'')); showAutoSaveToast('Mail kopierat till urklipp'); }
+  } catch(err) { showAutoSaveToast('Kunde inte generera mail'); }
+}
+
+// ── Remissgenerator ────────────────────────────────────────────────────────
+function _toolsRemiss() {
+  const p = S.pat;
+  const soap = currentSOAP && currentSOAP.soap || {};
+  const diagnosis = (currentSOAP && currentSOAP.diagnosis) || (p && p.diagnosis) || '';
+  const patBar = p ? `<div style="margin-bottom:18px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;gap:8px">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <span style="font-size:13px;font-weight:600;color:var(--ink)">${e(p.name)}</span>
+    <span style="font-size:12px;color:var(--text)">${e(p.birthdate||p.birthYear||'')}</span>
+    ${p.phone?`<span style="margin-left:auto;font-size:12px;color:var(--text2)">${e(p.phone)}</span>`:''}
+  </div>` : '';
+
+  return `<div style="flex:1;display:flex;overflow:hidden">
+    <div style="flex:1;overflow-y:auto;padding:24px 28px;min-width:0">
+      <div style="max-width:500px">
+        ${patBar}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:5px">Remitteras till</label>
+            <select id="remiss-to" class="field" style="width:100%">
+              <option>R\u00f6ntgen</option><option>Ortoped</option><option>Neurolog</option>
+              <option>Fysioterapeut</option><option>Reumatolog</option><option>Annan</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:5px">Br\u00e5dska</label>
+            <select id="remiss-urgency" class="field" style="width:100%">
+              <option>Rutinremiss</option><option>Inom 4 veckor</option><option>Inom 1 vecka</option><option>Akut</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:5px">Unders\u00f6kning</label>
+          <input class="field" id="remiss-exam" placeholder="t.ex. MRT l\u00e4ndrygg, R\u00f6ntgen h\u00f6ger axel..." style="width:100%" value="${e(diagnosis?'Utredning av '+diagnosis:'')}">
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:5px">Klinisk fr\u00e5gest\u00e4llning</label>
+          <textarea id="remiss-question" class="field" rows="4" placeholder="Beskriv klinisk fr\u00e5gest\u00e4llning och relevant anamnes..." style="width:100%;resize:vertical;font-family:var(--font);line-height:1.6">${e(soap.A||'')}</textarea>
+        </div>
+        <div style="margin-bottom:20px">
+          <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:5px">Aktuella fynd</label>
+          <textarea id="remiss-findings" class="field" rows="3" placeholder="Kliniska fynd, tester, r\u00f6relseomf\u00e5ng..." style="width:100%;resize:vertical;font-family:var(--font);line-height:1.6">${e(soap.O||'')}</textarea>
+        </div>
+        <button onclick="_toolsRemissGenerate()"
+          style="width:100%;padding:12px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          Generera remiss
+        </button>
+      </div>
+    </div>
+    <div id="remiss-result-panel" style="width:420px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;background:var(--surface);padding:22px">
+      <div style="text-align:center;padding:56px 0">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--surface3)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:10px;display:block;margin-left:auto;margin-right:auto"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <div style="font-size:13px;color:var(--text)">Fyll i formuläret och klicka Generera</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function _toolsRemissGenerate() {
+  const key = getKey();
+  if (!key) { alert('API-nyckel saknas'); return; }
+  const p = S.pat;
+  const to       = document.getElementById('remiss-to')?.value || '';
+  const urgency  = document.getElementById('remiss-urgency')?.value || '';
+  const exam     = document.getElementById('remiss-exam')?.value.trim() || '';
+  const question = document.getElementById('remiss-question')?.value.trim() || '';
+  const findings = document.getElementById('remiss-findings')?.value.trim() || '';
+  const rp = document.getElementById('remiss-result-panel');
+  if (rp) rp.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:24px;color:var(--text);font-size:13px"><div style="width:7px;height:7px;border-radius:50%;background:var(--orange);animation:pulse 1s infinite"></div>Genererar remiss...</div>`;
+  const today = new Date().toLocaleDateString('sv-SE');
+  const clinicName = (typeof getCfg==='function'&&getCfg('clinicName'))||'Kansei Ortopedi & Rehabcenter';
+  const practitioner = (typeof getCfg==='function'&&getCfg('clinicianName'))||'Leg. naprapat';
+  const patStr = p ? `${p.name}, ${p.birthdate||p.birthYear||'okänt'}, tel: ${p.phone||'ej angivet'}` : 'Ej angiven';
+  const prompt = `Du är en leg. naprapat som skriver en formell medicinsk remiss på svenska. Skriv en välformulerad, professionell remiss baserat på nedanstående uppgifter.
+
+Datum: ${today} | Klinik: ${clinicName} | Remittent: ${practitioner}
+Patient: ${patStr}
+Remitteras till: ${to} | Brådska: ${urgency}
+Undersökning: ${exam}
+Klinisk frågeställning: ${question}
+Fynd: ${findings}
+
+Svara ENBART med JSON:
+{"remissText":"Fullständig formell remisstext på svenska med alla standardsektioner. Professionell och kliniskt korrekt."}`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:MODEL_SONNET,max_tokens:1500,system:'Svara ALLTID med giltig JSON.',messages:[{role:'user',content:prompt}]})});
+    const data = await res.json();
+    const result = JSON.parse((data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim());
+    _toolsRemissRenderResult(result.remissText, to, urgency);
+  } catch(err) {
+    if (rp) rp.innerHTML = `<div style="padding:20px;font-size:13px;color:var(--red)">Generering misslyckades: ${e(err.message)}</div>`;
+  }
+}
+
+function _toolsRemissRenderResult(text, to, urgency) {
+  const rp = document.getElementById('remiss-result-panel');
+  if (!rp) return;
+  const urgColor = urgency==='Akut'?'var(--red)':urgency.includes('1 vecka')?'var(--amber)':'var(--text)';
+  rp.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:var(--ink)">Remiss — ${e(to)}</div>
+      <span style="font-size:11px;font-weight:700;color:${urgColor};background:rgba(0,0,0,.15);padding:2px 8px;border-radius:4px">${e(urgency)}</span>
+    </div>
+    <div id="remiss-out-text" contenteditable="true"
+      style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:16px;margin-bottom:14px;font-size:13px;color:var(--ink);line-height:1.75;white-space:pre-wrap;font-family:var(--font)">${e(text)}</div>
+    <div style="display:flex;gap:8px">
+      <button onclick="navigator.clipboard.writeText(document.getElementById('remiss-out-text').innerText);showAutoSaveToast('Kopierad!')"
+        style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Kopiera</button>
+    </div>`;
+}
+
+// ── Flagghistorik ──────────────────────────────────────────────────────────
+function _toolsRedFlags() {
+  const allFlags = [];
+  const retQ = typeof getRetentionQueue==='function' ? getRetentionQueue() : [];
+  retQ.filter(q=>q.type==='red_flag').forEach(q=>{
+    const p = (S.patients||[]).find(x=>x.id===q.patId);
+    allFlags.push({ patName:p?.name||q.patName||'Okänd', patId:q.patId, date:q.createdAt, note:q.title||'Röd flagga' });
+  });
+  allFlags.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  return `<div style="flex:1;overflow-y:auto"><div style="max-width:680px;margin:0 auto;padding:28px 24px">
+    <div style="margin-bottom:20px">
+      <div style="font-size:16px;font-weight:700;color:var(--ink);margin-bottom:4px">Flagghistorik</div>
+      <div style="font-size:13px;color:var(--text)">Röda flaggor identifierade av AI — ${allFlags.length} registrerade</div>
+    </div>
+    ${allFlags.length===0?`<div style="text-align:center;padding:56px 0;color:var(--text)">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--surface3)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:10px;display:block;margin-left:auto;margin-right:auto"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+      Inga flaggor registrerade ännu</div>`
+    :allFlags.map(f=>`<div onclick="openPat&&openPat('${f.patId}')" style="padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:6px;margin-bottom:7px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .1s" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--ink)">${e(f.patName)}</div>
+        <div style="font-size:12px;color:var(--text)">${e(f.note)}</div>
+      </div>
+      <div style="font-size:12px;color:var(--text2);flex-shrink:0">${f.date?new Date(f.date).toLocaleDateString('sv-SE'):''}</div>
+    </div>`).join('')}
+  </div></div>`;
 }
 
 
@@ -18443,446 +18954,6 @@ function restoreMeetDraft(draft) {
 
 
 
-
-// ── TOOLS ─────────────────────────────────────────────────────────────────────
-let _toolsActiveView = 'home';
-let _toolsUSImages = [];
-let _toolsUSResult = null;
-let _toolsRemissResult = null;
-
-function rTools(view) {
-  _toolsActiveView = view || 'home';
-  const el = document.getElementById('s-tools');
-  if (!el) return;
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  el.classList.add('active');
-  S.screen = 'tools';
-  _renderTools();
-  updateNavLinks();
-}
-
-function _renderTools() {
-  const el = document.getElementById('s-tools');
-  if (!el) return;
-  const v = _toolsActiveView;
-  let content = '';
-  if (v === 'us') content = _toolsUSPanel();
-  else if (v === 'remiss') content = _toolsRemissPanel();
-  else if (v === 'redflag') content = _toolsRedFlagPanel();
-  else content = _toolsHomePanel();
-
-  el.innerHTML = `
-  <div style="display:flex;flex-direction:column;height:100%;background:var(--bg);font-family:var(--font)">
-    <div style="height:52px;background:#161b22;border-bottom:1px solid #30363d;display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0">
-      <span style="font-size:14px;font-weight:700;color:#e6edf3">Verktyg</span>
-      <span style="font-size:13px;color:#8b949e">\u00b7 Kliniska AI-assistenter</span>
-      <div style="margin-left:auto;display:flex;gap:6px">
-        ${_toolsTabBtn('home','Översikt')}
-        ${_toolsTabBtn('us','Bildanalys')}
-        ${_toolsTabBtn('remiss','Remiss')}
-        ${_toolsTabBtn('redflag','Flagghistorik')}
-      </div>
-    </div>
-    <div style="flex:1;overflow-y:auto">
-      <div style="max-width:900px;margin:0 auto;padding:28px 24px 80px">
-        ${content}
-      </div>
-    </div>
-  </div>`;
-
-  if (v === 'us' && _toolsUSImages.length) _toolsRenderImageThumbs();
-}
-
-function _toolsTabBtn(view, label) {
-  const active = _toolsActiveView === view;
-  return `<button onclick="_toolsActiveView='${view}';_renderTools()"
-    style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid ${active?'var(--orange)':'#30363d'};background:${active?'rgba(224,118,40,.1)':'none'};color:${active?'var(--orange)':'#8b949e'};transition:all .12s">
-    ${label}</button>`;
-}
-
-// ── HOME PANEL ────────────────────────────────────────────────────────────────
-function _toolsHomePanel() {
-  const rfLog = (() => { try { return JSON.parse(localStorage.getItem('vela:redflaglog')||'[]'); } catch(e2){return[];} })();
-  const tools = [
-    { key:'us',      icon:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>',
-      title:'Bildanalys', sub:'Ultraljud · Radiologi', badge:'AI',
-      desc:'Ladda upp bild med klinisk bakgrund. AI analyserar fynd och genererar formellt utlåtande på svenska med radiologisk struktur.' },
-    { key:'remiss',  icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
-      title:'Remissgenerator', sub:'Röntgen · Ortoped · Fysio', badge:'AI',
-      desc:'Genererar remiss i standardformat. Prefylls automatiskt från journaltext. Du godkänner alltid innan det skickas.' },
-    { key:'redflag', icon:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
-      title:'Röd flagg-historik', sub:'Klinisk säkerhet', badge: rfLog.length ? String(rfLog.length) : null,
-      desc:'Logg över identifierade röda flaggor. Automatisk scanning körs i bakgrunden vid varje sparad journal.' }
-  ];
-
-  let h = `<div style="margin-bottom:28px">
-    <div style="font-size:22px;font-weight:700;color:#e6edf3;margin-bottom:6px">Kliniska verktyg</div>
-    <div style="font-size:14px;color:#8b949e">AI-assistenter för bildanalys, dokumentation och klinisk säkerhet.</div>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">`;
-
-  tools.forEach(t => {
-    const badgeColor = t.key==='redflag' ? '#f85149' : 'var(--orange)';
-    const badgeBg = t.key==='redflag' ? 'rgba(248,81,73,.12)' : 'rgba(224,118,40,.15)';
-    h += `<div onclick="_toolsActiveView='${t.key}';_renderTools()"
-      style="background:#161b22;border:1px solid #30363d;border-radius:6px;padding:20px;cursor:pointer;transition:border-color .12s"
-      onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='#30363d'">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
-        <div style="width:38px;height:38px;border-radius:8px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.18);display:flex;align-items:center;justify-content:center">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${t.icon}</svg>
-        </div>
-        ${t.badge ? `<span style="font-size:10px;font-weight:700;background:${badgeBg};color:${badgeColor};padding:2px 8px;border-radius:12px">${t.badge}</span>` : ''}
-      </div>
-      <div style="font-size:14px;font-weight:700;color:#e6edf3;margin-bottom:2px">${t.title}</div>
-      <div style="font-size:11px;color:var(--orange);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">${t.sub}</div>
-      <div style="font-size:13px;color:#8b949e;line-height:1.55">${t.desc}</div>
-      <div style="margin-top:14px;font-size:12px;font-weight:600;color:var(--orange);display:flex;align-items:center;gap:4px">
-        Öppna <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </div>
-    </div>`;
-  });
-  h += `</div>`;
-  return h;
-}
-
-// ── ULTRASOUND PANEL ──────────────────────────────────────────────────────────
-function _toolsUSPanel() {
-  const pat = S.pat;
-  const prefill = pat ? 'Patient: ' + (pat.name||'') + (pat.diagnosis ? ', ' + pat.diagnosis : '') + '\n' : '';
-  const hasResult = !!_toolsUSResult;
-  return `
-  <div style="margin-bottom:20px">
-    <button onclick="_toolsActiveView='home';_renderTools()" style="background:none;border:none;color:#8b949e;font-size:13px;font-weight:500;cursor:pointer;padding:0;font-family:var(--font);display:flex;align-items:center;gap:5px;margin-bottom:12px">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Tillbaka
-    </button>
-    <div style="font-size:18px;font-weight:700;color:#e6edf3;margin-bottom:4px">Bildanalys — Ultraljud</div>
-    <div style="font-size:13px;color:#8b949e">Ladda upp bild, ge klinisk bakgrund, få strukturerat utlåtande.</div>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
-        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Bild(er)</div>
-        <div id="tools-us-dropzone" onclick="document.getElementById('tools-us-file').click()"
-          ondragover="event.preventDefault();this.style.borderColor='var(--orange)'"
-          ondragleave="this.style.borderColor='transparent'"
-          ondrop="_toolsHandleDrop(event)"
-          style="padding:28px;text-align:center;cursor:pointer;border:2px dashed transparent;transition:border-color .12s;margin:10px">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#30363d" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:8px"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
-          <div style="font-size:13px;color:#8b949e;margin-bottom:4px">Klicka eller dra bild hit</div>
-          <div style="font-size:12px;color:#6e7681">PNG · JPG · JPEG</div>
-          <input type="file" id="tools-us-file" accept="image/*" multiple style="display:none" onchange="_toolsHandleFiles(this.files)">
-        </div>
-        <div id="tools-us-thumbs" style="display:flex;gap:8px;padding:0 14px 12px;flex-wrap:wrap"></div>
-      </div>
-      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
-        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Klinisk bakgrund</div>
-        <textarea id="tools-us-context" placeholder="Patient, symtom, klinisk frågeställning..."
-          style="width:100%;min-height:90px;border:none;background:transparent;padding:12px 14px;font-size:13px;color:#e6edf3;font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.6"
-          >${e(prefill)}</textarea>
-      </div>
-      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
-        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Typ av svar</div>
-        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#e6edf3"><input type="radio" name="tools-us-fmt" value="formal" checked style="accent-color:var(--orange)"> Formellt utlåtande (radiologisk stil)</label>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#e6edf3"><input type="radio" name="tools-us-fmt" value="clinical" style="accent-color:var(--orange)"> Klinisk sammanfattning</label>
-          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#e6edf3"><input type="radio" name="tools-us-fmt" value="patient" style="accent-color:var(--orange)"> Patientvänlig text</label>
-        </div>
-      </div>
-      <button onclick="_toolsRunUSAnalysis()"
-        style="width:100%;padding:13px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        Analysera bild
-      </button>
-    </div>
-    <div>
-      <div id="tools-us-result" style="background:#161b22;border:1px solid #30363d;border-radius:6px;min-height:420px">
-        ${hasResult ? _toolsUSResultHTML(_toolsUSResult) : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:420px;color:#6e7681;gap:10px">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          <div style="font-size:13px">Utlåtandet visas här</div>
-        </div>`}
-      </div>
-    </div>
-  </div>`;
-}
-
-function _toolsUSResultHTML(r) {
-  return `<div>
-    <div style="padding:10px 14px;border-bottom:1px solid #30363d;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
-      <span style="font-size:12px;font-weight:700;color:#3fb950;text-transform:uppercase;letter-spacing:.06em">&#10003; Analys klar</span>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button onclick="_toolsUSCopyResult()" style="padding:4px 10px;background:none;border:1px solid #30363d;border-radius:5px;font-size:12px;font-weight:600;color:#8b949e;cursor:pointer;font-family:var(--font)">Kopiera</button>
-        <button onclick="_toolsUSInsertToSOAP()" style="padding:4px 10px;background:rgba(224,118,40,.1);border:1px solid rgba(224,118,40,.25);border-radius:5px;font-size:12px;font-weight:600;color:var(--orange);cursor:pointer;font-family:var(--font)">Infoga i journal</button>
-        <button onclick="_toolsUSPatientMail()" style="padding:4px 10px;background:none;border:1px solid #30363d;border-radius:5px;font-size:12px;font-weight:600;color:#8b949e;cursor:pointer;font-family:var(--font)">&rarr; Patientmail</button>
-      </div>
-    </div>
-    ${r.redFlags && r.redFlags.length ? `<div style="margin:12px 14px 0;background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.25);border-radius:6px;padding:10px 12px">
-      <div style="font-size:11px;font-weight:700;color:#f85149;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Kliniska observationer</div>
-      ${r.redFlags.map(f=>`<div style="font-size:13px;color:#f09090;margin-bottom:3px">&middot; ${e(f)}</div>`).join('')}
-    </div>` : ''}
-    <div style="padding:14px;font-size:13px;color:#e6edf3;line-height:1.8;white-space:pre-wrap;font-family:var(--font)">${e(r.report)}</div>
-    <div style="margin:0 14px 14px;padding:10px 12px;background:#0d1117;border-radius:6px;border:1px solid #21262d">
-      <div style="font-size:11px;color:#6e7681">AI-assisterat utlåtande &middot; Klinisk verifiering krävs &middot; ${new Date().toLocaleDateString('sv-SE')}</div>
-    </div>
-  </div>`;
-}
-
-function _toolsRenderImageThumbs() {
-  const box = document.getElementById('tools-us-thumbs');
-  if (!box) return;
-  box.innerHTML = _toolsUSImages.map((img, i) =>
-    `<div style="position:relative;width:72px;height:56px;border-radius:4px;overflow:hidden;border:1px solid #30363d;flex-shrink:0">
-      <img src="${img.dataUrl}" style="width:100%;height:100%;object-fit:cover">
-      <button onclick="_toolsRemoveImage(${i})" style="position:absolute;top:2px;right:2px;width:16px;height:16px;background:rgba(0,0,0,.75);border:none;border-radius:50%;color:white;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1">&#x2715;</button>
-    </div>`
-  ).join('');
-}
-
-function _toolsHandleFiles(files) {
-  Array.from(files).forEach(file => {
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      _toolsUSImages.push({ dataUrl: ev.target.result, file });
-      _toolsRenderImageThumbs();
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-function _toolsHandleDrop(ev) {
-  ev.preventDefault();
-  _toolsHandleFiles(ev.dataTransfer.files);
-}
-
-function _toolsRemoveImage(i) {
-  _toolsUSImages.splice(i, 1);
-  _toolsRenderImageThumbs();
-}
-
-async function _toolsRunUSAnalysis() {
-  if (!_toolsUSImages.length) { showAutoSaveToast('Ladda upp minst en bild f\u00f6rst'); return; }
-  const key = getKey();
-  if (!key) { showAutoSaveToast('API-nyckel saknas'); return; }
-
-  const ctx = (document.getElementById('tools-us-context')||{}).value || '';
-  const fmtEl = document.querySelector('input[name="tools-us-fmt"]:checked');
-  const fmt = fmtEl ? fmtEl.value : 'formal';
-  const fmtInstr = {
-    formal: 'Skriv ett formellt radiologiskt utl\u00e5tande p\u00e5 svenska. Struktur: Teknik / Fynd / Konklusion. Anv\u00e4nd "f\u00f6renliga med"-framing. Inga behandlingsrekommendationer — enbart fynd.',
-    clinical: 'Skriv en klinisk sammanfattning p\u00e5 svenska f\u00f6r behandlande terapeut. Lyft fram kliniskt relevanta fynd och eventuella observationer.',
-    patient: 'Skriv en tillg\u00e4nglig f\u00f6rklaring p\u00e5 svenska f\u00f6r patienten. Undvik medicinsk jargong. F\u00f6rklara vad bilden visar p\u00e5 ett lugnt och tydligt s\u00e4tt.'
-  }[fmt];
-
-  const resultEl = document.getElementById('tools-us-result');
-  if (resultEl) resultEl.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:32px;color:#8b949e;font-size:13px"><div style="width:8px;height:8px;border-radius:50%;background:var(--orange);animation:pulse 1s infinite"></div>Analyserar bild...</div>`;
-
-  try {
-    const contentArr = _toolsUSImages.map(img => ({
-      type: 'image',
-      source: { type: 'base64', media_type: img.file.type || 'image/jpeg', data: img.dataUrl.split(',')[1] }
-    }));
-    contentArr.push({ type: 'text', text: fmtInstr + '\n\nKlinisk bakgrund:\n' + (ctx || 'Ingen bakgrund angiven.') + '\n\nSvara med JSON: {"report":"utl\u00e5tande text","redFlags":["observation"]}' });
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, messages: [{ role:'user', content: contentArr }] })
-    });
-    const data = await res.json();
-    const txt = (data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
-    _toolsUSResult = JSON.parse(txt);
-    if (resultEl) resultEl.innerHTML = _toolsUSResultHTML(_toolsUSResult);
-  } catch(err) {
-    console.error('US error:', err);
-    if (resultEl) resultEl.innerHTML = `<div style="padding:20px;font-size:13px;color:#f85149">Analys misslyckades: ${e(err.message)}</div>`;
-  }
-}
-
-function _toolsUSCopyResult() {
-  if (_toolsUSResult) navigator.clipboard.writeText(_toolsUSResult.report).then(()=>showAutoSaveToast('Kopierat'));
-}
-
-function _toolsUSInsertToSOAP() {
-  if (!_toolsUSResult) return;
-  navigator.clipboard.writeText(_toolsUSResult.report);
-  showAutoSaveToast('Utl\u00e5tande kopierat \u2014 klistra in i O-f\u00e4ltet');
-  if (S.pat) setTimeout(()=>{ startManualSOAP && startManualSOAP(); }, 1200);
-}
-
-function _toolsUSPatientMail() {
-  if (!_toolsUSResult) return;
-  const key = getKey();
-  if (!key) { showAutoSaveToast('API-nyckel saknas'); return; }
-  const modal = document.getElementById('modal');
-  if (!modal) return;
-  modal.style.display = 'flex';
-  modal.innerHTML = `<div style="background:#161b22;border-radius:6px;width:100%;max-width:560px;padding:28px;font-family:var(--font)">
-    <div style="font-size:16px;font-weight:700;color:#e6edf3;margin-bottom:4px">Patientmail</div>
-    <div style="font-size:13px;color:#8b949e;margin-bottom:16px">AI omvandlar utl\u00e5tandet till tillg\u00e4nglig text f\u00f6r patienten.</div>
-    <div id="tools-mail-body" style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:14px;font-size:13px;color:#8b949e;min-height:80px;white-space:pre-wrap;line-height:1.6">Genererar...</div>
-    <div style="display:flex;gap:8px;margin-top:16px">
-      <button onclick="navigator.clipboard.writeText(document.getElementById('tools-mail-body').innerText);showAutoSaveToast('Kopierat')"
-        style="flex:1;padding:10px;background:rgba(224,118,40,.1);color:var(--orange);border:1px solid rgba(224,118,40,.25);border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Kopiera</button>
-      <button onclick="document.getElementById('modal').style.display='none'"
-        style="flex:1;padding:10px;background:none;border:1px solid #30363d;border-radius:6px;font-size:13px;font-weight:600;color:#8b949e;cursor:pointer;font-family:var(--font)">St\u00e4ng</button>
-    </div>
-  </div>`;
-
-  fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,
-      messages:[{role:'user',content:'Skriv ett v\u00e4nligt, tydligt patientmail p\u00e5 svenska baserat p\u00e5 detta utl\u00e5tande. Inga medicinska termer utan f\u00f6rklaring. Inled med h\u00e4lsning till '+(S.pat?S.pat.name:'patienten')+'.\n\nUtl\u00e5tande:\n'+_toolsUSResult.report}]})
-  }).then(r=>r.json()).then(data=>{
-    const txt=(data.content||[]).map(b=>b.text||'').join('');
-    const el=document.getElementById('tools-mail-body');
-    if(el){el.style.color='#e6edf3';el.textContent=txt;}
-  }).catch(err=>{
-    const el=document.getElementById('tools-mail-body');
-    if(el)el.textContent='Misslyckades: '+err.message;
-  });
-}
-
-// ── REMISS PANEL ──────────────────────────────────────────────────────────────
-function _toolsRemissPanel() {
-  const pat = S.pat;
-  const hasResult = !!_toolsRemissResult;
-  return `
-  <div style="margin-bottom:20px">
-    <button onclick="_toolsActiveView='home';_renderTools()" style="background:none;border:none;color:#8b949e;font-size:13px;font-weight:500;cursor:pointer;padding:0;font-family:var(--font);display:flex;align-items:center;gap:5px;margin-bottom:12px">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Tillbaka
-    </button>
-    <div style="font-size:18px;font-weight:700;color:#e6edf3;margin-bottom:4px">Remissgenerator</div>
-    <div style="font-size:13px;color:#8b949e">Fyll i f\u00e4lten \u2014 AI genererar remissen. Du godk\u00e4nner alltid innan den skickas.</div>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
-        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Patient</div>
-        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-          <input class="field" id="rem-patname" placeholder="Patientnamn" value="${e(pat?pat.name:'')}" style="width:100%;box-sizing:border-box">
-          <input class="field" id="rem-patbirth" placeholder="Personnummer / F\u00f6delsedatum" value="${e(pat?pat.birthdate||pat.birthYear||'':'')}" style="width:100%;box-sizing:border-box">
-        </div>
-      </div>
-      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
-        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Remitteras till</div>
-        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
-          <select id="rem-to" class="field" style="width:100%;box-sizing:border-box">
-            <option>R\u00f6ntgen</option><option>Ortoped</option><option>Neurolog</option><option>Fysioterapeut</option><option>Reumatolog</option><option>Allm\u00e4nl\u00e4kare</option><option>Sm\u00e4rtmottagning</option><option>Annan</option>
-          </select>
-          <input class="field" id="rem-undersok" placeholder="Unders\u00f6kning (t.ex. MRT l\u00e4ndrygg, DT kn\u00e4)" style="width:100%;box-sizing:border-box">
-        </div>
-      </div>
-      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
-        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Fr\u00e5gst\u00e4llning</div>
-        <textarea id="rem-fraga" placeholder="Vad vill du ha svar p\u00e5?" style="width:100%;min-height:72px;border:none;background:transparent;padding:12px 14px;font-size:13px;color:#e6edf3;font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.6">${e(pat?pat.customDiag||pat.diagnosis||'':'')}</textarea>
-      </div>
-      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
-        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Klinisk bakgrund</div>
-        <textarea id="rem-bakgrund" placeholder="Fynd, symtombild, tidigare behandling..." style="width:100%;min-height:72px;border:none;background:transparent;padding:12px 14px;font-size:13px;color:#e6edf3;font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.6"></textarea>
-      </div>
-      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
-        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Br\u00e5dska</div>
-        <div style="padding:12px 14px;display:flex;gap:12px;flex-wrap:wrap">
-          ${['Rutinremiss','Inom 4 veckor','Inom 1 vecka','Akut'].map((v,i)=>`<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:#e6edf3"><input type="radio" name="rem-urgency" value="${v}" ${i===0?'checked':''} style="accent-color:var(--orange)"> ${v}</label>`).join('')}
-        </div>
-      </div>
-      <button onclick="_toolsRunRemiss()" style="width:100%;padding:13px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Generera remiss
-      </button>
-    </div>
-    <div id="tools-remiss-result" style="background:#161b22;border:1px solid #30363d;border-radius:6px;min-height:420px">
-      ${hasResult ? _toolsRemissResultHTML(_toolsRemissResult) : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:420px;color:#6e7681;gap:10px">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        <div style="font-size:13px">Remissen visas h\u00e4r</div>
-      </div>`}
-    </div>
-  </div>`;
-}
-
-function _toolsRemissResultHTML(txt) {
-  return `<div>
-    <div style="padding:10px 14px;border-bottom:1px solid #30363d;display:flex;align-items:center;justify-content:space-between">
-      <span style="font-size:12px;font-weight:700;color:#3fb950;text-transform:uppercase;letter-spacing:.06em">&#10003; Remiss klar</span>
-      <button onclick="navigator.clipboard.writeText(document.getElementById('tools-remiss-editable').value);showAutoSaveToast('Kopierat')"
-        style="padding:4px 10px;background:none;border:1px solid #30363d;border-radius:5px;font-size:12px;font-weight:600;color:#8b949e;cursor:pointer;font-family:var(--font)">Kopiera</button>
-    </div>
-    <textarea id="tools-remiss-editable" style="width:100%;min-height:380px;border:none;background:transparent;padding:14px;font-size:13px;color:#e6edf3;font-family:var(--font-mono);resize:none;outline:none;box-sizing:border-box;line-height:1.8">${e(txt)}</textarea>
-    <div style="padding:8px 14px;border-top:1px solid #30363d">
-      <div style="font-size:11px;color:#6e7681">Granska och redigera innan du skickar. AI-genererat utkast.</div>
-    </div>
-  </div>`;
-}
-
-async function _toolsRunRemiss() {
-  const key = getKey();
-  if (!key) { showAutoSaveToast('API-nyckel saknas'); return; }
-  const patName  = (document.getElementById('rem-patname')||{}).value||'';
-  const patBirth = (document.getElementById('rem-patbirth')||{}).value||'';
-  const remTo    = (document.getElementById('rem-to')||{}).value||'';
-  const undersok = (document.getElementById('rem-undersok')||{}).value||'';
-  const fraga    = (document.getElementById('rem-fraga')||{}).value||'';
-  const bakgrund = (document.getElementById('rem-bakgrund')||{}).value||'';
-  const urgEl    = document.querySelector('input[name="rem-urgency"]:checked');
-  const urgency  = urgEl ? urgEl.value : 'Rutinremiss';
-  const clinicName = (typeof getClinicName==='function' ? getClinicName() : null) || 'Kansei Ortopedi & Rehabcenter';
-  const resultEl = document.getElementById('tools-remiss-result');
-  if (resultEl) resultEl.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:32px;color:#8b949e;font-size:13px"><div style="width:8px;height:8px;border-radius:50%;background:var(--orange);animation:pulse 1s infinite"></div>Genererar remiss...</div>`;
-  try {
-    const prompt = `Du \u00e4r leg. naprapat p\u00e5 ${clinicName} och skriver en remiss p\u00e5 svenska.\nDatum: ${new Date().toLocaleDateString('sv-SE')}\nPatient: ${patName}${patBirth?', '+patBirth:''}\nRemitteras till: ${remTo}\nUnders\u00f6kning: ${undersok}\nBr\u00e5dska: ${urgency}\nFr\u00e5gst\u00e4llning: ${fraga}\nKlinisk bakgrund: ${bakgrund}\n\nSkriv komplett remiss i standardformat med rubrikerna REMISS, Patient, Remitteras till, Unders\u00f6kning, Fr\u00e5gst\u00e4llning, Anamnes och status, Br\u00e5dska, Remittent. Svara ENBART med remissdokumentet.`;
-    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,system:'Svara enbart med remissdokumentet p\u00e5 svenska.',messages:[{role:'user',content:prompt}]})});
-    const data = await res.json();
-    _toolsRemissResult = (data.content||[]).map(b=>b.text||'').join('').replace(/```/g,'').trim();
-    if (resultEl) resultEl.innerHTML = _toolsRemissResultHTML(_toolsRemissResult);
-    // Log
-    try { const log=JSON.parse(localStorage.getItem('vela:toolslog')||'[]'); log.unshift({type:'remiss',label:patName||'Remiss',sub:remTo,ts:Date.now()}); localStorage.setItem('vela:toolslog',JSON.stringify(log.slice(0,50))); } catch(e2){}
-  } catch(err) {
-    if (resultEl) resultEl.innerHTML = `<div style="padding:20px;font-size:13px;color:#f85149">Misslyckades: ${e(err.message)}</div>`;
-  }
-}
-
-// ── RED FLAG HISTORY PANEL ────────────────────────────────────────────────────
-function _toolsRedFlagPanel() {
-  let log = [];
-  try { log = JSON.parse(localStorage.getItem('vela:redflaglog')||'[]'); } catch(e2) {}
-  let h = `<div style="margin-bottom:20px">
-    <button onclick="_toolsActiveView='home';_renderTools()" style="background:none;border:none;color:#8b949e;font-size:13px;font-weight:500;cursor:pointer;padding:0;font-family:var(--font);display:flex;align-items:center;gap:5px;margin-bottom:12px">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Tillbaka
-    </button>
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
-      <div style="font-size:18px;font-weight:700;color:#e6edf3">R\u00f6d flagg-historik</div>
-      ${log.length?`<span style="font-size:12px;font-weight:700;background:rgba(248,81,73,.1);color:#f85149;padding:2px 8px;border-radius:12px">${log.length} flagg${log.length===1?'a':'or'}</span>`:''}
-    </div>
-    <div style="font-size:13px;color:#8b949e">Automatisk scanning vid varje sparad journal. Kr\u00e4ver alltid klinisk bed\u00f6mning.</div>
-  </div>`;
-  if (!log.length) {
-    return h + `<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;padding:56px;text-align:center">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#30363d" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:14px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <div style="font-size:14px;color:#6e7681;margin-bottom:4px">Inga flaggor identifierade \u00e4n</div>
-      <div style="font-size:13px;color:#6e7681">Dyker upp h\u00e4r automatiskt n\u00e4r journaler sparas.</div>
-    </div>`;
-  }
-  h += `<div style="display:flex;flex-direction:column;gap:8px">`;
-  log.forEach(function(f) {
-    const dt = f.ts ? new Date(f.ts).toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric'}) : '';
-    const urgColor = f.urgent ? '#f85149' : '#d29922';
-    const urgBorder = f.urgent ? 'rgba(248,81,73,.3)' : 'rgba(210,153,34,.3)';
-    h += `<div style="background:#161b22;border:1px solid ${urgBorder};border-left:3px solid ${urgColor};border-radius:6px;padding:14px 16px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${urgColor}" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <span style="font-size:13px;font-weight:700;color:#e6edf3">${e(f.patName||'Okänd patient')}</span>
-          ${f.urgent?`<span style="font-size:10px;font-weight:700;background:rgba(248,81,73,.1);color:#f85149;padding:1px 6px;border-radius:4px">AGERA NU</span>`:`<span style="font-size:10px;font-weight:700;background:rgba(210,153,34,.1);color:#d29922;padding:1px 6px;border-radius:4px">OBSERVERA</span>`}
-        </div>
-        <span style="font-size:11px;color:#6e7681">${dt}</span>
-      </div>
-      <div style="font-size:13px;color:#8b949e;line-height:1.55;margin-bottom:${f.context?'8':'0'}px">${e(f.flags||'')}</div>
-      ${f.context?`<div style="font-size:12px;color:#6e7681;font-style:italic;border-top:1px solid #21262d;padding-top:8px">${e(f.context)}</div>`:''}
-    </div>`;
-  });
-  h += `</div>`;
-  return h;
-}
 
 // ── RED FLAG AUTO-SCANNER (hooked into saveSOAPToVisit) ───────────────────────
 async function _runRedFlagScan(soapText, patName) {

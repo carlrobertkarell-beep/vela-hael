@@ -2794,6 +2794,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
     <div id="s-economy" class="screen"></div>
     <div id="s-invoices" class="screen"></div>
     <div id="s-tools" class="screen"></div>
+    <div id="s-sigqueue" class="screen"></div>
   </div>
 </div>
 
@@ -5487,7 +5488,7 @@ function go(scr){
 
   if (!_isPlatformScreen) rTopbar();
   if (!_isPlatformScreen && typeof _generateAIBriefings === 'function') setTimeout(_generateAIBriefings, 300);
-  const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,availability:rAvailability,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,profile:rProfile,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){},retention:rActions,'patient-portal':function(){},'intake':function(){},tools:rTools};
+  const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,availability:rAvailability,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,profile:rProfile,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){},retention:rActions,'patient-portal':function(){},'intake':function(){},tools:rTools,sigqueue:rSignatureQueue};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
 }
@@ -10191,6 +10192,28 @@ function logAIEdit(approvalId, patId, docType, originalText, editedText) {
   try { localStorage.setItem(AI_EDITS_KEY, JSON.stringify(edits)); } catch {}
 }
 
+// Build feedback context to re-inject into AI prompts
+// Summarises patterns from the last 20 SOAP edits so AI learns the clinician's style
+function _buildFeedbackContext() {
+  var edits = getAIEdits().filter(function(e){ return e.docType === 'soap'; }).slice(-20);
+  if (edits.length < 3) return ''; // Not enough signal yet
+
+  var highEdit = edits.filter(function(e){ return e.editRatio > 25; });
+  var lowEdit  = edits.filter(function(e){ return e.editRatio <= 10; });
+  var pct = Math.round((lowEdit.length / edits.length) * 100);
+
+  var ctx = '\nBEHANDLARPREFERENSER (baserat på ' + edits.length + ' tidigare redigeringar):\n';
+  ctx += '- ' + pct + '% av tidigare AI-journaler godkändes med minimala ändringar\n';
+  if (highEdit.length > edits.length * 0.4) {
+    ctx += '- Behandlaren redigerar ofta O-fältet — var mer specifik med undersökningsfynd\n';
+  }
+  if (lowEdit.length > edits.length * 0.6) {
+    ctx += '- AI-utkast accepteras regelbundet — fortsätt i samma stil\n';
+  }
+  ctx += '- Skriv i samma stil och precision som tidigare godkända journaler\n';
+  return ctx;
+}
+
 // ── Simple diff renderer (word-level) ─────────────────────────────────────
 function _renderDiff(oldText, newText) {
   if (!oldText) return '<span style="color:var(--teal)">' + e(newText) + '</span>';
@@ -10302,11 +10325,40 @@ function _applyApprovedContent(a, content) {
     savePat(Object.assign({}, p, { messages: msgs }));
 
   } else if (a.type === 'hael_plan' && a.visitId) {
-    var updV2 = (p.visits||[]).map(function(v) {
-      if (v.id !== a.visitId) return v;
-      return Object.assign({}, v, { aiApproved: true, aiApprovedAt: a.approvedAt });
-    });
-    savePat(Object.assign({}, p, { visits: updV2 }));
+    // Hael plan approved — trigger full plan generation using stored haelData
+    var haelData = a.meta && a.meta.haelData;
+    if (haelData) {
+      var p2 = (S.patients||[]).find(function(x){ return x.id === a.patId; });
+      if (p2) {
+        // Build S.form from haelData and generate real plan
+        S.pat = p2;
+        S.visitId = a.visitId;
+        S.form = {
+          name: p2.name || '',
+          birthdate: p2.birthdate || '',
+          birthYear: p2.birthYear || 1980,
+          diagnosis: p2.diagnosis || '',
+          pain: haelData.pain || 5,
+          motivation: haelData.motivation || 6,
+          history: haelData.history || 'ingen',
+          knowledge: haelData.knowledge || 'låg',
+          location: haelData.location || 'hem',
+          exercises: haelData.exercises || Math.min((haelData.exercises||[]).length || 5, 8),
+          followup: haelData.weeks || 4,
+          notes: haelData.homeAdvice || ''
+        };
+        // Navigate to form for final review before generating
+        showAutoSaveToast('Hael-plan klar för generering — öppnar formulär');
+        setTimeout(function(){ go('form'); }, 600);
+      }
+    } else {
+      // No haelData — just mark approved
+      var updV2 = (p.visits||[]).map(function(v) {
+        if (v.id !== a.visitId) return v;
+        return Object.assign({}, v, { aiApproved: true, aiApprovedAt: a.approvedAt });
+      });
+      savePat(Object.assign({}, p, { visits: updV2 }));
+    }
   }
   S.patients = getPatients ? getPatients() : S.patients;
   if (S.pat && S.pat.id === a.patId) S.pat = (S.patients||[]).find(function(x){ return x.id === a.patId; }) || S.pat;
@@ -12739,7 +12791,7 @@ function rInbox() {
 
   // Type filter
   if (st.filter === 'agent') {
-    var _agentCats = ['previsit_brief','overdue_return','missing_journal','nrs_spike','no_home_activity'];
+    var _agentCats = ['previsit_brief','overdue_return','missing_journal','nrs_spike','no_home_activity','hael_suggested'];
     notifs = notifs.filter(function(n){ return _agentCats.indexOf(n.category) !== -1; });
   } else if (st.filter !== 'all') {
     notifs = notifs.filter(function(n){ return n.type === st.filter || n.subtype === st.filter; });
@@ -12809,7 +12861,7 @@ function rInbox() {
   });
 
   // Vela Agent section
-  var agentCategories = ['previsit_brief','overdue_return','missing_journal','nrs_spike','no_home_activity'];
+  var agentCategories = ['previsit_brief','overdue_return','missing_journal','nrs_spike','no_home_activity','hael_suggested'];
   var agentCount = allNotifs.filter(function(n){ return agentCategories.indexOf(n.category) !== -1 && !n.done; }).length;
   h += '<div class="akt-sidebar-section-label">Vela Agent</div>';
   var agentActive = st.filter === 'agent';
@@ -17835,6 +17887,64 @@ function triggerClinicalAnalysis(text) {
   clinicalAnalysisDebounce = setTimeout(() => runClinicalAnalysis(text), 2500);
 }
 
+// O-fält assistent — föreslår tester baserat på S-fältet
+let _oAssistDebounce = null;
+function _triggerOAssist() {
+  clearTimeout(_oAssistDebounce);
+  _oAssistDebounce = setTimeout(_runOAssist, 2800);
+}
+async function _runOAssist() {
+  const key = getKey();
+  if (!key) return;
+  const sText = (document.getElementById('ms-S')||{}).value||'';
+  if (sText.trim().length < 25) return;
+  const oText = (document.getElementById('ms-O')||{}).value||'';
+  const bar = document.getElementById('o-assist-bar');
+  if (!bar) return;
+  // Don't suggest if O already has substantial content
+  if (oText.trim().length > 40) return;
+
+  const p = S.pat;
+  const diagCtx = p ? (' Diagnos: '+(p.diagnosis||'okänd')+'.') : '';
+  const prompt = 'Behandlaren har skrivit detta i S-fältet (subjektivt):\n"' + sText.slice(0,400) + '"' + diagCtx
+    + '\n\nVilka 3-5 kliniska tester är mest relevanta att utföra vid den objektivaundersökningen? Svara ENBART med JSON (inga backticks):\n{"tests":["Test 1","Test 2","Test 3"],"oSuggestion":"Kort förslag för O-fältet (1-2 meningar max)"}';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:MODEL_HAIKU,max_tokens:300,system:'Svara ALLTID med giltig JSON. Inga backticks.',messages:[{role:'user',content:prompt}]})});
+    const data = await res.json();
+    const r = JSON.parse((data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim());
+    if (!bar || !r.tests) return;
+    bar.style.display = 'block';
+    bar.innerHTML = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+      + '<span style="font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.07em;flex-shrink:0">Föreslagna tester:</span>'
+      + r.tests.map(t => '<button onclick="_oAssistAccept(\''+e(t)+'\')" style="font-size:11px;padding:2px 8px;background:none;border:1px solid rgba(224,118,40,.3);border-radius:4px;color:var(--teal);cursor:pointer;font-family:var(--font)">' + e(t) + '</button>').join('')
+      + '<button onclick="_oAssistAcceptAll('+JSON.stringify(r.tests).replace(/"/g,'&quot;')+')" style="font-size:11px;padding:2px 8px;background:rgba(224,118,40,.1);border:1px solid rgba(224,118,40,.25);border-radius:4px;color:var(--teal);cursor:pointer;font-family:var(--font);margin-left:4px">Lägg till alla →</button>'
+      + '<button onclick="document.getElementById(\'o-assist-bar\').style.display=\'none\'" style="font-size:16px;color:var(--text2);background:none;border:none;cursor:pointer;margin-left:auto;padding:0">×</button>'
+      + '</div>';
+  } catch(err) { /* silent */ }
+}
+function _oAssistAccept(test) {
+  const oEl = document.getElementById('ms-O');
+  if (!oEl) return;
+  const curr = oEl.value;
+  oEl.value = curr + (curr && !curr.endsWith('\n') ? '\n' : '') + test + ': ';
+  oEl.style.height = 'auto'; oEl.style.height = oEl.scrollHeight + 'px';
+  oEl.focus();
+  const pos = oEl.value.length; oEl.setSelectionRange(pos, pos);
+}
+function _oAssistAcceptAll(tests) {
+  const oEl = document.getElementById('ms-O');
+  if (!oEl) return;
+  const curr = oEl.value.trim();
+  const additions = tests.map(t => t + ': ').join('\n');
+  oEl.value = curr + (curr ? '\n' : '') + additions;
+  oEl.style.height = 'auto'; oEl.style.height = oEl.scrollHeight + 'px';
+  const bar = document.getElementById('o-assist-bar');
+  if (bar) bar.style.display = 'none';
+  oEl.focus();
+}
+
 async function runClinicalAnalysis(text) {
   if (!text || text.trim().length < 30) return;
   if (text.trim() === lastAnalyzedText.trim()) return;
@@ -17908,6 +18018,11 @@ function renderClinicalPanel(r) {
       const col=probColor[d.probability]||'var(--text)', bg=probBg[d.probability]||'rgba(139,148,158,.08)';
       const icdCode = d.icd10 || '';
       const icdBtn = icdCode ? `<button onclick="setClinicalICD('${e(icdCode)}','${e(d.name)}')" style="margin-left:6px;background:var(--surface3);border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:700;color:var(--ink);padding:2px 6px;cursor:pointer;font-family:var(--font-mono)">Sätt ICD</button>` : '';
+      // Auto-set ICD-10 if probability is Hög and field is empty
+      if (d.probability === 'Hög' && icdCode) {
+        const icdEl = document.getElementById('ms-icd');
+        if (icdEl && !icdEl.value) { icdEl.value = icdCode; if(currentSOAP){currentSOAP.icd10=icdCode;currentSOAP.icd10desc=d.name;} }
+      }
       h+=`<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;padding:9px 11px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
         <span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:${bg};color:${col};flex-shrink:0;margin-top:2px">${e(d.probability)}</span>
         <div style="flex:1;min-width:0">
@@ -18046,7 +18161,7 @@ async function finishMeeting() {
   const prompt = `Du är erfaren fysioterapeut och journalförare. Analysera detta medicinska samtal och skapa en strukturerad SOAP-journalanteckning på svenska.
 
 VIKTIGT: Extrahera ENBART medicinskt och kliniskt relevant information. Ignorera smalltalk, sidospår, diskussioner om icke-medicinska ämnen (t.ex. väder, sport, fritid) och allt som inte är direkt relevant för patientens besvär, symtom, undersökning eller behandling.
-
+${_buildFeedbackContext()}
 TRANSKRIPTION:
 ${fullTranscript}${extra}
 
@@ -18318,6 +18433,15 @@ async function saveSOAPToVisit(goToPlan) {
   // ── Röd flagg-scanner (async, non-blocking) ───────────────────
   setTimeout(function(){ _runRedFlagScan(soapText, saved && saved.name); }, 800);
 
+  // ── Auto-Hael: queue a plan suggestion if SOAP has enough content ─
+  if (!goToPlan) {
+    const hasSoap = mergedSoap.A || mergedSoap.P;
+    const alreadyHasPlan = (saved.visits||[]).some(function(v){ return v.plan && v.id === vid; });
+    if (hasSoap && !alreadyHasPlan) {
+      setTimeout(function(){ _autoQueueHaelSuggestion(saved, vid, mergedSoap); }, 1200);
+    }
+  }
+
   if (isFirstVisit || !(p.diagnoses||[]).length) {
     setTimeout(() => aiExtractDiagnoses(saved.id), 1500);
   }
@@ -18344,7 +18468,46 @@ async function saveSOAPToVisit(goToPlan) {
 }
 
 
-// -- MANUAL SOAP ENTRY ------------------------------------------------------
+// ── Auto-Hael: generate Hael plan suggestion in background after SOAP save ────
+async function _autoQueueHaelSuggestion(p, visitId, soap) {
+  const key = getKey();
+  if (!key) return;
+  const diagnosis = p.diagnosis || '';
+  const soapText = ['S','O','A','P'].map(l => (l+': '+(soap[l]||''))).filter(l=>l.length>3).join('\n');
+  const prompt = `Du är AI-naprapath. Baserat på denna journal, generera en kortfattad rehabplan för patienten.
+
+Patient: ${p.name}, diagnos: ${diagnosis}
+${soapText}
+
+Svara ENBART med JSON (inga backticks):
+{"planSummary":"Kort sammanfattning av planen (2-3 meningar)","weeks":4,"frequency":"2 ggr/vecka","exercises":[{"name":"Övning 1","sets":3,"reps":12,"desc":"Kort beskrivning"},{"name":"Övning 2","sets":3,"reps":10,"desc":"Kort beskrivning"},{"name":"Övning 3","sets":2,"reps":15,"desc":"Kort beskrivning"}],"homeAdvice":"Råd för hemvård"}`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:MODEL_HAIKU,max_tokens:700,system:'Svara ALLTID med giltig JSON. Inga backticks.',messages:[{role:'user',content:prompt}]})});
+    const data = await res.json();
+    const r = JSON.parse((data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim());
+    // Surface as approval item — never auto-apply
+    createAIApproval({
+      type: 'hael_plan',
+      patId: p.id,
+      patName: p.name,
+      title: 'Hael-plan förslag — ' + p.name,
+      aiContent: r.planSummary + '\n\nBehandling: ' + r.frequency + ' i ' + r.weeks + ' veckor\n\nÖvningar:\n' +
+        (r.exercises||[]).map(function(ex){ return '• ' + ex.name + ' ' + ex.sets + '×' + ex.reps + ' — ' + ex.desc; }).join('\n') +
+        (r.homeAdvice ? '\n\nHemråd: ' + r.homeAdvice : ''),
+      visitId: visitId,
+      meta: { haelData: r }
+    });
+    addInboxItem(p.id, p.name, 'ai_action', 'hael_suggested',
+      'Hael-plan redo att signera — ' + p.name,
+      r.planSummary ? r.planSummary.slice(0,100) + '…' : 'AI har genererat ett planförslag',
+      [{ label: 'Granska plan', fn: "rSignatureQueue&&rSignatureQueue()" }]
+    );
+  } catch(err) { /* silent — Hael suggestion is best-effort */ }
+}
+
+
 function collectMSOAPText() {
   return ['ms-S','ms-O','ms-A','ms-P'].map(id => {
     const el = document.getElementById(id);
@@ -18520,7 +18683,7 @@ function rManualSOAP(bk) {
         <button onclick="_toolsActiveTool='us';rTools('us')" title="Bildanalys" style="padding:6px 10px;background:none;border:1px solid #30363d;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#58a6ff;font-family:var(--font)">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>Bild
         </button>
-        <button onclick="_toolsActiveTool='remiss';rTools('remiss')" title="Remissgenerator" style="padding:6px 10px;background:none;border:1px solid #30363d;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#3fb950;font-family:var(--font)">
+        <button onclick="_openRemissModal()" title="Remissgenerator" style="padding:6px 10px;background:none;border:1px solid #30363d;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#3fb950;font-family:var(--font)">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Remiss
         </button>
       </div>
@@ -18551,9 +18714,10 @@ function rManualSOAP(bk) {
               </div>
               <textarea id="ms-${f.l}"
                 placeholder="${f.ph}"
-                oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';triggerClinicalAnalysis(collectMSOAPText());autoSaveJournalDraft()"
+                oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';triggerClinicalAnalysis(collectMSOAPText());autoSaveJournalDraft();${f.l==='S'?'_triggerOAssist()':''}"
                 style="width:100%;min-height:60px;border:none;border-top:1px solid var(--border2);background:var(--bg);padding:10px 14px;font-size:14px;color:#e6edf3;font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.65"
                 >${e(soap[f.l] || '')}</textarea>
+            ${f.l==='S' ? '<div id="o-assist-bar" style="display:none;padding:6px 12px;background:var(--teal-lt);border-top:1px solid rgba(224,118,40,.15)"></div>' : ''}
             </div>`).join('')}
           </div>
 
@@ -18827,6 +18991,30 @@ function _toolsUSRenderResult(r, region, probe, p) {
   const today = new Date().toLocaleDateString('sv-SE');
   const clinicName = (typeof getCfg==='function' && getCfg('clinicName')) || 'Kansei Ortopedi & Rehabcenter';
   const practitioner = (typeof getCfg==='function' && getCfg('clinicianName')) || '';
+
+  // Auto-queue to signature queue
+  if (p) {
+    const utlatandeText = [
+      'TEKNIK: ' + (r.teknik||''),
+      'FYND: ' + (r.fynd||''),
+      'KONKLUSION: ' + (r.konklusion||''),
+      r.followUp ? 'UPPFÖLJNING: ' + r.followUp : ''
+    ].filter(Boolean).join('\n\n');
+    createAIApproval({
+      type: 'soap',
+      patId: p.id,
+      patName: p.name,
+      title: 'Ultraljudsutlåtande — ' + p.name + ' · ' + today,
+      aiContent: utlatandeText,
+      meta: { source: 'ultrasound', region: region, probe: probe, redFlags: r.redFlags, patientVersion: r.patientVersion }
+    });
+    addInboxItem(p.id, p.name, 'ai_action', 'previsit_brief',
+      'Ultraljudsutlåtande klart — ' + p.name,
+      (r.konklusion||'').slice(0,100) + '…',
+      [{ label: 'Signera', fn: "rSignatureQueue&&rSignatureQueue()" }]
+    );
+    showAutoSaveToast('Utlåtande köat för signering');
+  }
   rp.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
       <div style="font-size:13px;font-weight:700;color:var(--ink)">Utlåtande</div>
@@ -18867,14 +19055,40 @@ function _toolsUSRenderResult(r, region, probe, p) {
 function _toolsUSInsertInJournal() {
   if (!_toolsUsResult) return;
   const r = _toolsUsResult;
-  const teknik    = document.getElementById('us-out-teknik')?.innerText    || r.teknik;
-  const fynd      = document.getElementById('us-out-fynd')?.innerText      || r.fynd;
+  const teknik     = document.getElementById('us-out-teknik')?.innerText    || r.teknik;
+  const fynd       = document.getElementById('us-out-fynd')?.innerText      || r.fynd;
   const konklusion = document.getElementById('us-out-konklusion')?.innerText || r.konklusion;
   const txt = `[Ultraljud]\nTeknik: ${teknik}\n\nFynd: ${fynd}\n\nKonklusion: ${konklusion}`;
   if (currentSOAP) { currentSOAP.soap = currentSOAP.soap||{}; currentSOAP.soap.O = (currentSOAP.soap.O?currentSOAP.soap.O+'\n\n':'')+txt; }
   const oEl = document.getElementById('ms-O') || document.getElementById('sbs-O');
   if (oEl) { oEl.value = (oEl.value?oEl.value+'\n\n':'')+txt; oEl.style.height='auto'; oEl.style.height=oEl.scrollHeight+'px'; }
-  showAutoSaveToast('Infogat i O-fältet');
+
+  // Also queue in signature queue for formal sign-off
+  const p = S.pat;
+  if (p) {
+    const today = new Date().toLocaleDateString('sv-SE');
+    const cfg   = getClinicConfig ? getClinicConfig() : {};
+    const clinicName = cfg.name || 'Kansei Ortopedi & Rehabcenter';
+    const practitioner = cfg.signature || 'Leg. naprapat';
+    const fullUtlatande = `ULTRALJUDSUTLÅTANDE\nDatum: ${today}\nPatient: ${p.name}, f.${p.birthdate||p.birthYear||'okänt'}\nUtfört av: ${practitioner}, ${clinicName}\n\n${txt}\n\n[AI-assisterat utlåtande — granskat och signerat av behandlare]`;
+    createAIApproval({
+      type: 'soap',
+      patId: p.id,
+      patName: p.name,
+      title: 'Ultraljudsutlåtande — ' + p.name,
+      aiContent: fullUtlatande,
+      visitId: S.visitId || null,
+      meta: { usResult: r }
+    });
+    addInboxItem(p.id, p.name, 'ai_action', 'missing_journal',
+      'Ultraljudsutlåtande redo att signera — ' + p.name,
+      `${fynd ? fynd.slice(0,80)+'…' : konklusion.slice(0,80)}`,
+      [{ label: 'Signera', fn: 'rSignatureQueue&&rSignatureQueue()' }]
+    );
+    showAutoSaveToast('Infogat i O-fältet + kö för signering');
+  } else {
+    showAutoSaveToast('Infogat i O-fältet');
+  }
 }
 
 async function _toolsUSGenerateMail() {
@@ -19006,7 +19220,93 @@ function _toolsRemissRenderResult(text, to, urgency) {
     </div>`;
 }
 
-// ── Flagghistorik ──────────────────────────────────────────────────────────
+// ── Remiss inline modal — triggered from SOAP toolbar ─────────────────────
+function _openRemissModal() {
+  document.getElementById('remiss-inline-modal')?.remove();
+  const p = S.pat;
+  const soap = currentSOAP && currentSOAP.soap || {};
+  const diagnosis = (currentSOAP && currentSOAP.diagnosis) || (p && p.diagnosis) || '';
+  const ov = document.createElement('div');
+  ov.id = 'remiss-inline-modal';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:800;background:rgba(7,16,30,.75);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px';
+  ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
+  ov.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:560px;overflow:hidden" onclick="event.stopPropagation()">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span style="font-size:14px;font-weight:700;color:var(--ink)">Remissgenerator</span>
+      ${p ? `<span style="font-size:12px;color:var(--text)">· ${e(p.name)}</span>` : ''}
+      <button onclick="document.getElementById('remiss-inline-modal').remove()" style="margin-left:auto;background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;line-height:1;padding:0 2px">×</button>
+    </div>
+    <div style="padding:18px 20px;display:flex;flex-direction:column;gap:12px" id="remiss-modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:4px">Remitteras till</label>
+          <select id="rm-to" class="field" style="width:100%">
+            <option>Röntgen</option><option>Ortoped</option><option>Neurolog</option>
+            <option>Fysioterapeut</option><option>Reumatolog</option><option>Annan</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:4px">Brådska</label>
+          <select id="rm-urgency" class="field" style="width:100%">
+            <option>Rutinremiss</option><option>Inom 4 veckor</option><option>Inom 1 vecka</option><option>Akut</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:4px">Undersökning</label>
+        <input id="rm-exam" class="field" style="width:100%" value="${e(diagnosis ? 'Utredning av ' + diagnosis : '')}" placeholder="t.ex. MRT ländrygg, Röntgen höger axel...">
+      </div>
+      <div>
+        <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:4px">Klinisk frågeställning</label>
+        <textarea id="rm-question" class="field" rows="3" style="width:100%;resize:none;font-family:var(--font);line-height:1.6" placeholder="Beskriv klinisk frågeställning...">${e(soap.A||'')}</textarea>
+      </div>
+      <div id="rm-result" style="display:none">
+        <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:6px">Genererad remiss</label>
+        <div id="rm-text" contenteditable="true" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:13px;color:var(--ink);line-height:1.75;white-space:pre-wrap;max-height:240px;overflow-y:auto;font-family:var(--font)"></div>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('rm-text').innerText);showAutoSaveToast('Kopierad!')" style="margin-top:8px;padding:7px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Kopiera</button>
+      </div>
+      <button id="rm-generate-btn" onclick="_remissModalGenerate()" style="padding:11px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:7px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Generera remiss
+      </button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+
+async function _remissModalGenerate() {
+  const key = getKey();
+  if (!key) { alert('API-nyckel saknas'); return; }
+  const p = S.pat;
+  const btn = document.getElementById('rm-generate-btn');
+  const resDiv = document.getElementById('rm-result');
+  const textDiv = document.getElementById('rm-text');
+  if (btn) { btn.disabled = true; btn.textContent = 'Genererar…'; }
+  const to      = document.getElementById('rm-to')?.value || '';
+  const urgency = document.getElementById('rm-urgency')?.value || '';
+  const exam    = document.getElementById('rm-exam')?.value.trim() || '';
+  const question= document.getElementById('rm-question')?.value.trim() || '';
+  const today   = new Date().toLocaleDateString('sv-SE');
+  const clinicName = (typeof getCfg==='function'&&getCfg('clinicName'))||'Kansei Ortopedi & Rehabcenter';
+  const practitioner = (typeof getCfg==='function'&&getCfg('clinicianName'))||'Leg. naprapat';
+  const patStr  = p ? `${p.name}, f.${p.birthdate||p.birthYear||'okänt'}, tel: ${p.phone||'ej angivet'}` : 'Ej angiven';
+  const prompt  = `Du är en leg. naprapat som skriver en formell medicinsk remiss på svenska.\n\nDatum: ${today} | Klinik: ${clinicName} | Remittent: ${practitioner}\nPatient: ${patStr}\nRemitteras till: ${to} | Brådska: ${urgency}\nUndersökning: ${exam}\nKlinisk frågeställning: ${question}\n\nSvara ENBART med JSON:\n{"remissText":"Fullständig formell remisstext på svenska."}`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:MODEL_SONNET,max_tokens:1200,system:'Svara ALLTID med giltig JSON.',messages:[{role:'user',content:prompt}]})});
+    const data = await res.json();
+    const r = JSON.parse((data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim());
+    if (textDiv) textDiv.textContent = r.remissText || '';
+    if (resDiv) resDiv.style.display = 'block';
+    if (btn) { btn.disabled = false; btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Generera igen'; }
+  } catch(err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Misslyckades — försök igen'; }
+  }
+}
+
+function _toolsRemissPanel() { return _toolsRemiss(); } // alias
 function _toolsRedFlags() {
   const allFlags = [];
   const retQ = typeof getRetentionQueue==='function' ? getRetentionQueue() : [];
@@ -19167,6 +19467,227 @@ function restoreMeetDraft(draft) {
 // Filosofi: AI äger arbetsflödet, behandlaren validerar och signerar.
 // Körs vid login, sedan var 30:e minut.
 // Alla AI-genererade förslag hamnar i godkännandekön — aldrig autonoma.
+// ══════════════════════════════════════════════════════════════════════════════
+// SIGNATURKÖ — Primär vy när AI har förberett saker
+// AI gör arbetet. Behandlaren granskar och signerar.
+// ══════════════════════════════════════════════════════════════════════════════
+function rSignatureQueue() {
+  var el = document.getElementById('s-sigqueue');
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  el.classList.add('active');
+  S.screen = 'sigqueue';
+  if (typeof updateNavLinks === 'function') updateNavLinks();
+  _renderSigQueue();
+}
+
+function _renderSigQueue() {
+  var el = document.getElementById('s-sigqueue');
+  if (!el) return;
+  var pending = getPendingApprovals ? getPendingApprovals() : [];
+  var cfg = getClinicConfig ? getClinicConfig() : {};
+  var greeting = _sigGreeting();
+
+  var typeIcon = {
+    soap: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+    hael_plan: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+    patient_message: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+    intake_summary: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+  };
+  var typeLabel = {
+    soap: 'Journal', hael_plan: 'Hael-plan',
+    patient_message: 'Patientbrev', intake_summary: 'Intake',
+  };
+  var typeTime = {
+    soap: '~1 min', hael_plan: '~2 min',
+    patient_message: '~30 sek', intake_summary: '~1 min',
+  };
+
+  var h = '<div style="display:flex;flex-direction:column;height:100%;background:var(--bg);font-family:var(--font)">';
+
+  // Topbar
+  h += '<div style="height:52px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0">';
+  h += '<div style="width:7px;height:7px;border-radius:50%;background:var(--orange)"></div>';
+  h += '<span style="font-size:14px;font-weight:700;color:var(--ink)">Signaturkö</span>';
+  h += '<span style="font-size:13px;color:var(--text)">· ' + pending.length + ' väntar</span>';
+  h += '<div style="margin-left:auto"><button onclick="go(\'dashboard\')" style="padding:5px 12px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Hoppa över →</button></div>';
+  h += '</div>';
+
+  h += '<div style="flex:1;overflow-y:auto">';
+  h += '<div style="max-width:680px;margin:0 auto;padding:32px 24px 80px">';
+
+  // Greeting
+  h += '<div style="margin-bottom:28px">';
+  h += '<div style="font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;letter-spacing:-.01em">' + e(greeting) + '</div>';
+  if (pending.length > 0) {
+    var totalTime = pending.length * 1; // rough estimate
+    h += '<div style="font-size:14px;color:var(--text)">AI har förberett ' + pending.length + ' sak' + (pending.length > 1 ? 'er' : '') + ' sedan senast. Tar ungefär ' + totalTime + '–' + (totalTime*2) + ' minuter.</div>';
+  } else {
+    h += '<div style="font-size:14px;color:var(--text)">Signaturkön är tom — AI har inget förberett.</div>';
+  }
+  h += '</div>';
+
+  if (!pending.length) {
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:48px;text-align:center">';
+    h += '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--surface3)" stroke-width="1.5" stroke-linecap="round" style="margin:0 auto 12px;display:block"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+    h += '<div style="font-size:15px;font-weight:600;color:var(--ink);margin-bottom:4px">Kön är tom</div>';
+    h += '<div style="font-size:13px;color:var(--text)">AI fyller på automatiskt när du dokumenterar.</div>';
+    h += '<button onclick="go(\'dashboard\')" style="margin-top:16px;padding:9px 20px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Gå till klinik</button>';
+    h += '</div>';
+  } else {
+    pending.forEach(function(a, idx) {
+      var icon = typeIcon[a.type] || typeIcon.soap;
+      var label = typeLabel[a.type] || a.type;
+      var time = typeTime[a.type] || '~1 min';
+      var preview = (a.aiContent || '').slice(0, 120) + ((a.aiContent||'').length > 120 ? '…' : '');
+      var age = a.createdAt ? _relativeDate(a.createdAt.slice(0,10)) : '';
+
+      h += '<div id="sigq-item-' + a.id + '" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;margin-bottom:12px;overflow:hidden">';
+
+      // Item header
+      h += '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border2)">';
+      h += '<div style="width:32px;height:32px;border-radius:6px;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round">' + icon + '</svg>';
+      h += '</div>';
+      h += '<div style="flex:1;min-width:0">';
+      h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">' + e(a.patName || 'Okänd') + '</div>';
+      h += '<div style="font-size:12px;color:var(--text)">' + e(label) + (age ? ' · ' + age : '') + '</div>';
+      h += '</div>';
+      h += '<span style="font-size:11px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 7px">' + time + '</span>';
+      h += '</div>';
+
+      // Preview
+      h += '<div style="padding:12px 16px;border-bottom:1px solid var(--border2)">';
+      h += '<div id="sigq-edit-wrap-' + a.id + '">';
+      h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text);margin-bottom:6px">Förhandsgranskning</div>';
+      h += '<div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:10px">' + e(preview) + '</div>';
+      h += '<button onclick="_sigqExpandEdit(\'' + a.id + '\')" style="font-size:12px;color:var(--teal);background:none;border:none;cursor:pointer;padding:0;font-family:var(--font)">Granska & redigera →</button>';
+      h += '</div>';
+      h += '<div id="sigq-full-' + a.id + '" style="display:none">';
+      h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text);margin-bottom:6px">Redigera</div>';
+      h += '<textarea id="sigq-ta-' + a.id + '" style="width:100%;min-height:140px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:13px;color:var(--ink);font-family:var(--font);resize:vertical;line-height:1.65;box-sizing:border-box">' + e(a.aiContent || '') + '</textarea>';
+      h += '</div>';
+      h += '</div>';
+
+      // Actions
+      h += '<div style="display:flex;gap:8px;padding:10px 16px">';
+      h += '<button onclick="_sigqApprove(\'' + a.id + '\')" style="flex:2;padding:10px;background:#238636;border:none;border-radius:6px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px">';
+      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Signera</button>';
+      h += '<button onclick="_sigqReject(\'' + a.id + '\')" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avvisa</button>';
+      if (a.patId) {
+        h += '<button onclick="openPat(\'' + a.patId + '\')" style="padding:10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Patient →</button>';
+      }
+      h += '</div>';
+      h += '</div>'; // item
+    });
+
+    // Bottom CTA
+    h += '<div style="text-align:center;padding:20px 0">';
+    h += '<button onclick="go(\'dashboard\')" style="padding:10px 24px;background:none;border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Klar — gå till kliniken</button>';
+    h += '</div>';
+  }
+
+  h += '</div></div></div>';
+  el.innerHTML = h;
+}
+
+function _sigGreeting() {
+  var h = new Date().getHours();
+  if (h < 10) return 'God morgon.';
+  if (h < 12) return 'God förmiddag.';
+  if (h < 17) return 'God eftermiddag.';
+  return 'God kväll.';
+}
+
+function _sigqExpandEdit(id) {
+  var wrap = document.getElementById('sigq-edit-wrap-' + id);
+  var full  = document.getElementById('sigq-full-' + id);
+  if (wrap) wrap.style.display = 'none';
+  if (full) full.style.display = 'block';
+  var ta = document.getElementById('sigq-ta-' + id);
+  if (ta) { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; ta.focus(); }
+}
+
+function _sigqApprove(id) {
+  var ta = document.getElementById('sigq-ta-' + id);
+  var editedContent = ta ? ta.value.trim() : null;
+  var a = getApproval(id);
+
+  // For hael_plan type: generate a real plan via form flow
+  if (a && a.type === 'hael_plan' && a.meta && a.meta.haelData) {
+    var p = (S.patients||[]).find(function(x){ return x.id === a.patId; });
+    if (p) {
+      // Pre-populate S.form from haelData and navigate to full plan
+      var hd = a.meta.haelData;
+      S.pat = p;
+      S.visitId = a.visitId || null;
+      S.form = {
+        name: p.name||'',
+        birthdate: p.birthdate||'', birthYear: p.birthYear||1980,
+        diagnosis: p.diagnosis||'',
+        pain: hd.pain||5, motivation: hd.motivation||6,
+        history: 'ingen', knowledge: 'låg', location: 'hem',
+        exercises: hd.exercises ? hd.exercises.length : 5,
+        followup: hd.weeks||4,
+        notes: hd.homeAdvice||''
+      };
+      S.locked = {};
+      // Mark approval as approved before navigating
+      a.status = 'approved'; a.approvedAt = new Date().toISOString();
+      upsertApproval(a);
+      var item = document.getElementById('sigq-item-' + id);
+      if (item) { item.style.opacity = '0.4'; item.style.pointerEvents = 'none'; }
+      showAutoSaveToast('Genererar Hael-plan…');
+      setTimeout(function(){
+        document.getElementById('remiss-inline-modal')?.remove();
+        go('form');
+      }, 300);
+      return;
+    }
+  }
+
+  // Default: approve text content
+  approveAIContent(id, function() {
+    var item = document.getElementById('sigq-item-' + id);
+    if (item) {
+      item.style.opacity = '0.4';
+      item.style.pointerEvents = 'none';
+      item.style.transition = 'opacity .3s';
+      setTimeout(function(){ item.remove(); _checkSigQueueEmpty(); }, 350);
+    }
+    showAutoSaveToast('Signerat ✓');
+    if (editedContent) {
+      var a2 = getApproval(id);
+      if (a2) logAIEdit(id, a2.patId, a2.type, a2.aiContent, editedContent);
+    }
+  });
+}
+
+function _sigqReject(id) {
+  rejectAIContent(id, function() {
+    var item = document.getElementById('sigq-item-' + id);
+    if (item) {
+      item.style.opacity = '0.3';
+      item.style.pointerEvents = 'none';
+      item.style.transition = 'opacity .3s';
+      setTimeout(function(){ item.remove(); _checkSigQueueEmpty(); }, 350);
+    }
+  });
+}
+
+function _checkSigQueueEmpty() {
+  var remaining = getPendingApprovals ? getPendingApprovals().length : 0;
+  if (remaining === 0) {
+    setTimeout(function(){
+      var el = document.getElementById('s-sigqueue');
+      if (el && el.classList.contains('active')) {
+        showAutoSaveToast('Signaturkö klar — går till kliniken');
+        setTimeout(function(){ go('dashboard'); }, 800);
+      }
+    }, 400);
+  }
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
 const VelaAgent = (function() {
   var _timer = null;
@@ -21645,7 +22166,9 @@ function rLogin() {
       sbSignIn(em,pw).then(function(r){
         if(r.ok){
           loadPats && loadPats();
-          go('dashboard');
+          var _loginPending = typeof getPendingApprovals==='function' ? getPendingApprovals() : [];
+          if (_loginPending.length > 0) { go('home'); setTimeout(function(){ rSignatureQueue(); }, 400); }
+          else { go('dashboard'); }
           setTimeout(function(){ VelaAgent.boot(); }, 2000);
         } else {
           err.style.display='block';
@@ -23307,6 +23830,25 @@ async function _hpQuickNrs(nrs, patId, visitId) {
   if (pat && visitId) {
     var v = (pat.visits||[]).find(function(v2){ return v2.id === visitId; });
     if (v) { v.logs = v.logs || []; v.logs.push(log); savePat && savePat(pat); }
+
+    // Portal sensor: check for NRS spike vs previous log
+    var allLogs = (pat.visits||[]).flatMap(function(vv){ return (vv.logs||[]).filter(function(l){ return l.nrs!=null; }); })
+      .sort(function(a,b){ return (a.ts||a.date||'') > (b.ts||b.date||'') ? 1 : -1; });
+    if (allLogs.length >= 2) {
+      var prevNrs = allLogs[allLogs.length-2].nrs;
+      var spike = nrs - prevNrs;
+      if (spike >= 2) {
+        addInboxItem(pat.id, pat.name, 'urgent', 'nrs_spike',
+          'Smärta ökad via portal — ' + pat.name,
+          'Patient rapporterade NRS ' + nrs + ' via portalen (upp från ' + prevNrs + ', +' + spike + '). Kräver uppmärksamhet.',
+          [{ label: 'Öppna patient', fn: "openPat&&openPat('" + pat.id + "')" }]
+        );
+      }
+    }
+    // Portal sensor: update Health Score slot if patient card open
+    if (S.pat && S.pat.id === patId && S.screen === 'detail') {
+      setTimeout(function(){ _showPatientIntel && _showPatientIntel(pat); }, 500);
+    }
   }
 
   // Update UI
@@ -23380,10 +23922,88 @@ async function _portalSendMessage(patId, visitId) {
     if (upsertRes.ok) {
       if (input) input.value = '';
       if (status) status.innerHTML = '<span style="color:#3fb950;font-weight:600">✓ Meddelande skickat! Kliniken svarar inom kort.</span>';
+      // Portal sensor: surface in clinician inbox immediately
+      var localPat = (S.patients||[]).find(function(p){ return p.id === patId; });
+      var patName = localPat ? localPat.name : 'Patient';
+      addInboxItem(patId, patName, 'ai_action', 'unanswered_message',
+        'Nytt meddelande via portal — ' + patName,
+        text.slice(0, 120) + (text.length > 120 ? '…' : ''),
+        [{ label: 'Svara', fn: "openPat&&openPat('" + patId + "');setTimeout(function(){window._detailTab='messages';rDetail&&rDetail();},400)" }]
+      );
     } else throw new Error('upsert failed');
   } catch(err) {
     if (status) status.textContent = 'Kunde inte skicka — försök igen.';
     if (btn) btn.disabled = false;
+  }
+}
+
+async function _portalSubmitDagsform(patId, visitId) {
+  var input  = document.getElementById('hp-dagsform-text');
+  var status = document.getElementById('hp-dagsform-status');
+  var text   = input ? input.value.trim() : '';
+  if (!text || text.length < 5) { if (status) status.textContent = 'Skriv lite mer innan du skickar.'; return; }
+  if (status) status.textContent = 'Skickar…';
+
+  var today = new Date().toISOString().slice(0,10);
+  var key   = 'vela:dagsform:' + patId + ':' + today;
+
+  try {
+    // Save to Supabase pass_log
+    await fetch(SB_URL + '/rest/v1/pass_log', {
+      method: 'POST',
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ pat_id: patId, visit_id: visitId||null, logged_at: new Date().toISOString(), type: 'dagsform', data: { text: text } })
+    });
+  } catch(e2) {}
+
+  // Mark done locally
+  try { localStorage.setItem(key, '1'); } catch(e3) {}
+
+  // Surface in clinician inbox immediately
+  var localPat = (S.patients||[]).find(function(p){ return p.id === patId; });
+  var patName = localPat ? localPat.name : 'Patient';
+  addInboxItem(patId, patName, 'info', 'previsit_brief',
+    'Dagsform inför besök — ' + patName,
+    text.slice(0, 120) + (text.length > 120 ? '…' : ''),
+    [{ label: 'Öppna patient', fn: "openPat&&openPat('" + patId + "')" }]
+  );
+
+  // Also update VelaAgent pre-visit brief if available
+  if (localPat) {
+    var bks = getBookings ? getBookings() : [];
+    var todayStr = today;
+    var todayBk = bks.find(function(b){ return b.patientId===patId && b.date===todayStr && b.status!=='cancelled'; });
+    if (todayBk) {
+      try {
+        var cached = JSON.parse(localStorage.getItem('vela:previsit:'+todayBk.id)||'null');
+        if (cached) {
+          cached.dagsform = text;
+          cached.focus = cached.focus + ' | Dagsform: ' + text.slice(0,80);
+          localStorage.setItem('vela:previsit:'+todayBk.id, JSON.stringify(cached));
+        }
+      } catch(e4) {}
+    }
+    // Refresh Health Score if patient card is open
+    if (S.pat && S.pat.id === patId && S.screen === 'detail') {
+      var slot = document.getElementById('pat-intel-slot');
+      if (slot) {
+        slot.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--text);display:flex;align-items:center;gap:7px">'
+          + '<div style="width:6px;height:6px;border-radius:50%;background:var(--orange);animation:pulse 1s infinite"></div>'
+          + 'Uppdaterar Health Score med ny dagsform…</div>';
+        setTimeout(function(){ _showPatientIntel && _showPatientIntel(localPat); }, 800);
+      }
+    }
+  }
+
+  // Update UI
+  var wrap = document.getElementById('hp-dagsform');
+  if (wrap) {
+    wrap.style.background = 'rgba(63,185,80,.06)';
+    wrap.style.borderColor = 'rgba(63,185,80,.2)';
+    wrap.innerHTML = '<div style="display:flex;align-items:center;gap:10px">'
+      + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+      + '<div><div style="font-size:13px;font-weight:700;color:#e6edf3">Tack! Din behandlare är uppdaterad.</div>'
+      + '<div style="font-size:12px;color:rgba(255,255,255,.4)">Dagsform loggad inför besöket.</div></div></div>';
   }
 }
 
@@ -24088,6 +24708,34 @@ function renderPublicPlan(plan, pat) {
     + '<div class="zp-hero-title">' + e(_heroTitle) + '</div>'
     + '<div class="zp-hero-sub">' + e(_heroSub) + '</div>'
     + '</div>';
+
+  // ── DAGSFORM — syns dagen innan/för bokningsdag ────────────────────────────
+  var _dagsformShown = false;
+  if (!_loggedToday) {
+    var _upcomingWithin24 = false;
+    try {
+      var _nowMs = Date.now();
+      (getBookings ? getBookings() : []).forEach(function(b){
+        if (b.patientId !== patIdSafe || b.status === 'cancelled') return;
+        var bMs = new Date(b.date + 'T' + (b.time||'08:00')).getTime();
+        if (bMs - _nowMs > 0 && bMs - _nowMs < 28*60*60*1000) _upcomingWithin24 = true;
+      });
+    } catch(e3) {}
+    var _dagsformKey = 'vela:dagsform:' + patIdSafe + ':' + _todayKey;
+    var _dagsformDone = false;
+    try { _dagsformDone = localStorage.getItem(_dagsformKey) === '1'; } catch(e4) {}
+    if (_upcomingWithin24 && !_dagsformDone) {
+      _html += '<div id="hp-dagsform" style="margin:0 0 16px;background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.2);border-radius:12px;padding:16px 18px">';
+      _html += '<div style="font-size:14px;font-weight:700;color:#e6edf3;margin-bottom:4px">Hur mår du inför besöket?</div>';
+      _html += '<div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px">Du har en tid snart — behandlaren förbereder sig baserat på ditt svar.</div>';
+      _html += '<textarea id="hp-dagsform-text" placeholder="Berätta hur det känns idag — smärta, rörelse, sömn, humör..." style="width:100%;min-height:72px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:12px;font-size:14px;color:#e6edf3;font-family:var(--font,sans-serif);resize:none;outline:none;box-sizing:border-box;line-height:1.6" oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'"></textarea>';
+      _html += '<div style="display:flex;justify-content:flex-end;margin-top:10px">';
+      _html += '<button onclick="_portalSubmitDagsform(\''+patIdSafe+'\',\''+visitIdSafe+'\')" style="padding:9px 18px;background:rgba(88,166,255,.15);border:1px solid rgba(88,166,255,.3);color:#58a6ff;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font,sans-serif)">Skicka →</button>';
+      _html += '</div><div id="hp-dagsform-status" style="font-size:12px;color:rgba(255,255,255,.4);margin-top:6px"></div>';
+      _html += '</div>';
+      _dagsformShown = true;
+    }
+  }
 
   // ── NRS SNABB-LOGG (syns alltid tills patienten loggar idag) ──────────────
   var _todayKey = new Date().toISOString().slice(0,10);
@@ -38577,7 +39225,12 @@ function getAiProfileContext(userId) {
         initTheme();
         const _ld = document.getElementById('page-loader');
         if (_ld) { _ld.style.opacity='0'; _ld.style.transition='opacity .2s'; setTimeout(()=>{ try{_ld.remove();}catch(e){} },250); }
-        if (!_maybeLaunchPortal()) { go('home'); }
+        if (!_maybeLaunchPortal()) {
+          // Route to signature queue if AI has prepared items
+          var _pending = typeof getPendingApprovals==='function' ? getPendingApprovals() : [];
+          if (_pending.length > 0) { go('home'); setTimeout(function(){ rSignatureQueue(); }, 200); }
+          else { go('home'); }
+        }
         setTimeout(_updateStatusBadge, 500);
         initVelaAsk();
         setTimeout(() => rNavLogo(), 100);

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774548337 -->
+<!-- vela-build:1774600100 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -3795,6 +3795,12 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
     if (_tabTitleInterval) { clearInterval(_tabTitleInterval); _tabTitleInterval = null; }
     _updateTabTitle();
+    // Sprint 3b: poll Gmail immediately on tab focus
+    setTimeout(function(){
+      if (typeof _gmailPollActionable === 'function' && typeof _gmailIsAuthed === 'function' && _gmailIsAuthed()) {
+        _gmailPollActionable();
+      }
+    }, 800);
   }
 });
 
@@ -5406,9 +5412,18 @@ function getBooking(id) {
 }
 function upsertBooking(bk) {
   var bks = getBookings();
-  var idx = bks.findIndex(function(b){ return b.id === bk.id; });
+  var oldBk = bks.find(function(b){ return b.id === bk.id; });
+  var idx   = bks.findIndex(function(b){ return b.id === bk.id; });
   if (idx >= 0) bks[idx] = bk; else bks.push(bk);
   saveBookings(bks);
+  // Compliance tracking
+  if (oldBk && bk.patientId && typeof _patRecordComplianceEvent === 'function') {
+    if (bk.status === 'cancelled' && oldBk.status !== 'cancelled') {
+      _patRecordComplianceEvent(bk.patientId, 'cancel');
+    } else if (bk.status !== 'cancelled' && (bk.date !== oldBk.date || bk.time !== oldBk.time)) {
+      _patRecordComplianceEvent(bk.patientId, 'rebook');
+    }
+  }
   return bk;
 }
 function deleteBooking(id) {
@@ -10269,13 +10284,16 @@ function rApprovalReview(approvalId) {
 
 // Issue types with severity + icons
 var _ISSUE_TYPES = {
-  ai_pending: { label: 'Väntar godkännande', color: 'teal',  icon: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>', priority: 0 },
-  red_flag:   { label: 'Röd flagga',      color: 'red',   icon: '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',  priority: 1 },
-  dropout:    { label: 'Avhoppsrisk',     color: 'amber', icon: '<path d="M22 16.92v3a2 2 0 01-2.18 2A19.8 19.8 0 014.69 13 19.5 19.5 0 012 4.69a2 2 0 011.72-2.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l.91-.91a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>', priority: 2 },
-  unread_msg: { label: 'Oläst meddelande',color: 'blue',  icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', priority: 3 },
-  no_journal: { label: 'Saknar journal',  color: 'amber', icon: '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', priority: 4 },
-  overdue:    { label: 'Förfallet besök', color: 'red',   icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', priority: 5 },
-  no_show:    { label: 'Uteblev',         color: 'red',   icon: '<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>', priority: 6 },
+  ai_pending:  { label: 'Väntar godkännande', color: 'teal',  icon: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>', priority: 0 },
+  mail:        { label: 'Mail',               color: 'blue',  icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', priority: 1 },
+  rebook:      { label: 'Ombokning pågår',    color: 'amber', icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', priority: 2 },
+  compliance:  { label: 'Följsamhetssignal',  color: 'amber', icon: '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>', priority: 3 },
+  red_flag:    { label: 'Röd flagga',         color: 'red',   icon: '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',  priority: 4 },
+  dropout:     { label: 'Avhoppsrisk',        color: 'amber', icon: '<path d="M22 16.92v3a2 2 0 01-2.18 2A19.8 19.8 0 014.69 13 19.5 19.5 0 012 4.69a2 2 0 011.72-2.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l.91-.91a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>', priority: 5 },
+  unread_msg:  { label: 'Oläst meddelande',   color: 'blue',  icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', priority: 6 },
+  no_journal:  { label: 'Saknar journal',     color: 'amber', icon: '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', priority: 7 },
+  overdue:     { label: 'Förfallet besök',    color: 'red',   icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', priority: 8 },
+  no_show:     { label: 'Uteblev',            color: 'red',   icon: '<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>', priority: 9 },
 };
 
 // Gather all open issues from current state
@@ -10299,6 +10317,28 @@ function _gatherIssues() {
         closeFn: 'markIntakeReviewed', closeLabel: 'Markera granskad',
       });
     }
+
+    // ── Compliance signals ───────────────────────────────────────────────────
+    (S.patients||[]).forEach(function(p) {
+      var cdata = _patGetComplianceData(p.id);
+      var clevel = _patCheckCompliance(p.id);
+      if (clevel === 0) return;
+      issues.push({
+        id: 'comp_' + p.id, type: 'compliance',
+        patId: p.id, patName: p.name,
+        title: cdata.total + ' ombokningar/avbokningar senaste 60 dagarna',
+        meta: cdata.lastEvent ? 'Senaste: ' + new Date(cdata.lastEvent).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : '',
+        age: cdata.lastEvent ? now - new Date(cdata.lastEvent) : 0,
+        aiSuggestion: _patComplianceSuggestion(cdata),
+        closeFn: '_resetCompliance', closeLabel: 'Återställ räknare',
+        urgent: clevel === 2,
+      });
+    });
+
+    // ── Mail issues (Gmail → Åtgärder) ────────────────────────────────────────
+    var _mailIssues = (typeof _getMailIssues === 'function') ? _getMailIssues() : [];
+    var _closedSet = new Set(closedIds);
+    _mailIssues.filter(function(m){ return !_closedSet.has(m.id); }).forEach(function(m){ issues.push(m); });
 
     // Dropout risk
     if (_clinPriority) {
@@ -10434,6 +10474,16 @@ function rActions() {
   var activeType = window._actionsType || '';
   var searchQ    = window._actionsSearch || '';
 
+  // Sort: urgent first, then by type priority, then by age
+  openIssues.sort(function(a,b){
+    if ((b.urgent?1:0) !== (a.urgent?1:0)) return (b.urgent?1:0) - (a.urgent?1:0);
+    var pa = (_ISSUE_TYPES[a.type]||{}).priority || 99;
+    var pb = (_ISSUE_TYPES[b.type]||{}).priority || 99;
+    if (pa !== pb) return pa - pb;
+    return (b.age||0) - (a.age||0);
+  });
+  closedIssues.sort(function(a,b){ return (b.age||0)-(a.age||0); });
+
   var displayed = activeTab === 'open' ? openIssues : closedIssues;
   if (activeType) displayed = displayed.filter(function(i){return i.type===activeType;});
   if (searchQ)    displayed = displayed.filter(function(i){
@@ -10497,6 +10547,9 @@ function rActions() {
   h += '<span style="font-size:13px;color:#8b949e;font-weight:600">Typ</span>';
   var typeFilters = [
     {id:'',           label:'Alla'},
+    {id:'mail',       label:'Mail'},
+    {id:'rebook',     label:'Ombokning'},
+    {id:'compliance', label:'Följsamhet'},
     {id:'red_flag',   label:'Röda flaggor'},
     {id:'dropout',    label:'Avhoppsrisk'},
     {id:'unread_msg', label:'Meddelanden'},
@@ -10605,29 +10658,27 @@ function rActions() {
         if (issue.riskScore) h += '<span style="font-size:11px;color:#8b949e;margin-left:2px">Score: <strong>'+issue.riskScore+'</strong></span>';
         h += '</div>';
       }
-      // AI suggestion (expandable)
-      if (issue.aiSuggestion && !isClosed) {
-        h += '<div style="font-size:13px;color:var(--teal);margin-top:4px;display:flex;align-items:center;gap:5px">'
-           + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
-           + e(issue.aiSuggestion)
-           + '</div>';
-      }
-      h += '</div>';
-
-      // Actions
-      h += '<div class="item-row-action" style="display:flex;gap:6px;flex-shrink:0">';
+      // AI suggestion / inline actions
       if (!isClosed) {
-        if (issue.aiCanAutoHandle) {
-          h += '<button class="act-btn" style="font-size:13px;color:var(--teal);border-color:rgba(224,118,40,.3)" '
-             + 'onclick="_aiHandleIssue(\'' + issue.id + '\')">'
-             + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
-             + 'AI</button>';
+        var aiSug = issue.aiSuggestion;
+        if (issue.type === 'mail' && issue.intentId === 'scheduling' && issue.patId) {
+          h += '<div style="display:flex;gap:7px;align-items:center;margin-top:8px;flex-wrap:wrap">';
+          if (aiSug) h += '<div style="font-size:12px;color:var(--teal);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+            + '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:3px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+            + e((aiSug||'').slice(0,80)) + '</div>';
+          h += '<button onclick="event.stopPropagation();_aiHandleRebookFromIssue(\''+issue.id+'\')" style="flex-shrink:0;padding:4px 10px;background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.25);border-radius:6px;font-size:12px;font-weight:700;color:#d29922;cursor:pointer;font-family:var(--font);white-space:nowrap">AI skickar tider &#8594;</button>';
+          h += '<button onclick="event.stopPropagation();_openMailIssueThread(\''+issue.id+'\')" style="flex-shrink:0;padding:4px 10px;background:none;border:1px solid #30363d;border-radius:6px;font-size:12px;color:#8b949e;cursor:pointer;font-family:var(--font)">Öppna mail</button>';
+          h += '</div>';
+        } else if (issue.type === 'mail' && issue.intentId === 'cancel') {
+          h += '<div style="display:flex;gap:7px;align-items:center;margin-top:8px">';
+          h += '<button onclick="event.stopPropagation();_aiHandleCancelFromIssue(\''+issue.id+'\')" style="padding:4px 10px;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:6px;font-size:12px;font-weight:700;color:#f85149;cursor:pointer;font-family:var(--font);white-space:nowrap">AI svarar avbokning</button>';
+          h += '<button onclick="event.stopPropagation();_openMailIssueThread(\''+issue.id+'\')" style="padding:4px 10px;background:none;border:1px solid #30363d;border-radius:6px;font-size:12px;color:#8b949e;cursor:pointer;font-family:var(--font)">Öppna mail</button>';
+          h += '</div>';
+        } else if (aiSug) {
+          h += '<div style="font-size:13px;color:var(--teal);margin-top:4px;display:flex;align-items:center;gap:5px">'
+            + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+            + e(aiSug) + '</div>';
         }
-        h += '<button class="act-btn" style="font-size:13px" '
-           + 'onclick="_handleIssueAction(\'' + issue.id + '\',\'' + issue.closeFn + '\',\'' + (issue.visitId||'') + '\',\'' + issue.patId + '\')">'
-           + e(issue.closeLabel||'\u00c5tg\u00e4rda') + '</button>';
-        h += '<button style="background:none;border:none;color:#8b949e;cursor:pointer;font-size:13px;padding:5px 8px;font-family:var(--font)" '
-           + 'onclick="_closeIssue(\'' + issue.id + '\',\'manual\')" title="Stäng ärende">✓</button>';
       } else {
         h += '<button style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:13px;padding:5px 8px;font-family:var(--font)" '
            + 'onclick="_reopenIssue(\'' + issue.id + '\')">Återöppna</button>';
@@ -11027,9 +11078,80 @@ function _loadPortalForPatient(patId, token) {
   renderPatientPortal(patId, pat);
 }
 
+function _renderPortalRebookPicker(el, pat, rebookData) {
+  var cfg   = getClinicConfig ? getClinicConfig() : {};
+  var slots = rebookData.slots;
+  var rebookId = rebookData.rebookId;
+
+  function fmtDate(d, t) {
+    var dt = new Date(d + 'T12:00');
+    var wd = dt.toLocaleDateString('sv-SE',{weekday:'long'});
+    return wd.charAt(0).toUpperCase()+wd.slice(1) + ' ' + dt.toLocaleDateString('sv-SE',{day:'numeric',month:'long'}) + ' kl ' + t;
+  }
+  var slotBtns = slots.map(function(s,i) {
+    var sj = JSON.stringify(s).replace(/'/g,"\'");
+    return '<button id="rbk-'+i+'" onclick="_confirmRebookSlot('+sj+',''+rebookId+'',''+pat.id+'')"'
+      +' style="width:100%;text-align:left;padding:14px 18px;background:#161b22;border:1px solid #30363d;border-radius:10px;'
+      +'font-size:15px;font-weight:600;color:#e6edf3;cursor:pointer;font-family:var(--font);margin-bottom:10px;transition:all .15s"'
+      +' onmouseover="this.style.borderColor='var(--teal)';this.style.background='rgba(224,118,40,.06)'"'
+      +' onmouseout="this.style.borderColor='#30363d';this.style.background='#161b22'">'
+      +'<div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#e07628;margin-bottom:3px">Alternativ '+(i+1)+'</div>'
+      + fmtDate(s.date, s.time) + '</button>';
+  }).join('');
+
+  el.innerHTML = '<div style="min-height:100vh;background:#080e18;display:flex;align-items:center;justify-content:center;padding:24px;font-family:var(--font)">'
+    +'<div style="width:100%;max-width:480px">'
+    +'<div style="text-align:center;margin-bottom:32px">'
+    +'<div style="width:48px;height:48px;border-radius:12px;background:rgba(224,118,40,.1);border:1px solid rgba(224,118,40,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">'
+    +'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e07628" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
+    +'</div>'
+    +'<div style="font-size:22px;font-weight:700;color:#e6edf3;margin-bottom:8px">Välj din nya tid</div>'
+    +'<div style="font-size:14px;color:#8b949e;line-height:1.6">Hej '+(pat.name||'').split(' ')[0]+'! Välj den tid som passar dig bäst.</div>'
+    +'</div>'
+    + slotBtns
+    +'<div style="text-align:center;margin-top:16px"><a href="tel:'+(cfg.phone||'')+'" style="font-size:13px;color:#6e7681;text-decoration:none">Ingen tid passar? Ring: '+(cfg.phone||'kliniken')+'</a></div>'
+    +'<div id="rbk-confirm" style="display:none;margin-top:24px;padding:18px;background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.2);border-radius:10px;text-align:center;color:#3fb950;font-size:15px;font-weight:600"></div>'
+    +'</div></div>';
+}
+
+async function _confirmRebookSlot(slot, rebookId, patId) {
+  document.querySelectorAll('[id^="rbk-"]').forEach(function(b){ b.disabled=true; b.style.opacity='.4'; });
+  var pat = (S.patients||[]).find(function(p){ return p.id === patId; });
+  var cfg = getClinicConfig ? getClinicConfig() : {};
+  var msg = document.getElementById('rbk-confirm');
+  try {
+    if (rebookId && rebookId !== 'new' && typeof upsertBooking === 'function') {
+      var bk = typeof getBooking === 'function' ? getBooking(rebookId) : null;
+      if (bk) {
+        bk.date = slot.date; bk.time = slot.time;
+        bk.rebookedAt = new Date().toISOString(); bk.rebookedBy = 'patient_portal';
+        upsertBooking(bk);
+      }
+    }
+    if (pat && pat.phone && typeof _velaSendSMS === 'function') {
+      var fmtS = function(d,t){ return new Date(d+'T12:00').toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short'})+' kl '+t; };
+      _velaSendSMS(pat.phone, 'Hej! Din tid är bekräftad: ' + fmtS(slot.date, slot.time) + '. ' + (cfg.name||'Kliniken'));
+    }
+    _closeMailIssue('rebook_' + rebookId);
+    if (msg) {
+      msg.style.display='block';
+      var fmtL=function(d,t){ return new Date(d+'T12:00').toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})+' kl '+t; };
+      msg.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-bottom:8px"><polyline points="20 6 9 17 4 12"/></svg><br>Klar! Din tid: <strong>'+fmtL(slot.date,slot.time)+'</strong><br><span style="font-size:13px;opacity:.8;display:block;margin-top:4px">Bekräftelse skickas till din telefon.</span>';
+    }
+  } catch(ex) {
+    if (msg){ msg.style.display='block'; msg.style.color='#f85149'; msg.textContent='Något gick fel — ring oss för att bekräfta.'; }
+  }
+}
+
 function renderPatientPortal(patId, pat) {
   var el = document.getElementById('s-patient-portal');
   if (!el) return;
+
+  var rebookData = _portalGetRebookSlots();
+  if (rebookData && rebookData.slots && rebookData.slots.length && pat) {
+    _renderPortalRebookPicker(el, pat, rebookData);
+    return;
+  }
 
   var cfg     = getClinicConfig ? getClinicConfig() : {};
   var bookings = (getBookings ? getBookings() : [])
@@ -11626,6 +11748,17 @@ async function _aiHandlePatientEmail(fromEmail, subject, body) {
 
 // ── Wire portal hash check into startup ──────────────────────────────────────
 // Called from go() — show portal if URL has #portal/
+function _portalGetRebookSlots() {
+  var params = new URLSearchParams(window.location.search || '');
+  var slotParam = params.get('slots');
+  var rebookId  = params.get('rebook');
+  if (!slotParam) return null;
+  var slots = slotParam.split(',').map(function(s) {
+    var p = s.split('@'); return p.length === 2 ? { date:p[0], time:p[1] } : null;
+  }).filter(Boolean);
+  return slots.length ? { slots:slots, rebookId:rebookId } : null;
+}
+
 function _maybeLaunchPortal() {
   if (window.location.hash.startsWith('#portal/')) {
     _checkPortalHash();
@@ -12545,8 +12678,15 @@ function _gmailRenderListPanel() {
       if (ic) h += '<span style="width:7px;height:7px;border-radius:50%;background:' + ic + ';flex-shrink:0;margin-top:4px"></span>';
       h += '<span class="gm-thread-subj">' + e(t.subject || '(Inget ämne)') + '</span>';
       h += '</div>';
-      // Row 3: snippet
-      h += '<div class="gm-thread-snip">' + e((t.snippet||'').slice(0,80)) + '</div>';
+      // Row 3: AI summary or snippet
+      var aiSum = _gmailState.aiSummaries && _gmailState.aiSummaries[t.id];
+      if (aiSum) {
+        h += '<div class="gm-thread-snip" style="color:var(--teal);font-style:normal">'
+          + '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:3px;flex-shrink:0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+          + e(aiSum.slice(0,90)) + '</div>';
+      } else {
+        h += '<div class="gm-thread-snip">' + e((t.snippet||'').slice(0,80)) + '</div>';
+      }
       h += '</div>'; // body
 
       if (t.unread) h += '<div class="gm-unread-dot"></div>';
@@ -12690,7 +12830,34 @@ async function _gmailOpenThread(threadId, autoAi) {
   _gmailState.selectedThread = { threadId:threadId, thread:thread, meta:meta, intent:intent, pat:pat };
 
   _gmailRenderThreadContent();
-  if (autoAi) setTimeout(_gmailTriggerAi, 300);
+  // Auto-analyse every time a thread opens (not just when autoAi=true)
+  if (!_gmailState.aiResult) {
+    setTimeout(function(){
+      if (_gmailState.selectedThread && _gmailState.selectedThread.threadId === threadId) {
+        _gmailTriggerAi(true); // silent=true keeps panel closed until result ready
+      }
+    }, 400);
+  } else if (autoAi) {
+    setTimeout(_gmailTriggerAi, 300);
+  }
+
+  // Auto-show rebook CTA for scheduling intent
+  if (intent.id === 'scheduling' && pat && pat.email && _getRebookPolicy().aiHandlesBookings) {
+    setTimeout(function() {
+      var tp = document.getElementById('gm-thread-panel');
+      if (tp && !document.getElementById('gm-rebook-cta')) {
+        var banner = document.createElement('div');
+        banner.id = 'gm-rebook-cta';
+        banner.style.cssText = 'margin:8px 16px 0;padding:10px 14px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:8px;display:flex;align-items:center;gap:12px;font-size:13px;color:#e6edf3';
+        var tid = threadId;
+        banner.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d29922" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
+          +'<span style="flex:1"><strong style="color:#d29922">Ombokning</strong> &mdash; AI kan skicka lediga tider till '+e(pat.name.split(' ')[0])+'</span>'
+          +'<button style="background:rgba(210,153,34,.15);border:1px solid rgba(210,153,34,.3);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;color:#d29922;cursor:pointer;font-family:var(--font);white-space:nowrap" onclick="var m=_gmailState.selectedThread;_aiHandleRebookRequest(m.meta,m.pat,''+tid+'');this.closest('#gm-rebook-cta').remove()">AI skickar tider →</button>'
+          +'<button style="background:none;border:none;cursor:pointer;color:#6e7681;font-size:16px;padding:0 4px" onclick="this.closest('#gm-rebook-cta').remove()">×</button>';
+        tp.insertBefore(banner, tp.firstChild);
+      }
+    }, 500);
+  }
 }
 
 function _gmailRenderThreadContent() {
@@ -12731,6 +12898,11 @@ function _gmailRenderThreadContent() {
     h += '<button onclick="openPat(\'' + pat.id + '\')" style="display:flex;align-items:center;gap:6px;padding:6px 13px;background:none;border:1px solid #30363d;border-radius:7px;font-size:13px;font-weight:600;color:#e6edf3;cursor:pointer;font-family:var(--font)">';
     h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
     h += 'Patientkort</button>';
+  }
+  if (pat && intent && intent.id === 'scheduling') {
+    h += '<button id="gm-show-rebook-cta" style="display:flex;align-items:center;gap:5px;padding:6px 13px;background:rgba(210,153,34,.07);border:1px solid rgba(210,153,34,.2);border-radius:7px;font-size:13px;font-weight:600;color:#d29922;cursor:pointer;font-family:var(--font)">';
+    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+    h += 'Boka om</button>';
   }
   h += '</div>';
   h += '</div>';
@@ -12796,7 +12968,7 @@ function _gmailRenderThreadContent() {
     h += '<button id="gm-portal-send" style="background:none;border:1px solid #30363d;border-radius:6px;padding:5px 12px;font-size:13px;color:#e6edf3;cursor:pointer;font-family:var(--font)">Skicka portallänk</button>';
   }
   h += '<span style="flex:1"></span>';
-  h += '<button id="gm-reply-send" class="act-btn act-btn-primary" style="font-size:13px">Spara utkast</button>';
+  h += '<button id="gm-reply-send" class="act-btn act-btn-primary" style="font-size:13px">Skicka svar</button>';
   h += '</div></div>';
 
   h += '</div>'; // messages column
@@ -12825,9 +12997,18 @@ function _gmailRenderThreadContent() {
 
     if (aiResult) {
       h += '<div style="padding:14px 16px">';
-      h += '<div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8b949e;margin-bottom:8px">Föreslagen text</div>';
+      var toneUsed = _gmailState._lastTone;
+      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+      h += '<div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8b949e">Föreslagen text</div>';
+      if (toneUsed) h += '<span style="font-size:11px;background:var(--teal-lt);color:var(--teal);padding:1px 8px;border-radius:20px;font-weight:600">' + e(toneUsed) + '</span>';
+      h += '</div>';
       h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:12px;font-size:13px;color:#e6edf3;line-height:1.7;white-space:pre-wrap;margin-bottom:8px">' + e(aiResult) + '</div>';
-      h += '<button id="gm-ai-use-btn" class="act-btn" style="width:100%;justify-content:center;font-size:13px">Kopiera till svar</button>';
+      h += '<div style="display:flex;gap:8px;margin-top:4px">';
+      h += '<button id="gm-ai-use-btn" class="act-btn" style="flex:1;justify-content:center;font-size:13px">Kopiera till svar</button>';
+      h += '<button id="gm-ai-other-angle" class="act-btn" style="flex:1;justify-content:center;font-size:13px" title="Annan ton/vinkel">';
+      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Annan vinkel';
+      h += '</button>';
+      h += '</div>';
       h += '</div>';
     }
     h += '</div>';
@@ -12842,6 +13023,21 @@ function _gmailRenderThreadContent() {
   var panel = document.getElementById('gm-thread-panel');
   if (!panel) return;
 
+  panel.querySelector('#gm-show-rebook-cta')?.addEventListener('click', function() {
+    var sel2 = _gmailState.selectedThread;
+    if (!sel2 || !sel2.pat) return;
+    var existing = document.getElementById('gm-rebook-cta');
+    if (existing) { existing.remove(); return; }
+    var tp2 = document.getElementById('gm-thread-panel');
+    if (!tp2) return;
+    var banner2 = document.createElement('div');
+    banner2.id = 'gm-rebook-cta';
+    banner2.style.cssText = 'margin:8px 16px 0;padding:10px 14px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:8px;display:flex;align-items:center;gap:12px;font-size:13px;color:#e6edf3';
+    banner2.innerHTML = '<span style="flex:1"><strong style="color:#d29922">Ombokning</strong> — AI skickar 3 lediga tider till ' + e(sel2.pat.name.split(' ')[0]) + '</span>'
+      + '<button style="background:rgba(210,153,34,.15);border:1px solid rgba(210,153,34,.3);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;color:#d29922;cursor:pointer;font-family:var(--font);white-space:nowrap" onclick="_aiHandleRebookRequest(_gmailState.selectedThread.meta,_gmailState.selectedThread.pat,_gmailState.selectedThread.threadId);this.closest('#gm-rebook-cta').remove()">Kör →</button>'
+      + '<button onclick="this.closest('#gm-rebook-cta').remove()" style="background:none;border:none;cursor:pointer;color:#6e7681;font-size:16px;padding:0 4px">×</button>';
+    tp2.insertBefore(banner2, tp2.firstChild);
+  });
   panel.querySelector('#gm-ai-toggle')?.addEventListener('click', function() {
     _gmailState.aiOpen = !_gmailState.aiOpen;
     _gmailRenderThreadContent();
@@ -12857,6 +13053,17 @@ function _gmailRenderThreadContent() {
   panel.querySelector('#gm-ai-use-btn')?.addEventListener('click', function() {
     var ta = panel.querySelector('#gm-reply-ta');
     if (ta && _gmailState.aiResult) { ta.value = _gmailState.aiResult; ta.focus(); }
+  });
+  panel.querySelector('#gm-ai-other-angle')?.addEventListener('click', async function() {
+    var btn = this; btn.disabled = true; btn.textContent = 'Genererar...';
+    var tones = ['mer empatisk och varm', 'kortare och mer rakt på sak', 'mer formell', 'personligare och mer engagerad'];
+    var lastTone = _gmailState._lastTone || '';
+    var tone = tones.find(function(t){ return t !== lastTone; }) || tones[0];
+    _gmailState._lastTone = tone;
+    _gmailState.aiResult = null;
+    await _gmailTriggerAi({ tone: tone });
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Annan vinkel';
   });
   panel.querySelector('#gm-portal-send')?.addEventListener('click', async function() {
     if (!pat) return;
@@ -12875,7 +13082,7 @@ function _gmailRenderThreadContent() {
     var ta = panel.querySelector('#gm-reply-ta');
     var body = ta ? ta.value.trim() : '';
     if (!body) return;
-    this.disabled=true; this.textContent='Sparar...';
+    this.disabled=true; this.textContent='Skickar...';
     try {
       await Gmail_create_draft_stub(sel.meta.threadId, body);
       this.textContent='Sparat ✓'; this.style.background='var(--green-lt)'; this.style.color='var(--green)';
@@ -12895,8 +13102,61 @@ function _gmailRenderThreadContent() {
 }
 
 async function Gmail_create_draft_stub(threadId, body) {
-  // Will use _velaSendMail or Resend as fallback
-  showAutoSaveToast('Utkast sparat');
+  return await _gmailSendReply(threadId, body);
+}
+
+async function _gmailSendReply(threadId, body) {
+  var sel  = _gmailState.selectedThread;
+  var meta = sel ? sel.meta : {};
+  var pat  = sel ? sel.pat  : null;
+  var cfg  = getClinicConfig();
+
+  // Try Gmail API send
+  if (_gmailIsAuthed() && threadId) {
+    try {
+      var fromHdrs = (meta.from||'');
+      var toAddr   = (fromHdrs.match(/<([^>]+)>/) || [])[1] || fromHdrs;
+      var subj     = (meta.subject && !meta.subject.startsWith('Re:')) ? 'Re: ' + meta.subject : (meta.subject||'Svar');
+      var msgRaw   = ['To: ' + toAddr, 'Subject: ' + subj,
+                      'Content-Type: text/plain; charset=utf-8',
+                      'In-Reply-To: ' + (meta.msgId||''), '',
+                      body, '', '-- ', cfg.name||'Kansei'].join('\r\n');
+      var encoded  = btoa(unescape(encodeURIComponent(msgRaw))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+      var res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + _gmailToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ raw: encoded, threadId: threadId }),
+      });
+      if (res.ok) {
+        if (pat) {
+          pat.messages = pat.messages || [];
+          pat.messages.push({ id:'msg_'+Date.now(), direction:'out', channel:'email', body:body.slice(0,200), sentAt:new Date().toISOString() });
+          if (typeof savePat === 'function') savePat(pat);
+        }
+        if (sel && sel.meta && sel.meta.id) _closeMailIssue('mail_' + sel.meta.id);
+        _gmailState.aiResult = null;
+        _gmailRenderThreadContent();
+        showAutoSaveToast('Skickat via Gmail ✓');
+        return { ok: true };
+      }
+    } catch(ex) { console.warn('Gmail send failed, trying Resend:', ex); }
+  }
+
+  // Fallback: Resend
+  if (meta && meta.from) {
+    var fallbackTo = (meta.from.match(/<([^>]+)>/) || [])[1] || meta.from;
+    var fallbackSubj = (meta.subject && !meta.subject.startsWith('Re:')) ? 'Re: ' + meta.subject : (meta.subject||'Svar');
+    var result = await _velaSendMail(fallbackTo, fallbackSubj, body);
+    if (result && result.ok) {
+      if (sel && sel.meta && sel.meta.id) _closeMailIssue('mail_' + sel.meta.id);
+      _gmailState.aiResult = null;
+      _gmailRenderThreadContent();
+      showAutoSaveToast('Skickat ✓');
+      return result;
+    }
+  }
+  showAutoSaveToast('Kunde inte skicka — kontrollera Gmail-anslutning');
+  return { ok: false };
 }
 
 async function _gmailTriggerAi(silent) {
@@ -12908,7 +13168,7 @@ async function _gmailTriggerAi(silent) {
   var pat = sel.pat;
   var intent = sel.intent;
 
-  if (!silent) {
+  if (!silent || (typeof silent === 'object')) {
     _gmailState.aiOpen = true;
     _gmailRenderThreadContent();
   }
@@ -12921,7 +13181,7 @@ async function _gmailTriggerAi(silent) {
     + 'Meddelandetyp: ' + (intent.label||'okänd') + '\n'
     + 'Senaste mail (från: ' + _gmailFromName(lastMsg?.payload?.headers?.find?.(function(h){return h.name==='From';})?.value||'') + '):\n'
     + body.slice(0,600) + '\n\n'
-    + 'Skriv ett kort, professionellt svar på svenska. '
+    + (silent && typeof silent === 'object' && silent.tone ? 'Skriv med ' + silent.tone + ' ton. ' : 'Skriv ett kort, professionellt svar på svenska. ')
     + (intent.id==='scheduling'&&pat ? 'Hänvisa till patientportalen för ombokning: ' + portalUrl + '. Förklara att de kan boka om där. ' : '')
     + (intent.id==='cancel' ? 'Bekräfta och påminn om 24h-policyn vid sen avbokning. ' : '')
     + 'Signera: Carl-Robert Kärell, Kansei Ortopedi & Rehabcenter.';
@@ -24639,6 +24899,414 @@ async function generateRetentionMessage(signal, pat) {
 // Add a signal to the queue
 
 // ══════════════════════════════════════════════════════════════════════════════
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SPRINT 3b — FASTER POLLING, AUTO-AI, MORNING BRIEFING, SMART ACTIONS
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── AI summaries cache for mail list ─────────────────────────────────────────
+if (!window._gmailState) window._gmailState = {};
+window._gmailState.aiSummaries = window._gmailState.aiSummaries || {};
+
+async function _gmailGenerateSummary(thread, pat, intent) {
+  if (!thread || !thread.id) return;
+  if (window._gmailState.aiSummaries[thread.id]) return; // already cached
+  var key = typeof _velaGetApiKey === 'function' ? _velaGetApiKey('anthropic') : null;
+  if (!key) return;
+
+  var patCtx = pat ? ' (patient: ' + pat.name + ', ' + (pat.visits||[]).length + ' besök)' : '';
+  var prompt = 'Sammanfatta detta mail i max 12 ord på svenska. Inga citattecken. Var konkret.\n'
+    + 'Ämne: ' + (thread.subject||'') + '\n'
+    + 'Från: ' + _gmailFromName(thread.from||'') + patCtx + '\n'
+    + 'Innehåll: ' + (thread.snippet||'');
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,
+               'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:60,
+        messages:[{role:'user',content:prompt}] })
+    });
+    var data = await res.json();
+    var text = (data.content?.[0]?.text||'').trim().replace(/^[""]|[""]$/g,'');
+    if (text) {
+      window._gmailState.aiSummaries[thread.id] = text;
+      // Update mail issue aiSuggestion
+      var issues = _getMailIssues();
+      var issue = issues.find(function(m){ return m.threadId === thread.id; });
+      if (issue) { issue.aiSuggestion = text; _saveMailIssues(issues); }
+      // Re-render list if visible
+      if (document.getElementById('gm-list-panel')) _gmailRenderListPanel();
+    }
+  } catch(ex) {}
+}
+
+// ── Open mail thread from Åtgärder ────────────────────────────────────────────
+function _openMailIssueThread(issueId) {
+  var issue = _getMailIssues().find(function(m){ return m.id === issueId; });
+  if (!issue || !issue.threadId) return;
+  go('activity');
+  setTimeout(function(){
+    if (typeof _gmailOpenThread === 'function') _gmailOpenThread(issue.threadId, true);
+  }, 300);
+}
+
+// ── Rebook from Åtgärder (without opening Gmail) ─────────────────────────────
+async function _aiHandleRebookFromIssue(issueId) {
+  var issue = _getMailIssues().find(function(m){ return m.id === issueId; });
+  if (!issue || !issue.patId) { showAutoSaveToast('Koppla patienten till mailet först'); return; }
+  var pat = (S.patients||[]).find(function(p){ return p.id === issue.patId; });
+  if (!pat) return;
+  await _aiHandleRebookRequest({ subject: issue.title, from: issue.fromEmail }, pat, issue.threadId);
+  rActions();
+}
+
+// ── Cancel from Åtgärder ──────────────────────────────────────────────────────
+async function _aiHandleCancelFromIssue(issueId) {
+  var issue = _getMailIssues().find(function(m){ return m.id === issueId; });
+  if (!issue || !issue.patId) { showAutoSaveToast('Koppla patienten till mailet först'); return; }
+  var pat = (S.patients||[]).find(function(p){ return p.id === issue.patId; });
+  if (!pat) return;
+
+  var bks = typeof getBookings==='function' ? getBookings() : [];
+  var nextBk = bks.filter(function(b){
+    return b.patientId===pat.id && b.status!=='cancelled' && b.date>=new Date().toISOString().slice(0,10);
+  }).sort(function(a,b){ return a.date>b.date?1:-1; })[0];
+
+  var policy = typeof _aktGetCancelPolicy==='function' ? _aktGetCancelPolicy() : { within24h:true, lateFeePercent:100, autoRespond:true, aiTone:'professional' };
+  var isLate = false;
+  if (nextBk) {
+    var hours = (new Date(nextBk.date+'T'+(nextBk.time||'08:00')) - new Date()) / 3600000;
+    isLate = hours >= 0 && hours < 24;
+  }
+
+  if (nextBk && policy.autoRespond) {
+    await _aktAiCancelResponse(nextBk, pat, isLate, policy, 'patient_mail_request');
+    _closeMailIssue(issueId);
+    showAutoSaveToast('AI svarade på avbokning ✓');
+    rActions();
+  }
+}
+
+// ── Gmail Morning Briefing ────────────────────────────────────────────────────
+var _gmailBriefingCache = null;
+var _gmailBriefingDate  = null;
+
+async function _generateGmailMorningBriefing() {
+  var today = new Date().toLocaleDateString('sv-SE');
+  if (_gmailBriefingCache && _gmailBriefingDate === today) return _gmailBriefingCache;
+
+  if (!_gmailIsAuthed()) return null;
+  var key = typeof _velaGetApiKey==='function' ? _velaGetApiKey('anthropic') : null;
+  if (!key) return null;
+
+  var mailIssues = _getMailIssues();
+  var closed = new Set([]);
+  try { JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').forEach(function(c){ closed.add(c.id); }); } catch {}
+  var open = mailIssues.filter(function(m){ return !closed.has(m.id); });
+
+  if (!open.length) return null;
+
+  var mailSummaries = open.slice(0,5).map(function(m){
+    return '- ' + m.patName + ': "' + m.title + '" (' + (m.intentLabel||m.meta||'') + ')';
+  }).join('\n');
+
+  var compIssues = typeof _gatherIssues === 'function'
+    ? _gatherIssues().filter(function(i){ return i.type==='compliance' && !closed.has(i.id); })
+    : [];
+
+  var prompt = 'Du är AI-assistent för Carl-Robert Kärell, naprapat.\n\n'
+    + 'Sammanfatta morgonläget på svenska i 2-3 meningar max. Var konkret och handlingsorienterad.\n\n'
+    + 'Ohanterade mail (' + open.length + '):\n' + mailSummaries
+    + (compIssues.length ? '\n\nFöljsamhetssignaler: ' + compIssues.map(function(i){ return i.patName; }).join(', ') : '')
+    + '\n\nGe en skarp, kortfattad briefing. Ingen hälsning, inga rubriker.';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,
+               'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:150,
+        messages:[{role:'user',content:prompt}] })
+    });
+    var data = await res.json();
+    var text = data.content?.[0]?.text || null;
+    _gmailBriefingCache = text;
+    _gmailBriefingDate  = today;
+    return text;
+  } catch(ex) { return null; }
+}
+
+function _renderGmailMorningBriefing(el) {
+  if (!el) return;
+  _generateGmailMorningBriefing().then(function(briefing) {
+    if (!briefing) return;
+    var closed = new Set([]);
+    try { JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').forEach(function(c){ closed.add(c.id); }); } catch {}
+    var openMailCount = _getMailIssues().filter(function(m){ return !closed.has(m.id); }).length;
+
+    var existing = el.innerHTML || '';
+    var briefingHtml = '<div id="gmail-morning-briefing" style="'
+      + 'background:linear-gradient(135deg,rgba(88,166,255,.05),rgba(88,166,255,.02));'
+      + 'border:1px solid rgba(88,166,255,.15);border-radius:6px;padding:14px 18px;margin-bottom:16px">'
+      + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
+      + '<div style="width:28px;height:28px;border-radius:8px;background:rgba(88,166,255,.08);'
+      + 'display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+      + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2" stroke-linecap="round">'
+      + '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>'
+      + '<polyline points="22,6 12,13 2,6"/></svg></div>'
+      + '<div style="font-size:13px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#58a6ff">Mail · Vela AI</div>'
+      + '<span style="font-size:12px;color:#8b949e;margin-left:4px">' + openMailCount + ' ohanterade</span>'
+      + '<button onclick="document.getElementById(\'gmail-morning-briefing\').remove()" '
+      + 'style="margin-left:auto;background:none;border:none;color:#8b949e;font-size:18px;cursor:pointer;line-height:1;padding:0 4px">\u00d7</button>'
+      + '</div>'
+      + '<div style="font-size:13px;color:#e6edf3;line-height:1.7">' + briefing + '</div>'
+      + '<div style="display:flex;gap:8px;margin-top:12px">'
+      + '<button onclick="go(\'actions\');window._actionsType=\'mail\';rActions()" '
+      + 'style="padding:6px 14px;background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.2);'
+      + 'border-radius:7px;font-size:12px;font-weight:700;color:#58a6ff;cursor:pointer;font-family:var(--font)">Visa mail i Åtgärder</button>'
+      + '<button onclick="go(\'activity\')" '
+      + 'style="padding:6px 14px;background:none;border:1px solid #30363d;'
+      + 'border-radius:7px;font-size:12px;color:#8b949e;cursor:pointer;font-family:var(--font)">Öppna inkorg</button>'
+      + '</div></div>';
+
+    if (!document.getElementById('gmail-morning-briefing')) {
+      el.innerHTML = briefingHtml + existing;
+    }
+  });
+}
+
+// ── Trigger briefing on home screen load ──────────────────────────────────────
+var _origRHome = typeof rHome === 'function' ? rHome : null;
+
+// ══════════════════════════════════════════════════════════════════════════════
+// END SPRINT 3b
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════════════════════
+// SPRINT 3 — AI-DRIVEN MAIL, OMBOKNING & FÖLJSAMHET
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Booking policy ────────────────────────────────────────────────────────────
+var _DEFAULT_REBOOK_POLICY = {
+  minNoticeHours: 24, maxRebooks: 3, maxCancels: 3,
+  slotsToOffer: 3, complianceFlagAt: 2, complianceAlertAt: 3, aiHandlesBookings: true,
+};
+function _getRebookPolicy() {
+  try { return Object.assign({}, _DEFAULT_REBOOK_POLICY, JSON.parse(localStorage.getItem('vela:rebook-policy')||'null')||{}); }
+  catch { return _DEFAULT_REBOOK_POLICY; }
+}
+function _saveRebookPolicy(p) { try { localStorage.setItem('vela:rebook-policy', JSON.stringify(p)); } catch {} }
+
+// ── Compliance tracking ───────────────────────────────────────────────────────
+function _getComplianceStore() { try { return JSON.parse(localStorage.getItem('vela:compliance')||'{}'); } catch { return {}; } }
+function _saveComplianceStore(s) { try { localStorage.setItem('vela:compliance', JSON.stringify(s)); } catch {} }
+
+function _patGetComplianceData(patId) {
+  return _getComplianceStore()[patId] || { rebooks:[], cancels:[], total:0, lastEvent:null };
+}
+
+function _patRecordComplianceEvent(patId, type) {
+  var store = _getComplianceStore();
+  if (!store[patId]) store[patId] = { rebooks:[], cancels:[], total:0, lastEvent:null };
+  var d = store[patId];
+  var now = new Date().toISOString();
+  var cutoff = new Date(Date.now() - 60*24*3600000).toISOString();
+  d[type+'s'] = (d[type+'s']||[]).filter(function(t){ return t > cutoff; });
+  d[type+'s'].push(now);
+  d.total = d.rebooks.length + d.cancels.length;
+  d.lastEvent = now;
+  store[patId] = d;
+  _saveComplianceStore(store);
+  return d;
+}
+
+function _patCheckCompliance(patId) {
+  var p = _getRebookPolicy();
+  var d = _patGetComplianceData(patId);
+  if (d.total >= p.complianceAlertAt) return 2;
+  if (d.total >= p.complianceFlagAt)  return 1;
+  return 0;
+}
+
+function _patComplianceSuggestion(data) {
+  var r = (data.rebooks||[]).length, c = (data.cancels||[]).length;
+  if (c > r && c >= 2) return 'Patienten avbokar ofta. Aktivera SMS-påminnelse 48h innan och fråga om det finns hinder.';
+  if (r > c && r >= 2) return 'Patienten bokar om upprepade gånger. Diskutera tidsflexibilitet vid nästa besök.';
+  if (!data.lastEvent) return 'Observera mönstret vid nästa kontakt.';
+  var days = Math.round((Date.now()-new Date(data.lastEvent))/86400000);
+  if (days > 30) return 'Senaste händelse för '+days+' dagar sedan. Skicka återaktiveringshälsning.';
+  return 'Lyft frågan om behandlingsföljsamhet diskret vid nästa besök.';
+}
+
+function _resetCompliance(patId) {
+  var s = _getComplianceStore(); delete s[patId]; _saveComplianceStore(s); rActions();
+}
+
+// ── Mail issues store ─────────────────────────────────────────────────────────
+function _getMailIssues() { try { return JSON.parse(localStorage.getItem('vela:mail-issues')||'[]'); } catch { return []; } }
+function _saveMailIssues(a) { try { localStorage.setItem('vela:mail-issues', JSON.stringify(a)); } catch {} }
+
+function _addMailIssue(issue) {
+  var all = _getMailIssues();
+  if (all.find(function(m){ return m.id === issue.id; })) return;
+  all.unshift(issue);
+  _saveMailIssues(all.slice(0,50));
+  if (typeof _aktUpdateBadge === 'function') _aktUpdateBadge();
+}
+
+function _closeMailIssue(issueId) {
+  var closed = [];
+  try { closed = JSON.parse(localStorage.getItem('vela:closed-issues')||'[]'); } catch {}
+  if (!closed.find(function(c){ return c.id===issueId; }))
+    closed.push({ id:issueId, at:new Date().toISOString() });
+  try { localStorage.setItem('vela:closed-issues', JSON.stringify(closed)); } catch {}
+}
+
+// ── Gmail poll → Åtgärder ─────────────────────────────────────────────────────
+var _gmailPollRunning = false;
+async function _gmailPollActionable() {
+  if (_gmailPollRunning || !_gmailIsAuthed()) return;
+  _gmailPollRunning = true;
+  try {
+    var threads = await _gmailLoadInbox('in:inbox is:unread -from:me', 20);
+    var closed = new Set([]);
+    try { JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').forEach(function(c){ closed.add(c.id); }); } catch {}
+    for (var t of threads) {
+      var issueId = 'mail_' + t.id;
+      if (closed.has(issueId)) continue;
+      var intent = _gmailDetectIntent(t.subject, t.snippet);
+      if (intent.id === 'system') continue;
+      var fromEmail = (t.from||'').match(/<([^>]+)>/) ? t.from.match(/<([^>]+)>/)[1] : t.from;
+      var pat = (S.patients||[]).find(function(p){ return p.email && fromEmail && p.email.toLowerCase()===fromEmail.toLowerCase(); });
+      var mailIssue = {
+        id: issueId, type:'mail', threadId:t.id,
+        patId: pat?pat.id:null, patName: pat?pat.name:_gmailFromName(t.from),
+        fromEmail: t.from,
+        title: t.subject||'(Inget ämne)',
+        meta: intent.id!=='other' ? intent.label : _gmailFromName(t.from),
+        intentId: intent.id, intentLabel: intent.label,
+        age: 0, ts: t.date||new Date().toISOString(),
+        aiSuggestion: null,
+        aiCanAutoHandle: (intent.id==='scheduling'||intent.id==='cancel'),
+        closeFn:'_closeMailIssue', closeLabel:'Markera hanterad',
+        snippet: t.snippet,
+      };
+      // Auto-generate AI summary for list view
+      _gmailGenerateSummary(t, pat, intent);
+      _addMailIssue(mailIssue);
+    }
+    if (typeof _aktUpdateBadge==='function') _aktUpdateBadge();
+  } finally { _gmailPollRunning = false; }
+}
+
+// ── Rebook flow ───────────────────────────────────────────────────────────────
+async function _aiHandleRebookRequest(gmailMeta, pat, threadId) {
+  var policy = _getRebookPolicy();
+  var bks = typeof getBookings==='function' ? getBookings() : [];
+  var futureBks = bks.filter(function(b){
+    return b.patientId===pat.id && b.status!=='cancelled' && b.date>=new Date().toISOString().slice(0,10);
+  }).sort(function(a,b){ return a.date>b.date?1:-1; });
+  var targetBk = futureBks[0];
+
+  if (targetBk) {
+    var hours = (new Date(targetBk.date+'T'+(targetBk.time||'08:00')) - new Date()) / 3600000;
+    if (hours < policy.minNoticeHours) {
+      var cfg = getClinicConfig();
+      await _velaSendMail(pat.email, 'Re: '+(gmailMeta.subject||'Din bokning'),
+        'Hej '+pat.name.split(' ')[0]+',\n\nTyvärr är det för sent att boka om (kräver '+policy.minNoticeHours+'h varsel).\nKontakta oss gärna via telefon.\n\nMed vänliga hälsningar,\nCarl-Robert Kärell\nKansei Ortopedi & Rehabcenter');
+      if (threadId) _closeMailIssue('mail_'+threadId);
+      showAutoSaveToast('AI svarade: för kort varsel');
+      return { ok:true, action:'too_late' };
+    }
+  }
+
+  var therapists = typeof getTherapists==='function' ? getTherapists() : [];
+  var tId = (therapists[0]||{}).id||'default';
+  var allSlots = [];
+  for (var d=1; d<21 && allSlots.length < policy.slotsToOffer*4; d++) {
+    var dt = new Date(Date.now()+d*86400000);
+    var ds = dt.toISOString().slice(0,10);
+    var daySlots = getAvailableSlots(tId, ds, targetBk?(targetBk.duration||45):45);
+    daySlots.filter(function(s){ return s.available; }).forEach(function(s){ allSlots.push({date:ds,time:s.time}); });
+  }
+  var offered = allSlots.slice(0, policy.slotsToOffer);
+
+  if (!offered.length) {
+    await _velaSendMail(pat.email, 'Re: '+(gmailMeta.subject||'Din bokning'),
+      'Hej '+pat.name.split(' ')[0]+',\n\nVi ser inga lediga tider de närmaste dagarna. Vi återkommer!\n\nMed vänliga hälsningar,\nCarl-Robert Kärell\nKansei Ortopedi & Rehabcenter');
+    return { ok:true, action:'no_slots' };
+  }
+
+  var slotParam = offered.map(function(s){ return s.date+'@'+s.time; }).join(',');
+  var rebookUrl = getPortalEntryUrl(pat.id) + '?rebook='+(targetBk?targetBk.id:'new')+'&slots='+encodeURIComponent(slotParam);
+
+  function fmtSv(s) {
+    var dd = new Date(s.date+'T12:00');
+    return dd.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})+' kl '+s.time;
+  }
+
+  var mailBody = 'Hej '+pat.name.split(' ')[0]+'!\n\nInga problem, vi hjälper dig att boka om.\n\nLediga tider:\n\n'
+    + offered.map(function(s){ return '  \u2022 '+fmtSv(s); }).join('\n')
+    + '\n\nKlicka här för att välja din tid:\n' + rebookUrl
+    + '\n\nHör av dig om ingen tid passar!\n\nMed vänliga hälsningar,\nCarl-Robert Kärell\nKansei Ortopedi & Rehabcenter';
+
+  var result = await _velaSendMail(pat.email, 'Lediga tider för ombokning', mailBody);
+  if (result && result.ok) {
+    _patRecordComplianceEvent(pat.id, 'rebook');
+    _addMailIssue({
+      id:'rebook_'+(targetBk?targetBk.id:Date.now()), type:'rebook',
+      patId:pat.id, patName:pat.name,
+      title:'Inväntar val — '+offered.length+' alternativ skickade',
+      meta: targetBk?'Gäller '+targetBk.date+' kl '+(targetBk.time||''):'',
+      age:0, ts:new Date().toISOString(),
+      aiSuggestion:'AI skickade '+offered.length+' tidsalternativ. Patienten väljer via portalen.',
+      closeFn:'_closeMailIssue', closeLabel:'Avsluta ärendet',
+    });
+    if (threadId) _closeMailIssue('mail_'+threadId);
+    showAutoSaveToast('AI skickade '+offered.length+' tider till '+pat.name.split(' ')[0]+' ✓');
+    return { ok:true, action:'slots_sent', offered:offered };
+  }
+  return { ok:false };
+}
+
+// ── Rebook policy settings ────────────────────────────────────────────────────
+function _stRebookPolicy() {
+  var p = _getRebookPolicy();
+  function sel(id, val, opts) {
+    var s = '<select id="'+id+'" onchange="_onPolicyChange()" style="background:#21262d;border:1px solid #30363d;border-radius:6px;padding:6px 10px;font-size:13px;color:#e6edf3;font-family:var(--font);cursor:pointer">';
+    opts.forEach(function(o){ s+='<option value="'+o.v+'"'+(val==o.v?' selected':'')+'>'+(o.l)+'</option>'; });
+    return s+'</select>';
+  }
+  function row(lbl,desc,inp) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #21262d">'
+      +'<div><div style="font-size:13px;font-weight:600;color:#e6edf3">'+lbl+'</div><div style="font-size:12px;color:#6e7681;margin-top:2px">'+desc+'</div></div>'
+      +'<div>'+inp+'</div></div>';
+  }
+  return '<div style="padding:4px 0">'
+    +'<div style="font-size:14px;font-weight:700;color:#e6edf3;margin-bottom:16px">Omboknings- & följsamhetspolicy</div>'
+    + row('Minsta varsel för ombokning','Patienter kan inte boka om kortare tid än detta',sel('rp-notice',p.minNoticeHours,[{v:12,l:'12 h'},{v:24,l:'24 h (standard)'},{v:48,l:'48 h'},{v:72,l:'72 h'}]))
+    + row('Max ombokningar per patient','Räknat 90 dagar — fler flaggas',sel('rp-rebooks',p.maxRebooks,[{v:1,l:'1'},{v:2,l:'2'},{v:3,l:'3 (standard)'},{v:99,l:'Obegränsat'}]))
+    + row('Antal tidsalternativ AI erbjuder','Hur många tider AI skickar till patienten',sel('rp-slots',p.slotsToOffer,[{v:2,l:'2'},{v:3,l:'3 (standard)'},{v:5,l:'5'}]))
+    + row('Notering på patientkort vid','Tyst notering, ej synlig för patient',sel('rp-flag',p.complianceFlagAt,[{v:2,l:'2 händelser / 60 dagar'},{v:3,l:'3 händelser'},{v:4,l:'4 händelser'}]))
+    + row('Aktiv alert i Åtgärder vid','Visas i Åtgärder och patientkort',sel('rp-alert',p.complianceAlertAt,[{v:3,l:'3 händelser / 60 dagar'},{v:4,l:'4 händelser'},{v:5,l:'5 händelser'}]))
+    +'<div style="margin-top:14px;padding:12px;background:rgba(224,118,40,.04);border:1px solid rgba(224,118,40,.1);border-radius:8px;font-size:12px;color:#8b949e">AI faciliterar ombokningar — patienten väljer alltid sin tid via portalen.</div>'
+    +'</div>';
+}
+function _onPolicyChange() {
+  var g=function(id,def){ var el=document.getElementById(id); return el?parseInt(el.value):def; };
+  var p=_getRebookPolicy();
+  p.minNoticeHours=g('rp-notice',24); p.maxRebooks=g('rp-rebooks',3); p.slotsToOffer=g('rp-slots',3);
+  p.complianceFlagAt=g('rp-flag',2); p.complianceAlertAt=g('rp-alert',3);
+  _saveRebookPolicy(p); showAutoSaveToast('Policy sparad \u2713');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// END SPRINT 3
+// ══════════════════════════════════════════════════════════════════════════════
+
 // VELA COMMUNICATIONS ENGINE — Resend (mail) + 46elks (SMS) + retention dispatcher
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -26995,6 +27663,7 @@ function _renderSettingsContent(tab) {
   else if (tab === 'profile')       el.innerHTML = _stUserProfile();
   else if (tab === 'preferences')   el.innerHTML = _stPreferences();
   else if (tab === 'sms')           { window._commsTab = 'sms'; el.innerHTML = _stComms(cfg); }
+  else if (tab === 'rebook-policy') el.innerHTML = _stRebookPolicy();
 }
 
 
@@ -30120,7 +30789,8 @@ function _renderMorningReportCard() {
 
   var report = getMorningReport();
   if (!report) {
-    el.innerHTML = '';
+    // Still show Gmail briefing if available
+    _renderGmailMorningBriefing(el);
     return;
   }
 
@@ -36216,6 +36886,16 @@ function getAiProfileContext(userId) {
         setTimeout(() => syncFromCloud(), 800);
         setTimeout(() => _dispatchRetentionQueue(), 3000);
         setInterval(() => _dispatchRetentionQueue(), 15 * 60 * 1000);
+        // Sprint 3: Gmail poll → Åtgärder
+        setTimeout(function(){ if (typeof _gmailPollActionable === 'function') _gmailPollActionable(); }, 5000);
+        // Morning briefing on home after Gmail loaded
+        setTimeout(function(){
+          if (typeof _renderGmailMorningBriefing === 'function') {
+            var mrel = document.getElementById('morning-report-card');
+            if (mrel) _renderGmailMorningBriefing(mrel);
+          }
+        }, 7000);
+        setInterval(function(){ if (typeof _gmailPollActionable === 'function') _gmailPollActionable(); }, 2 * 60 * 1000);
         setTimeout(() => sbKeepAlive(), 2000);
         setTimeout(function(){ runNightlyScanIfNeeded().then(function(){ _renderMorningReportCard(); }); }, 3000);
         setTimeout(() => runInboxAgent(S.patients), 3500);

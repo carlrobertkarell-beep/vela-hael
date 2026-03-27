@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774950001 -->
+<!-- vela-build:1774950002 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -2793,6 +2793,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
     <div id="s-intake" class="screen"></div>
     <div id="s-economy" class="screen"></div>
     <div id="s-invoices" class="screen"></div>
+    <div id="s-tools" class="screen"></div>
   </div>
 </div>
 
@@ -5486,7 +5487,7 @@ function go(scr){
 
   if (!_isPlatformScreen) rTopbar();
   if (!_isPlatformScreen && typeof _generateAIBriefings === 'function') setTimeout(_generateAIBriefings, 300);
-  const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,availability:rAvailability,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,profile:rProfile,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){},retention:rActions,'patient-portal':function(){},'intake':function(){}};
+  const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,availability:rAvailability,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,profile:rProfile,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){},retention:rActions,'patient-portal':function(){},'intake':function(){},tools:rTools};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
 }
@@ -9868,6 +9869,7 @@ function rTopbar() {
     (alertCount+pendingAppr) || null, 'alert');
   nh += nb('activity', 'Aktivitet', '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
     unreadMsgs || null, 'count');
+  nh += nb('tools', 'Verktyg', '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>');
   nh += '</div>';
 
   // ── CONTEXTUAL NAV (screen-specific) ──────────────────────────
@@ -9941,6 +9943,21 @@ function rTopbar() {
       + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
       + '<span class="nav-item-label">Vela Ask</span>'
       + '<span style="margin-left:auto;font-size:10px;background:rgba(224,118,40,.15);color:var(--orange);padding:1px 5px;border-radius:4px;font-weight:700">AI</span></button>';
+
+  } else if (scr === 'tools') {
+    nh += nsep('Kliniska verktyg');
+    nh += nb('tools', 'Alla verktyg', '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>');
+    nh += '<button class="nav-item" onclick="rTools(\'us\')">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>'
+      + '<span class="nav-item-label">Bildanalys</span>'
+      + '<span style="margin-left:auto;font-size:10px;background:rgba(224,118,40,.15);color:var(--orange);padding:1px 5px;border-radius:4px;font-weight:700">AI</span></button>';
+    nh += '<button class="nav-item" onclick="rTools(\'remiss\')">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>'
+      + '<span class="nav-item-label">Remissgenerator</span>'
+      + '<span style="margin-left:auto;font-size:10px;background:rgba(224,118,40,.15);color:var(--orange);padding:1px 5px;border-radius:4px;font-weight:700">AI</span></button>';
+    nh += '<button class="nav-item" onclick="rTools(\'redflag\')">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      + '<span class="nav-item-label">Flagghistorik</span></button>';
 
   } else if (scr === 'hael') {
     nh += nsep('Rehabplaner');
@@ -18021,6 +18038,9 @@ async function saveSOAPToVisit(goToPlan) {
   // Queue for human-in-the-loop approval if AI-generated
   _maybeQueueSOAPApproval(saved, vid, soapText, mergedSoap);
 
+  // ── Röd flagg-scanner (async, non-blocking) ───────────────────
+  setTimeout(function(){ _runRedFlagScan(soapText, saved && saved.name); }, 800);
+
   if (isFirstVisit || !(p.diagnoses||[]).length) {
     setTimeout(() => aiExtractDiagnoses(saved.id), 1500);
   }
@@ -18215,6 +18235,12 @@ function rManualSOAP(bk) {
         <button onclick="finishManualSOAP(false)"
           style="padding:6px 14px;background:#238636;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">
           Spara & granska
+        </button>
+        <button onclick="_toolsActiveTool='us';rTools('us')" title="Bildanalys" style="padding:6px 10px;background:none;border:1px solid #30363d;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#58a6ff;font-family:var(--font)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>Bild
+        </button>
+        <button onclick="_toolsActiveTool='remiss';rTools('remiss')" title="Remissgenerator" style="padding:6px 10px;background:none;border:1px solid #30363d;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#3fb950;font-family:var(--font)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Remiss
         </button>
       </div>
     </div>
@@ -18415,6 +18441,490 @@ function restoreMeetDraft(draft) {
   showAutoSaveToast('Transkript återställt -- '+meetTranscript.length+' rader');
 }
 
+
+
+
+// ── TOOLS ─────────────────────────────────────────────────────────────────────
+let _toolsActiveView = 'home';
+let _toolsUSImages = [];
+let _toolsUSResult = null;
+let _toolsRemissResult = null;
+
+function rTools(view) {
+  _toolsActiveView = view || 'home';
+  const el = document.getElementById('s-tools');
+  if (!el) return;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  S.screen = 'tools';
+  _renderTools();
+  updateNavLinks();
+}
+
+function _renderTools() {
+  const el = document.getElementById('s-tools');
+  if (!el) return;
+  const v = _toolsActiveView;
+  let content = '';
+  if (v === 'us') content = _toolsUSPanel();
+  else if (v === 'remiss') content = _toolsRemissPanel();
+  else if (v === 'redflag') content = _toolsRedFlagPanel();
+  else content = _toolsHomePanel();
+
+  el.innerHTML = `
+  <div style="display:flex;flex-direction:column;height:100%;background:var(--bg);font-family:var(--font)">
+    <div style="height:52px;background:#161b22;border-bottom:1px solid #30363d;display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0">
+      <span style="font-size:14px;font-weight:700;color:#e6edf3">Verktyg</span>
+      <span style="font-size:13px;color:#8b949e">\u00b7 Kliniska AI-assistenter</span>
+      <div style="margin-left:auto;display:flex;gap:6px">
+        ${_toolsTabBtn('home','Översikt')}
+        ${_toolsTabBtn('us','Bildanalys')}
+        ${_toolsTabBtn('remiss','Remiss')}
+        ${_toolsTabBtn('redflag','Flagghistorik')}
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto">
+      <div style="max-width:900px;margin:0 auto;padding:28px 24px 80px">
+        ${content}
+      </div>
+    </div>
+  </div>`;
+
+  if (v === 'us' && _toolsUSImages.length) _toolsRenderImageThumbs();
+}
+
+function _toolsTabBtn(view, label) {
+  const active = _toolsActiveView === view;
+  return `<button onclick="_toolsActiveView='${view}';_renderTools()"
+    style="padding:5px 12px;font-size:12px;font-weight:600;border-radius:6px;cursor:pointer;font-family:var(--font);border:1px solid ${active?'var(--orange)':'#30363d'};background:${active?'rgba(224,118,40,.1)':'none'};color:${active?'var(--orange)':'#8b949e'};transition:all .12s">
+    ${label}</button>`;
+}
+
+// ── HOME PANEL ────────────────────────────────────────────────────────────────
+function _toolsHomePanel() {
+  const rfLog = (() => { try { return JSON.parse(localStorage.getItem('vela:redflaglog')||'[]'); } catch(e2){return[];} })();
+  const tools = [
+    { key:'us',      icon:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>',
+      title:'Bildanalys', sub:'Ultraljud · Radiologi', badge:'AI',
+      desc:'Ladda upp bild med klinisk bakgrund. AI analyserar fynd och genererar formellt utlåtande på svenska med radiologisk struktur.' },
+    { key:'remiss',  icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>',
+      title:'Remissgenerator', sub:'Röntgen · Ortoped · Fysio', badge:'AI',
+      desc:'Genererar remiss i standardformat. Prefylls automatiskt från journaltext. Du godkänner alltid innan det skickas.' },
+    { key:'redflag', icon:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+      title:'Röd flagg-historik', sub:'Klinisk säkerhet', badge: rfLog.length ? String(rfLog.length) : null,
+      desc:'Logg över identifierade röda flaggor. Automatisk scanning körs i bakgrunden vid varje sparad journal.' }
+  ];
+
+  let h = `<div style="margin-bottom:28px">
+    <div style="font-size:22px;font-weight:700;color:#e6edf3;margin-bottom:6px">Kliniska verktyg</div>
+    <div style="font-size:14px;color:#8b949e">AI-assistenter för bildanalys, dokumentation och klinisk säkerhet.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">`;
+
+  tools.forEach(t => {
+    const badgeColor = t.key==='redflag' ? '#f85149' : 'var(--orange)';
+    const badgeBg = t.key==='redflag' ? 'rgba(248,81,73,.12)' : 'rgba(224,118,40,.15)';
+    h += `<div onclick="_toolsActiveView='${t.key}';_renderTools()"
+      style="background:#161b22;border:1px solid #30363d;border-radius:6px;padding:20px;cursor:pointer;transition:border-color .12s"
+      onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='#30363d'">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+        <div style="width:38px;height:38px;border-radius:8px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.18);display:flex;align-items:center;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${t.icon}</svg>
+        </div>
+        ${t.badge ? `<span style="font-size:10px;font-weight:700;background:${badgeBg};color:${badgeColor};padding:2px 8px;border-radius:12px">${t.badge}</span>` : ''}
+      </div>
+      <div style="font-size:14px;font-weight:700;color:#e6edf3;margin-bottom:2px">${t.title}</div>
+      <div style="font-size:11px;color:var(--orange);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">${t.sub}</div>
+      <div style="font-size:13px;color:#8b949e;line-height:1.55">${t.desc}</div>
+      <div style="margin-top:14px;font-size:12px;font-weight:600;color:var(--orange);display:flex;align-items:center;gap:4px">
+        Öppna <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    </div>`;
+  });
+  h += `</div>`;
+  return h;
+}
+
+// ── ULTRASOUND PANEL ──────────────────────────────────────────────────────────
+function _toolsUSPanel() {
+  const pat = S.pat;
+  const prefill = pat ? 'Patient: ' + (pat.name||'') + (pat.diagnosis ? ', ' + pat.diagnosis : '') + '\n' : '';
+  const hasResult = !!_toolsUSResult;
+  return `
+  <div style="margin-bottom:20px">
+    <button onclick="_toolsActiveView='home';_renderTools()" style="background:none;border:none;color:#8b949e;font-size:13px;font-weight:500;cursor:pointer;padding:0;font-family:var(--font);display:flex;align-items:center;gap:5px;margin-bottom:12px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Tillbaka
+    </button>
+    <div style="font-size:18px;font-weight:700;color:#e6edf3;margin-bottom:4px">Bildanalys — Ultraljud</div>
+    <div style="font-size:13px;color:#8b949e">Ladda upp bild, ge klinisk bakgrund, få strukturerat utlåtande.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Bild(er)</div>
+        <div id="tools-us-dropzone" onclick="document.getElementById('tools-us-file').click()"
+          ondragover="event.preventDefault();this.style.borderColor='var(--orange)'"
+          ondragleave="this.style.borderColor='transparent'"
+          ondrop="_toolsHandleDrop(event)"
+          style="padding:28px;text-align:center;cursor:pointer;border:2px dashed transparent;transition:border-color .12s;margin:10px">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#30363d" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:8px"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+          <div style="font-size:13px;color:#8b949e;margin-bottom:4px">Klicka eller dra bild hit</div>
+          <div style="font-size:12px;color:#6e7681">PNG · JPG · JPEG</div>
+          <input type="file" id="tools-us-file" accept="image/*" multiple style="display:none" onchange="_toolsHandleFiles(this.files)">
+        </div>
+        <div id="tools-us-thumbs" style="display:flex;gap:8px;padding:0 14px 12px;flex-wrap:wrap"></div>
+      </div>
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Klinisk bakgrund</div>
+        <textarea id="tools-us-context" placeholder="Patient, symtom, klinisk frågeställning..."
+          style="width:100%;min-height:90px;border:none;background:transparent;padding:12px 14px;font-size:13px;color:#e6edf3;font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.6"
+          >${e(prefill)}</textarea>
+      </div>
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Typ av svar</div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#e6edf3"><input type="radio" name="tools-us-fmt" value="formal" checked style="accent-color:var(--orange)"> Formellt utlåtande (radiologisk stil)</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#e6edf3"><input type="radio" name="tools-us-fmt" value="clinical" style="accent-color:var(--orange)"> Klinisk sammanfattning</label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#e6edf3"><input type="radio" name="tools-us-fmt" value="patient" style="accent-color:var(--orange)"> Patientvänlig text</label>
+        </div>
+      </div>
+      <button onclick="_toolsRunUSAnalysis()"
+        style="width:100%;padding:13px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        Analysera bild
+      </button>
+    </div>
+    <div>
+      <div id="tools-us-result" style="background:#161b22;border:1px solid #30363d;border-radius:6px;min-height:420px">
+        ${hasResult ? _toolsUSResultHTML(_toolsUSResult) : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:420px;color:#6e7681;gap:10px">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <div style="font-size:13px">Utlåtandet visas här</div>
+        </div>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+function _toolsUSResultHTML(r) {
+  return `<div>
+    <div style="padding:10px 14px;border-bottom:1px solid #30363d;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <span style="font-size:12px;font-weight:700;color:#3fb950;text-transform:uppercase;letter-spacing:.06em">&#10003; Analys klar</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button onclick="_toolsUSCopyResult()" style="padding:4px 10px;background:none;border:1px solid #30363d;border-radius:5px;font-size:12px;font-weight:600;color:#8b949e;cursor:pointer;font-family:var(--font)">Kopiera</button>
+        <button onclick="_toolsUSInsertToSOAP()" style="padding:4px 10px;background:rgba(224,118,40,.1);border:1px solid rgba(224,118,40,.25);border-radius:5px;font-size:12px;font-weight:600;color:var(--orange);cursor:pointer;font-family:var(--font)">Infoga i journal</button>
+        <button onclick="_toolsUSPatientMail()" style="padding:4px 10px;background:none;border:1px solid #30363d;border-radius:5px;font-size:12px;font-weight:600;color:#8b949e;cursor:pointer;font-family:var(--font)">&rarr; Patientmail</button>
+      </div>
+    </div>
+    ${r.redFlags && r.redFlags.length ? `<div style="margin:12px 14px 0;background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.25);border-radius:6px;padding:10px 12px">
+      <div style="font-size:11px;font-weight:700;color:#f85149;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Kliniska observationer</div>
+      ${r.redFlags.map(f=>`<div style="font-size:13px;color:#f09090;margin-bottom:3px">&middot; ${e(f)}</div>`).join('')}
+    </div>` : ''}
+    <div style="padding:14px;font-size:13px;color:#e6edf3;line-height:1.8;white-space:pre-wrap;font-family:var(--font)">${e(r.report)}</div>
+    <div style="margin:0 14px 14px;padding:10px 12px;background:#0d1117;border-radius:6px;border:1px solid #21262d">
+      <div style="font-size:11px;color:#6e7681">AI-assisterat utlåtande &middot; Klinisk verifiering krävs &middot; ${new Date().toLocaleDateString('sv-SE')}</div>
+    </div>
+  </div>`;
+}
+
+function _toolsRenderImageThumbs() {
+  const box = document.getElementById('tools-us-thumbs');
+  if (!box) return;
+  box.innerHTML = _toolsUSImages.map((img, i) =>
+    `<div style="position:relative;width:72px;height:56px;border-radius:4px;overflow:hidden;border:1px solid #30363d;flex-shrink:0">
+      <img src="${img.dataUrl}" style="width:100%;height:100%;object-fit:cover">
+      <button onclick="_toolsRemoveImage(${i})" style="position:absolute;top:2px;right:2px;width:16px;height:16px;background:rgba(0,0,0,.75);border:none;border-radius:50%;color:white;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1">&#x2715;</button>
+    </div>`
+  ).join('');
+}
+
+function _toolsHandleFiles(files) {
+  Array.from(files).forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      _toolsUSImages.push({ dataUrl: ev.target.result, file });
+      _toolsRenderImageThumbs();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function _toolsHandleDrop(ev) {
+  ev.preventDefault();
+  _toolsHandleFiles(ev.dataTransfer.files);
+}
+
+function _toolsRemoveImage(i) {
+  _toolsUSImages.splice(i, 1);
+  _toolsRenderImageThumbs();
+}
+
+async function _toolsRunUSAnalysis() {
+  if (!_toolsUSImages.length) { showAutoSaveToast('Ladda upp minst en bild f\u00f6rst'); return; }
+  const key = getKey();
+  if (!key) { showAutoSaveToast('API-nyckel saknas'); return; }
+
+  const ctx = (document.getElementById('tools-us-context')||{}).value || '';
+  const fmtEl = document.querySelector('input[name="tools-us-fmt"]:checked');
+  const fmt = fmtEl ? fmtEl.value : 'formal';
+  const fmtInstr = {
+    formal: 'Skriv ett formellt radiologiskt utl\u00e5tande p\u00e5 svenska. Struktur: Teknik / Fynd / Konklusion. Anv\u00e4nd "f\u00f6renliga med"-framing. Inga behandlingsrekommendationer — enbart fynd.',
+    clinical: 'Skriv en klinisk sammanfattning p\u00e5 svenska f\u00f6r behandlande terapeut. Lyft fram kliniskt relevanta fynd och eventuella observationer.',
+    patient: 'Skriv en tillg\u00e4nglig f\u00f6rklaring p\u00e5 svenska f\u00f6r patienten. Undvik medicinsk jargong. F\u00f6rklara vad bilden visar p\u00e5 ett lugnt och tydligt s\u00e4tt.'
+  }[fmt];
+
+  const resultEl = document.getElementById('tools-us-result');
+  if (resultEl) resultEl.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:32px;color:#8b949e;font-size:13px"><div style="width:8px;height:8px;border-radius:50%;background:var(--orange);animation:pulse 1s infinite"></div>Analyserar bild...</div>`;
+
+  try {
+    const contentArr = _toolsUSImages.map(img => ({
+      type: 'image',
+      source: { type: 'base64', media_type: img.file.type || 'image/jpeg', data: img.dataUrl.split(',')[1] }
+    }));
+    contentArr.push({ type: 'text', text: fmtInstr + '\n\nKlinisk bakgrund:\n' + (ctx || 'Ingen bakgrund angiven.') + '\n\nSvara med JSON: {"report":"utl\u00e5tande text","redFlags":["observation"]}' });
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, messages: [{ role:'user', content: contentArr }] })
+    });
+    const data = await res.json();
+    const txt = (data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+    _toolsUSResult = JSON.parse(txt);
+    if (resultEl) resultEl.innerHTML = _toolsUSResultHTML(_toolsUSResult);
+  } catch(err) {
+    console.error('US error:', err);
+    if (resultEl) resultEl.innerHTML = `<div style="padding:20px;font-size:13px;color:#f85149">Analys misslyckades: ${e(err.message)}</div>`;
+  }
+}
+
+function _toolsUSCopyResult() {
+  if (_toolsUSResult) navigator.clipboard.writeText(_toolsUSResult.report).then(()=>showAutoSaveToast('Kopierat'));
+}
+
+function _toolsUSInsertToSOAP() {
+  if (!_toolsUSResult) return;
+  navigator.clipboard.writeText(_toolsUSResult.report);
+  showAutoSaveToast('Utl\u00e5tande kopierat \u2014 klistra in i O-f\u00e4ltet');
+  if (S.pat) setTimeout(()=>{ startManualSOAP && startManualSOAP(); }, 1200);
+}
+
+function _toolsUSPatientMail() {
+  if (!_toolsUSResult) return;
+  const key = getKey();
+  if (!key) { showAutoSaveToast('API-nyckel saknas'); return; }
+  const modal = document.getElementById('modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  modal.innerHTML = `<div style="background:#161b22;border-radius:6px;width:100%;max-width:560px;padding:28px;font-family:var(--font)">
+    <div style="font-size:16px;font-weight:700;color:#e6edf3;margin-bottom:4px">Patientmail</div>
+    <div style="font-size:13px;color:#8b949e;margin-bottom:16px">AI omvandlar utl\u00e5tandet till tillg\u00e4nglig text f\u00f6r patienten.</div>
+    <div id="tools-mail-body" style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:14px;font-size:13px;color:#8b949e;min-height:80px;white-space:pre-wrap;line-height:1.6">Genererar...</div>
+    <div style="display:flex;gap:8px;margin-top:16px">
+      <button onclick="navigator.clipboard.writeText(document.getElementById('tools-mail-body').innerText);showAutoSaveToast('Kopierat')"
+        style="flex:1;padding:10px;background:rgba(224,118,40,.1);color:var(--orange);border:1px solid rgba(224,118,40,.25);border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Kopiera</button>
+      <button onclick="document.getElementById('modal').style.display='none'"
+        style="flex:1;padding:10px;background:none;border:1px solid #30363d;border-radius:6px;font-size:13px;font-weight:600;color:#8b949e;cursor:pointer;font-family:var(--font)">St\u00e4ng</button>
+    </div>
+  </div>`;
+
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,
+      messages:[{role:'user',content:'Skriv ett v\u00e4nligt, tydligt patientmail p\u00e5 svenska baserat p\u00e5 detta utl\u00e5tande. Inga medicinska termer utan f\u00f6rklaring. Inled med h\u00e4lsning till '+(S.pat?S.pat.name:'patienten')+'.\n\nUtl\u00e5tande:\n'+_toolsUSResult.report}]})
+  }).then(r=>r.json()).then(data=>{
+    const txt=(data.content||[]).map(b=>b.text||'').join('');
+    const el=document.getElementById('tools-mail-body');
+    if(el){el.style.color='#e6edf3';el.textContent=txt;}
+  }).catch(err=>{
+    const el=document.getElementById('tools-mail-body');
+    if(el)el.textContent='Misslyckades: '+err.message;
+  });
+}
+
+// ── REMISS PANEL ──────────────────────────────────────────────────────────────
+function _toolsRemissPanel() {
+  const pat = S.pat;
+  const hasResult = !!_toolsRemissResult;
+  return `
+  <div style="margin-bottom:20px">
+    <button onclick="_toolsActiveView='home';_renderTools()" style="background:none;border:none;color:#8b949e;font-size:13px;font-weight:500;cursor:pointer;padding:0;font-family:var(--font);display:flex;align-items:center;gap:5px;margin-bottom:12px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Tillbaka
+    </button>
+    <div style="font-size:18px;font-weight:700;color:#e6edf3;margin-bottom:4px">Remissgenerator</div>
+    <div style="font-size:13px;color:#8b949e">Fyll i f\u00e4lten \u2014 AI genererar remissen. Du godk\u00e4nner alltid innan den skickas.</div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Patient</div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+          <input class="field" id="rem-patname" placeholder="Patientnamn" value="${e(pat?pat.name:'')}" style="width:100%;box-sizing:border-box">
+          <input class="field" id="rem-patbirth" placeholder="Personnummer / F\u00f6delsedatum" value="${e(pat?pat.birthdate||pat.birthYear||'':'')}" style="width:100%;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Remitteras till</div>
+        <div style="padding:12px 14px;display:flex;flex-direction:column;gap:8px">
+          <select id="rem-to" class="field" style="width:100%;box-sizing:border-box">
+            <option>R\u00f6ntgen</option><option>Ortoped</option><option>Neurolog</option><option>Fysioterapeut</option><option>Reumatolog</option><option>Allm\u00e4nl\u00e4kare</option><option>Sm\u00e4rtmottagning</option><option>Annan</option>
+          </select>
+          <input class="field" id="rem-undersok" placeholder="Unders\u00f6kning (t.ex. MRT l\u00e4ndrygg, DT kn\u00e4)" style="width:100%;box-sizing:border-box">
+        </div>
+      </div>
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Fr\u00e5gst\u00e4llning</div>
+        <textarea id="rem-fraga" placeholder="Vad vill du ha svar p\u00e5?" style="width:100%;min-height:72px;border:none;background:transparent;padding:12px 14px;font-size:13px;color:#e6edf3;font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.6">${e(pat?pat.customDiag||pat.diagnosis||'':'')}</textarea>
+      </div>
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Klinisk bakgrund</div>
+        <textarea id="rem-bakgrund" placeholder="Fynd, symtombild, tidigare behandling..." style="width:100%;min-height:72px;border:none;background:transparent;padding:12px 14px;font-size:13px;color:#e6edf3;font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.6"></textarea>
+      </div>
+      <div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">Br\u00e5dska</div>
+        <div style="padding:12px 14px;display:flex;gap:12px;flex-wrap:wrap">
+          ${['Rutinremiss','Inom 4 veckor','Inom 1 vecka','Akut'].map((v,i)=>`<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:#e6edf3"><input type="radio" name="rem-urgency" value="${v}" ${i===0?'checked':''} style="accent-color:var(--orange)"> ${v}</label>`).join('')}
+        </div>
+      </div>
+      <button onclick="_toolsRunRemiss()" style="width:100%;padding:13px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Generera remiss
+      </button>
+    </div>
+    <div id="tools-remiss-result" style="background:#161b22;border:1px solid #30363d;border-radius:6px;min-height:420px">
+      ${hasResult ? _toolsRemissResultHTML(_toolsRemissResult) : `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:420px;color:#6e7681;gap:10px">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <div style="font-size:13px">Remissen visas h\u00e4r</div>
+      </div>`}
+    </div>
+  </div>`;
+}
+
+function _toolsRemissResultHTML(txt) {
+  return `<div>
+    <div style="padding:10px 14px;border-bottom:1px solid #30363d;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:12px;font-weight:700;color:#3fb950;text-transform:uppercase;letter-spacing:.06em">&#10003; Remiss klar</span>
+      <button onclick="navigator.clipboard.writeText(document.getElementById('tools-remiss-editable').value);showAutoSaveToast('Kopierat')"
+        style="padding:4px 10px;background:none;border:1px solid #30363d;border-radius:5px;font-size:12px;font-weight:600;color:#8b949e;cursor:pointer;font-family:var(--font)">Kopiera</button>
+    </div>
+    <textarea id="tools-remiss-editable" style="width:100%;min-height:380px;border:none;background:transparent;padding:14px;font-size:13px;color:#e6edf3;font-family:var(--font-mono);resize:none;outline:none;box-sizing:border-box;line-height:1.8">${e(txt)}</textarea>
+    <div style="padding:8px 14px;border-top:1px solid #30363d">
+      <div style="font-size:11px;color:#6e7681">Granska och redigera innan du skickar. AI-genererat utkast.</div>
+    </div>
+  </div>`;
+}
+
+async function _toolsRunRemiss() {
+  const key = getKey();
+  if (!key) { showAutoSaveToast('API-nyckel saknas'); return; }
+  const patName  = (document.getElementById('rem-patname')||{}).value||'';
+  const patBirth = (document.getElementById('rem-patbirth')||{}).value||'';
+  const remTo    = (document.getElementById('rem-to')||{}).value||'';
+  const undersok = (document.getElementById('rem-undersok')||{}).value||'';
+  const fraga    = (document.getElementById('rem-fraga')||{}).value||'';
+  const bakgrund = (document.getElementById('rem-bakgrund')||{}).value||'';
+  const urgEl    = document.querySelector('input[name="rem-urgency"]:checked');
+  const urgency  = urgEl ? urgEl.value : 'Rutinremiss';
+  const clinicName = (typeof getClinicName==='function' ? getClinicName() : null) || 'Kansei Ortopedi & Rehabcenter';
+  const resultEl = document.getElementById('tools-remiss-result');
+  if (resultEl) resultEl.innerHTML = `<div style="display:flex;align-items:center;gap:10px;padding:32px;color:#8b949e;font-size:13px"><div style="width:8px;height:8px;border-radius:50%;background:var(--orange);animation:pulse 1s infinite"></div>Genererar remiss...</div>`;
+  try {
+    const prompt = `Du \u00e4r leg. naprapat p\u00e5 ${clinicName} och skriver en remiss p\u00e5 svenska.\nDatum: ${new Date().toLocaleDateString('sv-SE')}\nPatient: ${patName}${patBirth?', '+patBirth:''}\nRemitteras till: ${remTo}\nUnders\u00f6kning: ${undersok}\nBr\u00e5dska: ${urgency}\nFr\u00e5gst\u00e4llning: ${fraga}\nKlinisk bakgrund: ${bakgrund}\n\nSkriv komplett remiss i standardformat med rubrikerna REMISS, Patient, Remitteras till, Unders\u00f6kning, Fr\u00e5gst\u00e4llning, Anamnes och status, Br\u00e5dska, Remittent. Svara ENBART med remissdokumentet.`;
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,system:'Svara enbart med remissdokumentet p\u00e5 svenska.',messages:[{role:'user',content:prompt}]})});
+    const data = await res.json();
+    _toolsRemissResult = (data.content||[]).map(b=>b.text||'').join('').replace(/```/g,'').trim();
+    if (resultEl) resultEl.innerHTML = _toolsRemissResultHTML(_toolsRemissResult);
+    // Log
+    try { const log=JSON.parse(localStorage.getItem('vela:toolslog')||'[]'); log.unshift({type:'remiss',label:patName||'Remiss',sub:remTo,ts:Date.now()}); localStorage.setItem('vela:toolslog',JSON.stringify(log.slice(0,50))); } catch(e2){}
+  } catch(err) {
+    if (resultEl) resultEl.innerHTML = `<div style="padding:20px;font-size:13px;color:#f85149">Misslyckades: ${e(err.message)}</div>`;
+  }
+}
+
+// ── RED FLAG HISTORY PANEL ────────────────────────────────────────────────────
+function _toolsRedFlagPanel() {
+  let log = [];
+  try { log = JSON.parse(localStorage.getItem('vela:redflaglog')||'[]'); } catch(e2) {}
+  let h = `<div style="margin-bottom:20px">
+    <button onclick="_toolsActiveView='home';_renderTools()" style="background:none;border:none;color:#8b949e;font-size:13px;font-weight:500;cursor:pointer;padding:0;font-family:var(--font);display:flex;align-items:center;gap:5px;margin-bottom:12px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>Tillbaka
+    </button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+      <div style="font-size:18px;font-weight:700;color:#e6edf3">R\u00f6d flagg-historik</div>
+      ${log.length?`<span style="font-size:12px;font-weight:700;background:rgba(248,81,73,.1);color:#f85149;padding:2px 8px;border-radius:12px">${log.length} flagg${log.length===1?'a':'or'}</span>`:''}
+    </div>
+    <div style="font-size:13px;color:#8b949e">Automatisk scanning vid varje sparad journal. Kr\u00e4ver alltid klinisk bed\u00f6mning.</div>
+  </div>`;
+  if (!log.length) {
+    return h + `<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;padding:56px;text-align:center">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#30363d" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:14px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div style="font-size:14px;color:#6e7681;margin-bottom:4px">Inga flaggor identifierade \u00e4n</div>
+      <div style="font-size:13px;color:#6e7681">Dyker upp h\u00e4r automatiskt n\u00e4r journaler sparas.</div>
+    </div>`;
+  }
+  h += `<div style="display:flex;flex-direction:column;gap:8px">`;
+  log.forEach(function(f) {
+    const dt = f.ts ? new Date(f.ts).toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric'}) : '';
+    const urgColor = f.urgent ? '#f85149' : '#d29922';
+    const urgBorder = f.urgent ? 'rgba(248,81,73,.3)' : 'rgba(210,153,34,.3)';
+    h += `<div style="background:#161b22;border:1px solid ${urgBorder};border-left:3px solid ${urgColor};border-radius:6px;padding:14px 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${urgColor}" stroke-width="2.2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span style="font-size:13px;font-weight:700;color:#e6edf3">${e(f.patName||'Okänd patient')}</span>
+          ${f.urgent?`<span style="font-size:10px;font-weight:700;background:rgba(248,81,73,.1);color:#f85149;padding:1px 6px;border-radius:4px">AGERA NU</span>`:`<span style="font-size:10px;font-weight:700;background:rgba(210,153,34,.1);color:#d29922;padding:1px 6px;border-radius:4px">OBSERVERA</span>`}
+        </div>
+        <span style="font-size:11px;color:#6e7681">${dt}</span>
+      </div>
+      <div style="font-size:13px;color:#8b949e;line-height:1.55;margin-bottom:${f.context?'8':'0'}px">${e(f.flags||'')}</div>
+      ${f.context?`<div style="font-size:12px;color:#6e7681;font-style:italic;border-top:1px solid #21262d;padding-top:8px">${e(f.context)}</div>`:''}
+    </div>`;
+  });
+  h += `</div>`;
+  return h;
+}
+
+// ── RED FLAG AUTO-SCANNER (hooked into saveSOAPToVisit) ───────────────────────
+async function _runRedFlagScan(soapText, patName) {
+  if (!soapText || soapText.trim().length < 40) return;
+  const key = getKey();
+  if (!key) return;
+  try {
+    const prompt = `Analysera denna journaltext och identifiera röda flaggor som kräver klinisk uppmärksamhet.\n\nJournaltext:\n${soapText.slice(0,2000)}\n\nSvara ENBART med JSON:\n{"hasFlags":true/false,"urgent":true/false,"flags":"kommaseparerad lista med flaggor eller tom sträng","context":"meningen i journaltexten som triggar"}\n\nRöda flaggor = nattsmärta + viktminskning, neurologiska bortfall, cauda equina-symtom, trauma + svår smärta, infektionstecken, malignitetssignaler, oförklarad feber. Inga backticks.`;
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,system:'Svara ALLTID med giltig JSON.',messages:[{role:'user',content:prompt}]})});
+    const data = await res.json();
+    const txt = (data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+    const result = JSON.parse(txt);
+    if (result.hasFlags && result.flags) {
+      // Log to localStorage
+      const log = (() => { try { return JSON.parse(localStorage.getItem('vela:redflaglog')||'[]'); } catch(e2){return[];} })();
+      log.unshift({ patName: patName||'Okänd', flags: result.flags, context: result.context, urgent: result.urgent, ts: Date.now() });
+      localStorage.setItem('vela:redflaglog', JSON.stringify(log.slice(0,100)));
+      // Show banner
+      _showRedFlagBanner(result);
+    }
+  } catch(err) { console.warn('Red flag scan:', err); }
+}
+
+function _showRedFlagBanner(result) {
+  const existing = document.getElementById('redflag-banner');
+  if (existing) existing.remove();
+  const banner = document.createElement('div');
+  banner.id = 'redflag-banner';
+  banner.style.cssText = 'position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:900;background:#161b22;border:1px solid rgba(210,153,34,.4);border-left:3px solid #d29922;border-radius:6px;padding:10px 16px;display:flex;align-items:center;gap:10px;max-width:520px;width:calc(100% - 40px);box-shadow:0 4px 12px rgba(0,0,0,.4);font-family:var(--font);cursor:pointer';
+  banner.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${result.urgent?'#f85149':'#d29922'}" stroke-width="2.2" stroke-linecap="round" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:12px;font-weight:700;color:${result.urgent?'#f85149':'#d29922'};margin-bottom:2px">${result.urgent?'Röd flagga — agera nu':'Möjlig röd flagga'}</div>
+      <div style="font-size:12px;color:#8b949e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e(result.flags)}</div>
+    </div>
+    <button onclick="document.getElementById('redflag-banner').remove();rTools('redflag')" style="background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.25);border-radius:5px;color:#d29922;font-size:11px;font-weight:700;padding:4px 8px;cursor:pointer;font-family:var(--font);flex-shrink:0">Se historik</button>
+    <button onclick="document.getElementById('redflag-banner').remove()" style="background:none;border:none;color:#6e7681;font-size:16px;cursor:pointer;padding:0 2px;line-height:1">&times;</button>`;
+  document.body.appendChild(banner);
+  setTimeout(() => { if (banner.parentNode) banner.remove(); }, 12000);
+}
+
+// ── END TOOLS ─────────────────────────────────────────────────────────────────
 
 
 // -- EDIT PATIENT --------------------------------------------------------------
@@ -37657,15 +38167,7 @@ window.addEventListener('offline', function(){
 });
 
 
-// ── Reactive theme-color meta ─────────────────────────────────────────────────
-function _updateThemeColorMeta() {
-  var isLight = document.body.classList.contains('light')
-    || (window._velaTheme === 'system' && !window.matchMedia('(prefers-color-scheme: dark)').matches);
-  var color = isLight ? '#ffffff' : '#161b22';
-  document.querySelectorAll('meta[name="theme-color"]').forEach(function(m) { m.content = color; });
-}
-document.addEventListener('DOMContentLoaded', _updateThemeColorMeta);
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', _updateThemeColorMeta);
+
 </script>
 </body>
 </html>

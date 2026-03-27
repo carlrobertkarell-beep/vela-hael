@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774700400 -->
+<!-- vela-build:1774800001 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -3622,6 +3622,45 @@ const _origSavePat_real = null; // will be set after function def
 function e(s){if(s==null)return"";return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;").replace(/`/g,"&#96;").replace(/\${/g,"&#36;{");}
 function getExerciseHistory(pat){const history={};(pat.visits||[]).forEach(v=>{(v.plan?.exercises||[]).forEach(ex=>{const key=(ex.name||'').toLowerCase().trim();if(!history[key])history[key]=[];history[key].push({date:v.date,visitId:v.id});});});return history;}
 function renderExHistoryBadge(exName,pat){const history=getExerciseHistory(pat);const key=(exName||'').toLowerCase().trim();const prev=(history[key]||[]).slice(1);if(!prev.length)return'';return`<span style="font-size:11px;background:#fff3cd;color:#8a6000;border:1px solid #f5e0a0;border-radius:6px;padding:2px 7px;margin-left:6px" title="Given ${prev.length} gång(er) tidigare: ${prev.map(p=>p.date).join(', ')}"> ${prev.length}× tidigare</span>`;}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VELA DOM BUILDER — mk(tag, opts, ...children)
+// ══════════════════════════════════════════════════════════════════════════════
+function mk(tag, opts) {
+  var node = document.createElement(tag);
+  opts = opts || {};
+  if (opts.cls)      node.className     = opts.cls;
+  if (opts.id)       node.id            = opts.id;
+  if (opts.text != null) node.textContent = String(opts.text);
+  if (opts.html)     node.innerHTML     = opts.html;
+  if (opts.style)    node.style.cssText = opts.style;
+  if (opts.title)    node.title         = opts.title;
+  if (opts.type)     node.type          = opts.type;
+  if (opts.href)     node.href          = opts.href;
+  if (opts.placeholder) node.placeholder = opts.placeholder;
+  if (opts.value != null) node.value    = String(opts.value);
+  if (opts.disabled) node.disabled      = true;
+  if (opts.data) Object.keys(opts.data).forEach(function(k){ node.dataset[k]=opts.data[k]; });
+  Object.keys(opts).forEach(function(k){
+    if (k.startsWith('on') && typeof opts[k]==='function') node[k]=opts[k];
+  });
+  for (var _i=2; _i<arguments.length; _i++) {
+    var _c=arguments[_i];
+    if (_c==null) continue;
+    if (typeof _c==='string') node.appendChild(document.createTextNode(_c));
+    else if (_c instanceof Node) node.appendChild(_c);
+    else if (Array.isArray(_c)) _c.forEach(function(x){ if(x instanceof Node) node.appendChild(x); });
+  }
+  return node;
+}
+function mkMount(id, content) {
+  var _el=document.getElementById(id); if(!_el)return;
+  _el.innerHTML='';
+  if (Array.isArray(content)) content.forEach(function(c){ if(c) _el.appendChild(c); });
+  else if (content) _el.appendChild(content);
+  return _el;
+}
+
 function lsg(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null;}catch{return null;}}
 function lss(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
 function lsd(k){try{localStorage.removeItem(k);}catch{}}
@@ -3865,23 +3904,17 @@ function closeInbox() {
 }
 
 function _renderNotifDd() {
-  var dd = document.getElementById('notif-dd');
-  if (!dd) return;
-  var log = typeof _aktGetActivityLog === 'function' ? _aktGetActivityLog() : [];
-  var actCount = 0;
+  var dd=document.getElementById('notif-dd'); if(!dd)return;
+  var log=typeof _aktGetActivityLog==='function'?_aktGetActivityLog():[];
+  var actCount=0;
   try {
-    var _cl = JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').map(function(c){return c.id;});
-    var _sn = JSON.parse(localStorage.getItem('vela:snoozed')||'{}');
-    if (typeof _gatherIssues === 'function') {
-      actCount = _gatherIssues().filter(function(i){
-        if (_cl.indexOf(i.id)!==-1) return false;
-        if (_sn[i.id] && new Date(_sn[i.id])>new Date()) return false;
-        return true;
-      }).length;
-    }
-  } catch(_e){}
-  var CC = {mail:'#58a6ff',sms:'#3fb950',journal:'#8b949e',rebook:'#d29922',ai:'var(--teal)',system:'#484f58',cancel:'#f85149'};
-  var CI = {
+    var _cl=JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').map(function(c){return c.id;});
+    var _sn=JSON.parse(localStorage.getItem('vela:snoozed')||'{}');
+    if(typeof _gatherIssues==='function')
+      actCount=_gatherIssues().filter(function(i){return _cl.indexOf(i.id)===-1&&!(_sn[i.id]&&new Date(_sn[i.id])>new Date());}).length;
+  }catch(_e){}
+  var CC={mail:'#58a6ff',sms:'#3fb950',journal:'#8b949e',rebook:'#d29922',ai:'var(--teal)',system:'#484f58',cancel:'#f85149'};
+  var CI={
     mail:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
     sms:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>',
     journal:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>',
@@ -3890,52 +3923,70 @@ function _renderNotifDd() {
     system:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
     cancel:'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
   };
-  function ta(ts) {
-    if (!ts) return '';
-    var d=(Date.now()-new Date(ts))/1000;
-    if (d<60) return 'Just nu';
-    if (d<3600) return Math.floor(d/60)+' min';
-    if (d<86400) return Math.floor(d/3600)+' h';
-    if (d<604800) return Math.floor(d/86400)+' d';
-    return new Date(ts).toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
+  function ta(ts){if(!ts)return'';var d=(Date.now()-new Date(ts))/1000;
+    if(d<60)return'Just nu';if(d<3600)return Math.floor(d/60)+' min';
+    if(d<86400)return Math.floor(d/3600)+' h';if(d<604800)return Math.floor(d/86400)+' d';
+    return new Date(ts).toLocaleDateString('sv-SE',{day:'numeric',month:'short'});}
+
+  var header=mk('div',{style:'padding:14px 16px 12px;border-bottom:1px solid #21262d;display:flex;align-items:center;justify-content:space-between;flex-shrink:0'},
+    mk('div',{},mk('div',{style:'font-size:15px;font-weight:700;color:#e6edf3',text:'Notiser'}),
+      mk('div',{style:'font-size:12px;color:#6e7681;margin-top:2px',text:log.length+' händelser'})),
+    mk('button',{style:'background:none;border:none;color:#6e7681;font-size:22px;cursor:pointer;padding:0',text:'×',onclick:closeInbox}));
+
+  var strip=null;
+  if(actCount>0){
+    strip=mk('div',{
+      style:'display:flex;align-items:center;gap:12px;padding:10px 16px;background:rgba(224,118,40,.05);border-bottom:1px solid #21262d;cursor:pointer',
+      onclick:function(){closeInbox();go('actions');},
+      onmouseover:function(){this.style.background='rgba(224,118,40,.1)';},
+      onmouseout:function(){this.style.background='rgba(224,118,40,.05)';}
+    },
+      mk('div',{style:'width:32px;height:32px;border-radius:8px;background:rgba(224,118,40,.1);border:1px solid rgba(224,118,40,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0',
+        html:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>'}),
+      mk('div',{style:'flex:1'},
+        mk('div',{style:'font-size:13px;font-weight:700;color:#e6edf3',text:actCount+' ärenden kräver din uppmärksamhet'}),
+        mk('div',{style:'font-size:12px;color:#8b949e',text:'Klicka för att öppna Åtgärder →'})));
   }
-  var h='';
-  h+='<div style="padding:14px 16px 12px;border-bottom:1px solid #21262d;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">';
-  h+='<div><div style="font-size:15px;font-weight:700;color:#e6edf3">Notiser</div>';
-  h+='<div style="font-size:12px;color:#6e7681;margin-top:2px">'+log.length+' händelser</div></div>';
-  h+='<button onclick="closeInbox()" style="background:none;border:none;color:#6e7681;font-size:22px;cursor:pointer;padding:0">×</button>';
-  h+='</div>';
-  if (actCount>0) {
-    h+='<div onclick="closeInbox();go(\'actions\')" style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:rgba(224,118,40,.05);border-bottom:1px solid #21262d;cursor:pointer" onmouseover="this.style.background=\'rgba(224,118,40,.1)\'" onmouseout="this.style.background=\'rgba(224,118,40,.05)\'">';
-    h+='<div style="width:32px;height:32px;border-radius:8px;background:rgba(224,118,40,.1);border:1px solid rgba(224,118,40,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-    h+='<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>';
-    h+='</div><div style="flex:1"><div style="font-size:13px;font-weight:700;color:#e6edf3">'+actCount+' ärenden kräver din uppmärksamhet</div>';
-    h+='<div style="font-size:12px;color:#8b949e">Klicka för att öppna Åtgärder →</div></div></div>';
-  }
-  h+='<div style="overflow-y:auto;flex:1">';
-  if (!log.length) {
-    h+='<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:40px 24px;color:#484f58;text-align:center">';
-    h+='<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>';
-    h+='<div style="font-size:14px;font-weight:600;color:#8b949e">Ingen aktivitet ännu</div>';
-    h+='<div style="font-size:13px">Fylls på när du och AI agerar</div></div>';
-  } else {
+
+  var scroll=mk('div',{style:'overflow-y:auto;flex:1'});
+  if(!log.length){
+    scroll.appendChild(mk('div',{style:'display:flex;flex-direction:column;align-items:center;gap:10px;padding:40px 24px;color:#484f58;text-align:center'},
+      mk('div',{html:'<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>'}),
+      mk('div',{style:'font-size:14px;font-weight:600;color:#8b949e',text:'Ingen aktivitet ännu'}),
+      mk('div',{style:'font-size:13px',text:'Fylls på när du och AI agerar'})));
+  }else{
     log.slice(0,25).forEach(function(entry){
-      var col=CC[entry.category]||'#484f58', icon=CI[entry.category]||CI.system;
-      h+='<div style="display:flex;align-items:flex-start;gap:12px;padding:11px 16px;border-bottom:1px solid #0d1117;transition:background .1s" onmouseover="this.style.background=\'\2\'" onmouseout="this.style.background=\'\2\'">';
-      h+='<div style="width:28px;height:28px;border-radius:7px;background:'+col+'18;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">';
-      h+='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+col+'" stroke-width="1.8" stroke-linecap="round">'+icon+'</svg></div>';
-      h+='<div style="flex:1;min-width:0"><div style="font-size:13px;color:#c9d1d9;line-height:1.4">'+e(entry.text||'')+'</div>';
-      if (entry.patName) h+='<div style="font-size:12px;color:#6e7681;margin-top:2px">'+e(entry.patName)+(entry.detail?' · '+e(entry.detail.slice(0,40)):'')+' </div>';
-      h+='</div><span style="font-size:11px;color:#484f58;white-space:nowrap;flex-shrink:0;margin-top:2px">'+ta(entry.ts)+'</span></div>';
+      var col=CC[entry.category]||'#484f58',icon=CI[entry.category]||CI.system;
+      var row=mk('div',{
+        style:'display:flex;align-items:flex-start;gap:12px;padding:11px 16px;border-bottom:1px solid #0d1117;transition:background .1s',
+        onmouseover:function(){this.style.background='#0d1117';},
+        onmouseout:function(){this.style.background='transparent';}
+      },
+        mk('div',{style:'width:28px;height:28px;border-radius:7px;background:'+col+'18;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px',
+          html:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+col+'" stroke-width="1.8" stroke-linecap="round">'+icon+'</svg>'}),
+        mk('div',{style:'flex:1;min-width:0'},
+          mk('div',{style:'font-size:13px;color:#c9d1d9;line-height:1.4',text:entry.text||''}),
+          entry.patName?mk('div',{style:'font-size:12px;color:#6e7681;margin-top:2px',
+            text:entry.patName+(entry.detail?' · '+entry.detail.slice(0,40):'')}):null),
+        mk('span',{style:'font-size:11px;color:#484f58;white-space:nowrap;flex-shrink:0;margin-top:2px',text:ta(entry.ts)}));
+      scroll.appendChild(row);
     });
-    if (log.length>25) h+='<div style="padding:10px 16px;text-align:center;font-size:12px;color:#484f58">+ '+(log.length-25)+' äldre</div>';
+    if(log.length>25)scroll.appendChild(mk('div',{style:'padding:10px 16px;text-align:center;font-size:12px;color:#484f58',text:'+ '+(log.length-25)+' äldre'}));
   }
-  h+='</div>';
-  h+='<div style="padding:10px 16px;border-top:1px solid #21262d;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">';
-  h+='<button onclick="closeInbox();go(\'activity\')" style="background:none;border:none;font-size:13px;color:#6e7681;cursor:pointer;font-family:var(--font)" onmouseover="this.style.color=\'#e6edf3\'" onmouseout="this.style.color=\'#6e7681\'">Visa all aktivitet →</button>';
-  if (log.length) h+='<button onclick="localStorage.removeItem(\'vela:activity-log\');_renderNotifDd();_aktUpdateBadge()" style="background:none;border:none;font-size:12px;color:#484f58;cursor:pointer;font-family:var(--font)">Rensa</button>';
-  h+='</div>';
-  dd.innerHTML=h;
+
+  var footer=mk('div',{style:'padding:10px 16px;border-top:1px solid #21262d;display:flex;align-items:center;justify-content:space-between;flex-shrink:0'},
+    mk('button',{style:'background:none;border:none;font-size:13px;color:#6e7681;cursor:pointer;font-family:var(--font)',text:'Visa all aktivitet →',
+      onmouseover:function(){this.style.color='#e6edf3';},
+      onmouseout:function(){this.style.color='#6e7681';},
+      onclick:function(){closeInbox();go('activity');}}),
+    log.length?mk('button',{style:'background:none;border:none;font-size:12px;color:#484f58;cursor:pointer;font-family:var(--font)',text:'Rensa',
+      onclick:function(){localStorage.removeItem('vela:activity-log');_renderNotifDd();if(typeof _aktUpdateBadge==='function')_aktUpdateBadge();}}):null);
+
+  dd.innerHTML='';
+  dd.appendChild(header);
+  if(strip)dd.appendChild(strip);
+  dd.appendChild(scroll);
+  dd.appendChild(footer);
 }
 
 function renderInboxItem(item, idx) {
@@ -25704,42 +25755,53 @@ function _onPolicyChange() {
 function openQuickSmsDialog(patId) {
   var pat=(S.patients||[]).find(function(p){return p.id===patId;});
   if(!pat||!pat.phone){showAutoSaveToast('Klienten saknar telefonnummer');return;}
-  var ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;z-index:700;background:rgba(7,16,30,.72);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:20px';
-  ov.onclick=function(ev){if(ev.target===ov)ov.remove();};
-  ov.innerHTML='<div style="background:#161b22;border:1px solid #30363d;border-radius:16px;width:100%;max-width:480px" onclick="event.stopPropagation()">'
-    +'<div style="padding:16px 20px;border-bottom:1px solid #21262d;display:flex;align-items:center;justify-content:space-between">'
-    +'<div><div style="font-size:15px;font-weight:700;color:#e6edf3">Skicka SMS</div>'
-    +'<div style="font-size:13px;color:#6e7681;margin-top:2px">'+e(pat.name)+' · '+e(pat.phone)+'</div></div>'
-    +'<button onclick="this.parentNode.parentNode.parentNode.remove()" style="background:none;border:none;color:#6e7681;font-size:22px;cursor:pointer;padding:0">×</button>'
-    +'</div><div style="padding:16px 20px">'
-    +'<textarea id="qsms-ta" style="width:100%;box-sizing:border-box;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;font-size:13px;color:#e6edf3;font-family:var(--font);line-height:1.6;resize:vertical;min-height:100px;outline:none" placeholder="Skriv meddelande..."></textarea>'
-    +'<div style="display:flex;gap:8px;margin-top:12px">'
-    +'<button id="qsms-s" style="padding:9px 20px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Skicka SMS</button>'
-    +'<button id="qsms-a" style="padding:8px 14px;background:none;border:1px solid rgba(224,118,40,.3);border-radius:8px;font-size:13px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">AI-förslag</button>'
-    +'<button onclick="this.parentNode.parentNode.parentNode.remove()" style="padding:8px 14px;background:none;border:1px solid #30363d;border-radius:8px;font-size:13px;color:#8b949e;cursor:pointer;font-family:var(--font)">Avbryt</button>'
-    +'</div></div></div>';
+  document.getElementById('qsms-modal')?.remove();
+  var ta=mk('textarea',{id:'qsms-ta',
+    style:'width:100%;box-sizing:border-box;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;font-size:13px;color:#e6edf3;font-family:var(--font);line-height:1.6;resize:vertical;min-height:100px;outline:none',
+    placeholder:'Skriv meddelande...'});
+  var sendBtn=mk('button',{
+    style:'padding:9px 20px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)',
+    text:'Skicka SMS',
+    onclick:async function(){
+      var body=ta.value.trim();if(!body)return;
+      sendBtn.disabled=true;sendBtn.textContent='Skickar...';
+      var res=await _velaSendSMS(pat.phone,body);
+      if(res&&res.ok){_aktLogEntry('sms','SMS skickat',pat.name,body.slice(0,60));showAutoSaveToast('SMS skickat \u2713');ov.remove();}
+      else{sendBtn.disabled=false;sendBtn.textContent='Skicka SMS';showAutoSaveToast('SMS misslyckades');}
+    }});
+  var aiBtn=mk('button',{
+    style:'padding:8px 14px;background:none;border:1px solid rgba(224,118,40,.3);border-radius:8px;font-size:13px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)',
+    text:'AI-förslag',
+    onclick:async function(){
+      var key=typeof _velaGetApiKey==='function'?_velaGetApiKey('anthropic'):null;
+      if(!key){showAutoSaveToast('API-nyckel saknas');return;}
+      aiBtn.disabled=true;aiBtn.textContent='Genererar...';
+      try{
+        var r=await fetch('https://api.anthropic.com/v1/messages',{
+          method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+          body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:100,
+            messages:[{role:'user',content:'Kort SMS till '+pat.name+', svenska, max 160 tecken. Från Carl-Robert, naprapat.'}]})});
+        var d=await r.json();var t=d.content?.[0]?.text||'';if(t)ta.value=t.trim();
+      }catch(ex){}
+      aiBtn.disabled=false;aiBtn.textContent='AI-förslag';
+    }});
+  var modal=mk('div',{id:'qsms-modal',
+    style:'background:#161b22;border:1px solid #30363d;border-radius:16px;width:100%;max-width:480px',
+    onclick:function(ev){ev.stopPropagation();}},
+    mk('div',{style:'padding:16px 20px;border-bottom:1px solid #21262d;display:flex;align-items:center;justify-content:space-between'},
+      mk('div',{},
+        mk('div',{style:'font-size:15px;font-weight:700;color:#e6edf3',text:'Skicka SMS'}),
+        mk('div',{style:'font-size:13px;color:#6e7681;margin-top:2px',text:pat.name+' \u00b7 '+pat.phone})),
+      mk('button',{style:'background:none;border:none;color:#6e7681;font-size:22px;cursor:pointer;padding:0',text:'\u00d7',onclick:function(){ov.remove();}})),
+    mk('div',{style:'padding:16px 20px'},ta,
+      mk('div',{style:'display:flex;gap:8px;margin-top:12px'},sendBtn,aiBtn,
+        mk('button',{style:'padding:8px 14px;background:none;border:1px solid #30363d;border-radius:8px;font-size:13px;color:#8b949e;cursor:pointer;font-family:var(--font)',
+          text:'Avbryt',onclick:function(){ov.remove();}}))));
+  var ov=mk('div',{
+    style:'position:fixed;inset:0;z-index:700;background:rgba(7,16,30,.72);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:20px',
+    onclick:function(){ov.remove();}},modal);
   document.body.appendChild(ov);
-  var ta=ov.querySelector('#qsms-ta');
-  ov.querySelector('#qsms-s').onclick=async function(){
-    var b=ta.value.trim();if(!b)return;
-    this.disabled=true;this.textContent='Skickar...';
-    var r=await _velaSendSMS(pat.phone,b);
-    if(r&&r.ok){_aktLogEntry('sms','SMS skickat',pat.name,b.slice(0,60));showAutoSaveToast('SMS skickat ✓');ov.remove();}
-    else{this.disabled=false;this.textContent='Skicka SMS';showAutoSaveToast('SMS misslyckades');}
-  };
-  ov.querySelector('#qsms-a').onclick=async function(){
-    var key=typeof _velaGetApiKey==='function'?_velaGetApiKey('anthropic'):null;
-    if(!key){showAutoSaveToast('API-nyckel saknas');return;}
-    this.disabled=true;this.textContent='Genererar...';
-    try{var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:100,
-        messages:[{role:'user',content:'Kort professionellt SMS på svenska till '+pat.name+', max 160 tecken. Från Carl-Robert, naprapat. Ingen signatur.'}]})});
-      var d=await r.json();var t=d.content?.[0]?.text||'';if(t)ta.value=t.trim();
-    }catch(ex){}
-    this.disabled=false;this.textContent='AI-förslag';
-  };
+  setTimeout(function(){ta.focus();},50);
 }
 
 // ── clientTerm ────────────────────────────────────────────────────────────────

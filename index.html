@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774700100 -->
+<!-- vela-build:1774700200 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -9375,9 +9375,9 @@ function _renderGlobalTopbar() {
 
   var TABS2 = [
     { id:'home',         label:'Klinik',        dest:'dashboard',    icon:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
-    { id:'patients',     label:'Patienter',      dest:'list',         icon:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', badge:(S.patients||[]).length||null },
+    { id:'patients',     label:typeof clientTerm==='function'?clientTerm(true,true):'Klienter', dest:'list', icon:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', badge:(S.patients||[]).length||null },
     { id:'calendar',     label:'Kalender',       dest:'calendar',     icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z' },
-    { id:'journal',      label:'Besök',          dest:'manualsoap',   icon:'M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z' },
+    // Besök removed — accessed via patient card
     { id:'hael',         label:'Hael',           dest:'hael',         icon:'M22 12h-4l-3 9L9 3l-3 9H2' },
     { id:'actions',      label:'Åtgärder',       dest:'actions',      icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z', badge:(alerts2+pending2+gmailUnread2+unread2)||null, badgeColor:'red' },
     { id:'intelligence', label:'Insikter',       dest:'intelligence', icon:'M18 20V10M12 20V4M6 20v-6' },
@@ -15375,10 +15375,14 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
   h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden;margin-bottom:16px">';
   h += '<div style="padding:10px 16px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Snabbåtgärder</div>';
   var actions = [
-    { svg:'<path d="M5 3l14 9-14 9V3z"/>', col:'var(--teal)', label:'Ta emot nu', desc:'Starta besök och journalföring', fn:'newVisit()' },
-    { svg:'<path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', col:'#58a6ff', label:'Dokumentera manuellt', desc:'SOAP utan inspelning', fn:'newVisit()' },
-    { svg:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', col:'#a371f7', label:'Ny Hael-plan', desc:'Generera rehabiliteringsplan', fn:'prepVisitForm(\''+p.id+'\');go(\'form\')' },
-    { svg:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', col:'#d29922', label:'Skicka intake', desc:'Formulär till patient', fn:'sendIntakeLink(\''+p.id+'\')' },
+    { svg:'<path d="M5 3l14 9-14 9V3z"/>', col:'var(--teal)', label:'Ta emot nu', desc:'Starta besök', fn:'newVisit()' },
+    { svg:'<path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', col:'#58a6ff', label:'Dokumentera', desc:'SOAP-anteckning', fn:'newVisit()' },
+    { svg:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', col:'#a371f7', label:'Ny Hael-plan', desc:'Rehabiliteringsplan med AI', fn:'prepVisitForm(\''+p.id+'\');go(\'form\')' },
+    { svg:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', col:'#d29922', label:'Skicka intake', desc:'Anamnesformulär', fn:'sendIntakeLink(\''+p.id+'\')' },
+    { svg:'<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>', col:'#3fb950', label:'Skriv remiss', desc:'AI-genererad remiss', fn:'openRemissDialog(\''+p.id+'\')' },
+    { svg:'<path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>', col:'#58a6ff', label:'Portallänk', desc:'Skicka inloggningslänk', fn:'sendPortalMagicLink(S.pat)' },
+    { svg:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>', col:'var(--teal)', label:'Snabb-SMS', desc:'Meddelande direkt', fn:'openQuickSmsDialog(\''+p.id+'\')' },
+    { svg:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>', col:'#f85149', label:'Sjukintyg', desc:'Sjukskrivningsunderlag', fn:'openSickDayPanel()' },
   ];
   actions.forEach(function(a, i){
     h += '<div class="item-row clickable" onclick="'+a.fn+'" style="'+(i>0?'border-top:1px solid #21262d':'')+'">';
@@ -15436,7 +15440,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
   // ── PATIENTINFO ──────────────────────────────────────────────────
   h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px">';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
-  h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Patientinfo</div>';
+  h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">'+(typeof clientTerm==='function'?clientTerm(true):'Klient')+'info</div>';
   h += '<div style="display:flex;gap:6px">';
   h += '<button onclick="go(\'editpat\')" style="background:none;border:1px solid #30363d;border-radius:5px;padding:2px 8px;font-size:11px;color:#8b949e;cursor:pointer;font-family:var(--font)">Redigera</button>';
   h += '<button onclick="confDel(\'pat\',\''+p.id+'\',\''+e(p.name)+'\')" style="background:none;border:1px solid rgba(248,81,73,.3);border-radius:5px;padding:2px 8px;font-size:11px;color:#f85149;cursor:pointer;font-family:var(--font)">Radera</button>';
@@ -25685,6 +25689,56 @@ function _onPolicyChange() {
 // END SPRINT 3
 // ══════════════════════════════════════════════════════════════════════════════
 
+
+// ── Quick SMS dialog ──────────────────────────────────────────────────────────
+function openQuickSmsDialog(patId) {
+  var pat=(S.patients||[]).find(function(p){return p.id===patId;});
+  if(!pat||!pat.phone){showAutoSaveToast('Klienten saknar telefonnummer');return;}
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:700;background:rgba(7,16,30,.72);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:20px';
+  ov.onclick=function(ev){if(ev.target===ov)ov.remove();};
+  ov.innerHTML='<div style="background:#161b22;border:1px solid #30363d;border-radius:16px;width:100%;max-width:480px" onclick="event.stopPropagation()">'
+    +'<div style="padding:16px 20px;border-bottom:1px solid #21262d;display:flex;align-items:center;justify-content:space-between">'
+    +'<div><div style="font-size:15px;font-weight:700;color:#e6edf3">Skicka SMS</div>'
+    +'<div style="font-size:13px;color:#6e7681;margin-top:2px">'+e(pat.name)+' · '+e(pat.phone)+'</div></div>'
+    +'<button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;color:#6e7681;font-size:22px;cursor:pointer;padding:0">×</button>'
+    +'</div><div style="padding:16px 20px">'
+    +'<textarea id="qsms-ta" style="width:100%;box-sizing:border-box;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;font-size:13px;color:#e6edf3;font-family:var(--font);line-height:1.6;resize:vertical;min-height:100px;outline:none" placeholder="Skriv meddelande..."></textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:12px">'
+    +'<button id="qsms-s" style="padding:9px 20px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Skicka SMS</button>'
+    +'<button id="qsms-a" style="padding:8px 14px;background:none;border:1px solid rgba(224,118,40,.3);border-radius:8px;font-size:13px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">AI-förslag</button>'
+    +'<button onclick="this.closest('[style*=fixed]').remove()" style="padding:8px 14px;background:none;border:1px solid #30363d;border-radius:8px;font-size:13px;color:#8b949e;cursor:pointer;font-family:var(--font)">Avbryt</button>'
+    +'</div></div></div>';
+  document.body.appendChild(ov);
+  var ta=ov.querySelector('#qsms-ta');
+  ov.querySelector('#qsms-s').onclick=async function(){
+    var b=ta.value.trim();if(!b)return;
+    this.disabled=true;this.textContent='Skickar...';
+    var r=await _velaSendSMS(pat.phone,b);
+    if(r&&r.ok){_aktLogEntry('sms','SMS skickat',pat.name,b.slice(0,60));showAutoSaveToast('SMS skickat ✓');ov.remove();}
+    else{this.disabled=false;this.textContent='Skicka SMS';showAutoSaveToast('SMS misslyckades');}
+  };
+  ov.querySelector('#qsms-a').onclick=async function(){
+    var key=typeof _velaGetApiKey==='function'?_velaGetApiKey('anthropic'):null;
+    if(!key){showAutoSaveToast('API-nyckel saknas');return;}
+    this.disabled=true;this.textContent='Genererar...';
+    try{var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:100,
+        messages:[{role:'user',content:'Kort professionellt SMS på svenska till '+pat.name+', max 160 tecken. Från Carl-Robert, naprapat. Ingen signatur.'}]})});
+      var d=await r.json();var t=d.content?.[0]?.text||'';if(t)ta.value=t.trim();
+    }catch(ex){}
+    this.disabled=false;this.textContent='AI-förslag';
+  };
+}
+
+// ── clientTerm ────────────────────────────────────────────────────────────────
+function clientTerm(cap, plural) {
+  var t = ((typeof getClinicConfig==='function'?getClinicConfig():{}).clientTerm)||'klient';
+  if (plural) { var pl={klient:'klienter',patient:'patienter',kund:'kunder',gäst:'gäster',deltagare:'deltagare'}; t=pl[t]||t+'er'; }
+  return cap ? t.charAt(0).toUpperCase()+t.slice(1) : t;
+}
+
 // VELA COMMUNICATIONS ENGINE — Resend (mail) + 46elks (SMS) + retention dispatcher
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -29602,6 +29656,32 @@ function _stClinic(cfg) {
   h += '<button onclick="toggleTheme()" class="btn btn-p" style="font-size:13px;padding:7px 14px">Byt till '+(isLight?'mörkt':'ljust')+'</button>';
   h += '</div></div>';
   // Save
+  // Client term selector
+  h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid #30363d">';
+  h += '<div class="vela-st-label">Vad kallar du dem du behandlar?</div>';
+  var terms = ['klient','patient','kund','gäst','deltagare'];
+  var curTerm = cfg.clientTerm || 'klient';
+  h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">';
+  terms.forEach(function(t){
+    var active = curTerm === t;
+    h += '<button onclick="var c=getClinicConfig();c.clientTerm=\''+t+'\';saveClinicConfig(c);showAutoSaveToast(\'Sparat\');_renderSettingsContent(\'clinic\')" '
+      + 'style="padding:7px 16px;border-radius:8px;border:1px solid '+(active?'var(--teal)':'#30363d')+';background:'+(active?'rgba(224,118,40,.08)':'none')+';'
+      + 'font-size:13px;font-weight:'+(active?'700':'500')+';color:'+(active?'var(--teal)':'#8b949e')+';cursor:pointer;font-family:var(--font);text-transform:capitalize;transition:all .12s">'
+      + t + '</button>';
+  });
+  h += '</div>';
+  h += '<div style="font-size:12px;color:#6e7681;margin-top:8px">Ändrar benämningen i hela gränssnittet.</div>';
+  h += '</div>';
+
+  h += '<div style="margin-top:20px;padding-top:20px;border-top:1px solid #30363d">';
+  h += '<div class="vela-st-label">Vad kallar du dem du behandlar?</div>';
+  var _cterms=['klient','patient','kund','gäst','deltagare'], _cact=cfg.clientTerm||'klient';
+  h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">';
+  _cterms.forEach(function(t){ var a=_cact===t;
+    h+='<button onclick="var c=getClinicConfig();c.clientTerm=\''+t+'\';saveClinicConfig(c);showAutoSaveToast(\'Sparat\');_renderSettingsContent(\'clinic\')" '
+     +'style="padding:7px 16px;border-radius:8px;border:1px solid '+(a?'var(--teal)':'#30363d')+';background:'+(a?'rgba(224,118,40,.08)':'none')+';font-size:13px;font-weight:'+(a?'700':'500')+';color:'+(a?'var(--teal)':'#8b949e')+';cursor:pointer;font-family:var(--font);text-transform:capitalize">'+t+'</button>';
+  });
+  h += '</div><div style="font-size:12px;color:#6e7681;margin-top:8px">Ändrar benämningen i hela gränssnittet.</div></div>';
   h += '<div style="margin-top:24px;display:flex;align-items:center;gap:12px">';
   h += '<button onclick="ccSave()" class="btn btn-p" style="padding:12px 28px">Spara klinikprofil</button>';
   h += '<span id="cc-saved" style="font-size:13px;color:var(--teal);opacity:0;transition:opacity .3s">Sparad ✓</span>';

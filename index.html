@@ -11089,14 +11089,16 @@ function _renderPortalRebookPicker(el, pat, rebookData) {
     return wd.charAt(0).toUpperCase()+wd.slice(1) + ' ' + dt.toLocaleDateString('sv-SE',{day:'numeric',month:'long'}) + ' kl ' + t;
   }
   var slotBtns = slots.map(function(s,i) {
-    var sj = JSON.stringify(s).replace(/'/g,"\'");
-    return '<button id="rbk-'+i+'" onclick="_confirmRebookSlot('+sj+',''+rebookId+'',''+pat.id+'')"'
-      +' style="width:100%;text-align:left;padding:14px 18px;background:#161b22;border:1px solid #30363d;border-radius:10px;'
-      +'font-size:15px;font-weight:600;color:#e6edf3;cursor:pointer;font-family:var(--font);margin-bottom:10px;transition:all .15s"'
-      +' onmouseover="this.style.borderColor='var(--teal)';this.style.background='rgba(224,118,40,.06)'"'
-      +' onmouseout="this.style.borderColor='#30363d';this.style.background='#161b22'">'
-      +'<div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#e07628;margin-bottom:3px">Alternativ '+(i+1)+'</div>'
-      + fmtDate(s.date, s.time) + '</button>';
+    var sid = 'rbk-'+i;
+    var dateLabel = fmtDate(s.date, s.time);
+    var btn = document.createElement('button');
+    btn.id = sid;
+    btn.style.cssText = 'width:100%;text-align:left;padding:14px 18px;background:#161b22;border:1px solid #30363d;border-radius:10px;font-size:15px;font-weight:600;color:#e6edf3;cursor:pointer;font-family:var(--font);margin-bottom:10px;transition:all .15s';
+    btn.innerHTML = '<div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#e07628;margin-bottom:3px">Alternativ '+(i+1)+'</div>' + dateLabel;
+    btn.onmouseover = function(){ this.style.borderColor='var(--teal)'; this.style.background='rgba(224,118,40,.06)'; };
+    btn.onmouseout  = function(){ this.style.borderColor='#30363d';    this.style.background='#161b22'; };
+    btn.onclick = (function(sl){ return function(){ _confirmRebookSlot(sl, rebookId, pat.id); }; })(s);
+    return btn.outerHTML;
   }).join('');
 
   el.innerHTML = '<div style="min-height:100vh;background:#080e18;display:flex;align-items:center;justify-content:center;padding:24px;font-family:var(--font)">'

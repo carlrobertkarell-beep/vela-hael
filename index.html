@@ -6741,8 +6741,14 @@ function _vcalChip(bk, st, wide) {
   var isDone = bk.status === 'completed';
   var isCx   = bk.status === 'cancelled' || bk.status === 'no-show';
 
-  var style = 'top:' + top + 'px;height:' + height + 'px;background:' + color + ';opacity:' + (isCx?.35:isDone?.6:1) + ';left:3px;right:3px;';
-  if (wide) style = style.replace('right:3px', 'right:40px'); // day view: wider
+  // Patient context — visit count + last journal snippet
+  var pat = bk.patientId ? (S.patients||[]).find(function(p){ return p.id===bk.patientId; }) : null;
+  var visitNr = pat ? (pat.visits||[]).length : 0;
+  var lastSoap = pat ? (pat.visits||[]).slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0]?.soap : null;
+  var soapSnippet = lastSoap ? (lastSoap.A||lastSoap.S||'').slice(0,60) : '';
+
+  var style = 'top:' + top + 'px;height:' + height + 'px;background:' + color + ';opacity:' + (isCx?.35:isDone?.65:1) + ';left:3px;right:3px;';
+  if (wide) style = style.replace('right:3px', 'right:40px');
 
   var h = '<div class="vcal-chip" style="' + style + '"'
     + ' data-bkid="' + bk.id + '"'
@@ -6755,6 +6761,15 @@ function _vcalChip(bk, st, wide) {
   h += '</div>';
   h += '<div class="vcal-chip-name">' + e(bk.patientName||'Okänd') + '</div>';
   if (bk.serviceName && height > 48) h += '<div class="vcal-chip-svc">' + e(bk.serviceName) + '</div>';
+  // Context line: visit number + soap snippet
+  if (height > 60 && pat) {
+    var ctxParts = [];
+    if (visitNr > 0) ctxParts.push('Besök ' + (visitNr + 1));
+    if (soapSnippet) ctxParts.push(soapSnippet + (soapSnippet.length >= 60 ? '…' : ''));
+    if (ctxParts.length) {
+      h += '<div style="font-size:10px;opacity:.7;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e(ctxParts.join(' · ')) + '</div>';
+    }
+  }
   h += '</div>';
   return h;
 }
@@ -13995,7 +14010,7 @@ function rNewWorkspace() {
       + '</div>' + control + '</div>';
   }
 
-  h += '<div style="border:1px solid #30363d;border-radius:9px;overflow:hidden;margin-bottom:16px">';
+  h += '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:16px">';
 
   // Type of business
   h += configRow('ws-type', 'Typ av verksamhet <span style="color:var(--red)">*</span>', 'Välj den kategori som bäst beskriver din verksamhet.',
@@ -14608,7 +14623,56 @@ function rWorkspace() {
   h += '<div style="font-size:11px;color:#6e7681;margin-top:4px">Idag markerad med blå ram · Håll muspekaren för detaljer</div>';
   h += '</div>';
 
-  // ── BRANCH BAR ──────────────────────────────────────────────────
+  // ── AI DAILY BRIEF ───────────────────────────────────────────────
+  (function() {
+    var todayBksCount = bks.filter(function(b){ return b.date===todayStr&&b.status!=='cancelled'; }).length;
+    var urgentCount = (pats.filter(function(p){ return (_clinPriority&&_clinPriority(p)||{}).level>=2; })).length;
+    var missingJournal = 0;
+    bks.filter(function(b){ return b.status==='completed'&&b.date>=new Date(Date.now()-7*86400000).toISOString().slice(0,10); }).forEach(function(b){
+      var pat = pats.find(function(p){ return p.id===b.patientId; });
+      if (pat) {
+        var hasJournal = (pat.visits||[]).some(function(v){ return v.date===b.date&&v.soap&&(v.soap.S||v.soap.A); });
+        if (!hasJournal) missingJournal++;
+      }
+    });
+    var retQ = typeof getRetentionQueue==='function' ? getRetentionQueue() : [];
+    var pendingActions = retQ.filter(function(q){ return !q.sentAt&&!q.approved; }).length;
+
+    h += '<div id="dash-ai-brief" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:flex-start;gap:12px">';
+    h += '<div style="width:7px;height:7px;border-radius:50%;background:var(--orange);flex-shrink:0;margin-top:5px"></div>';
+    h += '<div style="flex:1;min-width:0">';
+    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text);margin-bottom:5px">Idag</div>';
+    h += '<div style="display:flex;flex-wrap:wrap;gap:8px">';
+
+    // Today's bookings
+    h += '<span style="font-size:13px;color:var(--ink)">';
+    h += todayBksCount > 0 ? todayBksCount + ' bokning' + (todayBksCount>1?'ar':'') + ' idag' : 'Inga bokningar idag';
+    h += '</span>';
+
+    if (urgentCount > 0) {
+      h += '<span style="font-size:13px;color:var(--red);display:flex;align-items:center;gap:4px">';
+      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      h += urgentCount + ' kräver åtgärd';
+      h += '</span>';
+    }
+    if (missingJournal > 0) {
+      h += '<span style="font-size:13px;color:var(--amber);display:flex;align-items:center;gap:4px">';
+      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>';
+      h += missingJournal + ' journal' + (missingJournal>1?'er':'') + ' saknas (7 dagar)';
+      h += '</span>';
+    }
+    if (pendingActions > 0) {
+      h += '<span style="font-size:13px;color:var(--blue);display:flex;align-items:center;gap:4px;cursor:pointer" onclick="go(\'actions\')">';
+      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+      h += pendingActions + ' åtgärd' + (pendingActions>1?'er':'') + ' väntar →';
+      h += '</span>';
+    }
+    if (todayBksCount===0 && urgentCount===0 && missingJournal===0 && pendingActions===0) {
+      h += '<span style="font-size:13px;color:var(--text)">Allt är klart — ingen åtgärd behövs.</span>';
+    }
+
+    h += '</div></div></div>';
+  })();
   h += '<div class="r4-branchbar">';
   h += '<div class="r4-bb-l">';
   h += '<button class="r4-branch-btn"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.492 2.492 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-2.25 0a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm4.75.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm-9 8.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg> '+e(cfg.signature||'Behandlare')+' <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button>';
@@ -15539,7 +15603,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
 
   // ── SENASTE JOURNAL SNIPPET ─────────────────────────────────────
   if (lastVisit && lastVisit.soap && (lastVisit.soap.S || lastVisit.soap.A || lastVisit.soap.P)) {
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:16px 18px;margin-bottom:16px">';
+    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;padding:14px 16px;margin-bottom:12px">';
     h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
     h += '<div style="font-size:13px;font-weight:700;color:#e6edf3">Senaste journal — ' + (lastVisit.date||'') + (lastVisit.journalNr ? ' <span style="font-size:11px;color:#6e7681;font-family:var(--font-mono);background:#21262d;border:1px solid #30363d;border-radius:3px;padding:1px 5px">'+e(lastVisit.journalNr)+'</span>' : '') + '</div>';
     h += '<button onclick="window._detailTab=\'journal\';rDetail()" style="background:none;border:none;font-size:12px;color:#58a6ff;cursor:pointer;font-family:var(--font)">Alla besök →</button>';
@@ -15564,7 +15628,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
     var plEnd = new Date(plStart.getTime() + plWeeks*7*86400000);
     var plDaysLeft = Math.max(0, Math.ceil((plEnd - now) / 86400000));
     var plProgress = Math.min(100, Math.round((1 - plDaysLeft/(plWeeks*7)) * 100));
-    h += '<div style="background:#161b22;border:1px solid rgba(224,118,40,.2);border-radius:10px;padding:16px 18px;margin-bottom:16px">';
+    h += '<div style="background:#161b22;border:1px solid rgba(224,118,40,.2);border-radius:6px;padding:14px 16px;margin-bottom:12px">';
     h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
     h += '<div style="font-size:13px;font-weight:700;color:#e6edf3;display:flex;align-items:center;gap:7px">';
     h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Aktiv Hael-plan</div>';
@@ -15577,7 +15641,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
   }
 
   // ── ÅTGÄRDER ────────────────────────────────────────────────────
-  h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden;margin-bottom:16px">';
+  h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:16px">';
   h += '<div style="padding:8px 14px;border-bottom:1px solid #21262d;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Snabbåtgärder</div>';
   var actions = [
     { svg:'<path d="M5 3l14 9-14 9V3z"/>', col:'var(--teal)', label:'Ta emot nu', desc:'Starta besök', fn:'newVisit()' },
@@ -16789,40 +16853,78 @@ function doSaveKey(){setKey(S.apiKey.trim());const c=document.getElementById("sv
 function openPat(id){const p=S.patients.find(x=>x.id===id);if(!p)return;S.pat=p;S.visitId=null;S.plan=null;go("detail");setTimeout(()=>_showPatientIntel(p),600);}
 
 function _showPatientIntel(pat) {
-  // Passive intel: show brief contextual stats when opening a patient
-  const diag = pat.diagnosis || (pat.diagnoses||[])[0] || '';
-  if (!diag || S.patients.length < 2) return;
+  const slot = document.getElementById('pat-intel-slot');
+  if (!slot) return;
+  const key = getKey();
+  if (!key) return;
 
-  // Find similar patients (same diagnosis)
-  const similar = S.patients.filter(p => p.id !== pat.id && (p.diagnosis||'').toLowerCase().includes(diag.split(' ')[0].toLowerCase()));
-  if (similar.length < 1) return;
+  // Show skeleton immediately
+  slot.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+    <div style="width:7px;height:7px;border-radius:50%;background:var(--orange);animation:pulse 1s infinite;flex-shrink:0"></div>
+    <span style="font-size:12px;color:var(--text)">AI analyserar patienten…</span>
+  </div>`;
 
-  const avgVisits = similar.reduce((a, p) => a + (p.visits||[]).length, 0) / similar.length;
-  const avgRev = similar.reduce((a, p) => {
-    const rev = (p.visits||[]).reduce((s, v) => s + (v.servicePrice||0), 0);
-    return a + rev;
-  }, 0) / similar.length;
+  const visits = (pat.visits||[]).slice().sort((a,b)=>(b.date||'')>(a.date||'')?1:-1);
+  const lastVisit = visits[0];
+  const soap = lastVisit?.soap || {};
+  const allNrs = visits.flatMap(v=>(v.logs||[]).filter(l=>l.nrs!=null).map(l=>l.nrs));
+  const nrsTrend = allNrs.length>=2 ? (allNrs[allNrs.length-1]-allNrs[0]).toFixed(1) : null;
+  const daysSince = lastVisit?.date ? Math.floor((Date.now()-new Date(lastVisit.date))/86400000) : null;
+  const upcomingBks = (getBookings?getBookings():[]).filter(b=>b.patientId===pat.id&&b.date>=new Date().toISOString().slice(0,10)&&b.status!=='cancelled');
+  const compLevel = typeof _patCheckCompliance==='function' ? _patCheckCompliance(pat.id) : 0;
 
-  // Find existing intel toast
-  const existing = document.getElementById('pat-intel-toast');
-  if (existing) existing.remove();
+  const ctx = `Patient: ${pat.name}, f.${pat.birthdate||pat.birthYear||'okänt'}
+Diagnos: ${pat.diagnosis||'okänd'}
+Antal besök: ${visits.length}
+Dagar sedan senaste besök: ${daysSince??'okänt'}
+NRS-trend: ${nrsTrend!=null?(nrsTrend<0?'förbättring '+Math.abs(nrsTrend):nrsTrend>0?'försämring '+nrsTrend:'stabil'):'okänd'}
+Kommande bokningar: ${upcomingBks.length}
+Följsamhetsnivå: ${compLevel} (0=ok, 1=varna, 2=kritisk)
+Senaste journal A: ${soap.A?.slice(0,200)||'saknas'}
+Senaste journal P: ${soap.P?.slice(0,200)||'saknas'}`;
 
-  const toast = document.createElement('div');
-  toast.id = 'pat-intel-toast';
-  toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:900;background:var(--navy);border:1px solid rgba(224,118,40,.12);border-radius:6px;padding:11px 16px;font-family:var(--font);max-width:420px;width:calc(100%-32px);animation:fadeUp .2s ease';
-  toast.innerHTML = '<div style="display:flex;align-items:flex-start;gap:10px">'
-    + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e07628" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
-    + '<div style="flex:1;min-width:0">'
-    + '<div style="font-size:13px;font-weight:700;color:rgba(224,118,40,.9);letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px">Vela Intel</div>'
-    + '<div style="font-size:13px;color:rgba(255,255,255,.8);line-height:1.6">'
-    + similar.length + ' liknande patienter (' + diag.split('(')[0].trim() + ') · snitt ' + Math.round(avgVisits*10)/10 + ' besök'
-    + (avgRev > 0 ? ' · snittintäkt ' + Math.round(avgRev).toLocaleString('sv-SE') + ' kr' : '')
-    + '</div>'
-    + '</div>'
-    + '<button onclick="document.getElementById(\'pat-intel-toast\').remove()" style="background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:17px;line-height:1;flex-shrink:0">×</button>'
-    + '</div>';
-  document.body.appendChild(toast);
-  setTimeout(() => toast?.remove(), 6000);
+  const prompt = `Du är AI-assistent i ett kliniksystem. Ge en kort klinisk sammanfattning för ${pat.name}.
+
+${ctx}
+
+Svara ENBART med JSON (inga backticks):
+{"score":75,"scoreLabel":"God","scoreColor":"green","summary":"1-2 meningar om patientens nuläge och progress","nextAction":"Konkret nästa steg","signals":["signal 1","signal 2"],"risk":"none|low|medium|high"}
+
+score: 0-100 hälsopoäng. scoreLabel: Kritisk/Svag/Måttlig/God/Utmärkt. scoreColor: red/amber/green. signals: max 3 korta kliniska observationer. risk: avhoppsrisk.`;
+
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:MODEL_HAIKU,max_tokens:500,system:'Svara ALLTID med giltig JSON. Inga backticks.',messages:[{role:'user',content:prompt}]})
+  }).then(r=>r.json()).then(data=>{
+    const txt = (data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+    const r = JSON.parse(txt);
+    const scoreCol = r.scoreColor==='red'?'var(--red)':r.scoreColor==='amber'?'var(--amber)':'var(--green)';
+    const scoreBg  = r.scoreColor==='red'?'var(--red-lt)':r.scoreColor==='amber'?'var(--amber-lt)':'var(--green-lt)';
+    const riskBadge = r.risk&&r.risk!=='none' ? `<span style="font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;background:var(--${r.risk==='high'?'red':r.risk==='medium'?'amber':'blue'}-lt);color:var(--${r.risk==='high'?'red':r.risk==='medium'?'amber':'blue'})">Avhoppsrisk: ${r.risk==='high'?'Hög':r.risk==='medium'?'Medel':'Låg'}</span>` : '';
+    slot.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:12px">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border2)">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:48px;height:48px;border-radius:8px;background:${scoreBg};border:1px solid ${scoreCol}40;flex-shrink:0">
+          <span style="font-size:18px;font-weight:800;color:${scoreCol};line-height:1">${r.score}</span>
+          <span style="font-size:9px;font-weight:700;color:${scoreCol};text-transform:uppercase;letter-spacing:.05em">${e(r.scoreLabel)}</span>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px">
+            <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Patient Health Score</span>
+            ${riskBadge}
+          </div>
+          <div style="font-size:13px;color:var(--ink);line-height:1.55">${e(r.summary)}</div>
+        </div>
+      </div>
+      ${r.signals&&r.signals.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;padding:9px 16px;border-bottom:1px solid var(--border2)">
+        ${r.signals.map(s=>`<span style="font-size:12px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 8px">${e(s)}</span>`).join('')}
+      </div>`:''}
+      <div style="padding:10px 16px;display:flex;align-items:center;gap:6px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        <span style="font-size:13px;color:var(--ink)">${e(r.nextAction)}</span>
+      </div>
+    </div>`;
+  }).catch(()=>{ slot.innerHTML=''; });
 }
 // Close any overlay with ID by pressing ESC
 const _escHandlers = {};
@@ -18308,7 +18410,7 @@ function rManualSOAP(bk) {
         </span>
         <button onclick="finishManualSOAP(false)"
           style="padding:6px 14px;background:#238636;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">
-          Spara & granska
+          Spara journal
         </button>
         <button onclick="_toolsActiveTool='us';rTools('us')" title="Bildanalys" style="padding:6px 10px;background:none;border:1px solid #30363d;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:#58a6ff;font-family:var(--font)">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>Bild
@@ -18882,7 +18984,7 @@ pain 0-10, motivation 1-10, history: ingen/sporadisk/regelbunden, knowledge: lå
   if (goPlan) {
     await saveSOAPToVisit(true);
   } else {
-    go('soap');
+    await saveSOAPToVisit(false);
   }
 }
 
@@ -29668,7 +29770,7 @@ function _stComms(cfg) {
     }
 
     // ── Inställningskortet ────────────────────────────────────────────────────
-    h += '<div style="border:1px solid #30363d;border-radius:10px;overflow:hidden;margin-bottom:20px">';
+    h += '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:20px">';
 
     // Header
     h += '<div style="padding:14px 18px;border-bottom:1px solid #30363d;background:#161b22;display:flex;align-items:center;gap:10px">';
@@ -29717,7 +29819,7 @@ function _stComms(cfg) {
     h += '</div></div>'; // padding + card
 
     // ── SMS-mallar ────────────────────────────────────────────────────────────
-    h += '<div style="border:1px solid #30363d;border-radius:10px;overflow:hidden;margin-bottom:16px">';
+    h += '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:16px">';
     h += '<div style="padding:12px 18px;border-bottom:1px solid #30363d;background:#161b22">';
     h += '<div style="font-size:13px;font-weight:700;color:#e6edf3">Automatiska SMS-mallar</div>';
     h += '<div style="font-size:12px;color:#8b949e;margin-top:2px">[klinik] [datum] [tid] [adress] [telefon] [länk] byts ut automatiskt</div>';

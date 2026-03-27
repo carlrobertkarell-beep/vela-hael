@@ -10318,28 +10318,6 @@ function _gatherIssues() {
       });
     }
 
-    // ── Compliance signals ───────────────────────────────────────────────────
-    (S.patients||[]).forEach(function(p) {
-      var cdata = _patGetComplianceData(p.id);
-      var clevel = _patCheckCompliance(p.id);
-      if (clevel === 0) return;
-      issues.push({
-        id: 'comp_' + p.id, type: 'compliance',
-        patId: p.id, patName: p.name,
-        title: cdata.total + ' ombokningar/avbokningar senaste 60 dagarna',
-        meta: cdata.lastEvent ? 'Senaste: ' + new Date(cdata.lastEvent).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : '',
-        age: cdata.lastEvent ? now - new Date(cdata.lastEvent) : 0,
-        aiSuggestion: _patComplianceSuggestion(cdata),
-        closeFn: '_resetCompliance', closeLabel: 'Återställ räknare',
-        urgent: clevel === 2,
-      });
-    });
-
-    // ── Mail issues (Gmail → Åtgärder) ────────────────────────────────────────
-    var _mailIssues = (typeof _getMailIssues === 'function') ? _getMailIssues() : [];
-    var _closedSet = new Set(closedIds);
-    _mailIssues.filter(function(m){ return !_closedSet.has(m.id); }).forEach(function(m){ issues.push(m); });
-
     // Dropout risk
     if (_clinPriority) {
       var pr = _clinPriority(p);
@@ -10440,6 +10418,35 @@ function _gatherIssues() {
     var ta = _ISSUE_TYPES[a.type]; var tb = _ISSUE_TYPES[b.type];
     return (ta?.priority||9) - (tb?.priority||9) || b.age - a.age;
   });
+
+
+  // ── Compliance signals (after main patient loop) ────────────────────────
+  var _closedIds = _getClosedIssues ? _getClosedIssues().map(function(c){return c.id;}) : [];
+  var _closedSet = new Set(_closedIds);
+  (S.patients||[]).forEach(function(cp) {
+    if (_closedSet.has('comp_' + cp.id)) return;
+    var cdata = typeof _patGetComplianceData === 'function' ? _patGetComplianceData(cp.id) : null;
+    if (!cdata) return;
+    var clevel = typeof _patCheckCompliance === 'function' ? _patCheckCompliance(cp.id) : 0;
+    if (clevel === 0) return;
+    issues.push({
+      id: 'comp_' + cp.id, type: 'compliance',
+      patId: cp.id, patName: cp.name,
+      title: cdata.total + ' ombokningar/avbokningar senaste 60 dagarna',
+      meta: cdata.lastEvent ? 'Senaste: ' + new Date(cdata.lastEvent).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : '',
+      age: cdata.lastEvent ? now - new Date(cdata.lastEvent) : 0,
+      aiSuggestion: typeof _patComplianceSuggestion === 'function' ? _patComplianceSuggestion(cdata) : '',
+      closeFn: '_resetCompliance', closeLabel: 'Återställ räknare',
+      urgent: clevel === 2,
+    });
+  });
+
+  // ── Mail issues (Gmail → Åtgärder) ────────────────────────────────────────
+  if (typeof _getMailIssues === 'function') {
+    _getMailIssues().forEach(function(m) {
+      if (!_closedSet.has(m.id)) issues.push(m);
+    });
+  }
 
   return issues;
 }

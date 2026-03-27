@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774700001 -->
+<!-- vela-build:1774700100 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -9336,7 +9336,7 @@ function _renderGlobalTopbar() {
   h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
   if (pendingAppr > 0) h += '<div class="vela-gtb-notif-dot" style="background:var(--orange);position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;border:2px solid #161b22"></div>';
   h += '</button>';
-  h += '<button class="vela-gtb-icon-btn" id="vela-gtb-inbox-btn" title="Notiser &amp; aktivitet" style="position:relative">';
+  h += '<button class="vela-gtb-icon-btn" id="vela-gtb-inbox-btn" title="Öppna Åtgärder" style="position:relative">';
   h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
   if (totalNotif > 0) h += '<div class="vela-gtb-notif-dot ' + notifDotClass + '" style="position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;border:2px solid #161b22"></div>';
   h += '</button>';
@@ -9360,7 +9360,7 @@ function _renderGlobalTopbar() {
     hael:'hael', form:'hael', doc:'hael', journaldoc:'hael',
     intelligence:'intelligence', retention:'intelligence',
     actions:'actions', 'patjournal':'actions',
-    activity:'activity',
+    activity:'actions',
     settings:'settings', profile:'settings', availability:'settings',
   };
   var activeTab2 = tabMap2[scr2] || 'home';
@@ -9379,8 +9379,7 @@ function _renderGlobalTopbar() {
     { id:'calendar',     label:'Kalender',       dest:'calendar',     icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z' },
     { id:'journal',      label:'Besök',          dest:'manualsoap',   icon:'M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z' },
     { id:'hael',         label:'Hael',           dest:'hael',         icon:'M22 12h-4l-3 9L9 3l-3 9H2' },
-    { id:'actions',      label:'Åtgärder',       dest:'actions',      icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z', badge:(alerts2+pending2)||null, badgeColor:'red' },
-    { id:'activity',     label:'Aktivitet',      dest:'activity',     icon:'M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z', badge:(unread2+gmailUnread2)||null },
+    { id:'actions',      label:'Åtgärder',       dest:'actions',      icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z', badge:(alerts2+pending2+gmailUnread2+unread2)||null, badgeColor:'red' },
     { id:'intelligence', label:'Insikter',       dest:'intelligence', icon:'M18 20V10M12 20V4M6 20v-6' },
     { id:'settings',     label:'Inställningar',  dest:'settings',     icon:'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z' },
   ];
@@ -9416,7 +9415,7 @@ function _renderGlobalTopbar() {
   var searchBtn = document.getElementById('vela-gtb-search-btn');
   if (searchBtn) searchBtn.onclick = function() { openCommandPalette && openCommandPalette(); };
   var inboxBtn = document.getElementById('vela-gtb-inbox-btn');
-  if (inboxBtn) inboxBtn.onclick = function() { go('activity'); };
+  if (inboxBtn) inboxBtn.onclick = function() { go('actions'); };
   var aiBtn = document.getElementById('vela-gtb-ai-btn');
   if (aiBtn) aiBtn.onclick = function() {
     var panel = document.getElementById('vela-ai-panel');
@@ -12747,16 +12746,14 @@ function rInbox() {
         h += '</div>';
       }
 
-      // Action buttons
+      // Aktivitet = historiklogg. Bara "markera klar" för att rensa.
       h += '<div class="akt-item-actions">';
+      if (!n.done) {
+        h += '<button class="akt-action-btn" data-done-nid="' + n.id + '">Markera klar</button>';
+      }
       if (n.actionFn && n.patId) {
-        h += '<button class="akt-action-btn primary" data-fn="' + n.actionFn + '" data-pat="' + n.patId + '" data-bk="' + (n.bookingId||'') + '">' + e(n.action||'Hantera') + '</button>';
+        h += '<button class="akt-action-btn" onclick="go(\'actions\')" style="color:var(--teal)">Hantera i Åtgärder →</button>';
       }
-      if (n.aiAuto && !n.aiDraft) {
-        h += '<button class="akt-action-btn ai" data-ai-nid="' + n.id + '">AI hanterar</button>';
-      }
-      h += '<button class="akt-action-btn" data-save-nid="' + n.id + '">' + (n.saved?'Sparat':'Spara') + '</button>';
-      h += '<button class="akt-action-btn" data-done-nid="' + n.id + '">Klart</button>';
       h += '</div>';
 
       h += '</div>'; // body
@@ -25365,6 +25362,7 @@ async function _aiHandleCancelFromIssue(issueId) {
   if (nextBk && policy.autoRespond) {
     await _aktAiCancelResponse(nextBk, pat, isLate, policy, 'patient_mail_request');
     _closeMailIssue(issueId);
+    _aktLogEntry('mail', 'AI svarade på avbokning automatiskt', pat ? pat.name : '', '');
     showAutoSaveToast('AI svarade på avbokning ✓');
     rActions();
   }

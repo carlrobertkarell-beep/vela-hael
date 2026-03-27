@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774800001 -->
+<!-- vela-build:1774900001 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -82,7 +82,8 @@
   --font-serif: 'Fraunces', Georgia, serif;
 
   /* ── Geometry ───────────────────────────────────────────── */
-  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px;
+  --r-sm: 4px; --r-md: 6px; --r-lg: 8px; --r-xl: 12px;
+  --text-xs:11px; --text-sm:12px; --text-base:13px; --text-md:14px; --text-lg:16px; --text-xl:20px;
 
   /* ── Shadows ────────────────────────────────────────────── */
   --shadow-xs: 0 1px 3px rgba(0,0,0,.3);
@@ -221,7 +222,7 @@ body.light {
 
 /* ── RESET ──────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; font-family: var(--font); font-size: 14px; color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
+html, body { height: 100%; font-family: var(--font); font-size: 13px; color: var(--ink); background: var(--bg); -webkit-font-smoothing: antialiased; }
 button, input, textarea, select { font-family: inherit; }
 a { color: #58a6ff; text-decoration: none; }
 a:hover { text-decoration: underline; }
@@ -846,34 +847,37 @@ button:not([class]) { border-radius: 6px; }
 
 /* ── SIDEBAR — GITHUB EXACT ─────────────────────────────────── */
 .nav-sidebar {
-  width: 240px; flex-shrink: 0; background: #0d1117;
+  width: 220px; flex-shrink: 0; background: #0d1117;
   display: flex; flex-direction: column;
-  border-right: 1px solid #30363d;
+  border-right: 1px solid #21262d;
   z-index: 150; overflow: hidden; position: relative;
-  transition: width .22s cubic-bezier(.4,0,.2,1), transform .25s ease;
+  transition: width .2s cubic-bezier(.4,0,.2,1), transform .25s ease;
 }
 .nav-sidebar.vela-sb-hidden { display: none; }
-.nav-sidebar.collapsed { width: 52px; }
+.nav-sidebar.collapsed { width: 48px; }
 .nav-item {
-  display: flex; align-items: center; gap: 9px; width: 100%;
-  padding: 6px 16px; border: none; border-radius: 0;
-  background: transparent; color: #8b949e; font-size: 14px;
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 5px 12px; border: none; border-radius: 0;
+  background: transparent; color: var(--text); font-size: 13px;
   font-weight: 400; cursor: pointer; text-align: left;
   transition: background .1s, color .1s;
   white-space: nowrap; font-family: var(--font);
+  height: 32px; box-sizing: border-box;
 }
 .nav-item:hover { background: rgba(177,186,196,.06); color: #e6edf3; }
 .nav-item.active {
   color: #e6edf3; font-weight: 600;
-  background: rgba(177,186,196,.06);
-  border-left: 3px solid var(--orange); padding-left: 13px;
+  background: rgba(177,186,196,.04);
+  border-left: 2px solid var(--orange); padding-left: 10px;
 }
-.nav-item.active .nav-item-icon { opacity: 1; }
-.nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: .7; }
+.nav-item.active .nav-item-icon { opacity: 1; color: var(--orange); }
+.nav-item-icon { width: 15px; height: 15px; flex-shrink: 0; opacity: .6; transition: opacity .1s; }
 .nav-badge-count {
-  margin-left: auto; font-size: 12px; font-weight: 600;
-  background: #21262d; border: 1px solid #30363d; color: #8b949e;
-  padding: 1px 7px; border-radius: 6px; font-family: var(--font-mono);
+  margin-left: auto; font-size: 11px; font-weight: 700;
+  background: rgba(224,118,40,.12); border: 1px solid rgba(224,118,40,.2);
+  color: var(--orange); padding: 0 6px; border-radius: 10px;
+  font-family: var(--font-mono); min-width: 18px; text-align: center;
+  line-height: 17px;
 }
 .nav-badge-alert {
   margin-left: auto; font-size: 12px; font-weight: 700;
@@ -1037,11 +1041,11 @@ button:not([class]) { border-radius: 6px; }
 }
 .page-header-left { flex: 1; min-width: 0; }
 .page-title {
-  font-size:20px; font-weight: 700; color: #e6edf3;
-  letter-spacing: -.02em; line-height: 1.2;
+  font-size: var(--text-xl); font-weight: 600; color: #e6edf3;
+  letter-spacing: -.01em; line-height: 1.3;
 }
 .page-subtitle {
-  font-size:13px; color: var(--text); margin-top: 4px; line-height: 1.5;
+  font-size: var(--text-base); color: var(--text); margin-top: 3px; line-height: 1.5;
 }
 .page-actions { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
 
@@ -1069,9 +1073,9 @@ button:not([class]) { border-radius: 6px; }
 
 /* Row: status-icon | content (title · badge, description) | action */
 .item-row {
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 16px; border-bottom: 1px solid var(--border2);
-  transition: background .1s;
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 14px; border-bottom: 1px solid #161b22;
+  transition: background .08s;
 }
 .item-row:last-child { border-bottom: none; }
 .item-row:hover { background: rgba(177,186,196,.04); }
@@ -1083,7 +1087,7 @@ button:not([class]) { border-radius: 6px; }
 }
 .item-row-body { flex: 1; min-width: 0; }
 .item-row-title {
-  font-size:14px; font-weight: 600; color: #e6edf3;
+  font-size: var(--text-md); font-weight: 500; color: #e6edf3;
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   line-height: 1.3;
 }
@@ -1101,9 +1105,9 @@ button:not([class]) { border-radius: 6px; }
    .status-dot:  small dot
    ────────────────────────────────────────────────────────────────────────── */
 .status-pill {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size:13px; font-weight: 600; padding: 2px 9px;
-  border-radius: 20px; white-space: nowrap; border: 1px solid transparent;
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 600; letter-spacing: .02em;
+  padding: 1px 7px; border-radius: 4px; white-space: nowrap; border: 1px solid transparent;
 }
 .status-pill.green  { color: var(--green); background: var(--green-lt); border-color: rgba(63,185,80,.2); }
 .status-pill.amber  { color: #d29922; background: rgba(210,153,34,.1); border-color: rgba(210,153,34,.2); }
@@ -1122,15 +1126,48 @@ button:not([class]) { border-radius: 6px; }
 .status-dot.teal   { background: var(--teal);  }
 .status-dot.muted  { background: var(--border); }
 
+/* ── System card ─────────────────────────────────────────────────────────────
+   Tight, dense card style matching Supabase/GitHub density
+   ────────────────────────────────────────────────────────────────────────── */
+.sys-card {
+  background: #161b22; border: 1px solid #21262d; border-radius: 6px;
+  overflow: hidden;
+}
+.sys-card-header {
+  padding: 10px 14px; border-bottom: 1px solid #21262d;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sys-card-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: #6e7681;
+}
+.sys-card-body { padding: 12px 14px; }
+
+/* ── Supabase-style table ─────────────────────────────────────────────────── */
+.sys-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sys-table th {
+  padding: 7px 12px; text-align: left; font-size: 11px; font-weight: 600;
+  letter-spacing: .06em; text-transform: uppercase; color: #6e7681;
+  border-bottom: 1px solid #21262d; background: #0d1117;
+}
+.sys-table td {
+  padding: 8px 12px; border-bottom: 1px solid #161b22;
+  color: #c9d1d9; vertical-align: middle;
+}
+.sys-table tr:last-child td { border-bottom: none; }
+.sys-table tr:hover td { background: rgba(177,186,196,.03); }
+.sys-table tr.clickable { cursor: pointer; }
+
 /* ── Sub-navigation tabs ────────────────────────────────────────────────────
    Horizontal tabs within a page (GitHub repo tabs style)
    ────────────────────────────────────────────────────────────────────────── */
 .subnav {
-  display: flex; gap: 0; border-bottom: 1px solid #30363d;
-  margin-bottom: 20px; overflow-x: auto;
+  display: flex; gap: 0; border-bottom: 1px solid #21262d;
+  margin-bottom: 16px; overflow-x: auto;
 }
 .subnav-tab {
-  display: flex; align-items: center; gap: 6px;
+  font-size: 13px !important;
+  display: flex; align-items: center; gap: 5px;
   padding: 10px 14px; border: none; background: none; border-bottom: 2px solid transparent;
   font-size:13px; font-weight: 500; color: var(--text); cursor: pointer;
   font-family: var(--font); white-space: nowrap; margin-bottom: -1px;
@@ -1184,16 +1221,17 @@ button:not([class]) { border-radius: 6px; }
    ────────────────────────────────────────────────────────────────────────── */
 .act-btn {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 14px; border: 1px solid #30363d; border-radius: 8px;
-  background: #21262d; color: #e6edf3; font-size:13px;
-  font-weight: 500; cursor: pointer; font-family: var(--font);
-  transition: background .12s, border-color .12s; white-space: nowrap;
+  padding: 4px 12px; border-radius: var(--r-md);
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  font-family: var(--font); transition: background .1s, border-color .1s;
+  white-space: nowrap; border: 1px solid #30363d;
+  background: #21262d; color: #c9d1d9; height: 28px; box-sizing: border-box;
 }
 .act-btn:hover { background: #30363d; border-color: rgba(177,186,196,.3); }
 .act-btn-primary {
-  background: #238636; color: #0d1117; border-color: var(--teal); font-weight: 700;
+  background: var(--orange); color: #0d1117; border-color: var(--orange); font-weight: 700;
 }
-.act-btn-primary:hover { background: var(--teal-dk); border-color: var(--teal-dk); }
+.act-btn-primary:hover { background: var(--orange-dk); border-color: var(--orange-dk); }
 .act-btn-danger { color: var(--red); border-color: rgba(248,81,73,.3); }
 .act-btn-danger:hover { background: var(--red-lt); border-color: rgba(248,81,73,.5); }
 
@@ -14994,8 +15032,8 @@ function rList() {
   var pats = S.patients || [];
   var q    = (S.search||'').toLowerCase();
   var now  = Date.now();
+  var term = typeof clientTerm === 'function' ? clientTerm(true, true) : 'Klienter';
 
-  // Filter + priority sort
   var filtered = pats.filter(function(p){
     if (!q) return true;
     return (p.name||'').toLowerCase().includes(q) ||
@@ -15009,113 +15047,146 @@ function rList() {
     return (b.createdAt||'') > (a.createdAt||'') ? 1 : -1;
   });
 
-  // Stats
-  var total     = pats.length;
-  var highRisk  = pats.filter(function(p){ return (_clinPriority&&_clinPriority(p)||{}).level >= 2; }).length;
-  var newThisWeek = pats.filter(function(p){
-    return p.createdAt && (now - new Date(p.createdAt).getTime()) < 7*86400000;
-  }).length;
+  var highRisk    = pats.filter(function(p){ return (_clinPriority&&_clinPriority(p)||{}).level >= 2; }).length;
+  var newThisWeek = pats.filter(function(p){ return p.createdAt && (now-new Date(p.createdAt).getTime()) < 7*86400000; }).length;
+  var noVisits    = pats.filter(function(p){ return !(p.visits||[]).length; }).length;
 
-  var h = '<div style="max-width:1280px;margin:0 auto;padding:24px 32px 60px;font-family:var(--font)">';
-
-  // ── Header row (GitHub repo header style) ────────────────────
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap">';
-  h += '<div style="display:flex;align-items:center;gap:12px">';
-  h += '<h1 style="font-size:20px;font-weight:400;color:#e6edf3;margin:0">Patienter</h1>';
-  if (highRisk > 0) {
-    h += '<span style="background:rgba(248,81,73,.15);color:#f85149;font-size:12px;font-weight:600;padding:2px 8px;border-radius:20px">'+highRisk+' kräver åtgärd</span>';
-  }
-  h += '</div>';
-  h += '<div style="display:flex;align-items:center;gap:8px">';
-  // Search
-  h += '<div style="display:flex;align-items:center;gap:8px;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:5px 12px;height:32px">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-  h += '<input type="text" placeholder="Sök patient..." value="'+e(S.search||'')+'" ';
-  h += 'oninput="S.search=this.value;rList()" ';
-  h += 'style="border:none;background:none;outline:none;font-size:13px;color:#e6edf3;font-family:var(--font);width:200px">';
-  h += '</div>';
-  // New patient button
-  h += '<button onclick="go(\'form\')" style="display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:#238636;border:1px solid rgba(240,246,252,.1);border-radius:6px;font-size:14px;font-weight:500;color:#fff;cursor:pointer;font-family:var(--font)">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
-  h += 'Ny patient</button>';
-  h += '</div></div>';
-
-  // ── Stat row ──────────────────────────────────────────────────
-  h += '<div style="display:flex;gap:0;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:20px">';
-  [
-    [total, 'Totalt'],
-    [newThisWeek, 'Nya denna vecka'],
-    [highRisk, 'Kräver åtgärd'],
-    [pats.filter(function(p){return (p.visits||[]).length===0;}).length, 'Inga besök ännu'],
-  ].forEach(function(item, i, arr){
-    h += '<div style="flex:1;padding:14px 20px;'+(i<arr.length-1?'border-right:1px solid #30363d;':'')+'">';
-    h += '<div style="font-size:24px;font-weight:600;color:'+(i===2&&item[0]>0?'#f85149':'#e6edf3')+'">'+item[0]+'</div>';
-    h += '<div style="font-size:12px;color:#8b949e;margin-top:2px">'+item[1]+'</div>';
-    h += '</div>';
+  // ── Header ────────────────────────────────────────────────────────────────
+  var searchInp = mk('input', {
+    type: 'text', placeholder: 'Sök ' + term.toLowerCase() + '...',
+    value: S.search||'',
+    style: 'border:none;background:none;outline:none;font-size:13px;color:#e6edf3;font-family:var(--font);width:180px',
+    oninput: function(){ S.search = this.value; rList(); }
   });
-  h += '</div>';
 
-  // ── Patient table (GitHub file-list style) ────────────────────
+  var headerRow = mk('div', {style:'display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px'},
+    mk('div', {style:'display:flex;align-items:center;gap:10px'},
+      mk('h1', {style:'font-size:20px;font-weight:600;color:#e6edf3;margin:0;letter-spacing:-.01em', text:term}),
+      mk('span', {style:'font-size:12px;color:#6e7681;background:#161b22;border:1px solid #21262d;border-radius:20px;padding:1px 8px', text:pats.length+''})
+    ),
+    mk('div', {style:'display:flex;align-items:center;gap:8px'},
+      mk('div', {style:'display:flex;align-items:center;gap:7px;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:4px 10px'},
+        mk('svg', {html:'<circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>',
+          style:'width:13px;height:13px;flex-shrink:0', title:'',
+          html:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
+        }),
+        searchInp
+      ),
+      mk('button', {
+        style:'display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:#238636;border:1px solid rgba(240,246,252,.1);border-radius:6px;font-size:13px;font-weight:500;color:#fff;cursor:pointer;font-family:var(--font)',
+        onclick: function(){ go('form'); },
+        html:'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ny'
+      })
+    )
+  );
+
+  // Fix search icon — replace the bad nested svg
+  var searchWrap = headerRow.querySelector('div div div');
+
+  // ── Stats bar ──────────────────────────────────────────────────────────────
+  var stats = [
+    [pats.length, 'Totalt', '#c9d1d9'],
+    [newThisWeek, 'Nya denna vecka', '#58a6ff'],
+    [highRisk, 'Kräver åtgärd', highRisk > 0 ? '#f85149' : '#8b949e'],
+    [noVisits, 'Inga besök', '#8b949e'],
+  ];
+  var statsBar = mk('div', {style:'display:flex;border:1px solid #21262d;border-radius:6px;overflow:hidden;margin-bottom:16px'},
+    stats.map(function(s, i) {
+      return mk('div', {style:'flex:1;padding:10px 16px'+(i<stats.length-1?';border-right:1px solid #21262d':'')},
+        mk('div', {style:'font-size:18px;font-weight:600;color:'+s[2]+';font-family:var(--font-mono)', text:s[0]+''}),
+        mk('div', {style:'font-size:11px;color:#6e7681;margin-top:2px;letter-spacing:.02em', text:s[1]})
+      );
+    })
+  );
+
+  // ── Table ──────────────────────────────────────────────────────────────────
+  var tableWrap;
   if (!filtered.length) {
-    h += '<div style="border:1px solid #30363d;border-radius:6px;padding:60px;text-align:center;color:#8b949e;font-size:14px">';
-    h += q ? 'Inga patienter matchade "'+e(q)+'". <button onclick="S.search=\'\';rList()" style="background:none;border:none;color:#58a6ff;cursor:pointer;font-family:var(--font)">Rensa sökning</button>'
-           : 'Inga patienter ännu. <button onclick="go(\'form\')" style="background:none;border:none;color:#58a6ff;cursor:pointer;font-family:var(--font)">Lägg till din första patient →</button>';
-    h += '</div>';
+    tableWrap = mk('div', {style:'border:1px solid #21262d;border-radius:6px;padding:48px;text-align:center;color:#8b949e;font-size:13px'},
+      q ? mk('span', {}, 'Inga resultat för "'+q+'". ',
+          mk('button', {style:'background:none;border:none;color:#58a6ff;cursor:pointer;font-family:var(--font);font-size:13px', text:'Rensa sökning', onclick:function(){S.search='';rList();}}))
+        : mk('span', {}, 'Inga '+term.toLowerCase()+' ännu. ',
+          mk('button', {style:'background:none;border:none;color:#58a6ff;cursor:pointer;font-family:var(--font);font-size:13px', text:'Lägg till →', onclick:function(){go('form');}}))
+    );
   } else {
     // Table header
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px 6px 0 0;padding:8px 16px;display:flex;align-items:center;gap:12px">';
-    h += '<span style="font-size:13px;color:#8b949e">'+filtered.length+' patient'+(filtered.length!==1?'er':'')+(q?' · sökning på "'+e(q)+'"':'')+'</span>';
-    h += '</div>';
-    // Rows
-    h += '<div style="border:1px solid #30363d;border-top:none;border-radius:0 0 6px 6px;overflow:hidden">';
-    filtered.forEach(function(p, i){
-      var pr     = (_clinPriority&&_clinPriority(p)) || {level:0, label:'', color:'#8b949e'};
-      var visits = (p.visits||[]).length;
-      var lastV  = (p.visits||[]).slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0];
-      var lastDate = lastV ? lastV.date : null;
-      var daysSince = lastDate ? Math.floor((now - new Date(lastDate).getTime())/86400000) : null;
-      var unread = (p.messages||[]).filter(function(m){return m.from==='patient'&&!m.read;}).length;
+    var thead = mk('div', {
+      style:'display:flex;align-items:center;gap:12px;padding:7px 14px;background:#0d1117;border-bottom:1px solid #21262d'
+    },
+      mk('div', {style:'width:24px;flex-shrink:0'}),
+      mk('div', {style:'flex:1;min-width:0;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6e7681', text:'Namn'}),
+      mk('div', {style:'width:140px;flex-shrink:0;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6e7681', text:'Diagnos'}),
+      mk('div', {style:'width:70px;text-align:right;flex-shrink:0;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6e7681', text:'Besök'}),
+      mk('div', {style:'width:90px;text-align:right;flex-shrink:0;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#6e7681', text:'Senast'})
+    );
+
+    var rows = filtered.map(function(p, i) {
+      var pr       = (_clinPriority&&_clinPriority(p)) || {level:0, label:'', color:'#8b949e'};
+      var visits   = (p.visits||[]).length;
+      var lastV    = (p.visits||[]).slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0];
+      var daysSince = lastV && lastV.date ? Math.floor((now-new Date(lastV.date).getTime())/86400000) : null;
+      var unread   = (p.messages||[]).filter(function(m){return m.from==='patient'&&!m.read;}).length;
       var initials = (p.name||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+      var compLevel = typeof _patCheckCompliance === 'function' ? _patCheckCompliance(p.id) : 0;
 
-      h += '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:'+(i<filtered.length-1?'1px solid #21262d':'none')+';cursor:pointer;transition:background .1s" ';
-      h += 'onclick="openPat(\''+p.id+'\');go(\'detail\')" ';
-      h += 'onmouseenter="this.style.background=\'rgba(177,186,196,.04)\'" onmouseleave="this.style.background=\'none\'">';
+      var lastStr = daysSince === null ? '—'
+        : daysSince === 0 ? 'idag'
+        : daysSince === 1 ? 'igår'
+        : daysSince + ' d';
+      var lastColor = daysSince === null ? '#484f58'
+        : daysSince > 60 ? '#f85149'
+        : daysSince > 21 ? '#d29922'
+        : '#8b949e';
 
-      // Avatar
-      h += '<div style="width:28px;height:28px;border-radius:50%;background:rgba(224,118,40,.15);border:1px solid rgba(224,118,40,.2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#e07628;flex-shrink:0">'+initials+'</div>';
-
-      // Name + diagnosis
-      h += '<div style="flex:1;min-width:0">';
-      h += '<span style="font-size:14px;font-weight:500;color:#58a6ff">'+e(p.name||'Okänd patient')+'</span>';
-      if (p.diagnosis) h += '<span style="font-size:13px;color:#8b949e;margin-left:8px">'+e(p.diagnosis)+'</span>';
-      h += '</div>';
-
-      // Badges
-      h += '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">';
-      if (pr.level >= 2) {
-        h += '<span style="font-size:11px;font-weight:600;background:rgba(248,81,73,.15);color:#f85149;padding:1px 7px;border-radius:20px">'+pr.label+'</span>';
-      }
-      if (unread > 0) {
-        h += '<span style="font-size:11px;font-weight:600;background:rgba(88,166,255,.15);color:#58a6ff;padding:1px 7px;border-radius:20px">'+unread+' nytt</span>';
-      }
-      // Visit count
-      h += '<span style="font-size:12px;color:#8b949e">'+visits+' besök</span>';
-      // Last visit
-      if (daysSince !== null) {
-        var col = daysSince > 30 ? '#f85149' : daysSince > 14 ? '#d29922' : '#8b949e';
-        h += '<span style="font-size:12px;color:'+col+'">'+( daysSince===0?'idag':daysSince===1?'igår':daysSince+' d sedan' )+'</span>';
-      } else {
-        h += '<span style="font-size:12px;color:#8b949e">Inga besök</span>';
-      }
-      // Arrow
-      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="1.5"><polyline points="9 18 15 12 9 6"/></svg>';
-      h += '</div>';
-      h += '</div>';
+      var row = mk('div', {
+        style: 'display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid #161b22;cursor:pointer;transition:background .08s',
+        onmouseover: function(){ this.style.background='rgba(177,186,196,.04)'; },
+        onmouseout:  function(){ this.style.background='transparent'; },
+        onclick:     function(){ openPat(p.id); go('detail'); }
+      },
+        // Avatar
+        mk('div', {
+          style: 'width:24px;height:24px;border-radius:50%;background:rgba(177,186,196,.08);border:1px solid #30363d;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#8b949e;flex-shrink:0;font-family:var(--font-mono)',
+          text: initials
+        }),
+        // Name + badges
+        mk('div', {style:'flex:1;min-width:0;display:flex;align-items:center;gap:7px'},
+          mk('span', {style:'font-size:13px;font-weight:500;color:#e6edf3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis', text:p.name||'Okänd'}),
+          pr.level >= 2 ? mk('span', {style:'font-size:10px;font-weight:700;background:rgba(248,81,73,.12);color:#f85149;padding:0 5px;border-radius:3px;letter-spacing:.03em', text:'ÅTGÄRD'}) : null,
+          compLevel >= 2 ? mk('span', {style:'font-size:10px;font-weight:700;background:rgba(210,153,34,.1);color:#d29922;padding:0 5px;border-radius:3px;letter-spacing:.03em', text:'FÖLJSAM'}) : null,
+          unread > 0 ? mk('span', {style:'font-size:10px;font-weight:700;background:rgba(88,166,255,.12);color:#58a6ff;padding:0 5px;border-radius:3px', text:unread+' nytt'}) : null
+        ),
+        // Diagnosis
+        mk('div', {
+          style:'width:140px;flex-shrink:0;font-size:12px;color:#6e7681;white-space:nowrap;overflow:hidden;text-overflow:ellipsis',
+          text: (p.diagnosis||'').split('(')[0].trim().slice(0,28) || '—'
+        }),
+        // Visits
+        mk('div', {
+          style:'width:70px;text-align:right;flex-shrink:0;font-size:12px;color:#8b949e;font-family:var(--font-mono)',
+          text: visits ? visits+'' : '—'
+        }),
+        // Last visit
+        mk('div', {
+          style:'width:90px;text-align:right;flex-shrink:0;font-size:12px;color:'+lastColor+';font-family:var(--font-mono)',
+          text: lastStr
+        })
+      );
+      return row;
     });
-    h += '</div>';
+
+    tableWrap = mk('div', {style:'border:1px solid #21262d;border-radius:6px;overflow:hidden'}, thead);
+    rows.forEach(function(r){ tableWrap.appendChild(r); });
   }
-  h += '</div>';
-  el.innerHTML = h;
+
+  // ── Mount ──────────────────────────────────────────────────────────────────
+  var wrap = mk('div', {style:'max-width:1200px;margin:0 auto;padding:20px 28px 60px;font-family:var(--font)'});
+  wrap.appendChild(headerRow);
+  wrap.appendChild(statsBar);
+  wrap.appendChild(tableWrap);
+
+  el.innerHTML = '';
+  el.appendChild(wrap);
 }
 
 
@@ -15434,7 +15505,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
 
   // ── ÅTGÄRDER ────────────────────────────────────────────────────
   h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden;margin-bottom:16px">';
-  h += '<div style="padding:10px 16px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Snabbåtgärder</div>';
+  h += '<div style="padding:8px 14px;border-bottom:1px solid #21262d;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Snabbåtgärder</div>';
   var actions = [
     { svg:'<path d="M5 3l14 9-14 9V3z"/>', col:'var(--teal)', label:'Ta emot nu', desc:'Starta besök', fn:'newVisit()' },
     { svg:'<path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', col:'#58a6ff', label:'Dokumentera', desc:'SOAP-anteckning', fn:'newVisit()' },
@@ -15446,7 +15517,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
     { svg:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>', col:'#f85149', label:'Sjukintyg', desc:'Sjukskrivningsunderlag', fn:'openSickDayPanel()' },
   ];
   actions.forEach(function(a, i){
-    h += '<div class="item-row clickable" onclick="'+a.fn+'" style="'+(i>0?'border-top:1px solid #21262d':'')+'">';
+    h += '<div class="item-row clickable" onclick="'+a.fn+'" style="padding:7px 14px;'+(i>0?'border-top:1px solid #161b22':'')+'">';
     h += '<div class="item-row-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="'+a.col+'" stroke-width="2" stroke-linecap="round">'+a.svg+'</svg></div>';
     h += '<div class="item-row-body"><div class="item-row-title">'+a.label+'</div><div class="item-row-meta">'+a.desc+'</div></div>';
     h += '<div class="item-row-action"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></div>';
@@ -15597,10 +15668,10 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
 
 // Helper: KPI chip for patient card
 function _kpiChip(label, value, color, sub) {
-  return '<div style="background:var(--bg);border:1px solid #30363d;border-radius:8px;padding:10px 12px">'
-    + '<div style="font-size:11px;color:#6e7681;margin-bottom:4px">'+label+'</div>'
-    + '<div style="font-size:18px;font-weight:700;color:'+color+';font-family:var(--font-mono);line-height:1">'+value+'</div>'
-    + (sub ? '<div style="font-size:11px;color:#8b949e;margin-top:3px">'+e(sub)+'</div>' : '')
+  return '<div style="background:#0d1117;border:1px solid #21262d;border-radius:6px;padding:8px 12px">'
+    + '<div style="font-size:11px;color:#6e7681;margin-bottom:3px;letter-spacing:.04em;text-transform:uppercase;font-weight:600">'+label+'</div>'
+    + '<div style="font-size:16px;font-weight:600;color:'+color+';font-family:var(--font-mono);line-height:1.2">'+value+'</div>'
+    + (sub ? '<div style="font-size:11px;color:#8b949e;margin-top:2px">'+e(sub)+'</div>' : '')
     + '</div>';
 }
 

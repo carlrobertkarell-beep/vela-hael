@@ -6928,7 +6928,6 @@ function _vcalWireKeys() {
 
 // ── BOOKING POPOVER ───────────────────────────────────────────────────────────
 function _vcalOpenBk(bkId) {
-  // Close existing popover
   var existing = document.getElementById('vcal-popover');
   if (existing) existing.remove();
   if (window._calState.popover === bkId) { window._calState.popover = null; return; }
@@ -6943,18 +6942,17 @@ function _vcalOpenBk(bkId) {
 
   var pop = document.createElement('div');
   pop.id = 'vcal-popover';
-  pop.style.cssText = 'position:fixed;z-index:600;background:#161b22;border:1px solid #30363d;border-radius:6px;width:300px;overflow:hidden;';
+  pop.style.cssText = 'position:fixed;z-index:600;background:var(--surface);border:1px solid var(--border);border-radius:6px;width:320px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5)';
 
   if (rect) {
     var left = rect.right + 10;
     var top  = rect.top;
-    if (left + 300 > window.innerWidth) left = rect.left - 310;
-    if (top + 280 > window.innerHeight) top  = window.innerHeight - 290;
+    if (left + 320 > window.innerWidth) left = rect.left - 330;
+    if (top + 340 > window.innerHeight) top  = window.innerHeight - 350;
     pop.style.left = Math.max(8, left) + 'px';
     pop.style.top  = Math.max(8, top)  + 'px';
   } else {
-    pop.style.left = '50%';
-    pop.style.top  = '50%';
+    pop.style.left = '50%'; pop.style.top = '50%';
     pop.style.transform = 'translate(-50%,-50%)';
   }
 
@@ -6962,27 +6960,65 @@ function _vcalOpenBk(bkId) {
   var statusMap = { confirmed:'Bekräftad', completed:'Utförd', cancelled:'Avbokad', 'no-show':'Uteblev' };
   var status = statusMap[bk.status] || 'Bokad';
 
-  pop.innerHTML = '<div style="height:4px;background:' + color + '"></div>'
-    + '<div style="padding:16px 16px 8px;display:flex;align-items:flex-start;justify-content:space-between">'
+  // Patient context
+  var pat = bk.patientId ? (S.patients||[]).find(function(p){ return p.id===bk.patientId; }) : null;
+  var visitNr = pat ? (pat.visits||[]).length + 1 : null;
+  var lastSoap = pat ? (pat.visits||[]).slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; })[0]?.soap : null;
+  var soapSnippet = lastSoap ? (lastSoap.A || lastSoap.S || '').slice(0,90) : null;
+
+  // Check for pre-generated brief
+  var brief = null;
+  try { brief = JSON.parse(localStorage.getItem('vela:previsit:' + bk.id)||'null'); } catch(ex) {}
+  var todayStr = new Date().toISOString().slice(0,10);
+  var briefValid = brief && brief.date === todayStr;
+
+  var patContextHtml = '';
+  if (pat && visitNr) {
+    patContextHtml = '<div style="padding:8px 14px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">'
+      + '<span style="font-size:11px;color:var(--text2)">Besök ' + visitNr + '</span>';
+    if (soapSnippet) patContextHtml += '<span style="font-size:11px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">· ' + e(soapSnippet) + '</span>';
+    patContextHtml += '</div>';
+  }
+
+  var briefHtml = '';
+  if (briefValid) {
+    briefHtml = '<div style="padding:8px 14px;background:var(--teal-lt);border-bottom:1px solid rgba(224,118,40,.15)">'
+      + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--teal);margin-bottom:3px">AI-brief klar</div>'
+      + '<div style="font-size:12px;color:var(--ink);line-height:1.5">' + e(brief.focus) + '</div>'
+      + '<button onclick="VelaAgent.showBrief(\'' + bk.id + '\')" style="margin-top:5px;font-size:11px;font-weight:700;color:var(--teal);background:none;border:none;cursor:pointer;padding:0;font-family:var(--font)">Visa full brief →</button>'
+      + '</div>';
+  } else if (bk.date === todayStr && pat) {
+    briefHtml = '<div style="padding:8px 14px;background:var(--surface2);border-bottom:1px solid var(--border)">'
+      + '<div style="display:flex;align-items:center;gap:6px">'
+      + '<div style="width:5px;height:5px;border-radius:50%;background:var(--text2)"></div>'
+      + '<span style="font-size:11px;color:var(--text)">Brief genereras…</span>'
+      + '</div></div>';
+  }
+
+  pop.innerHTML = '<div style="height:3px;background:' + color + '"></div>'
+    + '<div style="padding:14px 16px 10px;display:flex;align-items:flex-start;justify-content:space-between">'
     + '<div>'
-    + '<div style="font-size:16px;font-weight:700;color:#e6edf3">' + e(bk.patientName||'') + '</div>'
-    + '<div style="font-size:13px;color:#8b949e;margin-top:2px">' + e(bk.serviceName||'') + '</div>'
+    + '<div style="font-size:15px;font-weight:700;color:var(--ink)">' + e(bk.patientName||'') + '</div>'
+    + '<div style="font-size:12px;color:var(--text);margin-top:2px">' + e(bk.serviceName||'') + ' · ' + (bk.duration||45) + ' min</div>'
     + '</div>'
-    + '<button onclick="document.getElementById(\'vcal-popover\').remove();window._calState.popover=null" style="background:none;border:none;color:#8b949e;cursor:pointer;font-size:20px;line-height:1;padding:0">×</button>'
+    + '<button onclick="document.getElementById(\'vcal-popover\').remove();window._calState.popover=null" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;line-height:1;padding:0 2px">×</button>'
     + '</div>'
-    + '<div style="padding:0 16px 12px;display:flex;flex-direction:column;gap:6px">'
-    + '<div style="display:flex;align-items:center;gap:8px;font-size:13px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span style="color:#e6edf3">' + (bk.date||'') + ' kl ' + (bk.time||'') + '</span></div>'
-    + '<div style="display:flex;align-items:center;gap:8px;font-size:13px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span style="color:#e6edf3">' + (bk.duration||45) + ' minuter</span></div>'
-    + '<div style="display:flex;align-items:center;gap:8px;font-size:13px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 8 14"/></svg><span style="padding:2px 8px;background:rgba(224,118,40,.1);color:var(--teal);border-radius:20px;font-weight:600">' + status + '</span></div>'
+    + patContextHtml
+    + briefHtml
+    + '<div style="padding:8px 14px 12px;display:flex;flex-direction:column;gap:5px">'
+    + '<div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text)">'
+    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
+    + e(bk.date||'') + ' kl ' + e(bk.time||'')
+    + '<span style="margin-left:auto;padding:1px 7px;background:rgba(224,118,40,.08);color:var(--teal);border-radius:4px;font-size:11px;font-weight:600">' + status + '</span>'
     + '</div>'
-    + '<div style="padding:10px 16px;border-top:1px solid #30363d;display:flex;gap:6px">'
-    + '<button onclick="document.getElementById(\'vcal-popover\').remove();openPat(\'' + bk.patientId + '\')" style="flex:1;padding:8px;background:none;border:1px solid #30363d;border-radius:8px;font-size:13px;color:#e6edf3;cursor:pointer;font-family:var(--font)">Patient →</button>'
-    + '<button onclick="document.getElementById(\'vcal-popover\').remove();openBookingDetail(\'' + bk.id + '\')" style="flex:1;padding:8px;background:#238636;border:none;border-radius:8px;font-size:13px;font-weight:700;color:#0d1117;cursor:pointer;font-family:var(--font)">Öppna</button>'
+    + '</div>'
+    + '<div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:6px">'
+    + '<button onclick="document.getElementById(\'vcal-popover\').remove();openPat(\'' + (bk.patientId||'') + '\')" style="flex:1;padding:8px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Patient →</button>'
+    + '<button onclick="document.getElementById(\'vcal-popover\').remove();openBookingDetail(\'' + bk.id + '\')" style="flex:1;padding:8px;background:#238636;border:none;border-radius:6px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;font-family:var(--font)">Ta emot</button>'
     + '</div>';
 
   document.body.appendChild(pop);
 
-  // Close on outside click
   setTimeout(function() {
     document.addEventListener('click', function closePop(e2) {
       if (!pop.contains(e2.target) && !e2.target.closest('.vcal-chip')) {
@@ -12702,7 +12738,10 @@ function rInbox() {
   });
 
   // Type filter
-  if (st.filter !== 'all') {
+  if (st.filter === 'agent') {
+    var _agentCats = ['previsit_brief','overdue_return','missing_journal','nrs_spike','no_home_activity'];
+    notifs = notifs.filter(function(n){ return _agentCats.indexOf(n.category) !== -1; });
+  } else if (st.filter !== 'all') {
     notifs = notifs.filter(function(n){ return n.type === st.filter || n.subtype === st.filter; });
   }
 
@@ -12768,6 +12807,17 @@ function rInbox() {
     if (f.count) h += '<span class="akt-badge">' + f.count + '</span>';
     h += '</button>';
   });
+
+  // Vela Agent section
+  var agentCategories = ['previsit_brief','overdue_return','missing_journal','nrs_spike','no_home_activity'];
+  var agentCount = allNotifs.filter(function(n){ return agentCategories.indexOf(n.category) !== -1 && !n.done; }).length;
+  h += '<div class="akt-sidebar-section-label">Vela Agent</div>';
+  var agentActive = st.filter === 'agent';
+  h += '<button class="akt-nav-btn' + (agentActive?' active':'') + '" data-view="inbox" data-filter="agent">';
+  h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+  h += '<span>AI-åtgärder</span>';
+  if (agentCount) h += '<span class="akt-badge urgent">' + agentCount + '</span>';
+  h += '</button>';
 
   // Gmail
   h += '<div class="akt-sidebar-section-label">Konton</div>';
@@ -14673,6 +14723,61 @@ function rWorkspace() {
 
     h += '</div></div></div>';
   })();
+
+  // ── NÄSTA PATIENT — AI-brief ────────────────────────────────────────────
+  (function() {
+    var todayStr2 = now.toISOString().slice(0,10);
+    var upcomingToday = bks.filter(function(b){
+      return b.date===todayStr2 && b.status!=='cancelled' && b.status!=='completed' && b.patientId;
+    }).sort(function(a,b){ return (a.time||'')>(b.time||'')?1:-1; });
+    if (!upcomingToday.length) return;
+    var nextBk = upcomingToday[0];
+    var pat = pats.find(function(p){ return p.id===nextBk.patientId; });
+    if (!pat) return;
+    var brief = null;
+    try { brief = JSON.parse(localStorage.getItem('vela:previsit:'+nextBk.id)||'null'); } catch(ex) {}
+    var briefValid = brief && brief.date === todayStr2;
+    var visitNr = (pat.visits||[]).length + 1;
+
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:20px">';
+    h += '<div style="display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--border2);background:var(--surface2)">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Nästa patient</span>';
+    if (upcomingToday.length > 1) h += '<span style="font-size:11px;color:var(--text2);margin-left:4px">+ ' + (upcomingToday.length-1) + ' till idag</span>';
+    h += '<span style="font-size:12px;color:var(--text2);margin-left:auto">' + e(nextBk.time||'') + '</span>';
+    h += '</div>';
+    h += '<div style="padding:12px 16px;display:flex;align-items:flex-start;gap:12px">';
+    h += '<div style="flex:1;min-width:0">';
+    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">';
+    h += '<span style="font-size:15px;font-weight:700;color:var(--ink)">' + e(pat.name) + '</span>';
+    h += '<span style="font-size:11px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 6px">Besök ' + visitNr + '</span>';
+    h += '</div>';
+    h += '<div style="font-size:12px;color:var(--text);margin-bottom:8px">' + e(pat.diagnosis||nextBk.serviceName||'') + ' · ' + (nextBk.duration||45) + ' min</div>';
+    if (briefValid) {
+      h += '<div style="padding:8px 10px;background:var(--teal-lt);border-left:2px solid var(--teal);border-radius:0 4px 4px 0;margin-bottom:8px">';
+      h += '<div style="font-size:12px;font-weight:600;color:var(--teal);margin-bottom:2px">Fokus idag</div>';
+      h += '<div style="font-size:13px;color:var(--ink);line-height:1.5">' + e(brief.focus) + '</div>';
+      h += '</div>';
+      if (brief.tests && brief.tests.length) {
+        h += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">';
+        brief.tests.forEach(function(t){ h += '<span style="font-size:11px;padding:2px 7px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--ink)">' + e(t) + '</span>'; });
+        h += '</div>';
+      }
+      if (brief.watchFor) {
+        h += '<div style="font-size:12px;color:var(--amber);display:flex;align-items:center;gap:4px">';
+        h += '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+        h += e(brief.watchFor) + '</div>';
+      }
+    } else {
+      h += '<div style="font-size:12px;color:var(--text2);font-style:italic">AI-brief genereras automatiskt…</div>';
+    }
+    h += '</div>';
+    h += '<div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">';
+    h += '<button onclick="openPat(\'' + pat.id + '\')" style="padding:7px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Patient</button>';
+    if (briefValid) h += '<button onclick="VelaAgent.showBrief(\'' + nextBk.id + '\')" style="padding:7px 12px;background:rgba(224,118,40,.1);border:1px solid rgba(224,118,40,.25);border-radius:6px;font-size:12px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Full brief</button>';
+    h += '</div></div></div>';
+  })();
+
   h += '<div class="r4-branchbar">';
   h += '<div class="r4-bb-l">';
   h += '<button class="r4-branch-btn"><svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor"><path d="M9.5 3.25a2.25 2.25 0 1 1 3 2.122V6A2.5 2.5 0 0 1 10 8.5H6a1 1 0 0 0-1 1v1.128a2.251 2.251 0 1 1-1.5 0V5.372a2.25 2.25 0 1 1 1.5 0v1.836A2.492 2.492 0 0 1 6 7h4a1 1 0 0 0 1-1v-.628A2.25 2.25 0 0 1 9.5 3.25Zm-2.25 0a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Zm4.75.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm-9 8.5a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5Z"/></svg> '+e(cfg.signature||'Behandlare')+' <svg viewBox="0 0 16 16" width="10" height="10" fill="currentColor"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg></button>';
@@ -19057,6 +19162,298 @@ function restoreMeetDraft(draft) {
 
 
 
+// ══════════════════════════════════════════════════════════════════════════════
+// VELA AGENT — AI co-pilot bakgrundsloop
+// Filosofi: AI äger arbetsflödet, behandlaren validerar och signerar.
+// Körs vid login, sedan var 30:e minut.
+// Alla AI-genererade förslag hamnar i godkännandekön — aldrig autonoma.
+// ══════════════════════════════════════════════════════════════════════════════
+const VelaAgent = (function() {
+  var _timer = null;
+  var _lastRun = 0;
+  var INTERVAL = 30 * 60 * 1000; // 30 min
+  var AGENT_KEY = 'vela:agent:lastrun';
+
+  // ── Boot ────────────────────────────────────────────────────────────────────
+  function boot() {
+    var key = getKey();
+    if (!key) return; // No API key — agent inactive
+    var last = parseInt(localStorage.getItem(AGENT_KEY)||'0');
+    var sinceLast = Date.now() - last;
+    // Always run full scan on first boot of the day
+    if (sinceLast > 20 * 60 * 1000) {
+      _runAllScans();
+    }
+    // Schedule periodic runs
+    if (_timer) clearInterval(_timer);
+    _timer = setInterval(function(){ _runAllScans(); }, INTERVAL);
+  }
+
+  // ── Master scan orchestrator ────────────────────────────────────────────────
+  async function _runAllScans() {
+    localStorage.setItem(AGENT_KEY, Date.now().toString());
+    var pats = S.patients || [];
+    if (!pats.length) return;
+    var bks = getBookings ? getBookings() : [];
+    var now = new Date();
+    var todayStr = now.toISOString().slice(0,10);
+
+    // Run all passive (non-AI) scans first — instant
+    _scanOverdueReturns(pats, bks, todayStr);
+    _scanMissingJournals(pats, bks, todayStr);
+    _scanNoHomeProgramActivity(pats, todayStr);
+    _scanNRSSpike(pats);
+
+    // AI scan — pre-visit briefs for today's bookings
+    var key = getKey();
+    if (key) {
+      var todayBks = bks.filter(function(b){
+        return b.date === todayStr && b.status !== 'cancelled' && b.patientId;
+      });
+      for (var i = 0; i < Math.min(todayBks.length, 6); i++) {
+        await _generatePreVisitBrief(todayBks[i], key);
+      }
+    }
+
+    updateInboxBadge();
+    if (typeof renderInboxDrawer === 'function') renderInboxDrawer();
+  }
+
+  // ── Scan: patienter som inte kommit tillbaka i tid ───────────────────────────
+  function _scanOverdueReturns(pats, bks, todayStr) {
+    pats.forEach(function(p) {
+      var visits = (p.visits||[]).slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; });
+      var last = visits[0];
+      if (!last || !last.date) return;
+      // Get recommended follow-up weeks from plan
+      var followupWeeks = (last.plan && (last.plan.totalWeeks||last.plan.form?.followup)) || null;
+      if (!followupWeeks) return;
+      var dueDate = new Date(last.date);
+      dueDate.setDate(dueDate.getDate() + followupWeeks * 7);
+      var dueStr = dueDate.toISOString().slice(0,10);
+      if (dueStr > todayStr) return; // Not due yet
+      // Check if already rebooked
+      var hasUpcoming = bks.some(function(b){
+        return b.patientId === p.id && b.date > last.date && b.status !== 'cancelled';
+      });
+      if (hasUpcoming) return;
+      var overdueDays = Math.floor((new Date(todayStr) - dueDate) / 86400000);
+      if (overdueDays < 2) return; // Grace period
+      addInboxItem(
+        p.id, p.name,
+        overdueDays > 14 ? 'urgent' : 'ai_action',
+        'overdue_return',
+        'Återbesök försenat — ' + p.name,
+        'Planerat återbesök var om ' + followupWeeks + ' v. Nu ' + overdueDays + ' dagar sedan. Ingen ny bokning.',
+        [
+          { label: 'Boka tid', fn: "openBookingDialog&&openBookingDialog(null,null,'" + p.id + "')" },
+          { label: 'Skicka SMS', fn: "openPat&&openPat('" + p.id + "')" }
+        ]
+      );
+    });
+  }
+
+  // ── Scan: besök utan journal senaste 5 dagarna ───────────────────────────────
+  function _scanMissingJournals(pats, bks, todayStr) {
+    var fiveDaysAgo = new Date(Date.now() - 5*86400000).toISOString().slice(0,10);
+    bks.filter(function(b){
+      return b.status === 'completed' && b.date >= fiveDaysAgo && b.date < todayStr && b.patientId;
+    }).forEach(function(bk) {
+      var p = pats.find(function(x){ return x.id === bk.patientId; });
+      if (!p) return;
+      var hasJournal = (p.visits||[]).some(function(v){
+        return v.date === bk.date && v.soap && (v.soap.S||v.soap.A||v.soap.O||v.soap.P);
+      });
+      if (hasJournal) return;
+      var daysAgo = Math.floor((new Date(todayStr) - new Date(bk.date)) / 86400000);
+      addInboxItem(
+        p.id, p.name,
+        'ai_action',
+        'missing_journal',
+        'Journal saknas — ' + p.name,
+        'Besök ' + bk.date + ' (' + daysAgo + ' dagar sedan) har ingen journal.',
+        [
+          { label: 'Skriv journal', fn: "openPat&&openPat('" + p.id + "');setTimeout(function(){startManualSOAP&&startManualSOAP();},500)" }
+        ]
+      );
+    });
+  }
+
+  // ── Scan: hemprogram ej loggat på >7 dagar ─────────────────────────────────
+  function _scanNoHomeProgramActivity(pats, todayStr) {
+    pats.forEach(function(p) {
+      var activePlan = null;
+      var now = new Date(todayStr);
+      (p.visits||[]).forEach(function(v) {
+        if (!v.plan || !v.date) return;
+        var weeks = v.plan.totalWeeks || v.plan.form?.followup || 4;
+        var end = new Date(v.date); end.setDate(end.getDate() + weeks*7);
+        if (end > now) activePlan = v;
+      });
+      if (!activePlan) return;
+      // Check last log entry
+      var logs = activePlan.logs || [];
+      var lastLog = logs.slice().sort(function(a,b){ return (b.ts||b.date||'')>(a.ts||a.date||'')?1:-1; })[0];
+      var lastLogDate = lastLog ? (lastLog.ts ? new Date(lastLog.ts).toISOString().slice(0,10) : lastLog.date) : activePlan.date;
+      if (!lastLogDate) return;
+      var daysSince = Math.floor((new Date(todayStr) - new Date(lastLogDate)) / 86400000);
+      if (daysSince < 7) return;
+      addInboxItem(
+        p.id, p.name,
+        'ai_action',
+        'no_home_activity',
+        'Hemprogram inaktivt — ' + p.name,
+        'Ingen övningslogg på ' + daysSince + ' dagar. Aktiv Hael-plan pågår.',
+        [
+          { label: 'Skicka påminnelse', fn: "openPat&&openPat('" + p.id + "')" }
+        ]
+      );
+    });
+  }
+
+  // ── Scan: NRS-ökning mellan besöken ────────────────────────────────────────
+  function _scanNRSSpike(pats) {
+    pats.forEach(function(p) {
+      var visits = (p.visits||[]).slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; });
+      if (visits.length < 2) return;
+      function getNRS(v) {
+        var logs = (v.logs||[]).filter(function(l){ return l.nrs != null; });
+        if (logs.length) return logs[logs.length-1].nrs;
+        return v.form?.pain ?? null;
+      }
+      var nrsCurr = getNRS(visits[0]);
+      var nrsPrev = getNRS(visits[1]);
+      if (nrsCurr === null || nrsPrev === null) return;
+      if (nrsCurr - nrsPrev < 2) return; // Only flag >=2 point increase
+      addInboxItem(
+        p.id, p.name,
+        'urgent',
+        'nrs_spike',
+        'Ökad smärta — ' + p.name,
+        'NRS ökade från ' + nrsPrev + ' till ' + nrsCurr + ' (+ ' + (nrsCurr-nrsPrev) + '). Senaste besök: ' + (visits[0].date||''),
+        [
+          { label: 'Öppna patient', fn: "openPat&&openPat('" + p.id + "')" }
+        ]
+      );
+    });
+  }
+
+  // ── AI: Pre-visit brief för dagens bokningar ────────────────────────────────
+  async function _generatePreVisitBrief(bk, key) {
+    var briefKey = 'vela:previsit:' + bk.id;
+    // Don't regenerate if already done today
+    try {
+      var cached = JSON.parse(localStorage.getItem(briefKey)||'null');
+      if (cached && cached.date === new Date().toISOString().slice(0,10)) return;
+    } catch(e) {}
+
+    var p = (S.patients||[]).find(function(x){ return x.id === bk.patientId; });
+    if (!p) return;
+
+    var visits = (p.visits||[]).slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; });
+    var lastVisit = visits[0];
+    var soap = lastVisit?.soap || {};
+    var visitNr = visits.length + 1;
+    var allNrs = visits.flatMap(function(v){ return (v.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }); });
+    var nrsTrend = allNrs.length >= 2 ? (allNrs[allNrs.length-1] - allNrs[0]) : null;
+
+    var ctx = 'Patient: ' + p.name + ', f.' + (p.birthdate||p.birthYear||'okänt') + '\n'
+      + 'Diagnos: ' + (p.diagnosis||'okänd') + '\n'
+      + 'Besök nr: ' + visitNr + '\n'
+      + 'NRS-trend: ' + (nrsTrend !== null ? (nrsTrend < 0 ? 'förbättring ' + Math.abs(nrsTrend) : nrsTrend > 0 ? 'försämring ' + nrsTrend : 'stabil') : 'okänd') + '\n'
+      + 'Senaste journal A: ' + (soap.A||'').slice(0,200) + '\n'
+      + 'Senaste journal P: ' + (soap.P||'').slice(0,200) + '\n'
+      + 'Tjänst: ' + (bk.serviceName||'okänd') + ', ' + (bk.duration||45) + ' min';
+
+    var prompt = 'Du är AI-naprapath och förbereder en behandlare inför ett patientbesök.\n\n'
+      + ctx + '\n\n'
+      + 'Generera en besöksbrief. Svara ENBART med JSON (inga backticks):\n'
+      + '{"focus":"Vad behandlaren ska fokusera på (1 mening)","tests":["Test 1","Test 2"],"questions":["Fråga till patienten 1","Fråga 2"],"watchFor":"Röd flagga att hålla utkik efter om relevant, annars null","prepNote":"Kort klinisk sammanfattning för behandlaren (2-3 meningar)"}';
+
+    try {
+      var res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: MODEL_HAIKU, max_tokens: 600,
+          system: 'Svara ALLTID med giltig JSON. Inga backticks.',
+          messages: [{ role: 'user', content: prompt }] })
+      });
+      var data = await res.json();
+      var txt = (data.content||[]).map(function(b){ return b.text||''; }).join('').replace(/```json|```/g,'').trim();
+      var brief = JSON.parse(txt);
+      brief.date = new Date().toISOString().slice(0,10);
+      brief.patName = p.name;
+      brief.bkTime = bk.time || '';
+      brief.visitNr = visitNr;
+      localStorage.setItem(briefKey, JSON.stringify(brief));
+
+      // Surface in inbox
+      addInboxItem(
+        p.id, p.name,
+        'info',
+        'previsit_brief',
+        'Besöksbrief — ' + p.name + (bk.time ? ' kl ' + bk.time : ''),
+        brief.prepNote || brief.focus || '',
+        [{ label: 'Visa brief', fn: "VelaAgent.showBrief('" + bk.id + "')" }]
+      );
+    } catch(e) { /* Silent fail — brief is a nice-to-have */ }
+  }
+
+  // ── Show pre-visit brief modal ──────────────────────────────────────────────
+  function showBrief(bkId) {
+    var key = 'vela:previsit:' + bkId;
+    var brief;
+    try { brief = JSON.parse(localStorage.getItem(key)||'null'); } catch(e) {}
+    if (!brief) { showAutoSaveToast('Brief inte tillgänglig ännu'); return; }
+
+    var ov = document.createElement('div');
+    ov.id = 'agent-brief-modal';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:700;background:rgba(7,16,30,.8);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+    ov.onclick = function(e){ if(e.target===ov) ov.remove(); };
+
+    var testsHtml = (brief.tests||[]).map(function(t){
+      return '<span style="font-size:12px;padding:3px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--ink)">' + e(t) + '</span>';
+    }).join('');
+    var questionsHtml = (brief.questions||[]).map(function(q){
+      return '<div style="font-size:13px;color:var(--ink);padding:6px 10px;background:var(--surface2);border-radius:6px;border-left:2px solid var(--orange)">→ ' + e(q) + '</div>';
+    }).join('');
+
+    ov.innerHTML = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;width:100%;max-width:480px;overflow:hidden" onclick="event.stopPropagation()">'
+      + '<div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">'
+      + '<div style="width:7px;height:7px;border-radius:50%;background:var(--orange);flex-shrink:0"></div>'
+      + '<div style="flex:1">'
+      + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text);margin-bottom:1px">Besöksbrief</div>'
+      + '<div style="font-size:15px;font-weight:700;color:var(--ink)">' + e(brief.patName) + (brief.bkTime ? ' · ' + e(brief.bkTime) : '') + '</div>'
+      + '</div>'
+      + '<div style="font-size:12px;color:var(--text2)">Besök ' + (brief.visitNr||'?') + '</div>'
+      + '<button onclick="document.getElementById(\'agent-brief-modal\').remove()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:0 4px;margin-left:4px">×</button>'
+      + '</div>'
+      + '<div style="padding:16px 20px;display:flex;flex-direction:column;gap:12px">'
+      + '<div style="padding:10px 12px;background:var(--teal-lt);border-left:3px solid var(--teal);border-radius:0 6px 6px 0">'
+      + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:3px">Fokus</div>'
+      + '<div style="font-size:13px;color:var(--ink);line-height:1.55">' + e(brief.focus) + '</div>'
+      + '</div>'
+      + (brief.prepNote ? '<div style="font-size:13px;color:var(--text);line-height:1.6">' + e(brief.prepNote) + '</div>' : '')
+      + (testsHtml ? '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text);margin-bottom:6px">Tester</div><div style="display:flex;flex-wrap:wrap;gap:5px">' + testsHtml + '</div></div>' : '')
+      + (questionsHtml ? '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text);margin-bottom:6px">Frågor till patienten</div><div style="display:flex;flex-direction:column;gap:4px">' + questionsHtml + '</div></div>' : '')
+      + (brief.watchFor ? '<div style="padding:10px 12px;background:var(--amber-lt);border-left:3px solid var(--amber);border-radius:0 6px 6px 0"><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--amber);margin-bottom:3px">Håll utkik</div><div style="font-size:13px;color:var(--ink)">' + e(brief.watchFor) + '</div></div>' : '')
+      + '</div>'
+      + '<div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px">'
+      + '<button onclick="document.getElementById(\'agent-brief-modal\').remove()" style="flex:1;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Stäng</button>'
+      + '</div>'
+      + '</div>';
+    document.body.appendChild(ov);
+  }
+
+  // ── Manual trigger (for dev/testing) ───────────────────────────────────────
+  function runNow() {
+    _runAllScans();
+    showAutoSaveToast('VelaAgent: scanning…');
+  }
+
+  return { boot: boot, runNow: runNow, showBrief: showBrief };
+})();
+
 // ── RED FLAG AUTO-SCANNER (hooked into saveSOAPToVisit) ───────────────────────
 async function _runRedFlagScan(soapText, patName) {
   if (!soapText || soapText.trim().length < 40) return;
@@ -21249,6 +21646,7 @@ function rLogin() {
         if(r.ok){
           loadPats && loadPats();
           go('dashboard');
+          setTimeout(function(){ VelaAgent.boot(); }, 2000);
         } else {
           err.style.display='block';
           err.textContent=r.msg||'Fel e-post eller lösenord.';
@@ -38199,6 +38597,7 @@ function getAiProfileContext(userId) {
         setTimeout(() => sbKeepAlive(), 2000);
         setTimeout(function(){ runNightlyScanIfNeeded().then(function(){ _renderMorningReportCard(); }); }, 3000);
         setTimeout(() => runInboxAgent(S.patients), 3500);
+        setTimeout(function(){ if (typeof VelaAgent !== 'undefined') VelaAgent.boot(); }, 4000);
       } else {
         const _ld = document.getElementById('page-loader');
         if (_ld) { _ld.style.opacity='0'; _ld.style.transition='opacity .2s'; setTimeout(()=>{ try{_ld.remove();}catch(e){} },250); }

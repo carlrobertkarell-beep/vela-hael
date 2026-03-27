@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774900001 -->
+<!-- vela-build:1774950001 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -1966,7 +1966,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .vcal-left      { width:220px; flex-shrink:0; border-right:1px solid #30363d; display:flex; flex-direction:column; overflow:hidden; }
 .vcal-main      { flex:1; display:flex; flex-direction:column; overflow:hidden; min-width:0; }
 /* Mini calendar */
-.vcal-mini      { padding:16px 14px 10px; flex-shrink:0; }
+.vcal-mini      { padding:12px 12px 8px; flex-shrink:0; }
 .vcal-mini-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
 .vcal-mini-month  { font-size:13px; font-weight:700; color:#e6edf3; }
 .vcal-mini-nav    { background:none; border:none; color:var(--text2); cursor:pointer; padding:2px 7px; border-radius:5px; font-size:16px; line-height:1; }
@@ -5398,9 +5398,9 @@ function pubShareSectionHTML(pat, plan) {
     ${statChips.length ? `<div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:18px">${statChips.join('')}</div>` : ''}
 
     <button id="hael-share-btn" onclick="window._haelShareHandler()"
-      style="width:100%;padding:13px;background:rgba(255,255,255,.1);color:white;border:1px solid rgba(255,255,255,.15);border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:background .2s"
-      onmouseover="this.style.background='rgba(255,255,255,.15)'"
-      onmouseout="this.style.background='rgba(255,255,255,.1)'">
+      style="width:100%;padding:14px;background:var(--orange);color:#0d1117;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:background .2s"
+      onmouseover="this.style.background='var(--orange-dk)'"
+      onmouseout="this.style.background='var(--orange)'">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:6px;vertical-align:-2px"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
       Dela min resa
     </button>
@@ -15273,99 +15273,115 @@ function renderPhaseBar(pat) {
 function renderPhaseNext(pat) { return ''; }
 
 function rDetail(){
-  const p = S.pat; if(!p){go('list');return;}
-  const el = document.getElementById('s-detail');
-  if (!el) return;
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  var p=S.pat; if(!p){go('list');return;}
+  var el=document.getElementById('s-detail'); if(!el)return;
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   el.classList.add('active');
-  S.screen = 'detail';
+  S.screen='detail';
 
-  const tab = window._detailTab || 'overview';
-  const visits = (p.visits||[]).slice().sort((a,b)=>(b.date||'')>(a.date||'')?1:-1);
-  const lastVisit = visits[0];
-  const nrsVals = lastVisit ? (lastVisit.logs||[]).filter(l=>l.nrs!=null).map(l=>l.nrs) : [];
-  const nrs = nrsVals.length ? nrsVals[nrsVals.length-1] : (lastVisit?.form?.pain ?? null);
-  const nrsFirst = visits.reduce((acc,v)=>{ const vv=(v.logs||[]).filter(l=>l.nrs!=null).map(l=>l.nrs); return vv.length?[...acc,...vv]:acc; },[]).slice(-1)[0] ?? null;
-  const diag = lastVisit?.form?.diagnosis || lastVisit?.plan?.form?.diagnosis || p.diagnosis || '';
-  const unread = (p.messages||[]).filter(m=>m.from==='patient'&&!m.read).length;
-  const hasPlan = visits.some(v=>v.plan);
-  const intakeData = getLatestIntakeForPatient && getLatestIntakeForPatient(p.id);
-  const age = new Date().getFullYear() - birthdateToYear(p.birthdate||p.birthYear||'');
-  const initials = (p.name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
-  const nrsColor = nrs==null?'var(--text2)':nrs>=7?'var(--red)':nrs>=4?'var(--amber)':'var(--green)';
+  var tab=window._detailTab||'overview';
+  var visits=(p.visits||[]).slice().sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
+  var lastVisit=visits[0];
+  var nrsVals=lastVisit?(lastVisit.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;}):[];
+  var nrs=nrsVals.length?nrsVals[nrsVals.length-1]:(lastVisit&&lastVisit.form?lastVisit.form.pain:null);
+  if(nrs==null)nrs=null;
+  var nrsFirst=visits.reduce(function(acc,v){var vv=(v.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;});return vv.length?acc.concat(vv):acc;},[]).slice(-1)[0];
+  if(nrsFirst==null)nrsFirst=null;
+  var diag=lastVisit&&lastVisit.form&&lastVisit.form.diagnosis||lastVisit&&lastVisit.plan&&lastVisit.plan.form&&lastVisit.plan.form.diagnosis||p.diagnosis||'';
+  var unread=(p.messages||[]).filter(function(m){return m.from==='patient'&&!m.read;}).length;
+  var intakeData=typeof getLatestIntakeForPatient==='function'?getLatestIntakeForPatient(p.id):null;
+  var age=new Date().getFullYear()-birthdateToYear(p.birthdate||p.birthYear||'');
+  var initials=(p.name||'?').split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+  var nrsColor=nrs==null?'var(--text2)':nrs>=7?'var(--red)':nrs>=4?'var(--amber)':'var(--green)';
+  var compLevel=typeof _patCheckCompliance==='function'?_patCheckCompliance(p.id):0;
 
-  var h = '<div class="page-shell" style="max-width:1280px;margin:0 auto;padding:24px 32px 60px">';
+  var wrap=mk('div',{style:'max-width:1280px;margin:0 auto;padding:16px 24px 60px'});
 
-  // ── Page header ────────────────────────────────────────────────────────
-  h += '<div class="page-header">';
-  h += '<div class="page-header-left" style="display:flex;align-items:flex-start;gap:14px">';
-  // Avatar
-  h += '<div style="width:44px;height:44px;border-radius:50%;background:rgba(177,186,196,.1);border:1px solid #30363d;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;font-weight:700;color:#e6edf3;font-family:var(--font-mono)">' + initials + '</div>';
-  h += '<div style="flex:1;min-width:0">';
-  h += '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">';
-  h += '<div class="page-title">' + e(p.name) + '</div>';
-  if (nrs !== null) h += '<span class="status-pill ' + (nrs>=7?'red':nrs>=4?'amber':'green') + '">NRS ' + nrs + '</span>';
-  if (unread) h += '<span class="status-pill blue">' + unread + ' oläst' + (unread>1?'a':'') + '</span>';
-  h += '</div>';
-  // Meta row
-  h += '<div class="meta-row" style="margin-top:6px">';
-  if (diag) h += '<span class="meta-item"><span class="meta-value">' + e(diag.split('(')[0].trim().slice(0,45)) + '</span></span><span class="meta-sep">·</span>';
-  h += '<span class="meta-item"><span class="meta-label">Besök</span><span class="meta-value">' + visits.length + '</span></span>';
-  if (lastVisit?.date) h += '<span class="meta-sep">·</span><span class="meta-item"><span class="meta-label">Senast</span><span class="meta-value">' + _relativeDate(lastVisit.date) + '</span></span>';
-  if (p.phone) h += '<span class="meta-sep">·</span><span class="meta-item"><a href="tel:' + e(p.phone) + '" style="color:#58a6ff;text-decoration:none;font-size:13px">' + e(p.phone) + '</a></span>';
-  if (p.email) h += '<span class="meta-sep">·</span><span class="meta-item" style="color:#8b949e;font-size:13px">' + e(p.email) + '</span>';
-  if (age && age > 0 && age < 120) h += '<span class="meta-sep">·</span><span class="meta-item"><span class="meta-value">' + age + ' år</span></span>';
-  h += '</div>';
-  h += '</div></div>';
-  // Actions
-  h += '<div class="page-actions">';
-  h += '<button onclick="newVisit()" class="act-btn act-btn-primary">Ta emot</button>';
-  h += '<button onclick="go(\'editpat\')" class="act-btn" style="font-size:13px">Redigera</button>';
-  h += '<button onclick="confDel(\'pat\',\'' + p.id + '\',\'' + e(p.name) + '\')" class="act-btn" style="font-size:13px;color:#f85149;border-color:rgba(248,81,73,.3)">Radera</button>';
-  h += '<button onclick="go(\'list\')" class="act-btn" style="font-size:13px">← Tillbaka</button>';
-  h += '</div></div>';
+  // ── Header ────────────────────────────────────────────────────────────────
+  var badges=mk('div',{style:'display:flex;align-items:center;gap:6px;flex-wrap:wrap'});
+  if(nrs!==null) badges.appendChild(mk('span',{
+    cls:'status-pill '+(nrs>=7?'red':nrs>=4?'amber':'green'),
+    text:'NRS '+nrs
+  }));
+  if(unread) badges.appendChild(mk('span',{cls:'status-pill blue',text:unread+' oläst'+(unread>1?'a':'')}));
+  if(compLevel>=2) badges.appendChild(mk('span',{cls:'status-pill amber',text:'Följsamhet'}));
 
-  // ── Sub-navigation tabs ──────────────────────────────────────────────
-  h += '<div class="subnav">';
-  const tabs = [
-    {id:'overview', label:'Översikt'},
-    {id:'journal',  label:'Besök', count: visits.length},
-    {id:'hael',     label:'Hael-plan', count: visits.filter(v=>v.plan).length},
-    {id:'messages', label:'Meddelanden', count: unread||null},
-    {id:'intake',   label:'Intake'},
-  ];
-  tabs.forEach(function(t) {
-    h += '<button class="subnav-tab' + (tab===t.id?' active':'') + '" onclick="window._detailTab=\'' + t.id + '\';rDetail()">';
-    h += t.label;
-    if (t.count) h += '<span class="tab-count">' + t.count + '</span>';
-    h += '</button>';
+  var metaItems=[];
+  if(diag) metaItems.push(mk('span',{style:'font-size:13px;color:#c9d1d9',text:diag.split('(')[0].trim().slice(0,50)}));
+  if(visits.length) metaItems.push(mk('span',{style:'font-size:13px;color:#6e7681',text:visits.length+' besök'}));
+  if(lastVisit&&lastVisit.date) metaItems.push(mk('span',{style:'font-size:13px;color:#6e7681',text:'Senast '+_relativeDate(lastVisit.date)}));
+  if(p.phone) metaItems.push(mk('a',{style:'font-size:13px;color:#58a6ff;text-decoration:none',href:'tel:'+p.phone,text:p.phone}));
+  if(age&&age>0&&age<120) metaItems.push(mk('span',{style:'font-size:13px;color:#6e7681',text:age+' år'}));
+
+  var metaRow=mk('div',{style:'display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:4px'});
+  metaItems.forEach(function(item,i){
+    if(i>0) metaRow.appendChild(mk('span',{style:'color:#30363d',text:'·'}));
+    metaRow.appendChild(item);
   });
-  h += '</div>';
 
-  // ── TAB: Översikt ────────────────────────────────────────────────────
-  if (tab === 'overview') {
-    h += _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData);
-  }
-  // ── TAB: Besök ────────────────────────────────────────────────────
-  else if (tab === 'journal') {
-    h += _detJournal(p, visits);
-  }
-  // ── TAB: Hael-plan ──────────────────────────────────────────────────
-  else if (tab === 'hael') {
-    h += _detHael(p, visits);
-  }
-  // ── TAB: Meddelanden ────────────────────────────────────────────────
-  else if (tab === 'messages') {
-    h += _detMessages(p);
-  }
-  // ── TAB: Intake ─────────────────────────────────────────────────────
-  else if (tab === 'intake') {
-    h += _detIntake(p, intakeData);
-  }
+  var nameRow=mk('div',{style:'display:flex;align-items:center;gap:8px;flex-wrap:wrap'},
+    mk('div',{style:'font-size:20px;font-weight:600;color:#e6edf3;letter-spacing:-.01em',text:p.name}),
+    badges
+  );
 
-  h += '</div>'; // page-shell
-  el.innerHTML = h;
-  setTimeout(function(){ _showPatientIntel && _showPatientIntel(p); }, 600);
+  var avatar=mk('div',{
+    style:'width:36px;height:36px;border-radius:50%;background:#21262d;border:1px solid #30363d;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#8b949e;flex-shrink:0;font-family:var(--font-mono)',
+    text:initials
+  });
+
+  var actions=mk('div',{style:'display:flex;gap:6px;align-items:center;flex-shrink:0'},
+    mk('button',{cls:'act-btn act-btn-primary',text:'Ta emot',onclick:function(){newVisit();}}),
+    mk('button',{cls:'act-btn',text:'Redigera',onclick:function(){go('editpat');}}),
+    mk('button',{cls:'act-btn',
+      style:'color:#f85149;border-color:rgba(248,81,73,.3)',
+      text:'Radera',
+      onclick:function(){confDel('pat',p.id,p.name);}
+    }),
+    mk('button',{cls:'act-btn',text:'← Lista',onclick:function(){go('list');}})
+  );
+
+  var header=mk('div',{style:'display:flex;align-items:flex-start;gap:12px;justify-content:space-between;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid #21262d'},
+    mk('div',{style:'display:flex;align-items:flex-start;gap:12px'},
+      avatar,
+      mk('div',{},nameRow,metaRow)
+    ),
+    actions
+  );
+
+  // ── Tabs ──────────────────────────────────────────────────────────────────
+  var tabDefs=[
+    {id:'overview',label:'Översikt'},
+    {id:'journal', label:'Besök',     count:visits.length},
+    {id:'hael',    label:'Hael-plan', count:visits.filter(function(v){return v.plan;}).length||null},
+    {id:'messages',label:'Meddelanden',count:unread||null},
+    {id:'intake',  label:'Intake'},
+  ];
+  var subnav=mk('div',{cls:'subnav'});
+  tabDefs.forEach(function(t){
+    var btn=mk('button',{
+      cls:'subnav-tab'+(tab===t.id?' active':''),
+      onclick:(function(tid){return function(){window._detailTab=tid;rDetail();};})(t.id)
+    },t.label);
+    if(t.count) btn.appendChild(mk('span',{cls:'tab-count',text:t.count+''}));
+    subnav.appendChild(btn);
+  });
+
+  // ── Content ───────────────────────────────────────────────────────────────
+  var content=mk('div',{id:'det-content'});
+  var h='';
+  if(tab==='overview')  h=_detOverview(p,visits,lastVisit,nrs,nrsFirst,nrsColor,intakeData);
+  else if(tab==='journal')  h=_detJournal(p,visits);
+  else if(tab==='hael')     h=_detHael(p,visits);
+  else if(tab==='messages') h=_detMessages(p);
+  else if(tab==='intake')   h=_detIntake(p,intakeData);
+  content.innerHTML=h;
+
+  wrap.appendChild(header);
+  wrap.appendChild(subnav);
+  wrap.appendChild(content);
+  el.innerHTML='';
+  el.appendChild(wrap);
+  setTimeout(function(){_showPatientIntel&&_showPatientIntel(p);},600);
 }
 
 // ── Overview tab ─────────────────────────────────────────────────────────────
@@ -15399,13 +15415,13 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
   var nextBk = upcomingBks[0] || null;
 
   // ── 2-COLUMN LAYOUT ─────────────────────────────────────────────
-  h += '<div style="display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start">';
+  h += '<div style="display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start">';
 
   // ════ LEFT COLUMN ════════════════════════════════════════════════
   h += '<div style="min-width:0">';
 
   // ── KLINISK SAMMANFATTNING ──────────────────────────────────────
-  h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:18px 20px;margin-bottom:16px">';
+  h += '<div style="background:#161b22;border:1px solid #21262d;border-radius:6px;padding:12px 14px;margin-bottom:12px">';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">';
   h += '<div style="font-size:13px;font-weight:700;color:#e6edf3;display:flex;align-items:center;gap:8px">';
   h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>';
@@ -15414,7 +15430,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
   h += '</div>';
 
   // KPI chips
-  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">';
+  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px">';
 
   // NRS
   var nrsDisplay = nrs !== null ? nrs + '/10' : '—';
@@ -15567,10 +15583,10 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
   h += '</div>'; // left column
 
   // ════ RIGHT COLUMN — SIDEBAR ═════════════════════════════════════
-  h += '<div style="display:flex;flex-direction:column;gap:14px">';
+  h += '<div style="display:flex;flex-direction:column;gap:8px">';
 
   // ── PATIENTINFO ──────────────────────────────────────────────────
-  h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px">';
+  h += '<div style="background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px 14px">';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
   h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">'+(typeof clientTerm==='function'?clientTerm(true):'Klient')+'info</div>';
   h += '<div style="display:flex;gap:6px">';
@@ -15599,7 +15615,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
   h += '</div>';
 
   // ── KOMMANDE BOKNINGAR ───────────────────────────────────────────
-  h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px">';
+  h += '<div style="background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px 14px">';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
   h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Kommande tider</div>';
   h += '<button onclick="openBookingDialog && openBookingDialog(\''+p.id+'\')" style="background:none;border:none;font-size:12px;color:var(--teal);cursor:pointer;font-family:var(--font)">+ Boka</button>';
@@ -15610,7 +15626,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
   } else {
     upcomingBks.slice(0,3).forEach(function(bk){
       var bkDate = bk.date ? new Date(bk.date+'T12:00').toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short'}) : bk.date;
-      h += '<div style="padding:8px 10px;background:var(--bg);border:1px solid #30363d;border-radius:7px;margin-bottom:6px">';
+      h += '<div style="padding:7px 10px;background:#0d1117;border:1px solid #21262d;border-radius:4px;margin-bottom:4px">';
       h += '<div style="font-size:13px;font-weight:600;color:#e6edf3">'+e(bk.patientName||p.name)+'</div>';
       h += '<div style="font-size:12px;color:#8b949e;margin-top:2px">'+bkDate+(bk.time?' kl '+bk.time:'')+' · '+(bk.serviceName||'Besök')+'</div>';
       h += '</div>';
@@ -15620,7 +15636,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
 
   // ── SMÄRTGRAF (mini) ─────────────────────────────────────────────
   if (allNrs.length >= 3) {
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px">';
+    h += '<div style="background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px 14px">';
     h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681;margin-bottom:10px">NRS-trend</div>';
     var nrsMini = allNrs.slice(-10);
     var maxNrs = 10, minNrs = 0;
@@ -15648,7 +15664,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
 
   // ── INTAKE-SAMMANFATTNING ────────────────────────────────────────
   if (intakeData) {
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px">';
+    h += '<div style="background:#161b22;border:1px solid #21262d;border-radius:6px;padding:10px 14px">';
     h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
     h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Intake</div>';
     h += '<button onclick="window._detailTab=\'intake\';rDetail()" style="background:none;border:none;font-size:12px;color:#58a6ff;cursor:pointer;font-family:var(--font)">Visa →</button>';

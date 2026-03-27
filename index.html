@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- vela-build:1774700200 -->
+<!-- vela-build:1774550547 -->
 <html lang="sv"><head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
@@ -819,10 +819,300 @@ a:hover { text-decoration: underline; }
   background: var(--teal); border: 1.5px solid var(--bg);
 }
 
-/* Push content down when topbar is visible */
-.app-shell-with-topbar {
-  padding-top: 107px;
+/* ═══════════════════════════════════════════════════════════════════════════
+   VELA UI DEPTH PACKAGE — Sprint 3 overhaul
+   Fixes: flat surfaces · no click feedback · weak hover · no focus glow ·
+          missing skeleton loaders · anemic typography hierarchy · no lift
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Enhanced shadow scale ──────────────────────────────────────────────── */
+:root {
+  --shadow-xs:  0 1px 2px rgba(0,0,0,.4), 0 0 0 .5px rgba(255,255,255,.03);
+  --shadow-sm:  0 2px 4px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.3);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.5), 0 2px 4px rgba(0,0,0,.3), 0 0 0 .5px rgba(255,255,255,.04);
+  --shadow-lg:  0 8px 32px rgba(0,0,0,.6), 0 4px 12px rgba(0,0,0,.4), 0 0 0 .5px rgba(255,255,255,.05);
+  --shadow-xl:  0 20px 60px rgba(0,0,0,.7), 0 8px 24px rgba(0,0,0,.5);
+  --shadow-accent: 0 0 0 3px rgba(224,118,40,.25), 0 4px 16px rgba(224,118,40,.15);
+  --glow-accent: 0 0 0 3px rgba(224,118,40,.3);
+  --glow-green:  0 0 0 3px rgba(63,185,80,.3);
+  /* Tighter background scale for more perceived depth */
+  --bg:       #080d13;
+  --surface:  #0f1419;
+  --surface2: #161c24;
+  --surface3: #1e2530;
+  --navy:     #0f1419;
 }
+
+/* ── Buttons — all variants with press feedback ─────────────────────────── */
+.act-btn {
+  position: relative; overflow: hidden;
+  box-shadow: var(--shadow-xs);
+  transition: background .12s, border-color .12s, box-shadow .12s, transform .1s !important;
+}
+.act-btn:hover {
+  background: #2a3140 !important;
+  border-color: rgba(177,186,196,.35) !important;
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+.act-btn:active {
+  transform: translateY(1px) scale(.98) !important;
+  box-shadow: none !important;
+}
+.act-btn-primary {
+  background: var(--teal) !important;
+  color: #fff !important;
+  border-color: var(--teal) !important;
+  box-shadow: 0 2px 8px rgba(224,118,40,.4), var(--shadow-xs) !important;
+}
+.act-btn-primary:hover {
+  background: #c96920 !important;
+  box-shadow: 0 4px 16px rgba(224,118,40,.5), var(--shadow-sm) !important;
+}
+.act-btn-primary:active {
+  box-shadow: 0 1px 4px rgba(224,118,40,.3) !important;
+}
+.act-btn-danger:hover {
+  box-shadow: 0 2px 8px rgba(248,81,73,.3) !important;
+}
+
+/* ── .gh-btn same treatment ─────────────────────────────────────────────── */
+.gh-btn {
+  box-shadow: var(--shadow-xs);
+  transition: background .12s, box-shadow .12s, transform .1s !important;
+}
+.gh-btn:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.gh-btn:active { transform: scale(.98) translateY(1px) !important; box-shadow: none !important; }
+.gh-btn-primary { box-shadow: 0 2px 8px rgba(46,160,67,.4), var(--shadow-xs) !important; }
+.gh-btn-primary:hover { box-shadow: 0 4px 16px rgba(46,160,67,.5) !important; transform: translateY(-1px); }
+
+/* ── nav-item hover — brighter, with left glow ──────────────────────────── */
+.nav-item:hover {
+  background: rgba(224,118,40,.07) !important;
+  color: #e6edf3 !important;
+}
+.nav-item.active {
+  background: rgba(224,118,40,.12) !important;
+  box-shadow: inset 3px 0 0 var(--teal);
+  border-left: none !important;
+  padding-left: 16px !important;
+  color: var(--teal) !important;
+}
+
+/* ── Fields — glow on focus ─────────────────────────────────────────────── */
+.field {
+  background: #0b1018 !important;
+  border: 1px solid #2a3140 !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.3);
+  transition: border-color .15s, box-shadow .15s !important;
+}
+.field:hover { border-color: #3d4d60 !important; }
+.field:focus {
+  border-color: var(--teal) !important;
+  box-shadow: 0 0 0 3px rgba(224,118,40,.18), inset 0 1px 3px rgba(0,0,0,.2) !important;
+  outline: none !important;
+}
+
+/* ── Item rows — lift on hover ──────────────────────────────────────────── */
+.item-list {
+  border: 1px solid #1e2530 !important;
+  box-shadow: var(--shadow-sm) !important;
+  background: #0f1419 !important;
+}
+.item-row {
+  border-bottom-color: #1a2030 !important;
+  transition: background .12s, transform .12s, box-shadow .12s !important;
+}
+.item-row.clickable:hover {
+  background: rgba(224,118,40,.05) !important;
+  transform: translateX(2px);
+}
+.item-row.clickable:active { transform: translateX(1px); }
+
+/* ── Cards everywhere — real depth ──────────────────────────────────────── */
+.item-list,
+div[style*="border:1px solid #30363d"][style*="border-radius"],
+div[style*="border: 1px solid #30363d"][style*="border-radius"] {
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Page header ─────────────────────────────────────────────────────────── */
+.page-header {
+  border-bottom-color: #1e2530 !important;
+}
+.page-title {
+  font-size: 22px !important;
+  letter-spacing: -.03em !important;
+  font-weight: 800 !important;
+  background: linear-gradient(135deg, #e6edf3 0%, #8b949e 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Section titles — uppercase tracking ────────────────────────────────── */
+.section-title-sm {
+  letter-spacing: .1em !important;
+  color: #4a5568 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+}
+
+/* ── Status pills — subtle glow ─────────────────────────────────────────── */
+.status-pill.green { box-shadow: 0 0 8px rgba(63,185,80,.15); }
+.status-pill.amber { box-shadow: 0 0 8px rgba(210,153,34,.15); }
+.status-pill.red   { box-shadow: 0 0 8px rgba(248,81,73,.15); }
+.status-pill.teal  { box-shadow: 0 0 8px rgba(224,118,40,.2); }
+
+/* ── Subnav tabs — underline slides in ──────────────────────────────────── */
+.subnav-tab {
+  transition: color .15s, border-color .15s !important;
+  position: relative;
+}
+.subnav-tab.active {
+  color: var(--teal) !important;
+  border-bottom-color: var(--teal) !important;
+}
+.subnav-tab:not(.active):hover { color: #c6cdd6 !important; }
+
+/* ── Topbar — frosted glass feel ────────────────────────────────────────── */
+.vela-global-topbar {
+  background: rgba(8,13,19,.92) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid rgba(255,255,255,.06) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.03), var(--shadow-sm) !important;
+}
+
+/* ── Sidebar — deeper background ────────────────────────────────────────── */
+.nav-sidebar {
+  background: #06090e !important;
+  border-right-color: rgba(255,255,255,.06) !important;
+}
+
+/* ── Overlays / dialogs — glassmorphism ─────────────────────────────────── */
+.bk-dialog,
+div[style*="border-radius:20px"][style*="background:#161b22"],
+div[style*="border-radius: 20px"][style*="background:#161b22"] {
+  background: rgba(15,20,25,.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255,255,255,.08) !important;
+  box-shadow: var(--shadow-xl) !important;
+}
+
+/* ── Calendar chips — depth ─────────────────────────────────────────────── */
+.vcal-chip {
+  box-shadow: var(--shadow-xs) !important;
+  transition: filter .12s, box-shadow .12s, transform .1s !important;
+}
+.vcal-chip:hover {
+  filter: brightness(1.12);
+  transform: scale(1.02);
+  box-shadow: var(--shadow-md) !important;
+  z-index: 5;
+}
+.vcal-col.today { background: rgba(224,118,40,.025) !important; }
+.vcal-day-hdr.today .vcal-day-num {
+  background: var(--teal) !important;
+  box-shadow: 0 2px 8px rgba(224,118,40,.4) !important;
+}
+
+/* ── Skeleton loaders ────────────────────────────────────────────────────── */
+@keyframes vela-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.vela-skeleton {
+  background: linear-gradient(90deg, #0f1419 25%, #1a2232 50%, #0f1419 75%);
+  background-size: 800px 100%;
+  animation: vela-shimmer 1.6s ease infinite;
+  border-radius: 6px;
+}
+
+/* ── Screen transitions — screens slide in ──────────────────────────────── */
+@keyframes vela-screen-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.screen.active {
+  animation: vela-screen-in .18s ease both;
+}
+/* Don't animate public plan or full-screen modes */
+#s-public-plan.active, #s-loading.active, #s-meeting.active {
+  animation: none;
+}
+
+/* ── Toast — more polished ───────────────────────────────────────────────── */
+#vela-toast {
+  box-shadow: var(--shadow-lg) !important;
+  border: 1px solid rgba(255,255,255,.1) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* ── Treatment side panel ────────────────────────────────────────────────── */
+.tx-panel {
+  box-shadow: -8px 0 40px rgba(0,0,0,.6), -1px 0 0 rgba(255,255,255,.05) !important;
+  border-left: 1px solid rgba(255,255,255,.06) !important;
+}
+
+/* ── KPI / stat cards — inset top border for accent ─────────────────────── */
+div[style*="border:1px solid #30363d"][style*="border-radius:8px"],
+div[style*="border: 1px solid #30363d"][style*="border-radius: 8px"] {
+  transition: box-shadow .15s, border-color .15s, transform .15s;
+}
+
+/* ── Compact section card hover (patient card KPI chips) ─────────────────── */
+.r4-main > div, .r4-aside > div {
+  transition: box-shadow .2s;
+}
+
+/* ── Focus ring on interactive non-field elements ───────────────────────── */
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--glow-accent) !important;
+}
+
+/* ── Scrollbars — subtle ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,.08); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.16); }
+
+/* ── Ripple effect for buttons ───────────────────────────────────────────── */
+@keyframes vela-ripple {
+  from { transform: scale(0); opacity: .4; }
+  to   { transform: scale(3); opacity: 0; }
+}
+.act-btn::after, .gh-btn::after {
+  content: '';
+  position: absolute; width: 100%; height: 100%;
+  top: 0; left: 0; pointer-events: none;
+  background: radial-gradient(circle, rgba(255,255,255,.15) 0%, transparent 70%);
+  opacity: 0;
+  transform: scale(0);
+  transform-origin: center;
+  transition: opacity .4s, transform .4s !important;
+}
+.act-btn:active::after, .gh-btn:active::after {
+  transform: scale(2.5);
+  opacity: 1;
+  transition: none !important;
+}
+
+/* ── Topbar search — glow on focus ──────────────────────────────────────── */
+#vela-search-input:focus {
+  box-shadow: 0 0 0 3px rgba(224,118,40,.2) !important;
+  border-color: rgba(224,118,40,.5) !important;
+}
+
+/* ── Modal backdrops — blur + vignette ───────────────────────────────────── */
+#bk-detail-ov,
+#waitlist-ov,
+#booking-dialog-ov {
+  background: radial-gradient(ellipse at center, rgba(0,0,0,.5) 0%, rgba(0,0,0,.75) 100%) !important;
+  backdrop-filter: blur(6px) !important;
+}
+
 @media (max-width: 768px) {
   .vela-global-topbar { height: 97px; }
   .app-shell-with-topbar { padding-top: 97px; }
@@ -3795,12 +4085,6 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
     if (_tabTitleInterval) { clearInterval(_tabTitleInterval); _tabTitleInterval = null; }
     _updateTabTitle();
-    // Sprint 3b: poll Gmail immediately on tab focus
-    setTimeout(function(){
-      if (typeof _gmailPollActionable === 'function' && typeof _gmailIsAuthed === 'function' && _gmailIsAuthed()) {
-        _gmailPollActionable();
-      }
-    }, 800);
   }
 });
 
@@ -5412,18 +5696,9 @@ function getBooking(id) {
 }
 function upsertBooking(bk) {
   var bks = getBookings();
-  var oldBk = bks.find(function(b){ return b.id === bk.id; });
-  var idx   = bks.findIndex(function(b){ return b.id === bk.id; });
+  var idx = bks.findIndex(function(b){ return b.id === bk.id; });
   if (idx >= 0) bks[idx] = bk; else bks.push(bk);
   saveBookings(bks);
-  // Compliance tracking
-  if (oldBk && bk.patientId && typeof _patRecordComplianceEvent === 'function') {
-    if (bk.status === 'cancelled' && oldBk.status !== 'cancelled') {
-      _patRecordComplianceEvent(bk.patientId, 'cancel');
-    } else if (bk.status !== 'cancelled' && (bk.date !== oldBk.date || bk.time !== oldBk.time)) {
-      _patRecordComplianceEvent(bk.patientId, 'rebook');
-    }
-  }
   return bk;
 }
 function deleteBooking(id) {
@@ -9336,7 +9611,7 @@ function _renderGlobalTopbar() {
   h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
   if (pendingAppr > 0) h += '<div class="vela-gtb-notif-dot" style="background:var(--orange);position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;border:2px solid #161b22"></div>';
   h += '</button>';
-  h += '<button class="vela-gtb-icon-btn" id="vela-gtb-inbox-btn" title="Öppna Åtgärder" style="position:relative">';
+  h += '<button class="vela-gtb-icon-btn" id="vela-gtb-inbox-btn" title="Notiser &amp; aktivitet" style="position:relative">';
   h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>';
   if (totalNotif > 0) h += '<div class="vela-gtb-notif-dot ' + notifDotClass + '" style="position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;border:2px solid #161b22"></div>';
   h += '</button>';
@@ -9360,7 +9635,7 @@ function _renderGlobalTopbar() {
     hael:'hael', form:'hael', doc:'hael', journaldoc:'hael',
     intelligence:'intelligence', retention:'intelligence',
     actions:'actions', 'patjournal':'actions',
-    activity:'actions',
+    activity:'activity',
     settings:'settings', profile:'settings', availability:'settings',
   };
   var activeTab2 = tabMap2[scr2] || 'home';
@@ -9375,11 +9650,12 @@ function _renderGlobalTopbar() {
 
   var TABS2 = [
     { id:'home',         label:'Klinik',        dest:'dashboard',    icon:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
-    { id:'patients',     label:typeof clientTerm==='function'?clientTerm(true,true):'Klienter', dest:'list', icon:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', badge:(S.patients||[]).length||null },
+    { id:'patients',     label:'Patienter',      dest:'list',         icon:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', badge:(S.patients||[]).length||null },
     { id:'calendar',     label:'Kalender',       dest:'calendar',     icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z' },
-    // Besök removed — accessed via patient card
+    { id:'journal',      label:'Besök',          dest:'manualsoap',   icon:'M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z' },
     { id:'hael',         label:'Hael',           dest:'hael',         icon:'M22 12h-4l-3 9L9 3l-3 9H2' },
-    { id:'actions',      label:'Åtgärder',       dest:'actions',      icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z', badge:(alerts2+pending2+gmailUnread2+unread2)||null, badgeColor:'red' },
+    { id:'actions',      label:'Åtgärder',       dest:'actions',      icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z', badge:(alerts2+pending2)||null, badgeColor:'red' },
+    { id:'activity',     label:'Aktivitet',      dest:'activity',     icon:'M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z', badge:(unread2+gmailUnread2)||null },
     { id:'intelligence', label:'Insikter',       dest:'intelligence', icon:'M18 20V10M12 20V4M6 20v-6' },
     { id:'settings',     label:'Inställningar',  dest:'settings',     icon:'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z' },
   ];
@@ -9415,7 +9691,7 @@ function _renderGlobalTopbar() {
   var searchBtn = document.getElementById('vela-gtb-search-btn');
   if (searchBtn) searchBtn.onclick = function() { openCommandPalette && openCommandPalette(); };
   var inboxBtn = document.getElementById('vela-gtb-inbox-btn');
-  if (inboxBtn) inboxBtn.onclick = function() { go('actions'); };
+  if (inboxBtn) inboxBtn.onclick = function() { go('activity'); };
   var aiBtn = document.getElementById('vela-gtb-ai-btn');
   if (aiBtn) aiBtn.onclick = function() {
     var panel = document.getElementById('vela-ai-panel');
@@ -10283,16 +10559,13 @@ function rApprovalReview(approvalId) {
 
 // Issue types with severity + icons
 var _ISSUE_TYPES = {
-  ai_pending:  { label: 'Väntar godkännande', color: 'teal',  icon: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>', priority: 0 },
-  mail:        { label: 'Mail',               color: 'blue',  icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', priority: 1 },
-  rebook:      { label: 'Ombokning pågår',    color: 'amber', icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', priority: 2 },
-  compliance:  { label: 'Följsamhetssignal',  color: 'amber', icon: '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>', priority: 3 },
-  red_flag:    { label: 'Röd flagga',         color: 'red',   icon: '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',  priority: 4 },
-  dropout:     { label: 'Avhoppsrisk',        color: 'amber', icon: '<path d="M22 16.92v3a2 2 0 01-2.18 2A19.8 19.8 0 014.69 13 19.5 19.5 0 012 4.69a2 2 0 011.72-2.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l.91-.91a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>', priority: 5 },
-  unread_msg:  { label: 'Oläst meddelande',   color: 'blue',  icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', priority: 6 },
-  no_journal:  { label: 'Saknar journal',     color: 'amber', icon: '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', priority: 7 },
-  overdue:     { label: 'Förfallet besök',    color: 'red',   icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', priority: 8 },
-  no_show:     { label: 'Uteblev',            color: 'red',   icon: '<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>', priority: 9 },
+  ai_pending: { label: 'Väntar godkännande', color: 'teal',  icon: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>', priority: 0 },
+  red_flag:   { label: 'Röd flagga',      color: 'red',   icon: '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',  priority: 1 },
+  dropout:    { label: 'Avhoppsrisk',     color: 'amber', icon: '<path d="M22 16.92v3a2 2 0 01-2.18 2A19.8 19.8 0 014.69 13 19.5 19.5 0 012 4.69a2 2 0 011.72-2.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l.91-.91a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>', priority: 2 },
+  unread_msg: { label: 'Oläst meddelande',color: 'blue',  icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', priority: 3 },
+  no_journal: { label: 'Saknar journal',  color: 'amber', icon: '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', priority: 4 },
+  overdue:    { label: 'Förfallet besök', color: 'red',   icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', priority: 5 },
+  no_show:    { label: 'Uteblev',         color: 'red',   icon: '<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>', priority: 6 },
 };
 
 // Gather all open issues from current state
@@ -10418,35 +10691,6 @@ function _gatherIssues() {
     return (ta?.priority||9) - (tb?.priority||9) || b.age - a.age;
   });
 
-
-  // ── Compliance signals (after main patient loop) ────────────────────────
-  var _closedIds = _getClosedIssues ? _getClosedIssues().map(function(c){return c.id;}) : [];
-  var _closedSet = new Set(_closedIds);
-  (S.patients||[]).forEach(function(cp) {
-    if (_closedSet.has('comp_' + cp.id)) return;
-    var cdata = typeof _patGetComplianceData === 'function' ? _patGetComplianceData(cp.id) : null;
-    if (!cdata) return;
-    var clevel = typeof _patCheckCompliance === 'function' ? _patCheckCompliance(cp.id) : 0;
-    if (clevel === 0) return;
-    issues.push({
-      id: 'comp_' + cp.id, type: 'compliance',
-      patId: cp.id, patName: cp.name,
-      title: cdata.total + ' ombokningar/avbokningar senaste 60 dagarna',
-      meta: cdata.lastEvent ? 'Senaste: ' + new Date(cdata.lastEvent).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : '',
-      age: cdata.lastEvent ? now - new Date(cdata.lastEvent) : 0,
-      aiSuggestion: typeof _patComplianceSuggestion === 'function' ? _patComplianceSuggestion(cdata) : '',
-      closeFn: '_resetCompliance', closeLabel: 'Återställ räknare',
-      urgent: clevel === 2,
-    });
-  });
-
-  // ── Mail issues (Gmail → Åtgärder) ────────────────────────────────────────
-  if (typeof _getMailIssues === 'function') {
-    _getMailIssues().forEach(function(m) {
-      if (!_closedSet.has(m.id)) issues.push(m);
-    });
-  }
-
   return issues;
 }
 
@@ -10471,32 +10715,14 @@ function rActions() {
   el.classList.add('active');
   S.screen = 'actions';
 
-  var allIssues  = _gatherIssues();
-  var closedIds  = _getClosedIssues().map(function(c){return c.id;});
-  var snoozedMap = _getSnoozed();
-  var now        = Date.now();
+  var allIssues = _gatherIssues();
+  var closedIds = _getClosedIssues().map(function(c){return c.id;});
+  var openIssues   = allIssues.filter(function(i){return closedIds.indexOf(i.id)===-1;});
+  var closedIssues = allIssues.filter(function(i){return closedIds.indexOf(i.id)!==-1;});
 
-  // Filter out snoozed-until-future
-  var openIssues = allIssues.filter(function(i){
-    if (closedIds.indexOf(i.id) !== -1) return false;
-    var snoozeUntil = snoozedMap[i.id];
-    if (snoozeUntil && new Date(snoozeUntil) > new Date()) return false;
-    return true;
-  });
-  var closedIssues = allIssues.filter(function(i){ return closedIds.indexOf(i.id) !== -1; });
-
-  openIssues.sort(function(a,b){
-    if ((b.urgent?1:0) !== (a.urgent?1:0)) return (b.urgent?1:0)-(a.urgent?1:0);
-    var pa = (_ISSUE_TYPES[a.type]||{}).priority||99;
-    var pb = (_ISSUE_TYPES[b.type]||{}).priority||99;
-    if (pa !== pb) return pa-pb;
-    return (b.age||0)-(a.age||0);
-  });
-
-  var activeType   = window._actionsType   || '';
-  var activeTab    = window._actionsTab    || 'open';
-  var searchQ      = window._actionsSearch || '';
-  var selectedId   = window._actionsSelected || null;
+  var activeTab = window._actionsTab || 'open';
+  var activeType = window._actionsType || '';
+  var searchQ    = window._actionsSearch || '';
 
   var displayed = activeTab === 'open' ? openIssues : closedIssues;
   if (activeType) displayed = displayed.filter(function(i){return i.type===activeType;});
@@ -10505,601 +10731,247 @@ function rActions() {
         || (i.title||'').toLowerCase().includes(searchQ.toLowerCase());
   });
 
-  // If selectedId not in displayed, pick first
-  var selectedIssue = displayed.find(function(i){return i.id===selectedId;}) || displayed[0] || null;
-  if (selectedIssue) window._actionsSelected = selectedIssue.id;
+  var aiAutoCount = openIssues.filter(function(i){return i.aiCanAutoHandle;}).length;
 
-  // ── Category counts for rail ──────────────────────────────────────────
-  var categories = [
-    { id:'',           label:'Alla',         icon:'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-    { id:'mail',       label:'Mail',         icon:'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22,6 12,13 2,6' },
-    { id:'rebook',     label:'Ombokning',    icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' },
-    { id:'compliance', label:'Följsamhet',   icon:'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
-    { id:'red_flag',   label:'Röd flagga',   icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z M12,9 12,13 M12,17 12.01,17' },
-    { id:'dropout',    label:'Avhoppsrisk',  icon:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75' },
-    { id:'no_journal', label:'Saknar journal',icon:'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
-    { id:'overdue',    label:'Förfallet',    icon:'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' },
-  ];
+  var h = '<div style="max-width:1280px;margin:0 auto;padding:24px 32px 60px;font-family:var(--font)">';
 
-  // ── Inject CSS ────────────────────────────────────────────────────────
-  var css = `
-<style id="ractions-css">
-.ra-shell { display:flex; height:calc(100vh - 52px); overflow:hidden; font-family:var(--font); }
-.ra-rail { width:200px; flex-shrink:0; border-right:1px solid #21262d; overflow-y:auto; padding:12px 8px; background:#0d1117; }
-.ra-rail-item { display:flex; align-items:center; gap:9px; padding:7px 10px; border-radius:7px; cursor:pointer; font-size:13px; font-weight:500; color:#8b949e; transition:all .12s; margin-bottom:1px; }
-.ra-rail-item:hover { background:#161b22; color:#e6edf3; }
-.ra-rail-item.active { background:#21262d; color:#e6edf3; font-weight:600; }
-.ra-rail-count { margin-left:auto; font-size:11px; font-weight:700; background:#30363d; color:#8b949e; padding:1px 6px; border-radius:10px; min-width:18px; text-align:center; }
-.ra-rail-count.has-items { background:var(--teal-lt); color:var(--teal); }
-.ra-rail-divider { height:1px; background:#21262d; margin:8px 4px; }
-.ra-list { width:320px; flex-shrink:0; border-right:1px solid #21262d; overflow-y:auto; background:#0d1117; display:flex; flex-direction:column; }
-.ra-list-header { padding:14px 16px 10px; border-bottom:1px solid #21262d; flex-shrink:0; }
-.ra-list-search { display:flex; align-items:center; gap:8px; background:#161b22; border:1px solid #21262d; border-radius:7px; padding:7px 11px; }
-.ra-list-search input { border:none; background:none; font-size:13px; color:#e6edf3; font-family:var(--font); outline:none; width:100%; }
-.ra-list-search input::placeholder { color:#484f58; }
-.ra-tabs { display:flex; gap:0; padding:10px 16px 0; flex-shrink:0; border-bottom:1px solid #21262d; }
-.ra-tab { padding:8px 14px; font-size:13px; font-weight:600; color:#8b949e; background:none; border:none; cursor:pointer; font-family:var(--font); border-bottom:2px solid transparent; margin-bottom:-1px; transition:all .12s; }
-.ra-tab.active { color:#e6edf3; border-bottom-color:var(--teal); }
-.ra-tab-count { font-size:11px; margin-left:5px; background:#30363d; padding:1px 6px; border-radius:10px; }
-.ra-items { flex:1; overflow-y:auto; }
-.ra-item { display:flex; align-items:flex-start; gap:0; padding:12px 16px; border-bottom:1px solid #161b22; cursor:pointer; transition:background .1s; position:relative; }
-.ra-item:hover { background:#161b22; }
-.ra-item.selected { background:#161b22; }
-.ra-item.selected::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--teal); border-radius:0 2px 2px 0; }
-.ra-item-bar { width:3px; border-radius:2px; margin-right:12px; flex-shrink:0; align-self:stretch; opacity:0; }
-.ra-item.selected .ra-item-bar { opacity:0; }
-.ra-item-body { flex:1; min-width:0; }
-.ra-item-name { font-size:13px; font-weight:600; color:#e6edf3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.ra-item-title { font-size:12px; color:#8b949e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
-.ra-item-foot { display:flex; align-items:center; gap:6px; margin-top:5px; }
-.ra-item-pill { font-size:11px; font-weight:600; padding:1px 7px; border-radius:10px; }
-.ra-item-age { font-size:11px; color:#484f58; }
-.ra-item-urgent { position:absolute; top:10px; right:12px; width:7px; height:7px; border-radius:50%; background:#f85149; }
-.ra-detail { flex:1; overflow:hidden; display:flex; flex-direction:column; background:#0d1117; }
-.ra-detail-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; color:#484f58; font-size:14px; }
-.ra-detail-header { padding:16px 24px 14px; border-bottom:1px solid #21262d; flex-shrink:0; }
-.ra-detail-title { font-size:16px; font-weight:700; color:#e6edf3; margin-bottom:4px; }
-.ra-detail-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-.ra-detail-body { flex:1; overflow-y:auto; padding:20px 24px; display:flex; flex-direction:column; gap:16px; }
-.ra-mail-split { display:grid; grid-template-columns:1fr 1fr; gap:16px; flex:1; min-height:0; }
-.ra-mail-pane { display:flex; flex-direction:column; background:#161b22; border:1px solid #21262d; border-radius:10px; overflow:hidden; min-height:0; }
-.ra-mail-pane-header { padding:10px 16px; border-bottom:1px solid #21262d; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#8b949e; flex-shrink:0; }
-.ra-mail-pane-body { flex:1; overflow-y:auto; padding:16px; font-size:13px; color:#c9d1d9; line-height:1.7; white-space:pre-wrap; word-break:break-word; }
-.ra-draft-ta { flex:1; background:none; border:none; font-size:13px; color:#e6edf3; font-family:var(--font); line-height:1.7; resize:none; outline:none; padding:16px; width:100%; box-sizing:border-box; }
-.ra-action-bar { padding:14px 24px; border-top:1px solid #21262d; display:flex; align-items:center; gap:8px; flex-wrap:wrap; flex-shrink:0; background:#0d1117; }
-.ra-btn-primary { padding:8px 20px; background:var(--teal); color:#0d1117; border:none; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; font-family:var(--font); transition:background .12s; display:flex; align-items:center; gap:6px; }
-.ra-btn-primary:hover { background:var(--teal-dk); }
-.ra-btn-primary:disabled { opacity:.5; cursor:not-allowed; }
-.ra-btn-secondary { padding:7px 14px; background:none; border:1px solid #30363d; border-radius:8px; font-size:13px; font-weight:600; color:#8b949e; cursor:pointer; font-family:var(--font); transition:all .12s; }
-.ra-btn-secondary:hover { border-color:#8b949e; color:#e6edf3; }
-.ra-btn-danger { padding:7px 14px; background:none; border:1px solid rgba(248,81,73,.3); border-radius:8px; font-size:13px; font-weight:600; color:#f85149; cursor:pointer; font-family:var(--font); }
-.ra-btn-snooze { padding:7px 14px; background:none; border:1px solid #21262d; border-radius:8px; font-size:13px; font-weight:600; color:#6e7681; cursor:pointer; font-family:var(--font); }
-.ra-btn-snooze:hover { border-color:#30363d; color:#8b949e; }
-.ra-ai-chips { display:flex; gap:6px; flex-wrap:wrap; padding:0 24px 14px; }
-.ra-ai-chip { padding:5px 12px; background:rgba(224,118,40,.06); border:1px solid rgba(224,118,40,.15); border-radius:20px; font-size:12px; font-weight:600; color:var(--teal); cursor:pointer; font-family:var(--font); transition:all .12s; }
-.ra-ai-chip:hover { background:rgba(224,118,40,.12); border-color:rgba(224,118,40,.3); }
-.ra-freewrite { display:none; padding:0 24px 12px; }
-.ra-freewrite.open { display:block; }
-.ra-freewrite-row { display:flex; gap:8px; }
-.ra-freewrite-inp { flex:1; background:#161b22; border:1px solid #30363d; border-radius:8px; padding:8px 12px; font-size:13px; color:#e6edf3; font-family:var(--font); outline:none; }
-.ra-freewrite-inp:focus { border-color:var(--teal); }
-.ra-snooze-dd { position:relative; display:inline-block; }
-.ra-snooze-menu { position:absolute; bottom:calc(100% + 6px); left:0; background:#161b22; border:1px solid #30363d; border-radius:8px; padding:4px; min-width:150px; z-index:100; box-shadow:0 8px 24px rgba(0,0,0,.4); }
-.ra-snooze-opt { padding:8px 12px; font-size:13px; color:#e6edf3; cursor:pointer; border-radius:6px; font-family:var(--font); }
-.ra-snooze-opt:hover { background:#21262d; }
-.ra-empty-list { padding:48px 24px; display:flex; flex-direction:column; align-items:center; gap:12px; color:#484f58; font-size:14px; text-align:center; }
-.ra-reopen-btn { background:none; border:1px solid #21262d; border-radius:6px; padding:3px 10px; font-size:12px; color:#6e7681; cursor:pointer; font-family:var(--font); transition:all .1s; }
-.ra-reopen-btn:hover { border-color:#30363d; color:#8b949e; }
-</style>`;
+  // ── Page header ───────────────────────────────────────────────────────
+  h += '<div class="page-header">';
+  h += '<div class="page-header-left">';
+  h += '<div class="page-title">\u00c5tg\u00e4rder</div>';
+  h += '<div class="page-subtitle">Kliniska \u00e4renden som kr\u00e4ver uppm\u00e4rksamhet &nbsp;\u00b7&nbsp; '
+     + '<strong style="color:#e6edf3">' + openIssues.length + '</strong> \u00f6ppna'
+     + (closedIssues.length ? ' &nbsp;\u00b7&nbsp; <span style="color:#8b949e">' + closedIssues.length + ' hanterade</span>' : '')
+     + '</div>';
+  h += '</div>';
+  h += '<div class="page-actions">';
+  if (aiAutoCount > 0) {
+    h += '<button id="ai-handle-all-btn" class="act-btn" style="gap:7px">'
+       + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+       + 'AI hanterar alla <span class="vela-gtb-tab-badge" style="background:var(--teal-lt);color:var(--teal)">' + aiAutoCount + '</span>'
+       + '</button>';
+  }
+  h += '<button id="actions-ai-brief-btn" class="act-btn act-btn-primary" style="gap:7px">'
+     + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+     + 'Vela Ask';
+  h += '</button></div></div>';
 
-  // ── Build HTML ────────────────────────────────────────────────────────
-  var h = css;
-  h += '<div class="ra-shell">';
-
-  // ── LEFT RAIL ─────────────────────────────────────────────────────────
-  h += '<div class="ra-rail">';
-  h += '<div style="padding:4px 8px 10px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#484f58">Åtgärder</div>';
-  categories.forEach(function(cat) {
-    var cnt = cat.id
-      ? openIssues.filter(function(i){return i.type===cat.id;}).length
-      : openIssues.length;
-    var isActive = activeType === cat.id;
-    h += '<div class="ra-rail-item' + (isActive?' active':'') + '" onclick="window._actionsType=\'' + cat.id + '\';window._actionsSelected=null;rActions()">';
-    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="' + cat.icon + '"/></svg>';
-    h += '<span>' + cat.label + '</span>';
-    h += '<span class="ra-rail-count' + (cnt>0?' has-items':'') + '">' + cnt + '</span>';
+  // ── AI briefing strip ─────────────────────────────────────────────────
+  if (openIssues.length > 0) {
+    var byType = {};
+    openIssues.forEach(function(i){ byType[i.type]=(byType[i.type]||0)+1; });
+    var summary = Object.keys(byType).map(function(t){
+      return byType[t] + '\u00a0' + (_ISSUE_TYPES[t]?.label||t).toLowerCase();
+    }).join(', ');
+    h += '<div style="background:rgba(224,118,40,.04);border:1px solid rgba(224,118,40,.15);border-radius:6px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+    h += '<div style="flex:1"><span style="font-size:13px;font-weight:700;color:var(--teal);margin-right:8px">VELA AI</span>';
+    h += '<span style="font-size:13px;color:#e6edf3">' + openIssues.length + ' \u00f6ppna \u00e4renden: ' + summary + '. ';
+    if (aiAutoCount > 0) h += aiAutoCount + ' kan hanteras automatiskt av AI.';
+    h += '</span></div>';
+    h += '<button id="ai-triage-btn" style="background:none;border:1px solid rgba(224,118,40,.3);border-radius:7px;padding:5px 12px;font-size:13px;color:var(--teal);cursor:pointer;font-family:var(--font);font-weight:600;white-space:nowrap">Triagera med AI</button>';
     h += '</div>';
-  });
-
-  h += '<div class="ra-rail-divider"></div>';
-  h += '<div class="ra-rail-item" onclick="window._actionsTab=\'closed\';rActions()" style="' + (activeTab==='closed'?'background:#21262d;color:#e6edf3;':'') + '">';
-  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
-  h += '<span>Hanterade</span>';
-  h += '<span class="ra-rail-count">' + closedIssues.length + '</span>';
-  h += '</div>';
-  h += '</div>'; // rail
-
-  // ── MIDDLE LIST ───────────────────────────────────────────────────────
-  h += '<div class="ra-list">';
-  h += '<div class="ra-list-header">';
-  h += '<div class="ra-list-search">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#484f58" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-  h += '<input id="ra-search" type="text" placeholder="Sök patient..." value="' + e(searchQ) + '" oninput="window._actionsSearch=this.value;window._actionsSelected=null;rActions()">';
-  h += '</div>';
-  h += '</div>';
-
-  // Tabs
-  h += '<div class="ra-tabs">';
-  h += '<button class="ra-tab' + (activeTab==='open'?' active':'') + '" onclick="window._actionsTab=\'open\';rActions()">Öppna<span class="ra-tab-count">' + openIssues.length + '</span></button>';
-  h += '<button class="ra-tab' + (activeTab==='closed'?' active':'') + '" onclick="window._actionsTab=\'closed\';rActions()">Hanterade<span class="ra-tab-count">' + closedIssues.length + '</span></button>';
-  h += '</div>';
-
-  h += '<div class="ra-items">';
-
-  if (!displayed.length) {
-    h += '<div class="ra-empty-list">';
-    if (activeTab==='open') {
-      h += '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
-      h += '<div>Inga öppna ärenden</div>';
-    } else {
-      h += '<div>Inga hanterade ärenden</div>';
-    }
-    h += '</div>';
-  } else {
-    displayed.forEach(function(issue) {
-      var itype   = _ISSUE_TYPES[issue.type] || {};
-      var isClosed = closedIds.indexOf(issue.id) !== -1;
-      var isSel   = selectedIssue && selectedIssue.id === issue.id;
-      var colMap  = { red:'#f85149', amber:'#d29922', teal:'var(--teal)', blue:'#58a6ff', muted:'#8b949e', green:'#3fb950' };
-      var col     = colMap[itype.color] || '#8b949e';
-
-      h += '<div class="ra-item' + (isSel?' selected':'') + (isClosed?' opacity-50':'') + '" data-id="' + issue.id + '" onclick="window._actionsSelected=\'' + issue.id + '\';rActions()">';
-      if (issue.urgent) h += '<div class="ra-item-urgent"></div>';
-      h += '<div class="ra-item-bar" style="background:' + col + '"></div>';
-      h += '<div class="ra-item-body">';
-      h += '<div class="ra-item-name">' + e(issue.patName||'Okänd') + '</div>';
-      h += '<div class="ra-item-title">' + e((issue.title||'').slice(0,55)) + '</div>';
-      h += '<div class="ra-item-foot">';
-      h += '<span class="ra-item-pill" style="background:' + col.replace(')',',0.12)').replace('#','rgba(').replace('rgba(var(--teal)','rgba(224,118,40') + ';color:' + col + '">' + (itype.label||issue.type) + '</span>';
-      var ageStr = _relativeDate ? _relativeDate(new Date(Date.now()-(issue.age||0)).toISOString().slice(0,10)) : '';
-      if (ageStr) h += '<span class="ra-item-age">' + ageStr + '</span>';
-      if (isClosed) h += '<button class="ra-reopen-btn" onclick="event.stopPropagation();_reopenIssue(\'' + issue.id + '\')">Återöppna</button>';
-      h += '</div>';
-      h += '</div></div>';
-    });
   }
 
-  h += '</div>'; // ra-items
-  h += '</div>'; // ra-list
+  // ── Filter bar ────────────────────────────────────────────────────────
+  h += '<div style="display:flex;gap:0;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:12px">';
+  // Search
+  h += '<div style="flex:1;display:flex;align-items:center;gap:8px;padding:8px 14px;border-right:1px solid #30363d">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += '<input id="actions-search" type="text" placeholder="Sök patient eller \u00e4rendetyp..." value="' + (searchQ||'') + '" '
+     + 'style="border:none;background:none;font-size:13px;color:#e6edf3;font-family:var(--font);outline:none;width:100%" '
+     + 'oninput="window._actionsSearch=this.value;rActions()">';
+  h += '</div>';
+  // Type filter
+  h += '<div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-right:1px solid #30363d">';
+  h += '<span style="font-size:13px;color:#8b949e;font-weight:600">Typ</span>';
+  var typeFilters = [
+    {id:'',           label:'Alla'},
+    {id:'red_flag',   label:'Röda flaggor'},
+    {id:'dropout',    label:'Avhoppsrisk'},
+    {id:'unread_msg', label:'Meddelanden'},
+    {id:'no_journal', label:'Saknar journal'},
+    {id:'overdue',    label:'Förfallet'},
+  ];
+  typeFilters.forEach(function(tf) {
+    var isActive = activeType === tf.id;
+    var cnt = tf.id ? allIssues.filter(function(i){return i.type===tf.id&&closedIds.indexOf(i.id)===-1;}).length : openIssues.length;
+    if (tf.id && !cnt) return; // hide types with 0
+    h += '<button class="filter-chip' + (isActive?' active':'') + '" style="padding:4px 10px;font-size:13px" '
+       + 'onclick="window._actionsType=\'' + tf.id + '\';rActions()">'
+       + tf.label;
+    if (cnt) h += '<span class="chip-count">' + cnt + '</span>';
+    h += '</button>';
+  });
+  h += '</div>';
+  // Sort/assignee controls
+  h += '<div style="padding:0 12px;display:flex;align-items:center;gap:6px">';
+  h += '<span style="font-size:13px;color:#8b949e">Sortera</span>';
+  [['priority','Prioritet'],['age','Ålder'],['patient','Patient']].forEach(function(s){
+    var isA = (window._actionsSort||'priority')===s[0];
+    h += '<button onclick="window._actionsSort=\'' + s[0] + '\';rActions()" '
+       + 'style="padding:4px 8px;border:1px solid ' + (isA?'var(--teal)':'var(--border)') + ';border-radius:6px;'
+       + 'font-size:13px;font-weight:600;background:' + (isA?'var(--teal-lt)':'none') + ';'
+       + 'color:' + (isA?'var(--teal)':'var(--text2)') + ';cursor:pointer;font-family:var(--font)">'
+       + s[1] + '</button>';
+  });
+  h += '</div></div>';
 
-  // ── RIGHT DETAIL PANEL ────────────────────────────────────────────────
-  h += '<div class="ra-detail" id="ra-detail">';
+  // ── Open/Closed tabs ──────────────────────────────────────────────────
+  h += '<div class="subnav" style="margin-bottom:0">';
+  h += '<button class="subnav-tab' + (activeTab==='open'?' active':'') + '" onclick="window._actionsTab=\'open\';rActions()">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  h += 'Öppna <span class="tab-count">' + openIssues.length + '</span></button>';
+  h += '<button class="subnav-tab' + (activeTab==='closed'?' active':'') + '" onclick="window._actionsTab=\'closed\';rActions()">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  h += 'Hanterade <span class="tab-count">' + closedIssues.length + '</span></button>';
+  h += '</div>';
 
-  if (!selectedIssue) {
-    h += '<div class="ra-detail-empty">';
-    h += '<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.95-1.56l2.65-9.44H6"/></svg>';
-    h += '<div>Välj ett ärende</div>';
-    h += '</div>';
-  } else {
-    var iss    = selectedIssue;
-    var itype  = _ISSUE_TYPES[iss.type] || {};
-    var colMap = { red:'#f85149', amber:'#d29922', teal:'var(--teal)', blue:'#58a6ff', muted:'#8b949e', green:'#3fb950' };
-    var col    = colMap[itype.color] || '#8b949e';
-    var pat    = iss.patId ? (S.patients||[]).find(function(p){return p.id===iss.patId;}) : null;
-
-    // Detail header
-    h += '<div class="ra-detail-header">';
-    h += '<div class="ra-detail-title">' + e(iss.patName||'') + '</div>';
-    h += '<div class="ra-detail-meta">';
-    h += '<span style="font-size:12px;font-weight:700;padding:2px 9px;border-radius:10px;background:' + col.replace(')',',0.12)').replace('#','rgba(').replace('rgba(var(--teal)','rgba(224,118,40') + ';color:' + col + '">' + (itype.label||iss.type) + '</span>';
-    if (iss.meta) h += '<span style="font-size:12px;color:#6e7681">' + e(iss.meta.slice(0,80)) + '</span>';
-    if (pat && pat.phone) {
-      h += '<a href="tel:' + e(pat.phone) + '" style="display:flex;align-items:center;gap:5px;font-size:12px;color:#58a6ff;text-decoration:none;margin-left:auto">';
-      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 13a19.79 19.79 0 01-3.07-8.67A2 2 0 013.34 2.2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l.91-.91a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>';
-      h += 'Ring ' + e(pat.phone) + '</a>';
+  // ── Issue list ────────────────────────────────────────────────────────
+  if (!displayed.length) {
+    h += '<div class="item-list" style="border-top:none;border-radius:0 0 10px 10px">';
+    h += '<div class="empty-state" style="padding:48px 24px">';
+    if (activeTab === 'open') {
+      h += '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+      h += '<div class="empty-state-title" style="color:var(--green)">Inga öppna ärenden</div>';
+      h += '<div class="empty-state-sub">Alla kliniska ärenden är hanterade. Bra jobbat.</div>';
+    } else {
+      h += '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+      h += '<div class="empty-state-title">Inga hanterade ärenden</div>';
+      h += '<div class="empty-state-sub">Hanterade ärenden visas här.</div>';
     }
     h += '</div></div>';
+  } else {
+    h += '<div class="item-list" style="border-top:none;border-radius:0 0 10px 10px">';
+    displayed.forEach(function(issue) {
+      var itype = _ISSUE_TYPES[issue.type] || {};
+      var isClosed = closedIds.indexOf(issue.id) !== -1;
+      var ageStr = _relativeDate ? _relativeDate(new Date(Date.now()-issue.age).toISOString().slice(0,10)) : '';
 
-    // ── MAIL ISSUE — split view ─────────────────────────────────────────
-    if (iss.type === 'mail' || iss.type === 'rebook') {
-      var aiDraft = (window._raAiDrafts && window._raAiDrafts[iss.id]) || iss.aiSuggestion || '';
-      var origThread = (window._raThreadCache && window._raThreadCache[iss.threadId]) || null;
+      h += '<div class="item-row" style="' + (isClosed?'opacity:.5':'') + '">';
 
-      h += '<div class="ra-detail-body" style="padding:16px 20px">';
-      h += '<div class="ra-mail-split">';
+      // Type icon
+      h += '<div class="item-row-icon">'
+         + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--' + (itype.color||'text2') + ')" stroke-width="1.8" stroke-linecap="round">'
+         + (itype.icon||'<circle cx="12" cy="12" r="10"/>')
+         + '</svg></div>';
 
-      // Left: original mail
-      h += '<div class="ra-mail-pane">';
-      h += '<div class="ra-mail-pane-header">Originalmail</div>';
-      h += '<div class="ra-mail-pane-body" id="ra-orig-body">';
-      if (origThread) {
-        h += e(origThread);
-      } else {
-        h += '<div style="color:#484f58;font-style:italic;font-size:13px">Laddar...</div>';
-      }
-      h += '</div></div>';
-
-      // Right: AI draft (editable)
-      h += '<div class="ra-mail-pane">';
-      h += '<div class="ra-mail-pane-header" style="display:flex;align-items:center">';
-      h += 'AI-förslag';
-      h += '<span id="ra-draft-status" style="margin-left:auto;font-size:11px;font-weight:400;color:#484f58;text-transform:none;letter-spacing:0"></span>';
-      h += '</div>';
-      h += '<textarea id="ra-draft-ta" class="ra-draft-ta" placeholder="Genererar AI-förslag...">' + e(aiDraft) + '</textarea>';
-      h += '</div>';
-
-      h += '</div>'; // ra-mail-split
-      h += '</div>'; // ra-detail-body
-
-      // AI rewrite chips
-      h += '<div class="ra-ai-chips">';
-      [
-        {id:'kortare',   label:'Kortare'},
-        {id:'mjukare',   label:'Mjukare'},
-        {id:'rakare',    label:'Rakare'},
-        {id:'freewrite', label:'Skriv om...'},
-      ].forEach(function(chip){
-        h += '<div class="ra-ai-chip" id="ra-chip-' + chip.id + '">';
-        h += '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>';
-        h += chip.label + '</div>';
-      });
-      if (iss.type === 'mail' && iss.intentId === 'cancel') {
-        h += '<div class="ra-ai-chip" id="ra-chip-exception" style="border-color:rgba(248,81,73,.2);color:#f85149;background:rgba(248,81,73,.06)">Gör undantag</div>';
+      // Content
+      h += '<div class="item-row-body">';
+      h += '<div class="item-row-title">';
+      h += '<span class="link" onclick="openPat(\'' + issue.patId + '\')">' + e(issue.patName) + '</span>';
+      h += '<span style="color:#8b949e;font-weight:400">&nbsp;·&nbsp;' + e(issue.title) + '</span>';
+      if (issue.aiCanAutoHandle && !isClosed) {
+        h += '<span style="font-size:11px;background:var(--teal-lt);color:var(--teal);padding:1px 7px;border-radius:4px;font-weight:700;letter-spacing:.04em">AI</span>';
       }
       h += '</div>';
-
-      // Free write row (hidden until clicked)
-      h += '<div class="ra-freewrite" id="ra-freewrite">';
-      h += '<div class="ra-freewrite-row">';
-      h += '<input id="ra-freewrite-inp" class="ra-freewrite-inp" type="text" placeholder="Instruera AI: t.ex. nämn att vi har ledigt nästa måndag...">';
-      h += '<button class="ra-btn-primary" id="ra-freewrite-go" style="padding:7px 14px">Kör</button>';
-      h += '</div></div>';
-
-      // Action bar
-      h += '<div class="ra-action-bar">';
-      if (iss.type !== 'rebook') {
-        h += '<button class="ra-btn-primary" id="ra-send-btn">';
-        h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
-        h += 'Skicka</button>';
-      } else {
-        h += '<button class="ra-btn-primary" id="ra-rebook-send-btn">';
-        h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
-        h += 'Skicka tider</button>';
+      h += '<div class="item-row-meta">';
+      h += '<span class="status-pill ' + (itype.color||'muted') + '" style="font-size:12px">' + (itype.label||'') + '</span>';
+      if (issue.signals && issue.signals.length) {
+        // Show signal weights as colored chips (Module 4: Förklarbarhet)
+        h += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:5px">';
+        issue.signals.slice(0,3).forEach(function(sig) {
+          var scol = sig.w >= 3 ? '#f85149' : sig.w >= 2 ? '#d29922' : '#8b949e';
+          var sbg  = sig.w >= 3 ? 'rgba(248,81,73,.1)' : sig.w >= 2 ? 'rgba(210,153,34,.1)' : 'rgba(139,148,158,.1)';
+          var sicon = sig.w >= 3 ? '▲' : sig.w >= 2 ? '●' : '–';
+          h += '<span style="font-size:11px;padding:1px 8px;border-radius:20px;background:'+sbg+';color:'+scol+';display:inline-flex;align-items:center;gap:3px">'
+            + '<span style="font-size:9px">'+sicon+'</span> '+e(sig.text)+'</span>';
+        });
+        h += '</div>';
+      } else if (issue.meta) {
+        h += ' &nbsp;<span style="font-size:12px;color:#8b949e">'+e(issue.meta.slice(0,70))+'</span>';
       }
-      h += '<div class="ra-snooze-dd" id="ra-snooze-dd">';
-      h += '<button class="ra-btn-snooze" id="ra-snooze-btn">⏱ Snooze</button>';
-      h += '<div class="ra-snooze-menu" id="ra-snooze-menu" style="display:none">';
-      [['1d','Imorgon'],['3d','Om 3 dagar'],['7d','Om 1 vecka']].forEach(function(s){
-        h += '<div class="ra-snooze-opt" data-snooze="' + s[0] + '">' + s[1] + '</div>';
-      });
-      h += '</div></div>';
-      h += '<button class="ra-btn-secondary" id="ra-dismiss-btn">Avfärda</button>';
-      h += '</div>'; // action-bar
-
-    // ── NO_JOURNAL — AI SOAP draft ──────────────────────────────────────
-    } else if (iss.type === 'no_journal') {
-      var soapDraft = (window._raAiDrafts && window._raAiDrafts[iss.id]) || '';
-      h += '<div class="ra-detail-body">';
-      h += '<div style="font-size:13px;color:#8b949e;margin-bottom:12px">Senaste besök saknar journal. AI genererar ett SOAP-utkast baserat på patientens historik.</div>';
-      h += '<textarea id="ra-draft-ta" class="ra-draft-ta" style="background:#161b22;border:1px solid #21262d;border-radius:8px;min-height:220px;resize:vertical" placeholder="' + (soapDraft?'':'Klicka Generera utkast...') + '">' + e(soapDraft) + '</textarea>';
+      if (ageStr) h += ' &nbsp;<span style="font-size:12px;color:#8b949e">·&nbsp;' + ageStr + '</span>';
       h += '</div>';
-      h += '<div class="ra-ai-chips">';
-      h += '<div class="ra-ai-chip" id="ra-chip-generate">Generera utkast</div>';
-      h += '</div>';
-      h += '<div class="ra-action-bar">';
-      h += '<button class="ra-btn-primary" id="ra-save-soap-btn">Spara journal</button>';
-      h += '<div class="ra-snooze-dd" id="ra-snooze-dd"><button class="ra-btn-snooze" id="ra-snooze-btn">⏱ Snooze</button><div class="ra-snooze-menu" id="ra-snooze-menu" style="display:none">';
-      [['1d','Imorgon'],['3d','Om 3 dagar'],['7d','Om 1 vecka']].forEach(function(s){ h += '<div class="ra-snooze-opt" data-snooze="' + s[0] + '">' + s[1] + '</div>'; });
-      h += '</div></div>';
-      h += '<button class="ra-btn-secondary" id="ra-dismiss-btn">Avfärda</button>';
-      h += '</div>';
-
-    // ── COMPLIANCE — show pattern + SMS ───────────────────────────────
-    } else if (iss.type === 'compliance') {
-      var cdata = typeof _patGetComplianceData === 'function' && iss.patId ? _patGetComplianceData(iss.patId) : null;
-      h += '<div class="ra-detail-body">';
-      if (cdata) {
-        h += '<div style="background:#161b22;border:1px solid #21262d;border-radius:8px;padding:14px 16px">';
-        h += '<div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6e7681;margin-bottom:10px">Mönster</div>';
-        h += '<div style="display:flex;gap:24px">';
-        h += '<div><div style="font-size:22px;font-weight:700;color:#d29922">' + (cdata.rebooks||[]).length + '</div><div style="font-size:12px;color:#8b949e">ombokningar</div></div>';
-        h += '<div><div style="font-size:22px;font-weight:700;color:#f85149">' + (cdata.cancels||[]).length + '</div><div style="font-size:12px;color:#8b949e">avbokningar</div></div>';
-        h += '<div><div style="font-size:22px;font-weight:700;color:#e6edf3">' + (cdata.total||0) + '</div><div style="font-size:12px;color:#8b949e">totalt 60 dagar</div></div>';
-        h += '</div></div>';
-      }
-      if (iss.aiSuggestion) {
-        h += '<div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:rgba(224,118,40,.04);border:1px solid rgba(224,118,40,.1);border-radius:8px">';
-        h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
-        h += '<div style="font-size:13px;color:#e6edf3;line-height:1.6">' + e(iss.aiSuggestion) + '</div>';
+      // Signal chips for dropout risk (Module 4 — explainability)
+      if (issue.type === 'dropout' && issue.factors && issue.factors.length) {
+        h += '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">';
+        issue.factors.slice(0,3).forEach(function(factor, fi) {
+          var col = fi===0?'#f85149':fi===1?'#d29922':'#8b949e';
+          var bg  = fi===0?'rgba(248,81,73,.1)':fi===1?'rgba(210,153,34,.1)':'rgba(139,148,158,.08)';
+          h += '<span style="font-size:11px;font-weight:500;color:'+col+';background:'+bg+';padding:2px 8px;border-radius:20px">'
+             + e(factor.length>52?factor.slice(0,50)+'…':factor)+'</span>';
+        });
+        if (issue.riskScore) h += '<span style="font-size:11px;color:#8b949e;margin-left:2px">Score: <strong>'+issue.riskScore+'</strong></span>';
         h += '</div>';
       }
-      if (pat && pat.phone) {
-        var smsDraft = (window._raAiDrafts && window._raAiDrafts[iss.id]) || '';
-        h += '<div><div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6e7681;margin-bottom:8px">SMS till patienten</div>';
-        h += '<textarea id="ra-draft-ta" class="ra-draft-ta" style="background:#161b22;border:1px solid #21262d;border-radius:8px;min-height:80px;resize:vertical" placeholder="AI genererar ett varsamt meddelande...">' + e(smsDraft) + '</textarea></div>';
+      // AI suggestion (expandable)
+      if (issue.aiSuggestion && !isClosed) {
+        h += '<div style="font-size:13px;color:var(--teal);margin-top:4px;display:flex;align-items:center;gap:5px">'
+           + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+           + e(issue.aiSuggestion)
+           + '</div>';
       }
       h += '</div>';
-      h += '<div class="ra-ai-chips"><div class="ra-ai-chip" id="ra-chip-generate">Generera SMS-text</div></div>';
-      h += '<div class="ra-action-bar">';
-      if (pat && pat.phone) h += '<button class="ra-btn-primary" id="ra-send-sms-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 13a19.79 19.79 0 01-3.07-8.67A2 2 0 013.34 2.2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l.91-.91a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>Skicka SMS</button>';
-      h += '<div class="ra-snooze-dd" id="ra-snooze-dd"><button class="ra-btn-snooze" id="ra-snooze-btn">⏱ Snooze</button><div class="ra-snooze-menu" id="ra-snooze-menu" style="display:none">';
-      [['1d','Imorgon'],['3d','Om 3 dagar'],['7d','Om 1 vecka']].forEach(function(s){ h += '<div class="ra-snooze-opt" data-snooze="' + s[0] + '">' + s[1] + '</div>'; });
+
+      // Actions
+      h += '<div class="item-row-action" style="display:flex;gap:6px;flex-shrink:0">';
+      if (!isClosed) {
+        if (issue.aiCanAutoHandle) {
+          h += '<button class="act-btn" style="font-size:13px;color:var(--teal);border-color:rgba(224,118,40,.3)" '
+             + 'onclick="_aiHandleIssue(\'' + issue.id + '\')">'
+             + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
+             + 'AI</button>';
+        }
+        h += '<button class="act-btn" style="font-size:13px" '
+           + 'onclick="_handleIssueAction(\'' + issue.id + '\',\'' + issue.closeFn + '\',\'' + (issue.visitId||'') + '\',\'' + issue.patId + '\')">'
+           + e(issue.closeLabel||'\u00c5tg\u00e4rda') + '</button>';
+        h += '<button style="background:none;border:none;color:#8b949e;cursor:pointer;font-size:13px;padding:5px 8px;font-family:var(--font)" '
+           + 'onclick="_closeIssue(\'' + issue.id + '\',\'manual\')" title="Stäng ärende">✓</button>';
+      } else {
+        h += '<button style="background:none;border:none;color:var(--teal);cursor:pointer;font-size:13px;padding:5px 8px;font-family:var(--font)" '
+           + 'onclick="_reopenIssue(\'' + issue.id + '\')">Återöppna</button>';
+      }
       h += '</div></div>';
-      h += '<button class="ra-btn-secondary" id="ra-dismiss-btn">Avfärda</button>';
-      h += '</div>';
+    });
+    h += '</div>';
+  }
 
-    // ── GENERIC fallback ────────────────────────────────────────────────
-    } else {
-      h += '<div class="ra-detail-body">';
-      if (iss.aiSuggestion) {
-        h += '<div style="display:flex;align-items:flex-start;gap:10px;padding:14px 16px;background:rgba(224,118,40,.04);border:1px solid rgba(224,118,40,.1);border-radius:8px">';
-        h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2\"/></svg>';
-        h += '<div style="font-size:13px;color:#e6edf3;line-height:1.6">' + e(iss.aiSuggestion) + '</div>';
-        h += '</div>';
-      }
-      if (iss.type === 'overdue' || iss.type === 'dropout') {
-        var smsDraft2 = (window._raAiDrafts && window._raAiDrafts[iss.id]) || '';
-        h += '<div><div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#6e7681;margin-bottom:8px;margin-top:12px">Meddelande</div>';
-        h += '<textarea id="ra-draft-ta" class="ra-draft-ta" style="background:#161b22;border:1px solid #21262d;border-radius:8px;min-height:100px;resize:vertical" placeholder="AI genererar förslag...">' + e(smsDraft2) + '</textarea></div>';
-      }
-      if (pat && pat.id) {
-        h += '<div style="margin-top:16px"><button class="ra-btn-secondary" onclick="openPat(\'' + pat.id + '\')">Öppna patientkort →</button></div>';
-      }
-      h += '</div>';
-      h += '<div class="ra-action-bar">';
-      if (iss.type==='overdue' || iss.type==='dropout') {
-        h += '<button class="ra-btn-primary" id="ra-send-sms-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 13a19.79 19.79 0 01-3.07-8.67A2 2 0 013.34 2.2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l.91-.91a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>Skicka SMS</button>';
-      }
-      h += '<div class="ra-snooze-dd" id="ra-snooze-dd"><button class="ra-btn-snooze" id="ra-snooze-btn">⏱ Snooze</button><div class="ra-snooze-menu" id="ra-snooze-menu" style="display:none">';
-      [['1d','Imorgon'],['3d','Om 3 dagar'],['7d','Om 1 vecka']].forEach(function(s){ h += '<div class="ra-snooze-opt" data-snooze="' + s[0] + '">' + s[1] + '</div>'; });
-      h += '</div></div>';
-      h += '<button class="ra-btn-secondary" id="ra-dismiss-btn">Avfärda</button>';
-      h += '</div>';
-    }
-  } // end selectedIssue
-
-  h += '</div>'; // ra-detail
-  h += '</div>'; // ra-shell
-
+  h += '</div>'; // page-shell
   el.innerHTML = h;
 
-  // ── Wire events ───────────────────────────────────────────────────────
-  if (!selectedIssue) return;
-  var iss = selectedIssue;
-  var pat = iss.patId ? (S.patients||[]).find(function(p){return p.id===iss.patId;}) : null;
+  // Wire buttons
+  var briefBtn = document.getElementById('actions-ai-brief-btn');
+  if (briefBtn) briefBtn.onclick = function() {
+    var open = _gatherIssues().filter(function(i){ return _getClosedIssues().map(function(c){return c.id;}).indexOf(i.id)===-1; });
+    var summary = open.map(function(i){ return i.patName+': '+i.title; }).join('\n');
+    var prompt = open.length
+      ? 'Jag har ' + open.length + ' öppna kliniska ärenden:\n\n' + summary + '\n\nVilka ska jag prioritera och hur?'
+      : 'Inga öppna ärenden just nu. Vad borde jag tänka på proaktivt?';
+    if (window._velaAskPrompt) { _velaAskPrompt(prompt); }
+    else { toggleVelaAsk && toggleVelaAsk(); }
+  };
 
-  // Snooze
-  var snoozeBtn  = el.querySelector('#ra-snooze-btn');
-  var snoozeMenu = el.querySelector('#ra-snooze-menu');
-  if (snoozeBtn && snoozeMenu) {
-    snoozeBtn.onclick = function(ev){ ev.stopPropagation(); snoozeMenu.style.display = snoozeMenu.style.display==='none'?'block':'none'; };
-    snoozeMenu.querySelectorAll('.ra-snooze-opt').forEach(function(opt){
-      opt.onclick = function(){
-        var days = parseInt(this.dataset.snooze);
-        var until = new Date(Date.now() + days*86400000).toISOString();
-        _snoozeIssue(iss.id, until);
-        snoozeMenu.style.display = 'none';
-        showAutoSaveToast('Snoozad \u2013 ' + this.textContent);
-        window._actionsSelected = null;
-        rActions();
-      };
+  var triageBtn = document.getElementById('ai-triage-btn');
+  if (triageBtn) triageBtn.onclick = function() {
+    triageBtn.textContent = 'Triagerar...';
+    triageBtn.disabled = true;
+    var open = _gatherIssues().filter(function(i){ return _getClosedIssues().map(function(c){return c.id;}).indexOf(i.id)===-1; });
+    var prompt = 'Du är en klinisk assistent. Triagera dessa ' + open.length + ' ärenden:\n\n'
+      + open.map(function(i,n){ return (n+1)+'. '+i.patName+' – '+i.title+(i.meta?' ('+i.meta+')':''); }).join('\n')
+      + '\n\nGe en kortfattad prioriteringsordning med motivering (max 3 meningar per ärende). Skriv på svenska.';
+    fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{role:'user',content:prompt}] })
+    }).then(function(r){return r.json();}).then(function(d){
+      var text = d.content && d.content[0] && d.content[0].text || 'Kunde inte triagera.';
+      // Show result in a callout above the list
+      var briefDiv = document.createElement('div');
+      briefDiv.className = 'callout teal';
+      briefDiv.style.cssText = 'margin-bottom:16px;white-space:pre-wrap;font-size:13px;line-height:1.7';
+      briefDiv.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><div>' + e(text) + '</div>';
+      var shell = el.querySelector('.page-shell');
+      var filterBar = el.querySelector('.subnav');
+      if (shell && filterBar) shell.insertBefore(briefDiv, filterBar);
+    }).catch(function(){}).finally(function(){
+      triageBtn.textContent='Triagera med AI'; triageBtn.disabled=false;
     });
-    document.addEventListener('click', function closeSnoozeCb(){ snoozeMenu.style.display='none'; document.removeEventListener('click',closeSnoozeCb); });
-  }
-
-  // Dismiss
-  var dismissBtn = el.querySelector('#ra-dismiss-btn');
-  if (dismissBtn) dismissBtn.onclick = function(){
-    _closeIssue(iss.id, 'dismissed');
-    window._actionsSelected = null;
   };
 
-  // Send mail
-  var sendBtn = el.querySelector('#ra-send-btn');
-  if (sendBtn) sendBtn.onclick = async function(){
-    var ta = el.querySelector('#ra-draft-ta');
-    var body = ta ? ta.value.trim() : '';
-    if (!body) { showAutoSaveToast('Inga text att skicka'); return; }
-    sendBtn.disabled = true; sendBtn.textContent = 'Skickar...';
-    var result = await _gmailSendReplyFromIssue(iss, body);
-    if (result && result.ok) {
-      _closeIssue(iss.id, 'sent');
-      window._actionsSelected = null;
-      showAutoSaveToast('Skickat \u2713');
-    } else {
-      sendBtn.disabled = false; sendBtn.textContent = 'Skicka';
-      showAutoSaveToast('Kunde inte skicka');
-    }
-  };
-
-  // Send rebook slots
-  var rebookSendBtn = el.querySelector('#ra-rebook-send-btn');
-  if (rebookSendBtn) rebookSendBtn.onclick = async function(){
-    if (!pat || !pat.email) { showAutoSaveToast('Patient saknar e-post'); return; }
-    rebookSendBtn.disabled = true; rebookSendBtn.textContent = 'Skickar...';
-    var result = await _aiHandleRebookRequest({ subject: iss.title, from: iss.fromEmail||'' }, pat, iss.threadId);
-    if (result && result.ok) {
-      _closeIssue(iss.id, 'rebook_sent');
-      window._actionsSelected = null;
-    } else {
-      rebookSendBtn.disabled = false; rebookSendBtn.textContent = 'Skicka tider';
-    }
-  };
-
-  // Save SOAP
-  var saveSoapBtn = el.querySelector('#ra-save-soap-btn');
-  if (saveSoapBtn) saveSoapBtn.onclick = function(){
-    var ta = el.querySelector('#ra-draft-ta');
-    var content = ta ? ta.value.trim() : '';
-    if (!content || !pat) return;
-    pat.visits = pat.visits || [];
-    var lastVisit = pat.visits.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;})[0];
-    if (lastVisit) { lastVisit.soap = content; lastVisit.soapSavedAt = new Date().toISOString(); }
-    if (typeof savePat === 'function') savePat(pat);
-    _closeIssue(iss.id, 'journal_saved');
-    window._actionsSelected = null;
-    showAutoSaveToast('Journal sparad \u2713');
-  };
-
-  // Send SMS
-  var sendSmsBtn = el.querySelector('#ra-send-sms-btn');
-  if (sendSmsBtn) sendSmsBtn.onclick = async function(){
-    var ta = el.querySelector('#ra-draft-ta');
-    var body = ta ? ta.value.trim() : '';
-    if (!body || !pat || !pat.phone) { showAutoSaveToast('Saknar telefonnummer eller text'); return; }
-    sendSmsBtn.disabled = true; sendSmsBtn.textContent = 'Skickar...';
-    var res = await _velaSendSMS(pat.phone, body);
-    if (res && res.ok) {
-      _closeIssue(iss.id, 'sms_sent');
-      window._actionsSelected = null;
-      showAutoSaveToast('SMS skickat \u2713');
-    } else {
-      sendSmsBtn.disabled = false; sendSmsBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 13a19.79 19.79 0 01-3.07-8.67A2 2 0 013.34 2.2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l.91-.91a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>Skicka SMS';
-      showAutoSaveToast('SMS misslyckades');
-    }
-  };
-
-  // AI chips
-  function _raGetKey(){ return typeof _velaGetApiKey==='function' ? _velaGetApiKey('anthropic') : null; }
-
-  async function _raAiRewrite(instruction, isGenerate) {
-    var key = _raGetKey();
-    if (!key) { showAutoSaveToast('Anthropic API-nyckel saknas'); return; }
-    var ta = el.querySelector('#ra-draft-ta');
-    var statusEl = el.querySelector('#ra-draft-status');
-    var current = ta ? ta.value.trim() : '';
-    if (statusEl) statusEl.textContent = 'Genererar...';
-
-    var context = '';
-    if (iss.type === 'mail' || iss.type === 'rebook') {
-      var origEl = el.querySelector('#ra-orig-body');
-      context = origEl ? origEl.textContent.slice(0,400) : (iss.snippet||'');
-    } else if (iss.type === 'no_journal') {
-      context = pat ? 'Patient: ' + pat.name + '. Besök: ' + (pat.visits||[]).length + '. Diagnos: ' + (pat.diagnosis||'-') : '';
-    } else {
-      context = pat ? 'Patient: ' + pat.name + ', ' + (pat.visits||[]).length + ' besök.' : '';
-    }
-
-    var prompt = 'Du är assistent åt Carl-Robert Kärell, naprapat, Kansei Ortopedi & Rehabcenter.\n\n';
-    if (isGenerate) {
-      if (iss.type === 'no_journal') {
-        prompt += 'Skriv ett SOAP-journalutkast på svenska baserat på:\n' + context + '\nHåll det kliniskt och strukturerat. Format: S: / O: / A: / P:';
-      } else {
-        prompt += 'Skriv ett kort, professionellt SMS på svenska till patienten.\nKontext: ' + context + '\nÅtgärd: ' + (iss.aiSuggestion||iss.title) + '\nMax 160 tecken.';
-      }
-    } else {
-      prompt += 'Skriv om följande text ' + instruction + '. Behåll budskapet, ändra bara formen.\n\nOriginalmail:\n' + context.slice(0,300) + '\n\nNuvarande text:\n' + (current||'(tom)') + '\n\nSignera: Carl-Robert Kärell, Kansei Ortopedi & Rehabcenter.';
-    }
-
-    try {
-      var res = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:prompt}]})
-      });
-      var data = await res.json();
-      var text = data.content?.[0]?.text || '';
-      if (text && ta) {
-        ta.value = text;
-        if (!window._raAiDrafts) window._raAiDrafts = {};
-        window._raAiDrafts[iss.id] = text;
-      }
-      if (statusEl) statusEl.textContent = 'Uppdaterad';
-      setTimeout(function(){ if(statusEl) statusEl.textContent=''; }, 2000);
-    } catch(ex) {
-      if (statusEl) statusEl.textContent = 'Fel';
-    }
-  }
-
-  var chips = {
-    'ra-chip-kortare':   function(){ _raAiRewrite('kortare och mer koncist', false); },
-    'ra-chip-mjukare':   function(){ _raAiRewrite('med mjukare och mer empatisk ton', false); },
-    'ra-chip-rakare':    function(){ _raAiRewrite('rakare och mer direkt, utan onödiga ord', false); },
-    'ra-chip-generate':  function(){ _raAiRewrite('', true); },
-    'ra-chip-exception': function(){ _raAiRewrite('med förståelse för patientens situation — mjuka tonen och ta bort avgiftsraden', false); },
-  };
-  Object.keys(chips).forEach(function(id){
-    var btn = el.querySelector('#' + id);
-    if (btn) btn.onclick = chips[id];
-  });
-
-  // Freewrite chip
-  var fwChip = el.querySelector('#ra-chip-freewrite');
-  var fwBox  = el.querySelector('#ra-freewrite');
-  if (fwChip && fwBox) {
-    fwChip.onclick = function(){
-      fwBox.classList.toggle('open');
-      var inp = fwBox.querySelector('#ra-freewrite-inp');
-      if (inp && fwBox.classList.contains('open')) inp.focus();
-    };
-  }
-  var fwGo = el.querySelector('#ra-freewrite-go');
-  if (fwGo) fwGo.onclick = function(){
-    var inp = el.querySelector('#ra-freewrite-inp');
-    var instruction = inp ? inp.value.trim() : '';
-    if (!instruction) return;
-    _raAiRewrite(instruction, false);
-    if (fwBox) fwBox.classList.remove('open');
-    if (inp) inp.value = '';
-  };
-
-  // Auto-load original mail thread
-  if ((iss.type === 'mail' || iss.type === 'rebook') && iss.threadId) {
-    var origBody = el.querySelector('#ra-orig-body');
-    if (origBody && !origBody.textContent.replace(/\s/g,'').length || origBody && origBody.querySelector('div[style*="italic"]')) {
-      if (!window._raThreadCache) window._raThreadCache = {};
-      if (!window._raThreadCache[iss.threadId]) {
-        _gmailLoadThread(iss.threadId).then(function(thread){
-          if (!thread) return;
-          var msgs = thread.messages || [];
-          var lastMsg = msgs[msgs.length-1];
-          var body = _gmailGetBody(lastMsg.payload);
-          window._raThreadCache[iss.threadId] = body || '(tomt)';
-          var el2 = document.querySelector('#ra-orig-body');
-          if (el2) el2.textContent = window._raThreadCache[iss.threadId];
-        });
-      }
-    }
-
-    // Auto-generate AI draft if none
-    var ta = el.querySelector('#ra-draft-ta');
-    if (ta && !ta.value.trim() && _gmailIsAuthed()) {
-      var key = _raGetKey();
-      if (key) {
-        setTimeout(function(){ _raAiRewrite('kortfattat och professionellt på svenska', false); }, 300);
-      }
-    }
-  }
-
-  // Auto-generate SMS/SOAP for compliance/dropout/overdue
-  if ((iss.type === 'compliance' || iss.type === 'dropout' || iss.type === 'overdue') && pat) {
-    var ta = el.querySelector('#ra-draft-ta');
-    if (ta && !ta.value.trim()) {
-      setTimeout(function(){ _raAiRewrite('', true); }, 300);
-    }
-  }
+  var allAiBtn = document.getElementById('ai-handle-all-btn');
+  if (allAiBtn) allAiBtn.onclick = function() { _aiHandleAllIssues(); };
 }
-
-// ── Snooze helpers ─────────────────────────────────────────────────────────
-function _getSnoozed() {
-  try { return JSON.parse(localStorage.getItem('vela:snoozed')||'{}'); } catch { return {}; }
-}
-function _snoozeIssue(id, until) {
-  var s = _getSnoozed(); s[id] = until;
-  try { localStorage.setItem('vela:snoozed', JSON.stringify(s)); } catch {}
-}
-
-// ── Gmail send from Åtgärder ───────────────────────────────────────────────
-async function _gmailSendReplyFromIssue(issue, body) {
-  var meta = { subject: issue.title, from: issue.fromEmail||'', msgId:'', id: issue.threadId };
-  var fakeState = { selectedThread:{ meta: meta, pat: null, threadId: issue.threadId }, aiResult: null };
-  var orig = window._gmailState;
-  window._gmailState = Object.assign({}, orig||{}, fakeState);
-  var result = await _gmailSendReply(issue.threadId, body);
-  window._gmailState = orig;
-  return result;
-}
-
 
 function _handleIssueAction(issueId, fn, visitId, patId) {
   if (fn === 'generateRetention') {
@@ -11445,82 +11317,9 @@ function _loadPortalForPatient(patId, token) {
   renderPatientPortal(patId, pat);
 }
 
-function _renderPortalRebookPicker(el, pat, rebookData) {
-  var cfg   = getClinicConfig ? getClinicConfig() : {};
-  var slots = rebookData.slots;
-  var rebookId = rebookData.rebookId;
-
-  function fmtDate(d, t) {
-    var dt = new Date(d + 'T12:00');
-    var wd = dt.toLocaleDateString('sv-SE',{weekday:'long'});
-    return wd.charAt(0).toUpperCase()+wd.slice(1) + ' ' + dt.toLocaleDateString('sv-SE',{day:'numeric',month:'long'}) + ' kl ' + t;
-  }
-  var slotBtns = slots.map(function(s,i) {
-    var sid = 'rbk-'+i;
-    var dateLabel = fmtDate(s.date, s.time);
-    var btn = document.createElement('button');
-    btn.id = sid;
-    btn.style.cssText = 'width:100%;text-align:left;padding:14px 18px;background:#161b22;border:1px solid #30363d;border-radius:10px;font-size:15px;font-weight:600;color:#e6edf3;cursor:pointer;font-family:var(--font);margin-bottom:10px;transition:all .15s';
-    btn.innerHTML = '<div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#e07628;margin-bottom:3px">Alternativ '+(i+1)+'</div>' + dateLabel;
-    btn.onmouseover = function(){ this.style.borderColor='var(--teal)'; this.style.background='rgba(224,118,40,.06)'; };
-    btn.onmouseout  = function(){ this.style.borderColor='#30363d';    this.style.background='#161b22'; };
-    btn.onclick = (function(sl){ return function(){ _confirmRebookSlot(sl, rebookId, pat.id); }; })(s);
-    return btn.outerHTML;
-  }).join('');
-
-  el.innerHTML = '<div style="min-height:100vh;background:#080e18;display:flex;align-items:center;justify-content:center;padding:24px;font-family:var(--font)">'
-    +'<div style="width:100%;max-width:480px">'
-    +'<div style="text-align:center;margin-bottom:32px">'
-    +'<div style="width:48px;height:48px;border-radius:12px;background:rgba(224,118,40,.1);border:1px solid rgba(224,118,40,.2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">'
-    +'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e07628" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
-    +'</div>'
-    +'<div style="font-size:22px;font-weight:700;color:#e6edf3;margin-bottom:8px">Välj din nya tid</div>'
-    +'<div style="font-size:14px;color:#8b949e;line-height:1.6">Hej '+(pat.name||'').split(' ')[0]+'! Välj den tid som passar dig bäst.</div>'
-    +'</div>'
-    + slotBtns
-    +'<div style="text-align:center;margin-top:16px"><a href="tel:'+(cfg.phone||'')+'" style="font-size:13px;color:#6e7681;text-decoration:none">Ingen tid passar? Ring: '+(cfg.phone||'kliniken')+'</a></div>'
-    +'<div id="rbk-confirm" style="display:none;margin-top:24px;padding:18px;background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.2);border-radius:10px;text-align:center;color:#3fb950;font-size:15px;font-weight:600"></div>'
-    +'</div></div>';
-}
-
-async function _confirmRebookSlot(slot, rebookId, patId) {
-  document.querySelectorAll('[id^="rbk-"]').forEach(function(b){ b.disabled=true; b.style.opacity='.4'; });
-  var pat = (S.patients||[]).find(function(p){ return p.id === patId; });
-  var cfg = getClinicConfig ? getClinicConfig() : {};
-  var msg = document.getElementById('rbk-confirm');
-  try {
-    if (rebookId && rebookId !== 'new' && typeof upsertBooking === 'function') {
-      var bk = typeof getBooking === 'function' ? getBooking(rebookId) : null;
-      if (bk) {
-        bk.date = slot.date; bk.time = slot.time;
-        bk.rebookedAt = new Date().toISOString(); bk.rebookedBy = 'patient_portal';
-        upsertBooking(bk);
-      }
-    }
-    if (pat && pat.phone && typeof _velaSendSMS === 'function') {
-      var fmtS = function(d,t){ return new Date(d+'T12:00').toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short'})+' kl '+t; };
-      _velaSendSMS(pat.phone, 'Hej! Din tid är bekräftad: ' + fmtS(slot.date, slot.time) + '. ' + (cfg.name||'Kliniken'));
-    }
-    _closeMailIssue('rebook_' + rebookId);
-    if (msg) {
-      msg.style.display='block';
-      var fmtL=function(d,t){ return new Date(d+'T12:00').toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})+' kl '+t; };
-      msg.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-bottom:8px"><polyline points="20 6 9 17 4 12"/></svg><br>Klar! Din tid: <strong>'+fmtL(slot.date,slot.time)+'</strong><br><span style="font-size:13px;opacity:.8;display:block;margin-top:4px">Bekräftelse skickas till din telefon.</span>';
-    }
-  } catch(ex) {
-    if (msg){ msg.style.display='block'; msg.style.color='#f85149'; msg.textContent='Något gick fel — ring oss för att bekräfta.'; }
-  }
-}
-
 function renderPatientPortal(patId, pat) {
   var el = document.getElementById('s-patient-portal');
   if (!el) return;
-
-  var rebookData = _portalGetRebookSlots();
-  if (rebookData && rebookData.slots && rebookData.slots.length && pat) {
-    _renderPortalRebookPicker(el, pat, rebookData);
-    return;
-  }
 
   var cfg     = getClinicConfig ? getClinicConfig() : {};
   var bookings = (getBookings ? getBookings() : [])
@@ -12117,17 +11916,6 @@ async function _aiHandlePatientEmail(fromEmail, subject, body) {
 
 // ── Wire portal hash check into startup ──────────────────────────────────────
 // Called from go() — show portal if URL has #portal/
-function _portalGetRebookSlots() {
-  var params = new URLSearchParams(window.location.search || '');
-  var slotParam = params.get('slots');
-  var rebookId  = params.get('rebook');
-  if (!slotParam) return null;
-  var slots = slotParam.split(',').map(function(s) {
-    var p = s.split('@'); return p.length === 2 ? { date:p[0], time:p[1] } : null;
-  }).filter(Boolean);
-  return slots.length ? { slots:slots, rebookId:rebookId } : null;
-}
-
 function _maybeLaunchPortal() {
   if (window.location.hash.startsWith('#portal/')) {
     _checkPortalHash();
@@ -12746,14 +12534,16 @@ function rInbox() {
         h += '</div>';
       }
 
-      // Aktivitet = historiklogg. Bara "markera klar" för att rensa.
+      // Action buttons
       h += '<div class="akt-item-actions">';
-      if (!n.done) {
-        h += '<button class="akt-action-btn" data-done-nid="' + n.id + '">Markera klar</button>';
-      }
       if (n.actionFn && n.patId) {
-        h += '<button class="akt-action-btn" onclick="go(\'actions\')" style="color:var(--teal)">Hantera i Åtgärder →</button>';
+        h += '<button class="akt-action-btn primary" data-fn="' + n.actionFn + '" data-pat="' + n.patId + '" data-bk="' + (n.bookingId||'') + '">' + e(n.action||'Hantera') + '</button>';
       }
+      if (n.aiAuto && !n.aiDraft) {
+        h += '<button class="akt-action-btn ai" data-ai-nid="' + n.id + '">AI hanterar</button>';
+      }
+      h += '<button class="akt-action-btn" data-save-nid="' + n.id + '">' + (n.saved?'Sparat':'Spara') + '</button>';
+      h += '<button class="akt-action-btn" data-done-nid="' + n.id + '">Klart</button>';
       h += '</div>';
 
       h += '</div>'; // body
@@ -13045,15 +12835,8 @@ function _gmailRenderListPanel() {
       if (ic) h += '<span style="width:7px;height:7px;border-radius:50%;background:' + ic + ';flex-shrink:0;margin-top:4px"></span>';
       h += '<span class="gm-thread-subj">' + e(t.subject || '(Inget ämne)') + '</span>';
       h += '</div>';
-      // Row 3: AI summary or snippet
-      var aiSum = _gmailState.aiSummaries && _gmailState.aiSummaries[t.id];
-      if (aiSum) {
-        h += '<div class="gm-thread-snip" style="color:var(--teal);font-style:normal">'
-          + '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:3px;flex-shrink:0"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
-          + e(aiSum.slice(0,90)) + '</div>';
-      } else {
-        h += '<div class="gm-thread-snip">' + e((t.snippet||'').slice(0,80)) + '</div>';
-      }
+      // Row 3: snippet
+      h += '<div class="gm-thread-snip">' + e((t.snippet||'').slice(0,80)) + '</div>';
       h += '</div>'; // body
 
       if (t.unread) h += '<div class="gm-unread-dot"></div>';
@@ -13197,36 +12980,7 @@ async function _gmailOpenThread(threadId, autoAi) {
   _gmailState.selectedThread = { threadId:threadId, thread:thread, meta:meta, intent:intent, pat:pat };
 
   _gmailRenderThreadContent();
-  // Auto-analyse every time a thread opens (not just when autoAi=true)
-  if (!_gmailState.aiResult) {
-    setTimeout(function(){
-      if (_gmailState.selectedThread && _gmailState.selectedThread.threadId === threadId) {
-        _gmailTriggerAi(true); // silent=true keeps panel closed until result ready
-      }
-    }, 400);
-  } else if (autoAi) {
-    setTimeout(_gmailTriggerAi, 300);
-  }
-
-  // Auto-show rebook CTA for scheduling intent
-  if (intent.id === 'scheduling' && pat && pat.email && _getRebookPolicy().aiHandlesBookings) {
-    setTimeout(function() {
-      var tp = document.getElementById('gm-thread-panel');
-      if (tp && !document.getElementById('gm-rebook-cta')) {
-        var banner = document.createElement('div');
-        banner.id = 'gm-rebook-cta';
-        banner.style.cssText = 'margin:8px 16px 0;padding:10px 14px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:8px;display:flex;align-items:center;gap:12px;font-size:13px;color:#e6edf3';
-        var svg = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d29922" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
-        var firstName = e(pat.name.split(' ')[0]);
-        banner.innerHTML = svg
-          + '<span style="flex:1"><strong style="color:#d29922">Ombokning</strong> &mdash; AI kan skicka lediga tider till ' + firstName + '</span>'
-          + '<button id="gm-rebook-go" style="background:rgba(210,153,34,.15);border:1px solid rgba(210,153,34,.3);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;color:#d29922;cursor:pointer;font-family:var(--font);white-space:nowrap">AI skickar tider →</button>'
-          + '<button id="gm-rebook-x" style="background:none;border:none;cursor:pointer;color:#6e7681;font-size:16px;padding:0 4px">×</button>';
-        banner.querySelector('#gm-rebook-go').onclick = function(){ var m=_gmailState.selectedThread; _aiHandleRebookRequest(m.meta,m.pat,tid); banner.remove(); };
-        banner.querySelector('#gm-rebook-x').onclick  = function(){ banner.remove(); };
-      }
-    }, 500);
-  }
+  if (autoAi) setTimeout(_gmailTriggerAi, 300);
 }
 
 function _gmailRenderThreadContent() {
@@ -13267,11 +13021,6 @@ function _gmailRenderThreadContent() {
     h += '<button onclick="openPat(\'' + pat.id + '\')" style="display:flex;align-items:center;gap:6px;padding:6px 13px;background:none;border:1px solid #30363d;border-radius:7px;font-size:13px;font-weight:600;color:#e6edf3;cursor:pointer;font-family:var(--font)">';
     h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
     h += 'Patientkort</button>';
-  }
-  if (pat && intent && intent.id === 'scheduling') {
-    h += '<button id="gm-show-rebook-cta" style="display:flex;align-items:center;gap:5px;padding:6px 13px;background:rgba(210,153,34,.07);border:1px solid rgba(210,153,34,.2);border-radius:7px;font-size:13px;font-weight:600;color:#d29922;cursor:pointer;font-family:var(--font)">';
-    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
-    h += 'Boka om</button>';
   }
   h += '</div>';
   h += '</div>';
@@ -13337,7 +13086,7 @@ function _gmailRenderThreadContent() {
     h += '<button id="gm-portal-send" style="background:none;border:1px solid #30363d;border-radius:6px;padding:5px 12px;font-size:13px;color:#e6edf3;cursor:pointer;font-family:var(--font)">Skicka portallänk</button>';
   }
   h += '<span style="flex:1"></span>';
-  h += '<button id="gm-reply-send" class="act-btn act-btn-primary" style="font-size:13px">Skicka svar</button>';
+  h += '<button id="gm-reply-send" class="act-btn act-btn-primary" style="font-size:13px">Spara utkast</button>';
   h += '</div></div>';
 
   h += '</div>'; // messages column
@@ -13366,18 +13115,9 @@ function _gmailRenderThreadContent() {
 
     if (aiResult) {
       h += '<div style="padding:14px 16px">';
-      var toneUsed = _gmailState._lastTone;
-      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
-      h += '<div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8b949e">Föreslagen text</div>';
-      if (toneUsed) h += '<span style="font-size:11px;background:var(--teal-lt);color:var(--teal);padding:1px 8px;border-radius:20px;font-weight:600">' + e(toneUsed) + '</span>';
-      h += '</div>';
+      h += '<div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8b949e;margin-bottom:8px">Föreslagen text</div>';
       h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:12px;font-size:13px;color:#e6edf3;line-height:1.7;white-space:pre-wrap;margin-bottom:8px">' + e(aiResult) + '</div>';
-      h += '<div style="display:flex;gap:8px;margin-top:4px">';
-      h += '<button id="gm-ai-use-btn" class="act-btn" style="flex:1;justify-content:center;font-size:13px">Kopiera till svar</button>';
-      h += '<button id="gm-ai-other-angle" class="act-btn" style="flex:1;justify-content:center;font-size:13px" title="Annan ton/vinkel">';
-      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Annan vinkel';
-      h += '</button>';
-      h += '</div>';
+      h += '<button id="gm-ai-use-btn" class="act-btn" style="width:100%;justify-content:center;font-size:13px">Kopiera till svar</button>';
       h += '</div>';
     }
     h += '</div>';
@@ -13392,29 +13132,6 @@ function _gmailRenderThreadContent() {
   var panel = document.getElementById('gm-thread-panel');
   if (!panel) return;
 
-  panel.querySelector('#gm-show-rebook-cta')?.addEventListener('click', function() {
-    var sel2 = _gmailState.selectedThread;
-    if (!sel2 || !sel2.pat) return;
-    var existing = document.getElementById('gm-rebook-cta');
-    if (existing) { existing.remove(); return; }
-    var tp2 = document.getElementById('gm-thread-panel');
-    if (!tp2) return;
-    var banner2 = document.createElement('div');
-    banner2.id = 'gm-rebook-cta';
-    banner2.style.cssText = 'margin:8px 16px 0;padding:10px 14px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:8px;display:flex;align-items:center;gap:12px;font-size:13px;color:#e6edf3';
-    banner2.innerHTML = '<span style="flex:1"><strong style="color:#d29922">Ombokning</strong> — AI skickar 3 lediga tider till ' + e(sel2.pat.name.split(' ')[0]) + '</span>';
-    var b2go = document.createElement('button');
-    b2go.style.cssText = 'background:rgba(210,153,34,.15);border:1px solid rgba(210,153,34,.3);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;color:#d29922;cursor:pointer;font-family:var(--font);white-space:nowrap';
-    b2go.textContent = 'Kör →';
-    b2go.onclick = function(){ var m=_gmailState.selectedThread; _aiHandleRebookRequest(m.meta,m.pat,m.threadId); banner2.remove(); };
-    var b2x = document.createElement('button');
-    b2x.style.cssText = 'background:none;border:none;cursor:pointer;color:#6e7681;font-size:16px;padding:0 4px';
-    b2x.textContent = '×';
-    b2x.onclick = function(){ banner2.remove(); };
-    banner2.appendChild(b2go);
-    banner2.appendChild(b2x);
-    tp2.insertBefore(banner2, tp2.firstChild);
-  });
   panel.querySelector('#gm-ai-toggle')?.addEventListener('click', function() {
     _gmailState.aiOpen = !_gmailState.aiOpen;
     _gmailRenderThreadContent();
@@ -13430,17 +13147,6 @@ function _gmailRenderThreadContent() {
   panel.querySelector('#gm-ai-use-btn')?.addEventListener('click', function() {
     var ta = panel.querySelector('#gm-reply-ta');
     if (ta && _gmailState.aiResult) { ta.value = _gmailState.aiResult; ta.focus(); }
-  });
-  panel.querySelector('#gm-ai-other-angle')?.addEventListener('click', async function() {
-    var btn = this; btn.disabled = true; btn.textContent = 'Genererar...';
-    var tones = ['mer empatisk och varm', 'kortare och mer rakt på sak', 'mer formell', 'personligare och mer engagerad'];
-    var lastTone = _gmailState._lastTone || '';
-    var tone = tones.find(function(t){ return t !== lastTone; }) || tones[0];
-    _gmailState._lastTone = tone;
-    _gmailState.aiResult = null;
-    await _gmailTriggerAi({ tone: tone });
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Annan vinkel';
   });
   panel.querySelector('#gm-portal-send')?.addEventListener('click', async function() {
     if (!pat) return;
@@ -13459,7 +13165,7 @@ function _gmailRenderThreadContent() {
     var ta = panel.querySelector('#gm-reply-ta');
     var body = ta ? ta.value.trim() : '';
     if (!body) return;
-    this.disabled=true; this.textContent='Skickar...';
+    this.disabled=true; this.textContent='Sparar...';
     try {
       await Gmail_create_draft_stub(sel.meta.threadId, body);
       this.textContent='Sparat ✓'; this.style.background='var(--green-lt)'; this.style.color='var(--green)';
@@ -13479,61 +13185,8 @@ function _gmailRenderThreadContent() {
 }
 
 async function Gmail_create_draft_stub(threadId, body) {
-  return await _gmailSendReply(threadId, body);
-}
-
-async function _gmailSendReply(threadId, body) {
-  var sel  = _gmailState.selectedThread;
-  var meta = sel ? sel.meta : {};
-  var pat  = sel ? sel.pat  : null;
-  var cfg  = getClinicConfig();
-
-  // Try Gmail API send
-  if (_gmailIsAuthed() && threadId) {
-    try {
-      var fromHdrs = (meta.from||'');
-      var toAddr   = (fromHdrs.match(/<([^>]+)>/) || [])[1] || fromHdrs;
-      var subj     = (meta.subject && !meta.subject.startsWith('Re:')) ? 'Re: ' + meta.subject : (meta.subject||'Svar');
-      var msgRaw   = ['To: ' + toAddr, 'Subject: ' + subj,
-                      'Content-Type: text/plain; charset=utf-8',
-                      'In-Reply-To: ' + (meta.msgId||''), '',
-                      body, '', '-- ', cfg.name||'Kansei'].join('\r\n');
-      var encoded  = btoa(unescape(encodeURIComponent(msgRaw))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-      var res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + _gmailToken, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ raw: encoded, threadId: threadId }),
-      });
-      if (res.ok) {
-        if (pat) {
-          pat.messages = pat.messages || [];
-          pat.messages.push({ id:'msg_'+Date.now(), direction:'out', channel:'email', body:body.slice(0,200), sentAt:new Date().toISOString() });
-          if (typeof savePat === 'function') savePat(pat);
-        }
-        if (sel && sel.meta && sel.meta.id) _closeMailIssue('mail_' + sel.meta.id);
-        _gmailState.aiResult = null;
-        _gmailRenderThreadContent();
-        showAutoSaveToast('Skickat via Gmail ✓');
-        return { ok: true };
-      }
-    } catch(ex) { console.warn('Gmail send failed, trying Resend:', ex); }
-  }
-
-  // Fallback: Resend
-  if (meta && meta.from) {
-    var fallbackTo = (meta.from.match(/<([^>]+)>/) || [])[1] || meta.from;
-    var fallbackSubj = (meta.subject && !meta.subject.startsWith('Re:')) ? 'Re: ' + meta.subject : (meta.subject||'Svar');
-    var result = await _velaSendMail(fallbackTo, fallbackSubj, body);
-    if (result && result.ok) {
-      if (sel && sel.meta && sel.meta.id) _closeMailIssue('mail_' + sel.meta.id);
-      _gmailState.aiResult = null;
-      _gmailRenderThreadContent();
-      showAutoSaveToast('Skickat ✓');
-      return result;
-    }
-  }
-  showAutoSaveToast('Kunde inte skicka — kontrollera Gmail-anslutning');
-  return { ok: false };
+  // Will use _velaSendMail or Resend as fallback
+  showAutoSaveToast('Utkast sparat');
 }
 
 async function _gmailTriggerAi(silent) {
@@ -13545,7 +13198,7 @@ async function _gmailTriggerAi(silent) {
   var pat = sel.pat;
   var intent = sel.intent;
 
-  if (!silent || (typeof silent === 'object')) {
+  if (!silent) {
     _gmailState.aiOpen = true;
     _gmailRenderThreadContent();
   }
@@ -13558,7 +13211,7 @@ async function _gmailTriggerAi(silent) {
     + 'Meddelandetyp: ' + (intent.label||'okänd') + '\n'
     + 'Senaste mail (från: ' + _gmailFromName(lastMsg?.payload?.headers?.find?.(function(h){return h.name==='From';})?.value||'') + '):\n'
     + body.slice(0,600) + '\n\n'
-    + (silent && typeof silent === 'object' && silent.tone ? 'Skriv med ' + silent.tone + ' ton. ' : 'Skriv ett kort, professionellt svar på svenska. ')
+    + 'Skriv ett kort, professionellt svar på svenska. '
     + (intent.id==='scheduling'&&pat ? 'Hänvisa till patientportalen för ombokning: ' + portalUrl + '. Förklara att de kan boka om där. ' : '')
     + (intent.id==='cancel' ? 'Bekräfta och påminn om 24h-policyn vid sen avbokning. ' : '')
     + 'Signera: Carl-Robert Kärell, Kansei Ortopedi & Rehabcenter.';
@@ -15375,14 +15028,10 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
   h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden;margin-bottom:16px">';
   h += '<div style="padding:10px 16px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Snabbåtgärder</div>';
   var actions = [
-    { svg:'<path d="M5 3l14 9-14 9V3z"/>', col:'var(--teal)', label:'Ta emot nu', desc:'Starta besök', fn:'newVisit()' },
-    { svg:'<path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', col:'#58a6ff', label:'Dokumentera', desc:'SOAP-anteckning', fn:'newVisit()' },
-    { svg:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', col:'#a371f7', label:'Ny Hael-plan', desc:'Rehabiliteringsplan med AI', fn:'prepVisitForm(\''+p.id+'\');go(\'form\')' },
-    { svg:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', col:'#d29922', label:'Skicka intake', desc:'Anamnesformulär', fn:'sendIntakeLink(\''+p.id+'\')' },
-    { svg:'<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>', col:'#3fb950', label:'Skriv remiss', desc:'AI-genererad remiss', fn:'openRemissDialog(\''+p.id+'\')' },
-    { svg:'<path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/>', col:'#58a6ff', label:'Portallänk', desc:'Skicka inloggningslänk', fn:'sendPortalMagicLink(S.pat)' },
-    { svg:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>', col:'var(--teal)', label:'Snabb-SMS', desc:'Meddelande direkt', fn:'openQuickSmsDialog(\''+p.id+'\')' },
-    { svg:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>', col:'#f85149', label:'Sjukintyg', desc:'Sjukskrivningsunderlag', fn:'openSickDayPanel()' },
+    { svg:'<path d="M5 3l14 9-14 9V3z"/>', col:'var(--teal)', label:'Ta emot nu', desc:'Starta besök och journalföring', fn:'newVisit()' },
+    { svg:'<path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', col:'#58a6ff', label:'Dokumentera manuellt', desc:'SOAP utan inspelning', fn:'newVisit()' },
+    { svg:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', col:'#a371f7', label:'Ny Hael-plan', desc:'Generera rehabiliteringsplan', fn:'prepVisitForm(\''+p.id+'\');go(\'form\')' },
+    { svg:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', col:'#d29922', label:'Skicka intake', desc:'Formulär till patient', fn:'sendIntakeLink(\''+p.id+'\')' },
   ];
   actions.forEach(function(a, i){
     h += '<div class="item-row clickable" onclick="'+a.fn+'" style="'+(i>0?'border-top:1px solid #21262d':'')+'">';
@@ -15440,7 +15089,7 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
   // ── PATIENTINFO ──────────────────────────────────────────────────
   h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px">';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">';
-  h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">'+(typeof clientTerm==='function'?clientTerm(true):'Klient')+'info</div>';
+  h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681">Patientinfo</div>';
   h += '<div style="display:flex;gap:6px">';
   h += '<button onclick="go(\'editpat\')" style="background:none;border:1px solid #30363d;border-radius:5px;padding:2px 8px;font-size:11px;color:#8b949e;cursor:pointer;font-family:var(--font)">Redigera</button>';
   h += '<button onclick="confDel(\'pat\',\''+p.id+'\',\''+e(p.name)+'\')" style="background:none;border:1px solid rgba(248,81,73,.3);border-radius:5px;padding:2px 8px;font-size:11px;color:#f85149;cursor:pointer;font-family:var(--font)">Radera</button>';
@@ -20094,22 +19743,35 @@ function setSyncStatus(state, msg) {
 
 async function sbUpsertPat(p) {
   try {
+    // Write data blob + sync normalized columns simultaneously
+    var payload = {
+      data:       p,
+      updated_at: new Date().toISOString(),
+      // Normalized columns — kept in sync so Supabase queries/reports work
+      name:      p.name      || null,
+      email:     p.email     || null,
+      phone:     p.phone     || null,
+      birthdate: p.birthdate || null,
+      diagnosis: p.diagnosis || null,
+      notes:     p.notes     || null,
+      address:   p.address   || null,
+    };
     const res = await fetchWithTimeout(
       SB_URL + '/rest/v1/patients?id=eq.' + encodeURIComponent(p.id),
       {
         method: 'PATCH',
         headers: { ...sbHeaders(), 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ data: p, updated_at: new Date().toISOString() })
+        body: JSON.stringify(payload)
       }
     );
     if (res.ok) return true;
-    // Try insert if not found
+    // Row doesn't exist — insert
     const ins = await fetchWithTimeout(
       SB_URL + '/rest/v1/patients',
       {
         method: 'POST',
         headers: { ...sbHeaders(), 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ id: p.id, data: p, updated_at: new Date().toISOString() })
+        body: JSON.stringify(payload)
       }
     );
     return ins.ok;
@@ -20126,29 +19788,35 @@ async function sbDeletePat(id) {
 }
 
 async function sbLoadAll() {
-  try {
-    const res = await fetchWithTimeout(
-      SB_URL + '/rest/v1/patients?select=id,data,updated_at&order=updated_at.desc&limit=500',
-      { headers: sbHeaders() }
-    );
-    if (!res.ok) return null;
-    const rows = await res.json();
-    return rows.map(r => {
-      const d = typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
-      return d || null;
-    }).filter(Boolean);
-  } catch(e) { return null; }
+  const urls = [
+    SB_URL + '/rest/v1/patients?select=id,data,updated_at&order=updated_at.desc&limit=500',
+    SB_URL + '/rest/v1/patients?select=id,data&limit=500',
+    SB_URL + '/rest/v1/patients?select=*&limit=500',
+  ];
+  for (var i = 0; i < urls.length; i++) {
+    try {
+      var res = await fetchWithTimeout(urls[i], { headers: sbHeaders() });
+      if (!res.ok) continue;
+      var rows = await res.json();
+      return rows.map(function(r) {
+        var d = r.data ? (typeof r.data === 'string' ? JSON.parse(r.data) : r.data) : r;
+        return d || null;
+      }).filter(Boolean);
+    } catch(e) { continue; }
+  }
+  return null;
 }
 
 async function syncFromCloud() {
   setSyncStatus('syncing', 'Hämtar...');
 
-  // Try new schema first
-  var cloudPats = await sbLoadAllPatients();
+  // Try new normalized schema first, fall back to simple data-blob schema
+  var cloudPats = null;
+  try { cloudPats = await sbLoadAllPatients(); } catch(e) {}
 
-  // Fall back to old schema if new returns empty
+  // Fall back to old schema (just id + data JSON blob)
   if (!cloudPats || cloudPats.length === 0) {
-    cloudPats = await sbLoadAll(); // old function
+    cloudPats = await sbLoadAll();
   }
 
   if (!cloudPats) {
@@ -25280,465 +24948,6 @@ async function generateRetentionMessage(signal, pat) {
 // Add a signal to the queue
 
 // ══════════════════════════════════════════════════════════════════════════════
-
-
-// ══════════════════════════════════════════════════════════════════════════════
-// SPRINT 3b — FASTER POLLING, AUTO-AI, MORNING BRIEFING, SMART ACTIONS
-// ══════════════════════════════════════════════════════════════════════════════
-
-// ── AI summaries cache for mail list ─────────────────────────────────────────
-if (!window._gmailState) window._gmailState = {};
-window._gmailState.aiSummaries = window._gmailState.aiSummaries || {};
-
-async function _gmailGenerateSummary(thread, pat, intent) {
-  if (!thread || !thread.id) return;
-  if (window._gmailState.aiSummaries[thread.id]) return; // already cached
-  var key = typeof _velaGetApiKey === 'function' ? _velaGetApiKey('anthropic') : null;
-  if (!key) return;
-
-  var patCtx = pat ? ' (patient: ' + pat.name + ', ' + (pat.visits||[]).length + ' besök)' : '';
-  var prompt = 'Sammanfatta detta mail i max 12 ord på svenska. Inga citattecken. Var konkret.\n'
-    + 'Ämne: ' + (thread.subject||'') + '\n'
-    + 'Från: ' + _gmailFromName(thread.from||'') + patCtx + '\n'
-    + 'Innehåll: ' + (thread.snippet||'');
-
-  try {
-    var res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,
-               'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:60,
-        messages:[{role:'user',content:prompt}] })
-    });
-    var data = await res.json();
-    var text = (data.content?.[0]?.text||'').trim().replace(/^[""]|[""]$/g,'');
-    if (text) {
-      window._gmailState.aiSummaries[thread.id] = text;
-      // Update mail issue aiSuggestion
-      var issues = _getMailIssues();
-      var issue = issues.find(function(m){ return m.threadId === thread.id; });
-      if (issue) { issue.aiSuggestion = text; _saveMailIssues(issues); }
-      // Re-render list if visible
-      if (document.getElementById('gm-list-panel')) _gmailRenderListPanel();
-    }
-  } catch(ex) {}
-}
-
-// ── Open mail thread from Åtgärder ────────────────────────────────────────────
-function _openMailIssueThread(issueId) {
-  var issue = _getMailIssues().find(function(m){ return m.id === issueId; });
-  if (!issue || !issue.threadId) return;
-  go('activity');
-  setTimeout(function(){
-    if (typeof _gmailOpenThread === 'function') _gmailOpenThread(issue.threadId, true);
-  }, 300);
-}
-
-// ── Rebook from Åtgärder (without opening Gmail) ─────────────────────────────
-async function _aiHandleRebookFromIssue(issueId) {
-  var issue = _getMailIssues().find(function(m){ return m.id === issueId; });
-  if (!issue || !issue.patId) { showAutoSaveToast('Koppla patienten till mailet först'); return; }
-  var pat = (S.patients||[]).find(function(p){ return p.id === issue.patId; });
-  if (!pat) return;
-  await _aiHandleRebookRequest({ subject: issue.title, from: issue.fromEmail }, pat, issue.threadId);
-  rActions();
-}
-
-// ── Cancel from Åtgärder ──────────────────────────────────────────────────────
-async function _aiHandleCancelFromIssue(issueId) {
-  var issue = _getMailIssues().find(function(m){ return m.id === issueId; });
-  if (!issue || !issue.patId) { showAutoSaveToast('Koppla patienten till mailet först'); return; }
-  var pat = (S.patients||[]).find(function(p){ return p.id === issue.patId; });
-  if (!pat) return;
-
-  var bks = typeof getBookings==='function' ? getBookings() : [];
-  var nextBk = bks.filter(function(b){
-    return b.patientId===pat.id && b.status!=='cancelled' && b.date>=new Date().toISOString().slice(0,10);
-  }).sort(function(a,b){ return a.date>b.date?1:-1; })[0];
-
-  var policy = typeof _aktGetCancelPolicy==='function' ? _aktGetCancelPolicy() : { within24h:true, lateFeePercent:100, autoRespond:true, aiTone:'professional' };
-  var isLate = false;
-  if (nextBk) {
-    var hours = (new Date(nextBk.date+'T'+(nextBk.time||'08:00')) - new Date()) / 3600000;
-    isLate = hours >= 0 && hours < 24;
-  }
-
-  if (nextBk && policy.autoRespond) {
-    await _aktAiCancelResponse(nextBk, pat, isLate, policy, 'patient_mail_request');
-    _closeMailIssue(issueId);
-    _aktLogEntry('mail', 'AI svarade på avbokning automatiskt', pat ? pat.name : '', '');
-    showAutoSaveToast('AI svarade på avbokning ✓');
-    rActions();
-  }
-}
-
-// ── Gmail Morning Briefing ────────────────────────────────────────────────────
-var _gmailBriefingCache = null;
-var _gmailBriefingDate  = null;
-
-async function _generateGmailMorningBriefing() {
-  var today = new Date().toLocaleDateString('sv-SE');
-  if (_gmailBriefingCache && _gmailBriefingDate === today) return _gmailBriefingCache;
-
-  if (!_gmailIsAuthed()) return null;
-  var key = typeof _velaGetApiKey==='function' ? _velaGetApiKey('anthropic') : null;
-  if (!key) return null;
-
-  var mailIssues = _getMailIssues();
-  var closed = new Set([]);
-  try { JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').forEach(function(c){ closed.add(c.id); }); } catch {}
-  var open = mailIssues.filter(function(m){ return !closed.has(m.id); });
-
-  if (!open.length) return null;
-
-  var mailSummaries = open.slice(0,5).map(function(m){
-    return '- ' + m.patName + ': "' + m.title + '" (' + (m.intentLabel||m.meta||'') + ')';
-  }).join('\n');
-
-  var compIssues = typeof _gatherIssues === 'function'
-    ? _gatherIssues().filter(function(i){ return i.type==='compliance' && !closed.has(i.id); })
-    : [];
-
-  var prompt = 'Du är AI-assistent för Carl-Robert Kärell, naprapat.\n\n'
-    + 'Sammanfatta morgonläget på svenska i 2-3 meningar max. Var konkret och handlingsorienterad.\n\n'
-    + 'Ohanterade mail (' + open.length + '):\n' + mailSummaries
-    + (compIssues.length ? '\n\nFöljsamhetssignaler: ' + compIssues.map(function(i){ return i.patName; }).join(', ') : '')
-    + '\n\nGe en skarp, kortfattad briefing. Ingen hälsning, inga rubriker.';
-
-  try {
-    var res = await fetch('https://api.anthropic.com/v1/messages', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,
-               'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:150,
-        messages:[{role:'user',content:prompt}] })
-    });
-    var data = await res.json();
-    var text = data.content?.[0]?.text || null;
-    _gmailBriefingCache = text;
-    _gmailBriefingDate  = today;
-    return text;
-  } catch(ex) { return null; }
-}
-
-function _renderGmailMorningBriefing(el) {
-  if (!el) return;
-  _generateGmailMorningBriefing().then(function(briefing) {
-    if (!briefing) return;
-    var closed = new Set([]);
-    try { JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').forEach(function(c){ closed.add(c.id); }); } catch {}
-    var openMailCount = _getMailIssues().filter(function(m){ return !closed.has(m.id); }).length;
-
-    var existing = el.innerHTML || '';
-    var briefingHtml = '<div id="gmail-morning-briefing" style="'
-      + 'background:linear-gradient(135deg,rgba(88,166,255,.05),rgba(88,166,255,.02));'
-      + 'border:1px solid rgba(88,166,255,.15);border-radius:6px;padding:14px 18px;margin-bottom:16px">'
-      + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'
-      + '<div style="width:28px;height:28px;border-radius:8px;background:rgba(88,166,255,.08);'
-      + 'display:flex;align-items:center;justify-content:center;flex-shrink:0">'
-      + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2" stroke-linecap="round">'
-      + '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>'
-      + '<polyline points="22,6 12,13 2,6"/></svg></div>'
-      + '<div style="font-size:13px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#58a6ff">Mail · Vela AI</div>'
-      + '<span style="font-size:12px;color:#8b949e;margin-left:4px">' + openMailCount + ' ohanterade</span>'
-      + '<button onclick="document.getElementById(\'gmail-morning-briefing\').remove()" '
-      + 'style="margin-left:auto;background:none;border:none;color:#8b949e;font-size:18px;cursor:pointer;line-height:1;padding:0 4px">\u00d7</button>'
-      + '</div>'
-      + '<div style="font-size:13px;color:#e6edf3;line-height:1.7">' + briefing + '</div>'
-      + '<div style="display:flex;gap:8px;margin-top:12px">'
-      + '<button onclick="go(\'actions\');window._actionsType=\'mail\';rActions()" '
-      + 'style="padding:6px 14px;background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.2);'
-      + 'border-radius:7px;font-size:12px;font-weight:700;color:#58a6ff;cursor:pointer;font-family:var(--font)">Visa mail i Åtgärder</button>'
-      + '<button onclick="go(\'activity\')" '
-      + 'style="padding:6px 14px;background:none;border:1px solid #30363d;'
-      + 'border-radius:7px;font-size:12px;color:#8b949e;cursor:pointer;font-family:var(--font)">Öppna inkorg</button>'
-      + '</div></div>';
-
-    if (!document.getElementById('gmail-morning-briefing')) {
-      el.innerHTML = briefingHtml + existing;
-    }
-  });
-}
-
-// ── Trigger briefing on home screen load ──────────────────────────────────────
-var _origRHome = typeof rHome === 'function' ? rHome : null;
-
-// ══════════════════════════════════════════════════════════════════════════════
-// END SPRINT 3b
-// ══════════════════════════════════════════════════════════════════════════════
-
-// ══════════════════════════════════════════════════════════════════════════════
-// SPRINT 3 — AI-DRIVEN MAIL, OMBOKNING & FÖLJSAMHET
-// ══════════════════════════════════════════════════════════════════════════════
-
-// ── Booking policy ────────────────────────────────────────────────────────────
-var _DEFAULT_REBOOK_POLICY = {
-  minNoticeHours: 24, maxRebooks: 3, maxCancels: 3,
-  slotsToOffer: 3, complianceFlagAt: 2, complianceAlertAt: 3, aiHandlesBookings: true,
-};
-function _getRebookPolicy() {
-  try { return Object.assign({}, _DEFAULT_REBOOK_POLICY, JSON.parse(localStorage.getItem('vela:rebook-policy')||'null')||{}); }
-  catch { return _DEFAULT_REBOOK_POLICY; }
-}
-function _saveRebookPolicy(p) { try { localStorage.setItem('vela:rebook-policy', JSON.stringify(p)); } catch {} }
-
-// ── Compliance tracking ───────────────────────────────────────────────────────
-function _getComplianceStore() { try { return JSON.parse(localStorage.getItem('vela:compliance')||'{}'); } catch { return {}; } }
-function _saveComplianceStore(s) { try { localStorage.setItem('vela:compliance', JSON.stringify(s)); } catch {} }
-
-function _patGetComplianceData(patId) {
-  return _getComplianceStore()[patId] || { rebooks:[], cancels:[], total:0, lastEvent:null };
-}
-
-function _patRecordComplianceEvent(patId, type) {
-  var store = _getComplianceStore();
-  if (!store[patId]) store[patId] = { rebooks:[], cancels:[], total:0, lastEvent:null };
-  var d = store[patId];
-  var now = new Date().toISOString();
-  var cutoff = new Date(Date.now() - 60*24*3600000).toISOString();
-  d[type+'s'] = (d[type+'s']||[]).filter(function(t){ return t > cutoff; });
-  d[type+'s'].push(now);
-  d.total = d.rebooks.length + d.cancels.length;
-  d.lastEvent = now;
-  store[patId] = d;
-  _saveComplianceStore(store);
-  return d;
-}
-
-function _patCheckCompliance(patId) {
-  var p = _getRebookPolicy();
-  var d = _patGetComplianceData(patId);
-  if (d.total >= p.complianceAlertAt) return 2;
-  if (d.total >= p.complianceFlagAt)  return 1;
-  return 0;
-}
-
-function _patComplianceSuggestion(data) {
-  var r = (data.rebooks||[]).length, c = (data.cancels||[]).length;
-  if (c > r && c >= 2) return 'Patienten avbokar ofta. Aktivera SMS-påminnelse 48h innan och fråga om det finns hinder.';
-  if (r > c && r >= 2) return 'Patienten bokar om upprepade gånger. Diskutera tidsflexibilitet vid nästa besök.';
-  if (!data.lastEvent) return 'Observera mönstret vid nästa kontakt.';
-  var days = Math.round((Date.now()-new Date(data.lastEvent))/86400000);
-  if (days > 30) return 'Senaste händelse för '+days+' dagar sedan. Skicka återaktiveringshälsning.';
-  return 'Lyft frågan om behandlingsföljsamhet diskret vid nästa besök.';
-}
-
-function _resetCompliance(patId) {
-  var s = _getComplianceStore(); delete s[patId]; _saveComplianceStore(s); rActions();
-}
-
-// ── Mail issues store ─────────────────────────────────────────────────────────
-function _getMailIssues() { try { return JSON.parse(localStorage.getItem('vela:mail-issues')||'[]'); } catch { return []; } }
-function _saveMailIssues(a) { try { localStorage.setItem('vela:mail-issues', JSON.stringify(a)); } catch {} }
-
-function _addMailIssue(issue) {
-  var all = _getMailIssues();
-  if (all.find(function(m){ return m.id === issue.id; })) return;
-  all.unshift(issue);
-  _saveMailIssues(all.slice(0,50));
-  if (typeof _aktUpdateBadge === 'function') _aktUpdateBadge();
-}
-
-function _closeMailIssue(issueId) {
-  var closed = [];
-  try { closed = JSON.parse(localStorage.getItem('vela:closed-issues')||'[]'); } catch {}
-  if (!closed.find(function(c){ return c.id===issueId; }))
-    closed.push({ id:issueId, at:new Date().toISOString() });
-  try { localStorage.setItem('vela:closed-issues', JSON.stringify(closed)); } catch {}
-}
-
-// ── Gmail poll → Åtgärder ─────────────────────────────────────────────────────
-var _gmailPollRunning = false;
-async function _gmailPollActionable() {
-  if (_gmailPollRunning || !_gmailIsAuthed()) return;
-  _gmailPollRunning = true;
-  try {
-    var threads = await _gmailLoadInbox('in:inbox is:unread -from:me', 20);
-    var closed = new Set([]);
-    try { JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').forEach(function(c){ closed.add(c.id); }); } catch {}
-    for (var t of threads) {
-      var issueId = 'mail_' + t.id;
-      if (closed.has(issueId)) continue;
-      var intent = _gmailDetectIntent(t.subject, t.snippet);
-      if (intent.id === 'system') continue;
-      var fromEmail = (t.from||'').match(/<([^>]+)>/) ? t.from.match(/<([^>]+)>/)[1] : t.from;
-      var pat = (S.patients||[]).find(function(p){ return p.email && fromEmail && p.email.toLowerCase()===fromEmail.toLowerCase(); });
-      var mailIssue = {
-        id: issueId, type:'mail', threadId:t.id,
-        patId: pat?pat.id:null, patName: pat?pat.name:_gmailFromName(t.from),
-        fromEmail: t.from,
-        title: t.subject||'(Inget ämne)',
-        meta: intent.id!=='other' ? intent.label : _gmailFromName(t.from),
-        intentId: intent.id, intentLabel: intent.label,
-        age: 0, ts: t.date||new Date().toISOString(),
-        aiSuggestion: null,
-        aiCanAutoHandle: (intent.id==='scheduling'||intent.id==='cancel'),
-        closeFn:'_closeMailIssue', closeLabel:'Markera hanterad',
-        snippet: t.snippet,
-      };
-      // Auto-generate AI summary for list view
-      _gmailGenerateSummary(t, pat, intent);
-      _addMailIssue(mailIssue);
-    }
-    if (typeof _aktUpdateBadge==='function') _aktUpdateBadge();
-  } finally { _gmailPollRunning = false; }
-}
-
-// ── Rebook flow ───────────────────────────────────────────────────────────────
-async function _aiHandleRebookRequest(gmailMeta, pat, threadId) {
-  var policy = _getRebookPolicy();
-  var bks = typeof getBookings==='function' ? getBookings() : [];
-  var futureBks = bks.filter(function(b){
-    return b.patientId===pat.id && b.status!=='cancelled' && b.date>=new Date().toISOString().slice(0,10);
-  }).sort(function(a,b){ return a.date>b.date?1:-1; });
-  var targetBk = futureBks[0];
-
-  if (targetBk) {
-    var hours = (new Date(targetBk.date+'T'+(targetBk.time||'08:00')) - new Date()) / 3600000;
-    if (hours < policy.minNoticeHours) {
-      var cfg = getClinicConfig();
-      await _velaSendMail(pat.email, 'Re: '+(gmailMeta.subject||'Din bokning'),
-        'Hej '+pat.name.split(' ')[0]+',\n\nTyvärr är det för sent att boka om (kräver '+policy.minNoticeHours+'h varsel).\nKontakta oss gärna via telefon.\n\nMed vänliga hälsningar,\nCarl-Robert Kärell\nKansei Ortopedi & Rehabcenter');
-      if (threadId) _closeMailIssue('mail_'+threadId);
-      showAutoSaveToast('AI svarade: för kort varsel');
-      return { ok:true, action:'too_late' };
-    }
-  }
-
-  var therapists = typeof getTherapists==='function' ? getTherapists() : [];
-  var tId = (therapists[0]||{}).id||'default';
-  var allSlots = [];
-  for (var d=1; d<21 && allSlots.length < policy.slotsToOffer*4; d++) {
-    var dt = new Date(Date.now()+d*86400000);
-    var ds = dt.toISOString().slice(0,10);
-    var daySlots = getAvailableSlots(tId, ds, targetBk?(targetBk.duration||45):45);
-    daySlots.filter(function(s){ return s.available; }).forEach(function(s){ allSlots.push({date:ds,time:s.time}); });
-  }
-  var offered = allSlots.slice(0, policy.slotsToOffer);
-
-  if (!offered.length) {
-    await _velaSendMail(pat.email, 'Re: '+(gmailMeta.subject||'Din bokning'),
-      'Hej '+pat.name.split(' ')[0]+',\n\nVi ser inga lediga tider de närmaste dagarna. Vi återkommer!\n\nMed vänliga hälsningar,\nCarl-Robert Kärell\nKansei Ortopedi & Rehabcenter');
-    return { ok:true, action:'no_slots' };
-  }
-
-  var slotParam = offered.map(function(s){ return s.date+'@'+s.time; }).join(',');
-  var rebookUrl = getPortalEntryUrl(pat.id) + '?rebook='+(targetBk?targetBk.id:'new')+'&slots='+encodeURIComponent(slotParam);
-
-  function fmtSv(s) {
-    var dd = new Date(s.date+'T12:00');
-    return dd.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})+' kl '+s.time;
-  }
-
-  var mailBody = 'Hej '+pat.name.split(' ')[0]+'!\n\nInga problem, vi hjälper dig att boka om.\n\nLediga tider:\n\n'
-    + offered.map(function(s){ return '  \u2022 '+fmtSv(s); }).join('\n')
-    + '\n\nKlicka här för att välja din tid:\n' + rebookUrl
-    + '\n\nHör av dig om ingen tid passar!\n\nMed vänliga hälsningar,\nCarl-Robert Kärell\nKansei Ortopedi & Rehabcenter';
-
-  var result = await _velaSendMail(pat.email, 'Lediga tider för ombokning', mailBody);
-  if (result && result.ok) {
-    _patRecordComplianceEvent(pat.id, 'rebook');
-    _addMailIssue({
-      id:'rebook_'+(targetBk?targetBk.id:Date.now()), type:'rebook',
-      patId:pat.id, patName:pat.name,
-      title:'Inväntar val — '+offered.length+' alternativ skickade',
-      meta: targetBk?'Gäller '+targetBk.date+' kl '+(targetBk.time||''):'',
-      age:0, ts:new Date().toISOString(),
-      aiSuggestion:'AI skickade '+offered.length+' tidsalternativ. Patienten väljer via portalen.',
-      closeFn:'_closeMailIssue', closeLabel:'Avsluta ärendet',
-    });
-    if (threadId) _closeMailIssue('mail_'+threadId);
-    showAutoSaveToast('AI skickade '+offered.length+' tider till '+pat.name.split(' ')[0]+' ✓');
-    return { ok:true, action:'slots_sent', offered:offered };
-  }
-  return { ok:false };
-}
-
-// ── Rebook policy settings ────────────────────────────────────────────────────
-function _stRebookPolicy() {
-  var p = _getRebookPolicy();
-  function sel(id, val, opts) {
-    var s = '<select id="'+id+'" onchange="_onPolicyChange()" style="background:#21262d;border:1px solid #30363d;border-radius:6px;padding:6px 10px;font-size:13px;color:#e6edf3;font-family:var(--font);cursor:pointer">';
-    opts.forEach(function(o){ s+='<option value="'+o.v+'"'+(val==o.v?' selected':'')+'>'+(o.l)+'</option>'; });
-    return s+'</select>';
-  }
-  function row(lbl,desc,inp) {
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #21262d">'
-      +'<div><div style="font-size:13px;font-weight:600;color:#e6edf3">'+lbl+'</div><div style="font-size:12px;color:#6e7681;margin-top:2px">'+desc+'</div></div>'
-      +'<div>'+inp+'</div></div>';
-  }
-  return '<div style="padding:4px 0">'
-    +'<div style="font-size:14px;font-weight:700;color:#e6edf3;margin-bottom:16px">Omboknings- & följsamhetspolicy</div>'
-    + row('Minsta varsel för ombokning','Patienter kan inte boka om kortare tid än detta',sel('rp-notice',p.minNoticeHours,[{v:12,l:'12 h'},{v:24,l:'24 h (standard)'},{v:48,l:'48 h'},{v:72,l:'72 h'}]))
-    + row('Max ombokningar per patient','Räknat 90 dagar — fler flaggas',sel('rp-rebooks',p.maxRebooks,[{v:1,l:'1'},{v:2,l:'2'},{v:3,l:'3 (standard)'},{v:99,l:'Obegränsat'}]))
-    + row('Antal tidsalternativ AI erbjuder','Hur många tider AI skickar till patienten',sel('rp-slots',p.slotsToOffer,[{v:2,l:'2'},{v:3,l:'3 (standard)'},{v:5,l:'5'}]))
-    + row('Notering på patientkort vid','Tyst notering, ej synlig för patient',sel('rp-flag',p.complianceFlagAt,[{v:2,l:'2 händelser / 60 dagar'},{v:3,l:'3 händelser'},{v:4,l:'4 händelser'}]))
-    + row('Aktiv alert i Åtgärder vid','Visas i Åtgärder och patientkort',sel('rp-alert',p.complianceAlertAt,[{v:3,l:'3 händelser / 60 dagar'},{v:4,l:'4 händelser'},{v:5,l:'5 händelser'}]))
-    +'<div style="margin-top:14px;padding:12px;background:rgba(224,118,40,.04);border:1px solid rgba(224,118,40,.1);border-radius:8px;font-size:12px;color:#8b949e">AI faciliterar ombokningar — patienten väljer alltid sin tid via portalen.</div>'
-    +'</div>';
-}
-function _onPolicyChange() {
-  var g=function(id,def){ var el=document.getElementById(id); return el?parseInt(el.value):def; };
-  var p=_getRebookPolicy();
-  p.minNoticeHours=g('rp-notice',24); p.maxRebooks=g('rp-rebooks',3); p.slotsToOffer=g('rp-slots',3);
-  p.complianceFlagAt=g('rp-flag',2); p.complianceAlertAt=g('rp-alert',3);
-  _saveRebookPolicy(p); showAutoSaveToast('Policy sparad \u2713');
-}
-
-// ══════════════════════════════════════════════════════════════════════════════
-// END SPRINT 3
-// ══════════════════════════════════════════════════════════════════════════════
-
-
-// ── Quick SMS dialog ──────────────────────────────────────────────────────────
-function openQuickSmsDialog(patId) {
-  var pat=(S.patients||[]).find(function(p){return p.id===patId;});
-  if(!pat||!pat.phone){showAutoSaveToast('Klienten saknar telefonnummer');return;}
-  var ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;z-index:700;background:rgba(7,16,30,.72);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;padding:20px';
-  ov.onclick=function(ev){if(ev.target===ov)ov.remove();};
-  ov.innerHTML='<div style="background:#161b22;border:1px solid #30363d;border-radius:16px;width:100%;max-width:480px" onclick="event.stopPropagation()">'
-    +'<div style="padding:16px 20px;border-bottom:1px solid #21262d;display:flex;align-items:center;justify-content:space-between">'
-    +'<div><div style="font-size:15px;font-weight:700;color:#e6edf3">Skicka SMS</div>'
-    +'<div style="font-size:13px;color:#6e7681;margin-top:2px">'+e(pat.name)+' · '+e(pat.phone)+'</div></div>'
-    +'<button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;color:#6e7681;font-size:22px;cursor:pointer;padding:0">×</button>'
-    +'</div><div style="padding:16px 20px">'
-    +'<textarea id="qsms-ta" style="width:100%;box-sizing:border-box;background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:12px;font-size:13px;color:#e6edf3;font-family:var(--font);line-height:1.6;resize:vertical;min-height:100px;outline:none" placeholder="Skriv meddelande..."></textarea>'
-    +'<div style="display:flex;gap:8px;margin-top:12px">'
-    +'<button id="qsms-s" style="padding:9px 20px;background:var(--teal);color:#0d1117;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Skicka SMS</button>'
-    +'<button id="qsms-a" style="padding:8px 14px;background:none;border:1px solid rgba(224,118,40,.3);border-radius:8px;font-size:13px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">AI-förslag</button>'
-    +'<button onclick="this.closest('[style*=fixed]').remove()" style="padding:8px 14px;background:none;border:1px solid #30363d;border-radius:8px;font-size:13px;color:#8b949e;cursor:pointer;font-family:var(--font)">Avbryt</button>'
-    +'</div></div></div>';
-  document.body.appendChild(ov);
-  var ta=ov.querySelector('#qsms-ta');
-  ov.querySelector('#qsms-s').onclick=async function(){
-    var b=ta.value.trim();if(!b)return;
-    this.disabled=true;this.textContent='Skickar...';
-    var r=await _velaSendSMS(pat.phone,b);
-    if(r&&r.ok){_aktLogEntry('sms','SMS skickat',pat.name,b.slice(0,60));showAutoSaveToast('SMS skickat ✓');ov.remove();}
-    else{this.disabled=false;this.textContent='Skicka SMS';showAutoSaveToast('SMS misslyckades');}
-  };
-  ov.querySelector('#qsms-a').onclick=async function(){
-    var key=typeof _velaGetApiKey==='function'?_velaGetApiKey('anthropic'):null;
-    if(!key){showAutoSaveToast('API-nyckel saknas');return;}
-    this.disabled=true;this.textContent='Genererar...';
-    try{var r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:100,
-        messages:[{role:'user',content:'Kort professionellt SMS på svenska till '+pat.name+', max 160 tecken. Från Carl-Robert, naprapat. Ingen signatur.'}]})});
-      var d=await r.json();var t=d.content?.[0]?.text||'';if(t)ta.value=t.trim();
-    }catch(ex){}
-    this.disabled=false;this.textContent='AI-förslag';
-  };
-}
-
-// ── clientTerm ────────────────────────────────────────────────────────────────
-function clientTerm(cap, plural) {
-  var t = ((typeof getClinicConfig==='function'?getClinicConfig():{}).clientTerm)||'klient';
-  if (plural) { var pl={klient:'klienter',patient:'patienter',kund:'kunder',gäst:'gäster',deltagare:'deltagare'}; t=pl[t]||t+'er'; }
-  return cap ? t.charAt(0).toUpperCase()+t.slice(1) : t;
-}
-
 // VELA COMMUNICATIONS ENGINE — Resend (mail) + 46elks (SMS) + retention dispatcher
 // ══════════════════════════════════════════════════════════════════════════════
 
@@ -28095,7 +27304,6 @@ function _renderSettingsContent(tab) {
   else if (tab === 'profile')       el.innerHTML = _stUserProfile();
   else if (tab === 'preferences')   el.innerHTML = _stPreferences();
   else if (tab === 'sms')           { window._commsTab = 'sms'; el.innerHTML = _stComms(cfg); }
-  else if (tab === 'rebook-policy') el.innerHTML = _stRebookPolicy();
 }
 
 
@@ -29656,32 +28864,6 @@ function _stClinic(cfg) {
   h += '<button onclick="toggleTheme()" class="btn btn-p" style="font-size:13px;padding:7px 14px">Byt till '+(isLight?'mörkt':'ljust')+'</button>';
   h += '</div></div>';
   // Save
-  // Client term selector
-  h += '<div style="margin-top:24px;padding-top:20px;border-top:1px solid #30363d">';
-  h += '<div class="vela-st-label">Vad kallar du dem du behandlar?</div>';
-  var terms = ['klient','patient','kund','gäst','deltagare'];
-  var curTerm = cfg.clientTerm || 'klient';
-  h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">';
-  terms.forEach(function(t){
-    var active = curTerm === t;
-    h += '<button onclick="var c=getClinicConfig();c.clientTerm=\''+t+'\';saveClinicConfig(c);showAutoSaveToast(\'Sparat\');_renderSettingsContent(\'clinic\')" '
-      + 'style="padding:7px 16px;border-radius:8px;border:1px solid '+(active?'var(--teal)':'#30363d')+';background:'+(active?'rgba(224,118,40,.08)':'none')+';'
-      + 'font-size:13px;font-weight:'+(active?'700':'500')+';color:'+(active?'var(--teal)':'#8b949e')+';cursor:pointer;font-family:var(--font);text-transform:capitalize;transition:all .12s">'
-      + t + '</button>';
-  });
-  h += '</div>';
-  h += '<div style="font-size:12px;color:#6e7681;margin-top:8px">Ändrar benämningen i hela gränssnittet.</div>';
-  h += '</div>';
-
-  h += '<div style="margin-top:20px;padding-top:20px;border-top:1px solid #30363d">';
-  h += '<div class="vela-st-label">Vad kallar du dem du behandlar?</div>';
-  var _cterms=['klient','patient','kund','gäst','deltagare'], _cact=cfg.clientTerm||'klient';
-  h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">';
-  _cterms.forEach(function(t){ var a=_cact===t;
-    h+='<button onclick="var c=getClinicConfig();c.clientTerm=\''+t+'\';saveClinicConfig(c);showAutoSaveToast(\'Sparat\');_renderSettingsContent(\'clinic\')" '
-     +'style="padding:7px 16px;border-radius:8px;border:1px solid '+(a?'var(--teal)':'#30363d')+';background:'+(a?'rgba(224,118,40,.08)':'none')+';font-size:13px;font-weight:'+(a?'700':'500')+';color:'+(a?'var(--teal)':'#8b949e')+';cursor:pointer;font-family:var(--font);text-transform:capitalize">'+t+'</button>';
-  });
-  h += '</div><div style="font-size:12px;color:#6e7681;margin-top:8px">Ändrar benämningen i hela gränssnittet.</div></div>';
   h += '<div style="margin-top:24px;display:flex;align-items:center;gap:12px">';
   h += '<button onclick="ccSave()" class="btn btn-p" style="padding:12px 28px">Spara klinikprofil</button>';
   h += '<span id="cc-saved" style="font-size:13px;color:var(--teal);opacity:0;transition:opacity .3s">Sparad ✓</span>';
@@ -31247,8 +30429,7 @@ function _renderMorningReportCard() {
 
   var report = getMorningReport();
   if (!report) {
-    // Still show Gmail briefing if available
-    _renderGmailMorningBriefing(el);
+    el.innerHTML = '';
     return;
   }
 
@@ -37344,16 +36525,6 @@ function getAiProfileContext(userId) {
         setTimeout(() => syncFromCloud(), 800);
         setTimeout(() => _dispatchRetentionQueue(), 3000);
         setInterval(() => _dispatchRetentionQueue(), 15 * 60 * 1000);
-        // Sprint 3: Gmail poll → Åtgärder
-        setTimeout(function(){ if (typeof _gmailPollActionable === 'function') _gmailPollActionable(); }, 5000);
-        // Morning briefing on home after Gmail loaded
-        setTimeout(function(){
-          if (typeof _renderGmailMorningBriefing === 'function') {
-            var mrel = document.getElementById('morning-report-card');
-            if (mrel) _renderGmailMorningBriefing(mrel);
-          }
-        }, 7000);
-        setInterval(function(){ if (typeof _gmailPollActionable === 'function') _gmailPollActionable(); }, 2 * 60 * 1000);
         setTimeout(() => sbKeepAlive(), 2000);
         setTimeout(function(){ runNightlyScanIfNeeded().then(function(){ _renderMorningReportCard(); }); }, 3000);
         setTimeout(() => runInboxAgent(S.patients), 3500);
@@ -37376,6 +36547,8 @@ function getAiProfileContext(userId) {
 <script>
 // ── PWA: inline manifest via blob URL ────────────────────────────────────────
 (function() {
+  // Skip in srcdoc/iframe/restricted CSP contexts
+  if (location.protocol === 'about:' || location.protocol === 'blob:' || window !== window.top) return;
   var manifest = {
     name: 'Vela',
     short_name: 'Vela',
@@ -37415,7 +36588,7 @@ function getAiProfileContext(userId) {
 
 // ── Service Worker — offline cache + PWA ─────────────────────────────────────
 // GitHub Pages blocks blob: SW registration. We use a workaround:
-// SW via blob: URL — works on GitHub Pages (blob: is supported), just not in some sandboxed iframes
+// SW via blob: URL — NOT supported on GitHub Pages (blob: scheme blocked by browser)
 var _isGHPages = location.hostname.endsWith('.github.io');
 var _blobProtoOk = (function() {
   try {
@@ -37427,7 +36600,7 @@ var _blobProtoOk = (function() {
   } catch(e) { return false; }
 })();
 
-if ('serviceWorker' in navigator && _blobProtoOk) {
+if ('serviceWorker' in navigator && !_isGHPages && _blobProtoOk) {
   var _swCode = [
     "const CACHE_NAME='vela-v3';",
     "const APP_SHELL=[location.href];",
@@ -37506,6 +36679,45 @@ function _updateThemeColorMeta() {
   document.querySelectorAll('meta[name="theme-color"]').forEach(function(m) { m.content = color; });
 }
 document.addEventListener('DOMContentLoaded', _updateThemeColorMeta);
+
+// ── Vela UI runtime enhancements ─────────────────────────────────────────────
+(function _velaUIRuntime() {
+  // Ripple on all buttons
+  function addRipple(e) {
+    var btn = e.currentTarget;
+    var r = btn.querySelector('.vela-ripple-el');
+    if (r) r.remove();
+    var circle = document.createElement('span');
+    var rect = btn.getBoundingClientRect();
+    var size = Math.max(rect.width, rect.height);
+    circle.className = 'vela-ripple-el';
+    circle.style.cssText = 'position:absolute;border-radius:50%;pointer-events:none;' +
+      'background:rgba(255,255,255,.12);width:' + size + 'px;height:' + size + 'px;' +
+      'left:' + (e.clientX - rect.left - size/2) + 'px;' +
+      'top:' + (e.clientY - rect.top - size/2) + 'px;' +
+      'animation:vela-ripple .5s ease forwards;';
+    btn.appendChild(circle);
+    setTimeout(function(){ if (circle.parentNode) circle.remove(); }, 520);
+  }
+
+  function wireButtons() {
+    document.querySelectorAll('.act-btn, .gh-btn, .vcal-new-btn, .vcal-today-btn').forEach(function(btn) {
+      if (!btn._velaRipple) {
+        btn._velaRipple = true;
+        btn.addEventListener('click', addRipple);
+      }
+    });
+  }
+
+  // Wire immediately and on DOM mutations (for dynamically rendered buttons)
+  wireButtons();
+  var _rObs = new MutationObserver(function(muts) {
+    var shouldWire = muts.some(function(m){ return m.addedNodes.length > 0; });
+    if (shouldWire) wireButtons();
+  });
+  _rObs.observe(document.body, { childList: true, subtree: true });
+})();
+
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', _updateThemeColorMeta);
 </script>
 </body>

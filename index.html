@@ -19227,7 +19227,7 @@ function _toolsHub() {
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px">
       ${tools.map(t=>`
-      <button onclick="_toolsActiveTool='${t.id}';_renderToolsScreen()" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;text-align:left;cursor:pointer;font-family:var(--font);transition:border-color .12s" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
+      <button onclick="_toolsActiveTool='${t.id}';_renderToolsScreen()" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:20px;text-align:left;cursor:pointer;font-family:var(--font);transition:border-color .12s" onmouseover="this.style.borderColor=\'var(--orange)\'" onmouseout="this.style.borderColor=\'var(--border)\'">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
           <div style="width:36px;height:36px;border-radius:8px;background:rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${t.color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${t.icon}</svg>
@@ -19717,7 +19717,7 @@ function _toolsRedFlags() {
     ${allFlags.length===0?`<div style="text-align:center;padding:56px 0;color:var(--text)">
       <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--surface3)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:10px;display:block;margin-left:auto;margin-right:auto"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
       Inga flaggor registrerade ännu</div>`
-    :allFlags.map(f=>`<div onclick="openPat&&openPat('${f.patId}')" style="padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:6px;margin-bottom:7px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .1s" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
+    :allFlags.map(f=>`<div onclick="openPat&&openPat('${f.patId}')" style="padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:6px;margin-bottom:7px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .1s" onmouseover="this.style.borderColor=\'var(--orange)\'" onmouseout="this.style.borderColor=\'var(--border)\'">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;color:var(--ink)">${e(f.patName)}</div>
@@ -20550,7 +20550,7 @@ function _silentQualityCheck(soap, patId) {
       + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
       + '<div style="flex:1"><div style="font-size:12px;color:var(--text);line-height:1.5">' + e(fi.msg) + '</div>'
       + (issues.length > 1 ? '<div style="font-size:11px;color:var(--text2);margin-top:2px">+ ' + (issues.length-1) + ' obs till</div>' : '') + '</div>'
-      + '<button onclick="_qualityDismiss('' + (patId+':'+fi.id) + '',document.getElementById('quality-hint-bar'))" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:16px;padding:0;line-height:1">\u00d7</button>'
+      + '<button onclick="_qualityDismiss(\'' + (patId+':'+fi.id) + '\',document.getElementById(\'quality-hint-bar\'))" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:16px;padding:0;line-height:1">\u00d7</button>'
       + '</div>';
     document.body.appendChild(bar);
     setTimeout(function(){ bar && bar.remove(); }, 9000);
@@ -20571,7 +20571,7 @@ function _renderEvidenceButton() {
   var wrap = document.createElement('div');
   wrap.id = 'evidence-btn-wrap';
   wrap.style.cssText = 'padding:8px 0 0;border-top:1px solid var(--border2);margin-top:8px';
-  wrap.innerHTML = '<button onclick="_askClinicalEvidence()" style="width:100%;padding:7px 10px;background:none;border:1px dashed var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">'
+  wrap.innerHTML = '<button onclick="_askClinicalEvidence()" style="width:100%;padding:7px 10px;background:none;border:1px dashed var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px" onmouseover="this.style.borderColor=\'var(--orange)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
     + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
     + 'Fråga forskningen →</button>';
   panel.appendChild(wrap);
@@ -20606,7 +20606,7 @@ function _renderEvidenceResult(r) {
 }
 function _resetEvidenceBtn() {
   var wrap = document.getElementById('evidence-btn-wrap'); if (!wrap) return;
-  wrap.innerHTML = '<button onclick="_askClinicalEvidence()" style="width:100%;padding:7px 10px;background:none;border:1px dashed var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">'
+  wrap.innerHTML = '<button onclick="_askClinicalEvidence()" style="width:100%;padding:7px 10px;background:none;border:1px dashed var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px" onmouseover="this.style.borderColor=\'var(--orange)\'" onmouseout="this.style.borderColor=\'var(--border)\'">'
     + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>Fråga forskningen →</button>';
 }
 
@@ -38886,17 +38886,6 @@ function _notifyWaitlistOnCancellation(cancelledBk) {
   if (matched.length) {
     showAutoSaveToast(matched.length + ' väntelistematch' + (matched.length>1?'ar':'') + ' notifierade');
   }
-}
-    sub: cancelledBk.date + ' kl ' + cancelledBk.time,
-    icon: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
-    channel: 'sms', urgency: 'high',
-    context: { type:'waitlist', date:cancelledBk.date, time:cancelledBk.time }
-  };
-  var body = 'Hej ' + topWaiter.patName.split(' ')[0] + '! En tid har blivit ledig: ' +
-    _fmtBookingDate(cancelledBk.date) + ' kl ' + cancelledBk.time +
-    '. Svara JA för att boka eller ring oss.';
-  queueRetentionAction(sig, { body:body, channel:'sms', subject:'Ledig tid' });
-  showAutoSaveToast('Väntelistepatienten ' + topWaiter.patName + ' meddelas automatiskt');
 }
 
 function openRecurringBookingDialog(patId, startDate, startTime) {

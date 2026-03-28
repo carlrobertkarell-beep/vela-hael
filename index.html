@@ -16683,7 +16683,7 @@ function buildPr(f, locked=[]) {
     ? `\n\nBEHANDLARENS FOKUS (PRIORITERA DESSA):\n${f.notes}`
     : "";
 
-  const allContext = phaseContext + diagContext + notesContext + prevContext + passContext + soapContext + clinFocus;
+  const allContext = phaseContext + diagContext + notesContext + prevContext + passContext + soapContext + clinFocus + _buildFeedbackContext();
 
   // -- KLINISK PROGRESSIONSMODELL PER DIAGNOSKATEGORI -----------------------
   const diagLower = (f.diagnosis || '').toLowerCase();
@@ -17288,8 +17288,7 @@ async function _showTreatmentNarrative(pat) {
   const nrsTrend = allNrs.length >= 2 ? allNrs[allNrs.length-1] - allNrs[0] : null;
   const treatmentWeeks = visits.length > 1 ? Math.round((new Date(visits[0].date) - new Date(visits[visits.length-1].date)) / (7*86400000)) : 0;
 
-  const prompt = `Du är en erfaren naprapath som granskar ett patientärende för att ge din kollega klinisk feedback.
-
+  const prompt = `Du är en erfaren naprapath som granskar ett patientärende för att ge din kollega klinisk feedback.${_buildFeedbackContext()}
 Patient: ${pat.name}, diagnos: ${pat.diagnosis||'okänd'}, ${visits.length} besök under ${treatmentWeeks} veckor.
 ${nrsTrend !== null ? `NRS-trend: ${nrsTrend < 0 ? 'förbättring ' + Math.abs(nrsTrend) + ' poäng' : nrsTrend > 0 ? 'försämring ' + nrsTrend + ' poäng' : 'oförändrad'}` : ''}
 
@@ -17407,7 +17406,8 @@ Följsamhetsnivå: ${compLevel} (0=ok, 1=varna, 2=kritisk)
 Senaste journal A: ${soap.A?.slice(0,200)||'saknas'}
 Senaste journal P: ${soap.P?.slice(0,200)||'saknas'}`;
 
-  const prompt = `Du är AI-assistent i ett kliniksystem. Ge en kort klinisk sammanfattning för ${pat.name}.
+  const feedbackCtx = _buildFeedbackContext();
+  const prompt = `Du är AI-assistent i ett kliniksystem. Ge en kort klinisk sammanfattning för ${pat.name}.${feedbackCtx}
 
 ${ctx}
 
@@ -18337,7 +18337,7 @@ async function runClinicalAnalysis(text) {
     }).filter(s=>s.length>10).join('\n');
     return `Patient: ${p.name}, f.${p.birthdate||p.birthYear||'?'}, diagnos: ${p.diagnosis||'okänd'}${prevVisits?'\nTidigare besök:\n'+prevVisits:''}`;
   })() : '';
-  const prompt = `Du är erfaren klinisk fysioterapeut som handleder en kollega i realtid. Analysera materialet nedan. Svara ENBART med JSON utan backticks.\n\n${patInfo}\n\nTEXT/TRANSKRIPT:\n${text.slice(-2000)}\n\nJSON-format:\n{"tentativeDiagnosis":[{"name":"Diagnos","icd10":"M54.5","probability":"Hög","reasoning":"kortfattad motivering"}],"redFlags":[],"missingInfo":["fråga 1","fråga 2"],"priorityTests":[{"test":"Testnamn","rationale":"varför","finding":"förväntat fynd"}],"treatmentGuidelines":["riktlinje 1","riktlinje 2"],"nextStep":"Vad du bör göra härnäst"}\n\nViktigt: icd10 ska vara exakt ICD-10 kod (t.ex. M54.5, M75.1, S83.2). Inkludera alltid icd10 i varje diagnos.`;
+  const prompt = `Du är erfaren klinisk fysioterapeut som handleder en kollega i realtid. Analysera materialet nedan. Svara ENBART med JSON utan backticks.${_buildFeedbackContext()}\n\n${patInfo}\n\nTEXT/TRANSKRIPT:\n${text.slice(-2000)}\n\nJSON-format:\n{"tentativeDiagnosis":[{"name":"Diagnos","icd10":"M54.5","probability":"Hög","reasoning":"kortfattad motivering"}],"redFlags":[],"missingInfo":["fråga 1","fråga 2"],"priorityTests":[{"test":"Testnamn","rationale":"varför","finding":"förväntat fynd"}],"treatmentGuidelines":["riktlinje 1","riktlinje 2"],"nextStep":"Vad du bör göra härnäst"}\n\nViktigt: icd10 ska vara exakt ICD-10 kod (t.ex. M54.5, M75.1, S83.2). Inkludera alltid icd10 i varje diagnos.`;
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:MODEL_HAIKU,max_tokens:1200,system:"Svara ALLTID med giltig JSON. Inga backticks.",messages:[{role:"user",content:prompt}]})});
     const data = await res.json();
@@ -18808,6 +18808,21 @@ async function saveSOAPToVisit(goToPlan) {
   // ── Tyst kvalitetskontroll ────────────────────────────────────
   if (S.screen === 'manualsoap' || S.screen === 'sbs-soap') {
     setTimeout(function(){ _silentQualityCheck(mergedSoap, saved.id); }, 2000);
+  }
+
+  // ── Invalidera behandlingsnarrativ — ny SOAP = stale cache ────
+  if (typeof _narrativeCache !== 'undefined') {
+    Object.keys(_narrativeCache).forEach(function(k){
+      if (k.startsWith(saved.id + ':')) delete _narrativeCache[k];
+    });
+  }
+  if (S.pat && S.pat.id === saved.id && S.screen === 'detail') {
+    setTimeout(function(){
+      S.pat = saved;
+      var slot = document.getElementById('pat-narrative-slot');
+      if (slot) slot.innerHTML = '';
+      _showTreatmentNarrative && _showTreatmentNarrative(saved);
+    }, 1500);
   }
 
   // ── Auto-Hael: queue a plan suggestion if SOAP has enough content ─
@@ -20291,18 +20306,41 @@ const VelaAgent = (function() {
     var allNrs = visits.flatMap(function(v){ return (v.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }); });
     var nrsTrend = allNrs.length >= 2 ? (allNrs[allNrs.length-1] - allNrs[0]) : null;
 
+    // ── Enrich brief with outcome, comm history and feedback ─────────────────
+    var _outcomes = typeof getOutcomes==='function' ? getOutcomes(p.id).slice(-3) : [];
+    var _outcomeStr = _outcomes.length ? ('\nOutcome-data: ' + _outcomes.map(function(o){
+      var pp=[];
+      if(o.nrs!=null)pp.push('NRS '+o.nrs);
+      if(o.rom!=null)pp.push('ROM '+o.rom+'°');
+      if(o.funcGains)pp.push('Bättre: '+o.funcGains);
+      if(o.funcLoss)pp.push('Sämre: '+o.funcLoss);
+      return (o.date||'')+': '+pp.join(', ');
+    }).join(' | ')) : '';
+
+    var _commHist = typeof _getPatientCommHistory==='function' ? _getPatientCommHistory(p.id,4) : [];
+    var _commStr = _commHist.length ? ('\nKomm-historik: ' + _commHist.map(function(c){
+      return new Date(c.ts).toLocaleDateString('sv-SE')+' — '+c.msg.slice(0,50);
+    }).join(' | ')) : '';
+
+    var _fbStr = '';
+    try {
+      var _fb = JSON.parse(localStorage.getItem('vela:feedback:'+p.id)||'null');
+      if (_fb && _fb.stars) _fbStr = '\nPatientomdöme: '+_fb.stars+'/5' + (_fb.text ? ' (”'+_fb.text.slice(0,60)+'“)' : '');
+    } catch(e2){}
+
     var ctx = 'Patient: ' + p.name + ', f.' + (p.birthdate||p.birthYear||'okänt') + '\n'
       + 'Diagnos: ' + (p.diagnosis||'okänd') + '\n'
       + 'Besök nr: ' + visitNr + '\n'
       + 'NRS-trend: ' + (nrsTrend !== null ? (nrsTrend < 0 ? 'förbättring ' + Math.abs(nrsTrend) : nrsTrend > 0 ? 'försämring ' + nrsTrend : 'stabil') : 'okänd') + '\n'
       + 'Senaste journal A: ' + (soap.A||'').slice(0,200) + '\n'
       + 'Senaste journal P: ' + (soap.P||'').slice(0,200) + '\n'
-      + 'Tjänst: ' + (bk.serviceName||'okänd') + ', ' + (bk.duration||45) + ' min';
+      + 'Tjänst: ' + (bk.serviceName||'okänd') + ', ' + (bk.duration||45) + ' min'
+      + _outcomeStr + _commStr + _fbStr;
 
     var prompt = 'Du är AI-naprapath och förbereder en behandlare inför ett patientbesök.\n\n'
       + ctx + '\n\n'
       + 'Generera en besöksbrief. Svara ENBART med JSON (inga backticks):\n'
-      + '{"focus":"Vad behandlaren ska fokusera på (1 mening)","tests":["Test 1","Test 2"],"questions":["Fråga till patienten 1","Fråga 2"],"watchFor":"Röd flagga att hålla utkik efter om relevant, annars null","prepNote":"Kort klinisk sammanfattning för behandlaren (2-3 meningar)"}';
+      + '{"focus":"Vad behandlaren ska fokusera på (1 mening)","tests":["Test 1","Test 2"],"questions":["Fråga till patienten 1","Fråga 2"],"watchFor":"Röd flagga att hålla utkik efter om relevant, annars null","prepNote":"Kort klinisk sammanfattning för behandlaren (2-3 meningar)"}'  ;
 
     try {
       var res = await fetch('https://api.anthropic.com/v1/messages', {

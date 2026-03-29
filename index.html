@@ -5510,39 +5510,24 @@ function getBookings() {
 }
 function saveBookings(bks) {
   try { localStorage.setItem(BOOKINGS_KEY, JSON.stringify(bks)); } catch {}
-  // Sync to Supabase so daily-agent can read bookings server-side
   _sbSyncBookings(bks).catch(function(){});
 }
 
-// Sync all bookings to Supabase bookings table (upsert)
 async function _sbSyncBookings(bks) {
   if (!bks || !bks.length) return;
-  // Only sync upcoming + recent (last 30 days) — not entire history
   var cutoff = new Date(Date.now() - 30 * 86400000).toISOString().slice(0,10);
   var relevant = bks.filter(function(b){ return b.date >= cutoff; });
   if (!relevant.length) return;
   var rows = relevant.map(function(b) {
-    return {
-      id:           b.id,
-      patient_id:   b.patientId || null,
-      date:         b.date,
-      time:         b.time || null,
-      status:       b.status || 'scheduled',
-      service_name: b.serviceName || b.service || null,
-      duration:     b.duration || 45,
-      price:        b.price || b.servicePrice || 0,
-      data:         b,
-      updated_at:   new Date().toISOString(),
-    };
+    return { id: b.id, patient_id: b.patientId||null, date: b.date, time: b.time||null,
+      status: b.status||'scheduled', service_name: b.serviceName||null,
+      duration: b.duration||45, price: b.price||b.servicePrice||0, data: b,
+      updated_at: new Date().toISOString() };
   });
   try {
     await fetch(SB_URL + '/rest/v1/bookings', {
       method: 'POST',
-      headers: {
-        ...sbHeaders(),
-        'Prefer': 'resolution=merge-duplicates,return=minimal',
-        'on_conflict': 'id'
-      },
+      headers: { ...sbHeaders(), 'Prefer': 'resolution=merge-duplicates,return=minimal', 'on_conflict': 'id' },
       body: JSON.stringify(rows)
     });
   } catch(e) {}
@@ -7040,27 +7025,27 @@ function _vcalOpenBk(bkId) {
       + '</div></div>';
   }
 
-  pop.innerHTML = `<div style="height:3px;background:${color}"></div>
-    <div style="padding:14px 16px 10px;display:flex;align-items:flex-start;justify-content:space-between">
-      <div>
-        <div style="font-size:15px;font-weight:700;color:var(--ink)">${e(bk.patientName||'')}</div>
-        <div style="font-size:12px;color:var(--text);margin-top:2px">${e(bk.serviceName||'')} · ${bk.duration||45} min</div>
-      </div>
-      <button onclick="document.getElementById('vcal-popover').remove();window._calState.popover=null" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;line-height:1;padding:0 2px">×</button>
-    </div>
-    ${patContextHtml}
-    ${briefHtml}
-    <div style="padding:8px 14px 12px;display:flex;flex-direction:column;gap:5px">
-      <div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text)">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        ${e(bk.date||'')} kl ${e(bk.time||'')}
-        <span style="margin-left:auto;padding:1px 7px;background:rgba(224,118,40,.08);color:var(--teal);border-radius:4px;font-size:11px;font-weight:600">${status}</span>
-      </div>
-    </div>
-    <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:6px">
-      <button onclick="document.getElementById('vcal-popover').remove();openPat('${bk.patientId||''}')" style="flex:1;padding:8px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Patient →</button>
-      <button onclick="document.getElementById('vcal-popover').remove();openBookingDetail('${bk.id}')" style="flex:1;padding:8px;background:#238636;border:none;border-radius:6px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;font-family:var(--font)">Ta emot</button>
-    </div>`;
+  pop.innerHTML = '<div style="height:3px;background:' + color + '"></div>'
+    + '<div style="padding:14px 16px 10px;display:flex;align-items:flex-start;justify-content:space-between">'
+    + '<div>'
+    + '<div style="font-size:15px;font-weight:700;color:var(--ink)">' + e(bk.patientName||'') + '</div>'
+    + '<div style="font-size:12px;color:var(--text);margin-top:2px">' + e(bk.serviceName||'') + ' · ' + (bk.duration||45) + ' min</div>'
+    + '</div>'
+    + '<button onclick="document.getElementById(\'vcal-popover\').remove();window._calState.popover=null" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:20px;line-height:1;padding:0 2px">×</button>'
+    + '</div>'
+    + patContextHtml
+    + briefHtml
+    + '<div style="padding:8px 14px 12px;display:flex;flex-direction:column;gap:5px">'
+    + '<div style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text)">'
+    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
+    + e(bk.date||'') + ' kl ' + e(bk.time||'')
+    + '<span style="margin-left:auto;padding:1px 7px;background:rgba(224,118,40,.08);color:var(--teal);border-radius:4px;font-size:11px;font-weight:600">' + status + '</span>'
+    + '</div>'
+    + '</div>'
+    + '<div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:6px">'
+    + '<button onclick="document.getElementById(\'vcal-popover\').remove();openPat(\'' + (bk.patientId||'') + '\')" style="flex:1;padding:8px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Patient →</button>'
+    + '<button onclick="document.getElementById(\'vcal-popover\').remove();openBookingDetail(\'' + bk.id + '\')" style="flex:1;padding:8px;background:#238636;border:none;border-radius:6px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;font-family:var(--font)">Ta emot</button>'
+    + '</div>';
 
   document.body.appendChild(pop);
 
@@ -8018,7 +8003,7 @@ function _appendTranscriptEntry(entry) {
   if (!box) return;
   var div = document.createElement('div');
   div.className = 'transcript-entry new';
-  div.innerHTML = `<div class="te-time">${entry.time}</div><div class="te-text">${e(entry.text)}</div>`;
+  div.innerHTML = '<div class="te-time">' + entry.time + '</div><div class="te-text">' + e(entry.text) + '</div>';
   // Remove interim placeholder
   var interimDiv = document.getElementById('ambient-interim-line');
   if (interimDiv) box.insertBefore(div, interimDiv);
@@ -10472,47 +10457,14 @@ function _applyApprovedContent(a, content) {
     savePat(Object.assign({}, p, { visits: updVisits }));
 
   } else if (a.type === 'patient_message') {
+    // Actually send the approved message via the right channel
     var ch = (a.meta && a.meta.channel) || (p.phone ? 'sms' : 'mail');
-    var threadId = a.meta && a.meta.threadId;
-
-    // If this is a Gmail triage reply — send via Gmail thread
-    if (threadId && _gmailIsAuthed && _gmailIsAuthed()) {
-      (async function() {
-        try {
-          var cfg = getClinicConfig ? getClinicConfig() : {};
-          var toAddr  = a.meta.patEmail || p.email || '';
-          var subject = a.meta.subject  || ('Re: ' + (a.title||''));
-          if (!subject.startsWith('Re:')) subject = 'Re: ' + subject;
-          var msgRaw = ['To: ' + toAddr, 'Subject: ' + subject,
-            'Content-Type: text/plain; charset=utf-8',
-            'In-Reply-To: ' + (a.meta.msgId||''), '',
-            content, '', '-- ', cfg.name||'Kansei'].join('\r\n');
-          var encoded = btoa(unescape(encodeURIComponent(msgRaw)))
-            .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-          var res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + _gmailToken, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ raw: encoded, threadId: threadId }),
-          });
-          if (res.ok) {
-            showAutoSaveToast('Gmail-svar skickat ✓');
-            _logCommSent(p.id, 'gmail_reply:' + threadId, content);
-            _mailTriage && _markTriaged && _markTriaged(threadId);
-          } else {
-            showAutoSaveToast('Gmail-sändning misslyckades — prova manuellt');
-          }
-        } catch(ex) {
-          showAutoSaveToast('Gmail-fel: ' + (ex.message||'okänt'));
-        }
-      })();
-    } else {
-      // Fallback: _velaSendComm (SMS or Resend mail)
-      if (typeof _velaSendComm === 'function') {
-        _velaSendComm(p, ch, content).then(function(){
-          _logCommSent(p.id, 'approved_msg:'+a.id, content);
-        });
-      }
+    if (typeof _velaSendComm === 'function') {
+      _velaSendComm(p, ch, content).then(function(){
+        _logCommSent(p.id, 'approved_msg:'+a.id, content);
+      });
     }
+    // Also mark in messages if applicable
     var msgs = (p.messages||[]).map(function(m) {
       if (m.id === (a.meta && a.meta.messageId)) return Object.assign({}, m, { aiApproved: true, text: content });
       return m;
@@ -10640,27 +10592,6 @@ function rApprovalReview(approvalId) {
        + label + '</button>';
   });
   h += '</div>';
-
-  // ── Original mail context — only for patient_message from triage ──────────
-  if (a.type === 'patient_message' && a.meta && a.meta.threadId) {
-    h += '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:16px;opacity:.85">';
-    h += '<div style="padding:8px 14px;background:rgba(255,255,255,.02);border-bottom:1px solid #30363d;display:flex;align-items:center;gap:8px">';
-    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
-    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#8b949e">Inkommet mail</span>';
-    h += '<span style="font-size:11px;color:#484f58;margin-left:auto">' + e(a.meta.from||'') + '</span>';
-    h += '</div>';
-    h += '<div style="padding:12px 16px">';
-    h += '<div style="font-size:12px;font-weight:600;color:#8b949e;margin-bottom:4px">' + e(a.meta.subject||'') + '</div>';
-    h += '<div style="font-size:13px;color:#6e7681;line-height:1.6">' + e((a.meta.snippet||'').slice(0,200)) + (a.meta.snippet && a.meta.snippet.length > 200 ? '…' : '') + '</div>';
-    if (a.meta.intent && a.meta.intent !== 'other') {
-      var intentColors = { clinical:'var(--teal)', scheduling:'var(--amber)', cancel:'var(--red)', admin:'#8b949e' };
-      var intentLabels = { clinical:'Klinisk fråga', scheduling:'Tidsbyte', cancel:'Avbokning', admin:'Admin' };
-      h += '<div style="margin-top:8px"><span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,.04);color:' + (intentColors[a.meta.intent]||'#8b949e') + '">' + (intentLabels[a.meta.intent]||a.meta.intent) + '</span>';
-      if (a.meta.quick) h += ' <span style="font-size:10px;color:#8b949e">⚡ Snabbmall</span>';
-      h += '</div>';
-    }
-    h += '</div></div>';
-  }
 
   if (activeTab === 'edit') {
     // Editable textarea
@@ -11664,18 +11595,6 @@ var _portalSession = null;
 function _getPortalSession() {
   if (_portalSession) return _portalSession;
   try {
-    // Check Supabase auth session first
-    var sbEmail = _velaPortalAuth.getPortalEmail();
-    if (sbEmail) {
-      var pat = (S && S.patients || []).find(function(p){
-        return (p.email||'').toLowerCase() === sbEmail.toLowerCase();
-      });
-      if (pat) {
-        _portalSession = { patId: pat.id, email: sbEmail, exp: Date.now() + 3600000 };
-        return _portalSession;
-      }
-    }
-    // Fallback: legacy session
     var s = JSON.parse(sessionStorage.getItem('vela:portal-session') || 'null');
     if (s && s.exp > Date.now()) { _portalSession = s; return s; }
     sessionStorage.removeItem('vela:portal-session');
@@ -11692,8 +11611,6 @@ function _setPortalSession(patId, email) {
 function _clearPortalSession() {
   _portalSession = null;
   sessionStorage.removeItem('vela:portal-session');
-  sessionStorage.removeItem('vela:portal-auth-session');
-  if (typeof _velaPortalAuth !== 'undefined') _velaPortalAuth.signOut().catch(function(){});
 }
 
 // Build magic login URL for a patient
@@ -11796,22 +11713,17 @@ function _launchPortalLogin(patId, errorMsg) {
     loginBtn.disabled = true;
     loginBtn.textContent = 'Skickar...';
 
-    // Try Supabase Auth OTP first (secure, server-side)
-    var otpRes = await _velaPortalAuth.sendOtp(email);
-    if (otpRes.ok) {
-      loginBtn.style.display = 'none';
-      sentDiv.style.display = 'block';
-      return;
-    }
-
-    // Fallback: Resend-based magic link (BYOK Resend key required)
+    // Find patient by email
     var pat = (S.patients||[]).find(function(p){ return (p.email||'').toLowerCase() === email; });
     if (pat) {
       await sendPortalMagicLink(pat);
+      loginBtn.style.display = 'none';
+      sentDiv.style.display = 'block';
+    } else {
+      // Unknown email — don't reveal whether patient exists (privacy)
+      loginBtn.style.display = 'none';
+      sentDiv.style.display = 'block';
     }
-    // Always show success — don't reveal if patient exists (privacy)
-    loginBtn.style.display = 'none';
-    sentDiv.style.display = 'block';
   };
 
   emailInp.onkeydown = function(e) { if (e.key === 'Enter') loginBtn.click(); };
@@ -11918,7 +11830,7 @@ function _renderPortalRebookPicker(el, pat, rebookData) {
     var btn = document.createElement('button');
     btn.id = sid;
     btn.style.cssText = 'width:100%;text-align:left;padding:14px 18px;background:#161b22;border:1px solid #30363d;border-radius:10px;font-size:15px;font-weight:600;color:#e6edf3;cursor:pointer;font-family:var(--font);margin-bottom:10px;transition:all .15s';
-    btn.innerHTML = `<div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#e07628;margin-bottom:3px">Alternativ ${i+1}</div>${dateLabel}`;
+    btn.innerHTML = '<div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#e07628;margin-bottom:3px">Alternativ '+(i+1)+'</div>' + dateLabel;
     btn.onmouseover = function(){ this.style.borderColor='var(--teal)'; this.style.background='rgba(224,118,40,.06)'; };
     btn.onmouseout  = function(){ this.style.borderColor='#30363d';    this.style.background='#161b22'; };
     btn.onclick = (function(sl){ return function(){ _confirmRebookSlot(sl, rebookId, pat.id); }; })(s);
@@ -12667,13 +12579,7 @@ function _portalGetRebookSlots() {
   return slots.length ? { slots:slots, rebookId:rebookId } : null;
 }
 
-async function _maybeLaunchPortal() {
-  // Supabase Auth callback — access_token in hash (magic link redirect)
-  if (_velaPortalAuth.hasAuthCallback()) {
-    await _velaPortalAuth.handleCallback();
-    return true;
-  }
-  // Legacy portal token or magic login hash
+function _maybeLaunchPortal() {
   if (window.location.hash.startsWith('#portal/')) {
     _checkPortalHash();
     return true;
@@ -13973,7 +13879,7 @@ function _gmailRenderThreadContent() {
     var banner2 = document.createElement('div');
     banner2.id = 'gm-rebook-cta';
     banner2.style.cssText = 'margin:8px 16px 0;padding:10px 14px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:8px;display:flex;align-items:center;gap:12px;font-size:13px;color:#e6edf3';
-    banner2.innerHTML = `<span style="flex:1"><strong style="color:#d29922">Ombokning</strong> — AI skickar 3 lediga tider till ${e(sel2.pat.name.split(' ')[0])}</span>`;
+    banner2.innerHTML = '<span style="flex:1"><strong style="color:#d29922">Ombokning</strong> — AI skickar 3 lediga tider till ' + e(sel2.pat.name.split(' ')[0]) + '</span>';
     var b2go = document.createElement('button');
     b2go.style.cssText = 'background:rgba(210,153,34,.15);border:1px solid rgba(210,153,34,.3);border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;color:#d29922;cursor:pointer;font-family:var(--font);white-space:nowrap';
     b2go.textContent = 'Kör →';
@@ -20025,7 +19931,6 @@ function _renderSigQueue() {
   h += '<div style="width:7px;height:7px;border-radius:50%;background:var(--orange)"></div>';
   h += '<span style="font-size:14px;font-weight:700;color:var(--ink)">Signaturkö</span>';
   h += '<span style="font-size:13px;color:var(--text)">· ' + pending.length + ' väntar</span>';
-  // Mail triage button in sigqueue header
   var mailBtnHtml = '';
   if (typeof _mailTriage !== 'undefined' && typeof _gmailIsAuthed === 'function' && _gmailIsAuthed()) {
     mailBtnHtml = '<button onclick="_mailTriage.runNow();showAutoSaveToast(\'Triagerar mail…\')" style="padding:5px 12px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.25);border-radius:6px;font-size:12px;font-weight:600;color:var(--orange);cursor:pointer;font-family:var(--font);margin-right:6px">📬 Triage mail</button>';
@@ -20078,18 +19983,6 @@ function _renderSigQueue() {
 
       // Preview
       h += '<div style="padding:12px 16px;border-bottom:1px solid var(--border2)">';
-
-      // Mail context banner for triaged mails
-      if (a.type === 'patient_message' && a.meta && a.meta.threadId) {
-        h += '<div style="background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:5px;padding:8px 12px;margin-bottom:10px;display:flex;align-items:flex-start;gap:8px">';
-        h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#484f58" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
-        h += '<div style="min-width:0">';
-        h += '<div style="font-size:11px;color:#484f58;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + e(a.meta.from||'') + '</div>';
-        h += '<div style="font-size:11px;font-weight:600;color:#6e7681;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + e(a.meta.subject||'') + '</div>';
-        if (a.meta.quick) h += '<div style="font-size:10px;color:var(--orange);margin-top:2px">⚡ Snabbmall</div>';
-        h += '</div></div>';
-      }
-
       h += '<div id="sigq-edit-wrap-' + a.id + '">';
       h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text);margin-bottom:6px">Förhandsgranskning</div>';
       h += '<div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:10px">' + e(preview) + '</div>';
@@ -20103,10 +19996,6 @@ function _renderSigQueue() {
 
       // Actions
       h += '<div style="display:flex;gap:8px;padding:10px 16px">';
-      // For patient_message: add "already replied" dismiss option
-      if (a.type === 'patient_message' && a.meta && a.meta.threadId) {
-        h += '<button onclick="_triageMarkHandled(\'' + a.id + '\',\'' + (a.meta.threadId||'') + '\')" style="padding:7px 12px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)" title="Svarat utanför Vela">✓ Redan svarat</button>';
-      }
       // For patient_message: show channel in button
       var approveLabel = 'Signera';
       var approveIcon  = '<polyline points="20 6 9 17 4 12"/>';
@@ -20612,97 +20501,22 @@ async function _reasonAboutTreatmentProgress(pat, key) {
   var flagKey = 'vela:progress-flag:' + pat.id;
   var lastFlag = parseInt(localStorage.getItem(flagKey)||'0');
   if (Date.now() - lastFlag < 7*86400000) return;
-  var firstNrs = allNrs[allNrs.length-1]; // oldest first in array
-  var lastNrs  = allNrs[0];               // newest
-  var delta    = firstNrs - lastNrs;      // positive = improvement
-  var weeks    = Math.round((new Date(visits[0].date) - new Date(visits[visits.length-1].date)) / (7*86400000));
-
-  // ── Positive signal detection ───────────────────────────────────────────────
-  var outcomes = getOutcomes(pat.id);
-  var funcGains = outcomes.filter(function(o){ return o.funcGains; }).map(function(o){ return o.funcGains; });
-  var isReadyForDischarge = (
-    (lastNrs <= 2 && visits.length >= 3) ||
-    (delta >= 3 && visits.length >= 4) ||
-    (delta >= 2 && funcGains.length >= 2)
-  );
-  var isGoodProgress = delta >= 2 && visits.length >= 3 && !isReadyForDischarge;
-
-  if (isReadyForDischarge || isGoodProgress) {
-    var posKey = 'vela:progress-pos:' + pat.id;
-    var lastPos = parseInt(localStorage.getItem(posKey)||'0');
-    if (Date.now() - lastPos < 14*86400000) return; // max 1 positive flag per 2 weeks
-    var visitSummary = visits.slice(0,4).map(function(v){
-      var s = v.soap||{};
-      return (v.date||'') + ': A=' + (s.A||'').slice(0,80);
-    }).join('
-');
-    try {
-      var posPrompt = 'Erfaren naprapath granskar ett patientärende med god progress.
-
-'
-        + 'Patient: ' + pat.name + ', diagnos: ' + (pat.diagnosis||'okänd') + '
-'
-        + visits.length + ' besök, ' + weeks + ' veckor. NRS: ' + firstNrs + '→' + lastNrs
-        + (funcGains.length ? '
-Funktionsvinster: ' + funcGains.join(', ') : '') + '
-
-'
-        + visitSummary + '
-
-'
-        + 'Svara ENBART med JSON (inga backticks):
-'
-        + '{"summary":"Kort klinisk sammanfattning av framstegen (2 meningar)","recommendation":"'
-        + (isReadyForDischarge ? 'Konkret rekommendation för avslut/glesare intervall' : 'Nästa steg för att hålla progress')
-        + '","readyForDischarge":' + (isReadyForDischarge ? 'true' : 'false') + '}';
-      var posRes = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:MODEL_HAIKU,max_tokens:300,system:'Svara ALLTID med giltig JSON. Inga backticks.',messages:[{role:'user',content:posPrompt}]})});
-      var posData = await posRes.json();
-      var posR = JSON.parse((posData.content||[]).map(function(b){return b.text||'';}).join('').replace(/```json|```/g,'').trim());
-      localStorage.setItem(posKey, Date.now().toString());
-      if (posR.readyForDischarge) {
-        addInboxItem(pat.id, pat.name, 'ai_action', 'discharge_ready',
-          '✅ Klar för avslut — ' + pat.name,
-          posR.summary + ' ' + posR.recommendation,
-          [
-            { label: 'Starta avslutningsflöde', fn: "_startDischargeFlow('" + pat.id + "')" },
-            { label: 'Öppna patient', fn: "openPat&&openPat('" + pat.id + "')" }
-          ]);
-      } else {
-        addInboxItem(pat.id, pat.name, 'ai_action', 'plan_progressed',
-          '📈 God progress — ' + pat.name,
-          posR.summary + ' ' + posR.recommendation,
-          [{ label: 'Öppna patient', fn: "openPat&&openPat('" + pat.id + "')" }]);
-      }
-    } catch(err) {}
-    return; // Don't also run stagnation check on same patient
-  }
-
-  // ── Stagnation / no improvement ─────────────────────────────────────────────
-  if (delta > 1 && visits.length < 5) return;
-  var plateau      = delta < 1 && visits.length >= 4;
+  var delta = allNrs[allNrs.length-1] - allNrs[0];
+  var weeks = Math.round((new Date(visits[0].date) - new Date(visits[visits.length-1].date)) / (7*86400000));
+  if (delta > 1 && visits.length < 5) return; // Good progress, don't flag
+  var plateau = delta < 1 && visits.length >= 4;
   var noImprovement = delta <= 0 && visits.length >= 3;
   if (!plateau && !noImprovement) return;
   var visitSummary = visits.slice(0,4).map(function(v){
     var s = v.soap||{};
     return (v.date||'') + ': A=' + (s.A||'').slice(0,80) + ' P=' + (s.P||'').slice(0,60);
-  }).join('
-');
+  }).join('\n');
   try {
-    var prompt = 'Erfaren naprapath granskar ett patientärende utan progression.
-
-'
-      + 'Patient: ' + pat.name + ', diagnos: ' + (pat.diagnosis||'okänd') + '
-'
-      + visits.length + ' besök under ' + weeks + ' veckor. NRS: ' + firstNrs + '→' + lastNrs + '
-
-'
-      + visitSummary + '
-
-'
-      + 'Svara ENBART med JSON (inga backticks):
-{"analysis":"Klinisk analys av varför progress uteblir (2 meningar)","suggestedChange":"Konkret förslag på behandlingsskifte","urgency":"low|medium|high"}';
+    var prompt = 'Erfaren naprapath granskar ett patientarende utan progression.\n\n'
+      + 'Patient: ' + pat.name + ', diagnos: ' + (pat.diagnosis||'okand') + '\n'
+      + visits.length + ' besok under ' + weeks + ' veckor. NRS: ' + allNrs[allNrs.length-1] + '->' + allNrs[0] + '\n\n'
+      + visitSummary + '\n\n'
+      + 'Svara ENBART med JSON (inga backticks):\n{"analysis":"Klinisk analys av varfor progress uteblir (2 meningar)","suggestedChange":"Konkret forslag pa behandlingsskifte","urgency":"low|medium|high"}';
     var res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:MODEL_HAIKU,max_tokens:300,system:'Svara ALLTID med giltig JSON. Inga backticks.',messages:[{role:'user',content:prompt}]})});
@@ -20714,212 +20528,6 @@ Funktionsvinster: ' + funcGains.join(', ') : '') + '
       r.analysis + ' ' + r.suggestedChange,
       [{ label: 'Öppna patient', fn: "openPat&&openPat('" + pat.id + "')" }]);
   } catch(err) {}
-}
-
-
-// ══════════════════════════════════════════════════════════════════════════════
-// AVSLUTNINGSFLÖDE — AI-genererad avslutssammanfattning + patientkommunikation
-// ══════════════════════════════════════════════════════════════════════════════
-async function _startDischargeFlow(patId) {
-  var pat = (S.patients||[]).find(function(p){ return p.id === patId; });
-  if (!pat) return;
-
-  // Show modal
-  var existing = document.getElementById('discharge-modal');
-  if (existing) existing.remove();
-  var ov = document.createElement('div');
-  ov.id = 'discharge-modal';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.8);backdrop-filter:blur(6px)';
-  ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
-  ov.innerHTML = `
-    <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;width:100%;max-width:560px;max-height:85vh;overflow-y:auto;font-family:var(--font)">
-      <div style="padding:20px 24px;border-bottom:1px solid #30363d;display:flex;align-items:center;gap:10px">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        <span style="font-size:15px;font-weight:700;color:#e6edf3">Avslutningsflöde — ${e(pat.name)}</span>
-        <button onclick="document.getElementById('discharge-modal').remove()" style="margin-left:auto;background:none;border:none;color:#8b949e;cursor:pointer;font-size:20px;line-height:1">×</button>
-      </div>
-      <div id="discharge-body" style="padding:24px">
-        <div style="display:flex;align-items:center;gap:10px;color:#8b949e;font-size:13px">
-          <div style="width:16px;height:16px;border:2px solid rgba(224,118,40,.3);border-top-color:#e07628;border-radius:50%;animation:spin .7s linear infinite"></div>
-          Genererar avslutssammanfattning…
-        </div>
-      </div>
-    </div>`;
-  document.body.appendChild(ov);
-
-  // Generate discharge summary with AI
-  var key = getKey ? getKey() : null;
-  var visits = (pat.visits||[]).slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; });
-  var outcomes = getOutcomes(pat.id);
-  var allNrs = visits.flatMap(function(v){ return (v.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }); });
-  var funcGains = outcomes.filter(function(o){ return o.funcGains; }).map(function(o){ return o.funcGains; });
-  var visitSummary = visits.slice(0,6).map(function(v){
-    var s = v.soap||{};
-    return (v.date||'') + ': ' + (s.A||'').slice(0,100);
-  }).join('
-');
-
-  var cfg = getClinicConfig ? getClinicConfig() : {};
-  var clinicianName = cfg.signature || cfg.name || 'Behandlaren';
-
-  var dischargeText = '';
-  var mailText = '';
-
-  if (key) {
-    try {
-      var res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body: JSON.stringify({
-          model: MODEL_HAIKU, max_tokens: 600,
-          system: 'Svara ALLTID med giltig JSON. Inga backticks. Du är en erfaren naprapath.',
-          messages: [{role:'user', content:
-            'Generera ett avslutsdokument för ett naprapatärende.
-
-'
-            + 'Patient: ' + pat.name + '
-Diagnos: ' + (pat.diagnosis||'okänd')
-            + '
-Besök: ' + visits.length + '
-NRS: ' + (allNrs[allNrs.length-1]||'?') + '→' + (allNrs[0]||'?')
-            + (funcGains.length ? '
-Funktionsvinster: ' + funcGains.join(', ') : '')
-            + '
-
-Besöksöversikt:
-' + visitSummary
-            + '
-
-Svara med JSON:
-{"clinicalSummary":"Klinisk sammanfattning för journal (3-4 meningar på svenska)","patientLetter":"Personligt avslutsmail till patienten på svenska — varm ton, sammanfatta resultaten, ge råd om egenvård och när de ska höra av sig igen (4-5 meningar)","followupRecommendation":"Rekommendation för uppföljning (t.ex. vid behov / 3 månader / 6 månader)"}'
-          }]
-        })
-      });
-      var data = await res.json();
-      var r = JSON.parse((data.content||[]).map(function(b){return b.text||'';}).join('').replace(/```json|```/g,'').trim());
-      dischargeText = r.clinicalSummary || '';
-      mailText = r.patientLetter || '';
-      var followup = r.followupRecommendation || 'vid behov';
-
-      document.getElementById('discharge-body').innerHTML = `
-        <div style="display:flex;flex-direction:column;gap:16px">
-
-          <!-- Clinical summary -->
-          <div>
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#8b949e;margin-bottom:8px">Journalanteckning</div>
-            <textarea id="dc-journal" style="width:100%;min-height:90px;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px 12px;font-size:13px;color:#e6edf3;font-family:var(--font);resize:vertical;box-sizing:border-box">${e(dischargeText)}</textarea>
-          </div>
-
-          <!-- Patient letter -->
-          <div>
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#8b949e;margin-bottom:8px">Mail till patienten</div>
-            <textarea id="dc-mail" style="width:100%;min-height:110px;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px 12px;font-size:13px;color:#e6edf3;font-family:var(--font);resize:vertical;box-sizing:border-box">${e(mailText)}</textarea>
-          </div>
-
-          <!-- Follow-up -->
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="font-size:13px;color:#8b949e">Uppföljning:</div>
-            <select id="dc-followup" style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:6px 10px;font-size:13px;color:#e6edf3;font-family:var(--font)">
-              <option value="none" ${followup.includes('behov')?'selected':''}>Vid behov</option>
-              <option value="3m" ${followup.includes('3')?'selected':''}>Om 3 månader</option>
-              <option value="6m" ${followup.includes('6')?'selected':''}>Om 6 månader</option>
-              <option value="12m" ${followup.includes('12')||followup.includes('1 år')?'selected':''}>Om 12 månader</option>
-            </select>
-          </div>
-
-          <!-- Actions -->
-          <div style="display:flex;gap:8px;padding-top:4px">
-            <button onclick="_confirmDischarge('${patId}')" style="flex:1;padding:10px;background:#238636;border:none;border-radius:6px;font-size:13px;font-weight:700;color:white;cursor:pointer;font-family:var(--font)">
-              Slutför avslut
-            </button>
-            <button onclick="document.getElementById('discharge-modal').remove()" style="padding:10px 16px;background:none;border:1px solid #30363d;border-radius:6px;font-size:13px;color:#8b949e;cursor:pointer;font-family:var(--font)">
-              Avbryt
-            </button>
-          </div>
-
-        </div>`;
-    } catch(err) {
-      document.getElementById('discharge-body').innerHTML =
-        '<div style="color:#f85149;font-size:13px">Kunde inte generera sammanfattning. Kontrollera API-nyckel.</div>';
-    }
-  } else {
-    // No API key — show manual form
-    document.getElementById('discharge-body').innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:16px">
-        <div>
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#8b949e;margin-bottom:8px">Journalanteckning</div>
-          <textarea id="dc-journal" placeholder="Skriv klinisk sammanfattning…" style="width:100%;min-height:90px;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px 12px;font-size:13px;color:#e6edf3;font-family:var(--font);resize:vertical;box-sizing:border-box"></textarea>
-        </div>
-        <div>
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#8b949e;margin-bottom:8px">Mail till patienten</div>
-          <textarea id="dc-mail" placeholder="Skriv avslutsmail…" style="width:100%;min-height:110px;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px 12px;font-size:13px;color:#e6edf3;font-family:var(--font);resize:vertical;box-sizing:border-box"></textarea>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button onclick="_confirmDischarge('${patId}')" style="flex:1;padding:10px;background:#238636;border:none;border-radius:6px;font-size:13px;font-weight:700;color:white;cursor:pointer;font-family:var(--font)">Slutför avslut</button>
-          <button onclick="document.getElementById('discharge-modal').remove()" style="padding:10px 16px;background:none;border:1px solid #30363d;border-radius:6px;font-size:13px;color:#8b949e;cursor:pointer;font-family:var(--font)">Avbryt</button>
-        </div>
-      </div>`;
-  }
-}
-
-async function _confirmDischarge(patId) {
-  var pat = (S.patients||[]).find(function(p){ return p.id === patId; });
-  if (!pat) return;
-
-  var journalText = (document.getElementById('dc-journal')||{}).value || '';
-  var mailBody    = (document.getElementById('dc-mail')||{}).value || '';
-  var followupEl  = document.getElementById('dc-followup');
-  var followup    = followupEl ? followupEl.value : 'none';
-
-  // 1. Log discharge outcome
-  logOutcome(patId, 'discharge_' + Date.now(), {
-    date: new Date().toISOString().slice(0,10),
-    type: 'discharge',
-    summary: journalText,
-    followup: followup,
-  });
-
-  // 2. Mark patient status as discharged
-  pat.status = 'discharged';
-  pat.dischargedAt = new Date().toISOString().slice(0,10);
-  pat.dischargeNote = journalText;
-  savePat && savePat(pat);
-
-  // 3. Queue mail via signature queue (clinician reviews before sending)
-  if (mailBody && pat.email) {
-    var cfg = getClinicConfig ? getClinicConfig() : {};
-    var sig = {
-      id: 'dc_' + Date.now(),
-      patId: patId,
-      patName: pat.name,
-      category: 'treatmentComplete',
-      sub: 'Avslut av behandling — ' + (pat.name||''),
-      icon: 'M22 11.08V12a10 10 0 1 1-5.93-9.14',
-      channel: 'mail',
-      urgency: 'normal',
-      context: { type: 'discharge', followup: followup }
-    };
-    queueRetentionAction && queueRetentionAction(sig, { body: mailBody, channel: 'mail', subject: 'Din behandling hos ' + (cfg.name||'kliniken') });
-  }
-
-  // 4. Schedule follow-up if requested
-  if (followup !== 'none') {
-    var months = { '3m': 3, '6m': 6, '12m': 12 }[followup] || 0;
-    if (months > 0) {
-      var followDate = new Date();
-      followDate.setMonth(followDate.getMonth() + months);
-      addInboxItem(patId, pat.name, 'info', 'returnVisitNudge',
-        'Uppföljning planerad — ' + pat.name,
-        'Schemalagd kontroll om ' + months + ' månader (' + followDate.toLocaleDateString('sv-SE') + '). Skicka påminnelse när det är dags.',
-        [{ label: 'Öppna patient', fn: "openPat&&openPat('" + patId + "')" }]
-      );
-    }
-  }
-
-  // 5. Close modal and confirm
-  var modal = document.getElementById('discharge-modal');
-  if (modal) modal.remove();
-  showAutoSaveToast('Avslut genomfört — ' + pat.name + (mailBody && pat.email ? ' · mail köat för signering' : ''));
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -21047,7 +20655,6 @@ function getCommRules() {
 }
 function saveCommRules(r) {
   try { localStorage.setItem(COMM_RULES_KEY, JSON.stringify(r)); } catch {}
-  // Sync to Supabase so daily-agent can read comm templates
   _sbLoadClinicSettings().then(function(s) {
     var settings = s || {};
     settings.commRules = r;
@@ -21288,7 +20895,6 @@ function rPulse() {
   _renderPulse();
 }
 
-// Auto-refresh ticker — re-renders rPulse every 60s while on dashboard
 var _pulseRefreshTimer = null;
 function _startPulseTicker() {
   if (_pulseRefreshTimer) return;
@@ -21299,13 +20905,11 @@ function _startPulseTicker() {
 function _stopPulseTicker() {
   if (_pulseRefreshTimer) { clearInterval(_pulseRefreshTimer); _pulseRefreshTimer = null; }
 }
-
 function _minsToBooking(bk) {
   if (!bk || !bk.time) return null;
   var now = new Date();
   var parts = bk.time.split(':');
-  var bkTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
-    parseInt(parts[0]), parseInt(parts[1]||0), 0);
+  var bkTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(parts[0]), parseInt(parts[1]||0), 0);
   return Math.round((bkTime - now) / 60000);
 }
 
@@ -21328,8 +20932,6 @@ function _renderPulse() {
   var upcomingBks = todayBks.filter(function(b){ return b.status!=='completed'; });
   var nextBk = upcomingBks[0] || null;
   var nextPat = nextBk ? pats.find(function(p){ return p.id===nextBk.patientId; }) : null;
-
-  // Minutes to next booking
   var minsToNext = nextBk ? _minsToBooking(nextBk) : null;
   var isUrgent   = minsToNext !== null && minsToNext >= 0 && minsToNext <= 30;
   var isImminent = minsToNext !== null && minsToNext >= 0 && minsToNext <= 10;
@@ -21357,19 +20959,13 @@ function _renderPulse() {
   if (nextBk) try { brief = JSON.parse(localStorage.getItem('vela:previsit:'+nextBk.id)||'null'); } catch {}
   var briefValid = brief && brief.date === todayStr;
 
-  // Proactive brief trigger — if next patient is within 30 min and no brief exists, generate now
+  // Proactive brief trigger
   if (nextBk && nextPat && isUrgent && !briefValid && typeof VelaAgent !== 'undefined') {
     var autoGenKey = 'vela:autogen:' + nextBk.id;
-    var alreadyTriggered = localStorage.getItem(autoGenKey);
-    if (!alreadyTriggered) {
+    if (!localStorage.getItem(autoGenKey)) {
       localStorage.setItem(autoGenKey, '1');
-      setTimeout(function() {
-        VelaAgent.runNow && VelaAgent.runNow();
-      }, 800);
-      setTimeout(function() {
-        // Re-render after brief should be ready (brief generation ~5s)
-        if (S.screen === 'dashboard') _renderPulse();
-      }, 8000);
+      setTimeout(function() { VelaAgent.runNow && VelaAgent.runNow(); }, 800);
+      setTimeout(function() { if (S.screen === 'dashboard') _renderPulse(); }, 8000);
     }
   }
 
@@ -21410,31 +21006,18 @@ function _renderPulse() {
 
   // ── Nästa patient ──────────────────────────────────────────────────────
   if (nextBk) {
-    // Urgency styling
-    var cardBorder = isImminent
-      ? 'border:1.5px solid var(--orange);box-shadow:0 0 0 3px rgba(224,118,40,.12)'
-      : isUrgent
-        ? 'border:1.5px solid rgba(224,118,40,.5)'
-        : 'border:1px solid var(--border)';
-
-    // Countdown label
+    var cardBorder = isImminent ? 'border:1.5px solid var(--orange);box-shadow:0 0 0 3px rgba(224,118,40,.12)' : isUrgent ? 'border:1.5px solid rgba(224,118,40,.5)' : 'border:1px solid var(--border)';
     var countdownHtml = '';
     if (minsToNext !== null && minsToNext >= 0) {
-      if (minsToNext === 0) {
-        countdownHtml = '<span style="font-size:11px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 8px;border-radius:4px;margin-left:auto">Nu!</span>';
-      } else if (minsToNext <= 10) {
-        countdownHtml = '<span style="font-size:11px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 8px;border-radius:4px;margin-left:auto">om ' + minsToNext + ' min</span>';
-      } else if (minsToNext <= 30) {
-        countdownHtml = '<span style="font-size:11px;color:var(--orange);margin-left:auto">om ' + minsToNext + ' min</span>';
-      } else {
-        countdownHtml = '<span style="font-size:12px;color:var(--text2);margin-left:auto">kl ' + e(nextBk.time||'?') + '</span>';
-      }
+      if (minsToNext === 0) countdownHtml = '<span style="font-size:11px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 8px;border-radius:4px;margin-left:auto">Nu!</span>';
+      else if (minsToNext <= 10) countdownHtml = '<span style="font-size:11px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 8px;border-radius:4px;margin-left:auto">om ' + minsToNext + ' min</span>';
+      else if (minsToNext <= 30) countdownHtml = '<span style="font-size:11px;color:var(--orange);margin-left:auto">om ' + minsToNext + ' min</span>';
+      else countdownHtml = '<span style="font-size:12px;color:var(--text2);margin-left:auto">kl ' + e(nextBk.time||'?') + '</span>';
     } else if (minsToNext !== null && minsToNext < 0) {
       countdownHtml = '<span style="font-size:11px;color:var(--text2);margin-left:auto">pågår</span>';
     } else {
       countdownHtml = '<span style="font-size:12px;color:var(--text2);margin-left:auto">kl ' + e(nextBk.time||'?') + '</span>';
     }
-
     h += '<div style="background:var(--surface);' + cardBorder + ';border-radius:6px;overflow:hidden;margin-bottom:14px">';
     h += '<div style="display:flex;align-items:center;gap:8px;padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
     h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
@@ -21498,11 +21081,7 @@ function _renderPulse() {
       h += '</div>';
     } else if (!briefValid) {
       if (isUrgent) {
-        // Auto-generating — show spinner
-        h += '<div style="display:flex;align-items:center;gap:8px;padding:8px 0">'
-          + '<div style="width:14px;height:14px;border:2px solid rgba(224,118,40,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div>'
-          + '<span style="font-size:12px;color:var(--text2)">Genererar brief automatiskt…</span>'
-          + '</div>';
+        h += '<div style="display:flex;align-items:center;gap:8px;padding:8px 0"><div style="width:14px;height:14px;border:2px solid rgba(224,118,40,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div><span style="font-size:12px;color:var(--text2)">Genererar brief automatiskt…</span></div>';
       } else {
         h += '<div style="font-size:12px;color:var(--text2);font-style:italic">Brief genereras av VelaAgent inför besöket.</div>';
       }
@@ -24012,25 +23591,16 @@ async function fetchWithTimeout(url, opts, ms) {
 
 
 // ══════════════════════════════════════════════════════════════════════════════
-// VELA REALTIME — Supabase WebSocket subscriptions
-// Channels: pass_log (portal NRS/dagsform/feedback) + patients (data changes)
+// VELA REALTIME
 // ══════════════════════════════════════════════════════════════════════════════
 var _velaRT = (function() {
-  var _client = null;
-  var _channels = [];
-  var _status = 'disconnected'; // 'connecting' | 'connected' | 'disconnected' | 'error'
-  var _retryTimer = null;
-  var _retryDelay = 5000;
-
+  var _client = null, _channels = [], _status = 'disconnected', _retryTimer = null, _retryDelay = 5000;
   function _getClient() {
     if (_client) return _client;
     if (typeof supabase === 'undefined' || !supabase.createClient) return null;
-    _client = supabase.createClient(SB_URL, SB_KEY, {
-      realtime: { params: { eventsPerSecond: 10 } }
-    });
+    _client = supabase.createClient(SB_URL, SB_KEY, { realtime: { params: { eventsPerSecond: 10 } } });
     return _client;
   }
-
   function _setStatus(s) {
     _status = s;
     var dot = document.getElementById('rt-status-dot');
@@ -24039,776 +23609,301 @@ var _velaRT = (function() {
     dot.style.background = colors[s] || colors.disconnected;
     dot.title = 'Realtime: ' + s;
   }
-
   function _handlePassLog(payload) {
-    var row = payload.new;
-    if (!row) return;
-    var patId = row.pat_id;
-    var type  = row.type;
-    var data  = row.data || {};
-
-    // Find patient name
+    var row = payload.new; if (!row) return;
+    var patId = row.pat_id, type = row.type, data = row.data || {};
     var pat = (S && S.patients || []).find(function(p){ return p.id === patId; });
     var patName = pat ? pat.name : 'Patient';
-
     if (type === 'nrs') {
-      var nrs = data.nrs;
-      if (nrs == null) return;
-
-      // Check spike vs previous
-      var allLogs = pat ? (pat.visits||[])
-        .flatMap(function(v){ return (v.logs||[]).filter(function(l){ return l.nrs != null; }); })
-        .sort(function(a,b){ return (a.ts||'') > (b.ts||'') ? 1 : -1; }) : [];
-
+      var nrs = data.nrs; if (nrs == null) return;
+      var allLogs = pat ? (pat.visits||[]).flatMap(function(v){ return (v.logs||[]).filter(function(l){ return l.nrs != null; }); }).sort(function(a,b){ return (a.ts||'') > (b.ts||'') ? 1 : -1; }) : [];
       var prevNrs = allLogs.length ? allLogs[allLogs.length-1].nrs : null;
       var isSpike = prevNrs != null && (nrs - prevNrs) >= 2;
       var isCrit  = nrs >= 8;
-
       if (isSpike || isCrit) {
-        var spikeMsg = isSpike
-          ? 'NRS ' + nrs + ' via portal (upp från ' + prevNrs + ', +' + (nrs - prevNrs) + '). Kräver uppmärksamhet.'
-          : 'NRS ' + nrs + '/10 via portal — kritisk smärtnivå.';
-        addInboxItem(patId, patName, 'urgent', 'nrs_spike',
-          '🔴 Smärta ökad — ' + patName,
-          spikeMsg,
-          [{ label: 'Öppna patient', fn: "openPat&&openPat('" + patId + "')" }]
-        );
+        var spikeMsg = isSpike ? 'NRS ' + nrs + ' via portal (upp fran ' + prevNrs + ', +' + (nrs - prevNrs) + '). Kraver uppmärksamhet.' : 'NRS ' + nrs + '/10 via portal — kritisk smartniva.';
+        addInboxItem(patId, patName, 'urgent', 'nrs_spike', '🔴 Smärta ökad — ' + patName, spikeMsg, [{ label: 'Öppna patient', fn: "openPat&&openPat('" + patId + "')" }]);
         _flashInboxBadge();
       } else {
-        // Non-spike NRS — info item (24h dedup already in addInboxItem)
-        addInboxItem(patId, patName, 'info', 'nrs_log',
-          'NRS loggad — ' + patName,
-          'Patient rapporterade NRS ' + nrs + '/10 via portalen.',
-          [{ label: 'Öppna patient', fn: "openPat&&openPat('" + patId + "')" }]
-        );
+        addInboxItem(patId, patName, 'info', 'nrs_log', 'NRS loggad — ' + patName, 'Patient rapporterade NRS ' + nrs + '/10 via portalen.', [{ label: 'Öppna patient', fn: "openPat&&openPat('" + patId + "')" }]);
       }
-
-      // If clinician is currently viewing this patient — refresh intel panel
       if (S && S.pat && S.pat.id === patId && S.screen === 'detail') {
-        // Reload patient data from Supabase then re-render
-        sbLoadPat && sbLoadPat(patId).then(function(fresh) {
-          if (fresh) { S.pat = fresh; _showPatientIntel && _showPatientIntel(fresh); }
-        });
+        sbLoadPat && sbLoadPat(patId).then(function(fresh) { if (fresh) { S.pat = fresh; _showPatientIntel && _showPatientIntel(fresh); } });
       }
     }
-
     if (type === 'dagsform') {
-      addInboxItem(patId, patName, 'info', 'dagsform_received',
-        'Dagsform mottagen — ' + patName,
-        'Energi ' + (data.energy||'?') + '/5, humör ' + (data.mood||'?') + '/5' +
-          (data.note ? ': "' + data.note.slice(0,60) + '"' : ''),
-        [{ label: 'Öppna patient', fn: "openPat&&openPat('" + patId + "')" }]
-      );
+      addInboxItem(patId, patName, 'info', 'dagsform_received', 'Dagsform mottagen — ' + patName, 'Energi ' + (data.energy||'?') + '/5, humor ' + (data.mood||'?') + '/5' + (data.note ? ': "' + data.note.slice(0,60) + '"' : ''), [{ label: 'Öppna patient', fn: "openPat&&openPat('" + patId + "')" }]);
       _flashInboxBadge();
     }
-
     if (type === 'feedback') {
       var stars = data.stars || 0;
-      addInboxItem(patId, patName, stars < 3 ? 'urgent' : 'info', 'feedback_received',
-        (stars < 3 ? '⚠️ ' : '⭐ ') + 'Feedback mottagen — ' + patName,
-        stars + '/5 stjärnor' + (data.text ? ': "' + data.text.slice(0,80) + '"' : ''),
-        [{ label: 'Öppna patient', fn: "openPat&&openPat('" + patId + "')" }]
-      );
+      addInboxItem(patId, patName, stars < 3 ? 'urgent' : 'info', 'feedback_received', (stars < 3 ? '⚠️ ' : '⭐ ') + 'Feedback mottagen — ' + patName, stars + '/5 stjärnor' + (data.text ? ': "' + data.text.slice(0,80) + '"' : ''), [{ label: 'Öppna patient', fn: "openPat&&openPat('" + patId + "')" }]);
       _flashInboxBadge();
     }
-
     if (type === 'message') {
-      addInboxItem(patId, patName, 'info', 'patient_reply',
-        'Meddelande från ' + patName,
-        (data.text||'').slice(0,120),
-        [{ label: 'Öppna patient', fn: "openPat&&openPat('" + patId + "')" }]
-      );
+      addInboxItem(patId, patName, 'info', 'patient_reply', 'Meddelande fran ' + patName, (data.text||'').slice(0,120), [{ label: 'Öppna patient', fn: "openPat&&openPat('" + patId + "')" }]);
       _flashInboxBadge();
     }
   }
-
   function _handlePatientUpdate(payload) {
-    var row = payload.new;
-    if (!row || !row.id) return;
-    // Merge fresh data into S.patients if we have it loaded
+    var row = payload.new; if (!row || !row.id) return;
     if (!S || !S.patients) return;
     var idx = S.patients.findIndex(function(p){ return p.id === row.id; });
     if (idx === -1) return;
     try {
       var fresh = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;
-      if (fresh) {
-        S.patients[idx] = fresh;
-        // If this patient is currently open — re-render detail
-        if (S.pat && S.pat.id === row.id && S.screen === 'detail') {
-          S.pat = fresh;
-          rDetail && rDetail();
-        }
-      }
+      if (fresh) { S.patients[idx] = fresh; if (S.pat && S.pat.id === row.id && S.screen === 'detail') { S.pat = fresh; rDetail && rDetail(); } }
     } catch(e) {}
   }
-
   function _flashInboxBadge() {
     updateInboxBadge();
-    var badge = document.getElementById('inbox-badge') || document.getElementById('vela-dh-badge');
+    var badge = document.getElementById('vela-dh-badge');
     if (!badge) return;
-    badge.style.transform = 'scale(1.5)';
-    badge.style.transition = 'transform .15s';
+    badge.style.transform = 'scale(1.5)'; badge.style.transition = 'transform .15s';
     setTimeout(function(){ badge.style.transform = 'scale(1)'; }, 200);
   }
-
   function connect() {
-    var sb = _getClient();
-    if (!sb) { setTimeout(connect, 2000); return; }
+    var sb = _getClient(); if (!sb) { setTimeout(connect, 2000); return; }
     _setStatus('connecting');
-
-    // Unsubscribe existing channels
     _channels.forEach(function(ch){ try { sb.removeChannel(ch); } catch(e){} });
     _channels = [];
-
-    // Channel 1: pass_log — portal events (NRS, dagsform, feedback, messages)
     var passLogCh = sb.channel('vela-pass-log')
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'pass_log'
-      }, _handlePassLog)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pass_log' }, _handlePassLog)
       .subscribe(function(status) {
-        if (status === 'SUBSCRIBED') {
-          _setStatus('connected');
-          _retryDelay = 5000; // reset backoff
-        }
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          _setStatus('error');
-          _scheduleRetry();
-        }
-        if (status === 'CLOSED') {
-          _setStatus('disconnected');
-        }
+        if (status === 'SUBSCRIBED') { _setStatus('connected'); _retryDelay = 5000; }
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') { _setStatus('error'); _scheduleRetry(); }
+        if (status === 'CLOSED') { _setStatus('disconnected'); }
       });
     _channels.push(passLogCh);
-
-    // Channel 2: patients — sync patient data updates (e.g. portal intake saved)
-    var patsCh = sb.channel('vela-patients')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'patients'
-      }, _handlePatientUpdate)
-      .subscribe();
+    var patsCh = sb.channel('vela-patients').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'patients' }, _handlePatientUpdate).subscribe();
     _channels.push(patsCh);
   }
-
   function disconnect() {
     var sb = _getClient();
     if (sb) _channels.forEach(function(ch){ try { sb.removeChannel(ch); } catch(e){} });
-    _channels = [];
-    _setStatus('disconnected');
+    _channels = []; _setStatus('disconnected');
     if (_retryTimer) { clearTimeout(_retryTimer); _retryTimer = null; }
   }
-
   function _scheduleRetry() {
     if (_retryTimer) return;
-    _retryTimer = setTimeout(function() {
-      _retryTimer = null;
-      _retryDelay = Math.min(_retryDelay * 2, 60000); // exponential backoff max 60s
-      connect();
-    }, _retryDelay);
+    _retryTimer = setTimeout(function() { _retryTimer = null; _retryDelay = Math.min(_retryDelay * 2, 60000); connect(); }, _retryDelay);
   }
-
-  function getStatus() { return _status; }
-
-  return { connect: connect, disconnect: disconnect, getStatus: getStatus };
+  return { connect: connect, disconnect: disconnect, getStatus: function(){ return _status; } };
 })();
 
-
 // ══════════════════════════════════════════════════════════════════════════════
-// VELA PORTAL AUTH — Supabase Auth OTP for patient portal
-// Flow: signInWithOtp → Supabase emails magic link → redirect back with
-//       #access_token=... → getSession() → find patient by email → launch portal
+// VELA PORTAL AUTH
 // ══════════════════════════════════════════════════════════════════════════════
 var _velaPortalAuth = (function() {
   var _sbClient = null;
-
   function _client() {
     if (_sbClient) return _sbClient;
     if (typeof supabase === 'undefined' || !supabase.createClient) return null;
     _sbClient = supabase.createClient(SB_URL, SB_KEY);
     return _sbClient;
   }
-
-  // Send OTP magic link via Supabase Auth (Supabase handles email delivery)
   async function sendOtp(email) {
-    var sb = _client();
-    if (!sb) return { ok: false, err: 'Supabase ej tillgänglig' };
+    var sb = _client(); if (!sb) return { ok: false, err: 'Supabase ej tillganglig' };
     var redirectTo = window.location.origin + window.location.pathname;
-    var res = await sb.auth.signInWithOtp({
-      email: email,
-      options: { emailRedirectTo: redirectTo, shouldCreateUser: false }
-    });
+    var res = await sb.auth.signInWithOtp({ email: email, options: { emailRedirectTo: redirectTo, shouldCreateUser: false } });
     if (res.error) return { ok: false, err: res.error.message };
     return { ok: true };
   }
-
-  // Check if current URL has a Supabase auth callback hash
   function hasAuthCallback() {
     var h = window.location.hash;
     return h.includes('access_token=') && h.includes('type=magiclink');
   }
-
-  // Exchange auth callback hash for session → find patient → launch portal
   async function handleCallback() {
-    var sb = _client();
-    if (!sb) return false;
+    var sb = _client(); if (!sb) return false;
     if (!hasAuthCallback()) return false;
-
-    var shell = document.getElementById('app-shell');
-    var gtb   = document.getElementById('vela-global-topbar-wrap');
-    var mtb   = document.querySelector('.topbar');
-    if (shell) shell.style.display = 'none';
-    if (gtb) gtb.style.display = 'none';
-    if (mtb) mtb.style.display = 'none';
-
-    // Show loading in portal screen
+    var shell = document.getElementById('app-shell'), gtb = document.getElementById('vela-global-topbar-wrap'), mtb = document.querySelector('.topbar');
+    if (shell) shell.style.display = 'none'; if (gtb) gtb.style.display = 'none'; if (mtb) mtb.style.display = 'none';
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
     var portalEl = document.getElementById('s-patient-portal');
-    if (portalEl) {
-      portalEl.classList.add('active');
-      portalEl.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0d1117"><div style="text-align:center;color:#8b949e;font-family:var(--font)"><div style="width:32px;height:32px;border:2px solid rgba(224,118,40,.3);border-top-color:#e07628;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px"></div>Loggar in…</div></div>';
-    }
-
-    // Get session from Supabase (it parses the hash automatically)
+    if (portalEl) { portalEl.classList.add('active'); portalEl.innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0d1117"><div style="text-align:center;color:#8b949e;font-family:var(--font)"><div style="width:32px;height:32px;border:2px solid rgba(224,118,40,.3);border-top-color:#e07628;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px"></div>Loggar in...</div></div>'; }
     var sessionRes = await sb.auth.getSession();
     var session = sessionRes.data && sessionRes.data.session;
-    if (!session) {
-      _launchPortalLogin(null, 'Inloggningslänken har gått ut. Begär en ny länk.');
-      return true;
-    }
-
+    if (!session) { _launchPortalLogin(null, 'Inloggningslänken har gatt ut. Begär en ny länk.'); return true; }
     var email = session.user.email;
-    // Store session info
-    _setPortalAuthSession(email, session.access_token, session.expires_at * 1000);
-
-    // Clear the hash so page reload doesn't re-trigger
+    sessionStorage.setItem('vela:portal-auth-session', JSON.stringify({ email: email, token: session.access_token, exp: session.expires_at * 1000 }));
     history.replaceState(null, '', window.location.pathname);
-
-    // Find patient by email — first try in-memory, then Supabase
-    var pat = (S && S.patients || []).find(function(p){
-      return (p.email || '').toLowerCase() === email.toLowerCase();
-    });
-
-    if (pat) {
-      _launchPortalUI(pat.id);
-      return true;
-    }
-
-    // Not in memory — query Supabase patients table
+    var pat = (S && S.patients || []).find(function(p){ return (p.email || '').toLowerCase() === email.toLowerCase(); });
+    if (pat) { _launchPortalUI(pat.id); return true; }
     try {
-      var r = await fetch(SB_URL + '/rest/v1/patients?select=id,data', {
-        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
-      });
+      var r = await fetch(SB_URL + '/rest/v1/patients?select=id,data', { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
       if (r.ok) {
         var rows = await r.json();
-        var found = null;
         for (var i = 0; i < rows.length; i++) {
-          var d = rows[i].data;
-          if (typeof d === 'string') { try { d = JSON.parse(d); } catch(ex) {} }
-          if (d && (d.email||'').toLowerCase() === email.toLowerCase()) {
-            found = d; break;
-          }
-        }
-        if (found) {
-          _launchPortalUI(found.id);
-          return true;
+          var d = rows[i].data; if (typeof d === 'string') { try { d = JSON.parse(d); } catch(ex) {} }
+          if (d && (d.email||'').toLowerCase() === email.toLowerCase()) { _launchPortalUI(d.id); return true; }
         }
       }
     } catch(ex) {}
-
-    // Email not matched to any patient
-    _launchPortalLogin(null, 'Ingen patient hittades för ' + email + '. Kontakta kliniken.');
+    _launchPortalLogin(null, 'Ingen patient hittades for ' + email + '. Kontakta kliniken.');
     return true;
   }
-
-  // Supabase-backed session check
-  async function getSession() {
-    var sb = _client();
-    if (!sb) return null;
-    var res = await sb.auth.getSession();
-    return res.data && res.data.session || null;
-  }
-
-  async function signOut() {
-    var sb = _client();
-    if (sb) await sb.auth.signOut();
-    sessionStorage.removeItem('vela:portal-auth-session');
-  }
-
-  function _setPortalAuthSession(email, token, expMs) {
-    sessionStorage.setItem('vela:portal-auth-session', JSON.stringify({ email, token, exp: expMs }));
-  }
-
+  async function signOut() { var sb = _client(); if (sb) await sb.auth.signOut(); sessionStorage.removeItem('vela:portal-auth-session'); }
   function getPortalEmail() {
-    try {
-      var s = JSON.parse(sessionStorage.getItem('vela:portal-auth-session') || 'null');
-      if (s && s.exp > Date.now()) return s.email;
-    } catch(e) {}
-    return null;
+    try { var s = JSON.parse(sessionStorage.getItem('vela:portal-auth-session') || 'null'); if (s && s.exp > Date.now()) return s.email; } catch(e) {} return null;
   }
-
-  return { sendOtp, hasAuthCallback, handleCallback, getSession, signOut, getPortalEmail };
+  return { sendOtp: sendOtp, hasAuthCallback: hasAuthCallback, handleCallback: handleCallback, signOut: signOut, getPortalEmail: getPortalEmail };
 })();
 
-
 // ══════════════════════════════════════════════════════════════════════════════
-// VELA MAIL TRIAGE — Proaktiv AI-triagering av patientmail
-// Kör vid login + var 30min. Drar olästa Gmail-trådar, matchar mot patienter,
-// AI-draftar svar med journalkontext → signaturkön för 1-klicks-granskning.
+// VELA MAIL TRIAGE
 // ══════════════════════════════════════════════════════════════════════════════
 var _mailTriage = (function() {
-  var TRIAGE_KEY    = 'vela:mail-triage-ts';
-  var TRIAGED_KEY   = 'vela:mail-triaged';   // set of thread IDs already processed
-  var _running      = false;
-  var _timer        = null;
-  var INTERVAL      = 30 * 60 * 1000; // 30 min
-
-  // ── Common patient questions — zero-AI fast templates ──────────────────────
+  var TRIAGE_KEY = 'vela:mail-triage-ts', TRIAGED_KEY = 'vela:mail-triaged';
+  var _running = false, _timer = null, INTERVAL = 30 * 60 * 1000;
   var QUICK_TEMPLATES = [
-    {
-      id: 'exercise_pain',
-      match: /ont|smärta|värk|träningsvärk|sämre efter|mer ont|spänning|stiff|stel/i,
-      label: 'Smärta efter behandling',
-      draft: function(pat, cfg) {
-        return 'Hej ' + (pat ? pat.name.split(' ')[0] : '') + '!
-
-'
-          + 'Det är helt normalt att känna viss ömhet 24–48 timmar efter behandling — kroppen reagerar på de mjukdelar vi arbetat med. '
-          + 'Fortsätt med hemövningarna som vi gick igenom, och välj lätt rörelse framför vila om möjligt.
-
-'
-          + 'Hör gärna av dig om du inte känner förbättring inom 3 dagar, eller om smärtan ökar markant.
-
-'
-          + 'Med vänliga hälsningar
-' + (cfg.signature || cfg.name || 'Kansei');
-      }
+    { id: 'exercise_pain', match: /ont|smärta|värk|sämre efter|mer ont|spänning|stel/i, label: 'Smärta efter behandling',
+      draft: function(pat, cfg) { return 'Hej ' + (pat ? pat.name.split(' ')[0] : '') + '!\n\nDet är helt normalt att känna viss ömhet 24–48 timmar efter behandling. Fortsätt med hemövningarna och välj lätt rörelse framför vila.\n\nHör gärna av dig om du inte känner förbättring inom 3 dagar.\n\nMed vänliga hälsningar\n' + (cfg.signature || cfg.name || 'Kansei'); }
     },
-    {
-      id: 'can_train',
-      match: /träna|gym|löpning|sport|idrott|aktivitet|återgå|klara träning|klarar att träna/i,
-      label: 'Träningsfråga',
-      draft: function(pat, cfg) {
-        var diag = pat && pat.diagnosis ? ' med tanke på din ' + pat.diagnosis : '';
-        return 'Hej ' + (pat ? pat.name.split(' ')[0] : '') + '!
-
-'
-          + 'Bra att du frågar' + diag + '. Generellt rekommenderar jag att du undviker tung belastning och hög intensitet de närmaste 2–3 dagarna. '
-          + 'Promenader och lätt rörelse är bra och påskyndar återhämtningen.
-
-'
-          + 'Vi justerar hemprogram och träningsplan vid nästa besök — tveka inte att höra av dig om du är osäker på något specifikt.
-
-'
-          + 'Med vänliga hälsningar
-' + (cfg.signature || cfg.name || 'Kansei');
-      }
+    { id: 'can_train', match: /träna|gym|löpning|sport|idrott|aktivitet|återgå|klarar att träna/i, label: 'Träningsfråga',
+      draft: function(pat, cfg) { return 'Hej ' + (pat ? pat.name.split(' ')[0] : '') + '!\n\nJag rekommenderar att du undviker tung belastning och hög intensitet de närmaste 2–3 dagarna. Promenader och lätt rörelse är bra.\n\nVi justerar träningsplan vid nästa besök.\n\nMed vänliga hälsningar\n' + (cfg.signature || cfg.name || 'Kansei'); }
     },
-    {
-      id: 'book_time',
-      match: /boka|ny tid|nästa besök|träffa|komma|planera|tid hos|tid igen|återbesök/i,
-      label: 'Bokningstid',
-      draft: function(pat, cfg) {
-        return 'Hej ' + (pat ? pat.name.split(' ')[0] : '') + '!
-
-'
-          + 'Kul att du vill boka en ny tid! Du är välkommen att boka direkt via vår bokningslänk '
-          + 'eller ringa oss på ' + (cfg.phone || 'kliniken') + ' så hittar vi en tid som passar.
-
-'
-          + 'Med vänliga hälsningar
-' + (cfg.signature || cfg.name || 'Kansei');
-      }
+    { id: 'book_time', match: /boka|ny tid|nästa besök|återbesök/i, label: 'Bokningstid',
+      draft: function(pat, cfg) { return 'Hej ' + (pat ? pat.name.split(' ')[0] : '') + '!\n\nKul att du vill boka en ny tid! Du är välkommen att boka direkt via vår bokningslänk eller ringa oss.\n\nMed vänliga hälsningar\n' + (cfg.signature || cfg.name || 'Kansei'); }
     },
-    {
-      id: 'thank_you',
-      match: /tack|tacksam|nöjd|hjälpt|bättre|fantastisk|toppen|super|jättebra|rekommendera/i,
-      label: 'Tackmail',
-      draft: function(pat, cfg) {
-        return 'Hej ' + (pat ? pat.name.split(' ')[0] : '') + '!
-
-'
-          + 'Tack för dina varma ord — det gläder mig verkligen att höra! '
-          + 'Det är alltid roligt när man märker en tydlig förbättring.
-
-'
-          + 'Hör av dig om du behöver något mer framöver. Vi ses!
-
-'
-          + 'Med vänliga hälsningar
-' + (cfg.signature || cfg.name || 'Kansei');
-      }
+    { id: 'thank_you', match: /tack|tacksam|nöjd|hjälpt|bättre|fantastisk|toppen|jättebra/i, label: 'Tackmail',
+      draft: function(pat, cfg) { return 'Hej ' + (pat ? pat.name.split(' ')[0] : '') + '!\n\nTack för dina varma ord — det gläder mig verkligen! Hör av dig om du behöver något mer framöver.\n\nMed vänliga hälsningar\n' + (cfg.signature || cfg.name || 'Kansei'); }
     },
   ];
-
-  // ── Match email to patient by email address ────────────────────────────────
   function _matchPatient(fromHeader) {
     var email = (fromHeader.match(/<([^>]+)>/) || [])[1] || fromHeader;
     email = email.toLowerCase().trim();
-    return (S && S.patients || []).find(function(p) {
-      return (p.email || '').toLowerCase() === email;
-    }) || null;
+    return (S && S.patients || []).find(function(p){ return (p.email || '').toLowerCase() === email; }) || null;
   }
-
-  // ── Build patient context for AI ──────────────────────────────────────────
   function _buildPatContext(pat) {
-    if (!pat) return 'Okänd avsändare — ingen journaldata tillgänglig.';
-    var visits = (pat.visits || []).slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; });
-    var lastVisit = visits[0];
-    var lastSoap  = lastVisit && lastVisit.soap ? lastVisit.soap : {};
-    var allNrs    = visits.flatMap(function(v){ return (v.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }); });
-    var outcomes  = getOutcomes(pat.id);
-    var funcGains = outcomes.filter(function(o){ return o.funcGains; }).map(function(o){ return o.funcGains; });
-    return [
-      'Patient: ' + pat.name,
-      'Diagnos: ' + (pat.diagnosis || 'okänd'),
-      'Antal besök: ' + visits.length,
-      lastVisit ? 'Senaste besök: ' + lastVisit.date : '',
-      lastSoap.A ? 'Senaste bedömning: ' + lastSoap.A.slice(0,120) : '',
-      lastSoap.P ? 'Senaste plan: ' + lastSoap.P.slice(0,100) : '',
-      allNrs.length ? 'NRS-trend: ' + allNrs[allNrs.length-1] + '→' + allNrs[0] : '',
-      funcGains.length ? 'Funktionsvinster: ' + funcGains.slice(0,3).join(', ') : '',
-    ].filter(Boolean).join('
-');
+    if (!pat) return 'Okänd avsändare.';
+    var visits = (pat.visits || []).slice().sort(function(a,b){ return (b.date||'') > (a.date||'') ? 1 : -1; });
+    var lastVisit = visits[0], lastSoap = lastVisit && lastVisit.soap ? lastVisit.soap : {};
+    var allNrs = visits.flatMap(function(v){ return (v.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }); });
+    return ['Patient: ' + pat.name, 'Diagnos: ' + (pat.diagnosis||'okänd'), 'Antal besök: ' + visits.length,
+      lastVisit ? 'Senaste besök: ' + lastVisit.date : '', lastSoap.A ? 'Senaste bedömning: ' + lastSoap.A.slice(0,120) : '',
+      allNrs.length ? 'NRS-trend: ' + allNrs[allNrs.length-1] + ' till ' + allNrs[0] : ''].filter(Boolean).join('\n');
   }
-
-  // ── Quick template match (no AI needed) ───────────────────────────────────
   function _quickDraft(subject, snippet, pat, cfg) {
     var text = (subject + ' ' + snippet).toLowerCase();
-    for (var i = 0; i < QUICK_TEMPLATES.length; i++) {
-      var tpl = QUICK_TEMPLATES[i];
-      if (tpl.match.test(text)) {
-        return { draft: tpl.draft(pat, cfg), label: tpl.label, quick: true };
-      }
-    }
+    for (var i = 0; i < QUICK_TEMPLATES.length; i++) { if (QUICK_TEMPLATES[i].match.test(text)) return { draft: QUICK_TEMPLATES[i].draft(pat, cfg), label: QUICK_TEMPLATES[i].label, quick: true }; }
     return null;
   }
-
-  // ── AI draft for complex mails ────────────────────────────────────────────
   async function _aiDraft(subject, body, pat, cfg, key) {
-    var patCtx   = _buildPatContext(pat);
-    var commProf = pat ? _buildCommProfileContext(pat) : '';
+    var patCtx = _buildPatContext(pat);
     var clinicianName = cfg.signature || cfg.name || 'Behandlaren';
-    var prompt =
-      'Du är ' + clinicianName + ', erfaren naprapath på ' + (cfg.name||'Kansei') + '. '
-      + 'Skriv ett kort, varmt och professionellt svar på detta patientmail på svenska. '
-      + 'Max 4–5 meningar. Avsluta alltid med "Med vänliga hälsningar\n' + clinicianName + '".
-
-'
-      + '── PATIENTKONTEXT ──
-' + patCtx + '
-
-'
-      + (commProf ? commProf + '
-' : '')
-      + '── INKOMMET MAIL ──
-'
-      + 'Ämne: ' + subject + '
-'
-      + 'Meddelande:
-' + body.slice(0, 800) + '
-
-'
-      + 'Skriv BARA svarsmailtexten — ingen förklaring, inga citattecken runt texten.';
-
-    var res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': key,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: MODEL_HAIKU,
-        max_tokens: 400,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
+    var prompt = 'Du är ' + clinicianName + ', erfaren naprapath. Skriv ett kort, varmt och professionellt svar på svenska. Max 4-5 meningar. Avsluta med "Med vänliga hälsningar\n' + clinicianName + '".\n\nPATIENTKONTEXT:\n' + patCtx + '\n\nINKOMMET MAIL:\nÄmne: ' + subject + '\n' + body.slice(0, 600) + '\n\nSkriv BARA svarsmailtexten.';
+    var res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model: MODEL_HAIKU, max_tokens: 400, messages: [{ role: 'user', content: prompt }] }) });
     var data = await res.json();
     return (data.content || []).map(function(b){ return b.text||''; }).join('').trim();
   }
-
-  // ── Process a single thread ────────────────────────────────────────────────
+  function _getTriaged() {
+    try { var s = JSON.parse(localStorage.getItem(TRIAGED_KEY) || '{}'); var cutoff = Date.now() - 14 * 86400000; Object.keys(s).forEach(function(k){ if (s[k] < cutoff) delete s[k]; }); return s; } catch(e) { return {}; }
+  }
+  function _markTriaged(threadId) {
+    var s = _getTriaged(); s[threadId] = Date.now();
+    try { localStorage.setItem(TRIAGED_KEY, JSON.stringify(s)); } catch(e) {}
+  }
   async function _processThread(thread, key, cfg) {
-    var triaged = _getTriaged();
-    if (triaged[thread.id]) return; // already handled
-
-    var pat    = _matchPatient(thread.from);
+    var triaged = _getTriaged(); if (triaged[thread.id]) return;
+    var pat = _matchPatient(thread.from);
     var intent = _gmailDetectIntent(thread.subject, thread.snippet);
-
-    // Skip system/admin/non-patient mails without AI — mark as seen
     if (intent.id === 'system') { _markTriaged(thread.id); return; }
-
-    var draftResult = null;
-
-    // 1. Try quick template first (instant, no API cost)
-    var quick = _quickDraft(thread.subject, thread.snippet, pat, cfg);
-    if (quick) {
-      draftResult = quick;
-    } else if (key) {
-      // 2. Load full thread body for AI
+    var draftResult = _quickDraft(thread.subject, thread.snippet, pat, cfg);
+    if (!draftResult && key) {
       try {
         var fullThread = await _gmailLoadThread(thread.id);
-        var lastMsg    = fullThread && fullThread.messages && fullThread.messages[fullThread.messages.length-1];
-        var body       = lastMsg ? _gmailGetBody(lastMsg.payload) : thread.snippet;
-        var aiText     = await _aiDraft(thread.subject, body, pat, cfg, key);
+        var lastMsg = fullThread && fullThread.messages && fullThread.messages[fullThread.messages.length-1];
+        var body = lastMsg ? _gmailGetBody(lastMsg.payload) : thread.snippet;
+        var aiText = await _aiDraft(thread.subject, body, pat, cfg, key);
         if (aiText) draftResult = { draft: aiText, label: intent.label || 'Patientmail', quick: false };
       } catch(ex) {}
     }
-
     if (!draftResult) { _markTriaged(thread.id); return; }
-
-    // 3. Push to approval queue (patient_message type → shows in sigqueue)
-    var approval = createAIApproval({
-      type: 'patient_message',
-      patId:    pat ? pat.id   : 'unknown_' + thread.id,
-      patName:  pat ? pat.name : _gmailFromName(thread.from) || thread.from,
-      title:    'Svar: ' + thread.subject,
-      aiContent: draftResult.draft,
-      meta: {
-        channel:  'email',
-        threadId: thread.id,
-        subject:  thread.subject,
-        from:     thread.from,
-        date:     thread.date,
-        snippet:  thread.snippet,
-        intent:   intent.id,
-        quick:    draftResult.quick,
-        patEmail: pat ? pat.email : _gmailFromEmail(thread.from),
-      }
-    });
-
-    // 4. Inbox notification
-    addInboxItem(
-      pat ? pat.id : 'mail_' + thread.id,
-      pat ? pat.name : _gmailFromName(thread.from) || 'Okänd',
-      'info', 'patient_reply',
-      '📬 ' + (draftResult.quick ? 'Snabbsvar' : 'AI-svar') + ' klart — ' + thread.subject.slice(0,50),
-      (draftResult.quick ? '⚡ Mall: ' + draftResult.label : '🤖 AI-draft klar') + ' · Granska i signaturkön',
-      [{ label: 'Granska & skicka', fn: "rSignatureQueue&&rSignatureQueue()" }]
-    );
-
+    createAIApproval({ type: 'patient_message', patId: pat ? pat.id : 'unknown_' + thread.id, patName: pat ? pat.name : _gmailFromName(thread.from) || thread.from, title: 'Svar: ' + thread.subject, aiContent: draftResult.draft, meta: { channel: 'email', threadId: thread.id, subject: thread.subject, from: thread.from, date: thread.date, snippet: thread.snippet, intent: intent.id, quick: draftResult.quick, patEmail: pat ? pat.email : _gmailFromEmail(thread.from) } });
+    addInboxItem(pat ? pat.id : 'mail_' + thread.id, pat ? pat.name : _gmailFromName(thread.from) || 'Okänd', 'info', 'patient_reply', '📬 ' + (draftResult.quick ? 'Snabbsvar' : 'AI-svar') + ' klart — ' + thread.subject.slice(0,50), (draftResult.quick ? '⚡ Mall: ' + draftResult.label : '🤖 AI-draft klar') + ' · Granska i signaturkön', [{ label: 'Granska och skicka', fn: 'rSignatureQueue&&rSignatureQueue()' }]);
     _markTriaged(thread.id);
   }
-
-  // ── Triaged set helpers ────────────────────────────────────────────────────
-  function _getTriaged() {
-    try {
-      var s = JSON.parse(localStorage.getItem(TRIAGED_KEY) || '{}');
-      // Expire entries older than 7 days
-      var cutoff = Date.now() - 14 * 86400000;
-      Object.keys(s).forEach(function(k){ if (s[k] < cutoff) delete s[k]; });
-      return s;
-    } catch(e) { return {}; }
-  }
-  function _markTriaged(threadId) {
-    var s = _getTriaged();
-    s[threadId] = Date.now();
-    try { localStorage.setItem(TRIAGED_KEY, JSON.stringify(s)); } catch(e) {}
-  }
-
-  // ── Main triage scan ───────────────────────────────────────────────────────
   async function run(force) {
     if (_running) return;
     if (!_gmailIsAuthed()) return;
     var last = parseInt(localStorage.getItem(TRIAGE_KEY) || '0');
-    if (!force && Date.now() - last < 25 * 60 * 1000) return; // max 1×/25min unless forced
+    if (!force && Date.now() - last < 25 * 60 * 1000) return;
     _running = true;
     localStorage.setItem(TRIAGE_KEY, Date.now().toString());
-
     try {
-      var cfg    = getClinicConfig ? getClinicConfig() : {};
-      var key    = getKey ? getKey() : null;
-
-      // Fetch threads last 14 days — no unread filter (clinician may have opened but not replied)
+      var cfg = getClinicConfig ? getClinicConfig() : {}, key = getKey ? getKey() : null;
       var threads = await _gmailLoadInbox('in:inbox newer_than:14d', 30);
       if (!threads || !threads.length) return;
-
-      // Get clinician email to detect "already replied" threads
       var myEmail = '';
-      try {
-        var meRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
-          headers: { 'Authorization': 'Bearer ' + _gmailToken }
-        });
-        if (meRes.ok) { var meData = await meRes.json(); myEmail = (meData.emailAddress||'').toLowerCase(); }
-      } catch(ex) {}
-
-      // Filter: last message must be FROM patient (not from clinician = not yet replied)
-      // Also skip already-triaged threads
+      try { var meRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', { headers: { 'Authorization': 'Bearer ' + _gmailToken } }); if (meRes.ok) { var meData = await meRes.json(); myEmail = (meData.emailAddress||'').toLowerCase(); } } catch(ex) {}
       var triaged = _getTriaged();
-      var needsReply = threads.filter(function(t) {
-        if (triaged[t.id]) return false; // already processed
-        var lastFrom = (t.lastFrom || t.from || '').toLowerCase();
-        // If clinician sent last message — already replied, skip
-        if (myEmail && lastFrom.includes(myEmail)) return false;
-        return true;
-      });
-
+      var needsReply = threads.filter(function(t) { if (triaged[t.id]) return false; var lastFrom = (t.lastFrom || t.from || '').toLowerCase(); if (myEmail && lastFrom.includes(myEmail)) return false; return true; });
       if (!needsReply.length) return;
-
-      // Process sequentially (rate-limit API calls)
       for (var i = 0; i < needsReply.length; i++) {
         await _processThread(needsReply[i], key, cfg);
-        // Small pause between threads to avoid rate limits
         if (i < needsReply.length - 1) await new Promise(function(r){ setTimeout(r, 500); });
       }
-
       var processed = needsReply.filter(function(t){ return _getTriaged()[t.id]; }).length;
-      if (processed > 0) {
-        showAutoSaveToast(processed + ' patientmail triagerade → signaturkön');
-        updateInboxBadge();
-        if (S.screen === 'dashboard') _renderPulse();
-      }
-    } catch(ex) {
-      console.warn('Mail triage error:', ex);
-    } finally {
-      _running = false;
-    }
+      if (processed > 0) { showAutoSaveToast(processed + ' patientmail triagerade → signaturkön'); updateInboxBadge(); if (S.screen === 'dashboard') _renderPulse(); }
+    } catch(ex) { console.warn('Mail triage error:', ex); }
+    finally { _running = false; }
   }
-
-  // ── Scheduler ─────────────────────────────────────────────────────────────
-  function start() {
-    run(true); // immediate run on login
-    if (_timer) clearInterval(_timer);
-    _timer = setInterval(function(){ run(false); }, INTERVAL);
-  }
-
-  function stop() {
-    if (_timer) { clearInterval(_timer); _timer = null; }
-  }
-
+  function start() { run(true); if (_timer) clearInterval(_timer); _timer = setInterval(function(){ run(false); }, INTERVAL); }
+  function stop() { if (_timer) { clearInterval(_timer); _timer = null; } }
   return { start: start, stop: stop, runNow: function(){ run(true); } };
 })();
 
-
 function _triageMarkHandled(approvalId, threadId) {
-  // Mark thread as triaged so it won't resurface
-  if (threadId) {
-    try {
-      var s = JSON.parse(localStorage.getItem('vela:mail-triaged') || '{}');
-      s[threadId] = Date.now();
-      localStorage.setItem('vela:mail-triaged', JSON.stringify(s));
-    } catch(e) {}
-  }
-  // Reject the approval item
+  if (threadId) { try { var s = JSON.parse(localStorage.getItem('vela:mail-triaged') || '{}'); s[threadId] = Date.now(); localStorage.setItem('vela:mail-triaged', JSON.stringify(s)); } catch(e) {} }
   if (approvalId) rejectAIContent && rejectAIContent(approvalId);
   showAutoSaveToast('Markerat som hanterat');
 }
 
-
-// ── Daily Agent settings panel ─────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// AGENT STATUS PANEL
+// ══════════════════════════════════════════════════════════════════════════════
 async function _stAgentStatus(el) {
-  el.innerHTML = '<div style="padding:32px 24px;color:#8b949e;font-size:13px">Laddar agent-status…</div>';
-
-  // Load last agent runs from pass_log
+  el.innerHTML = '<div style="padding:32px 24px;color:#8b949e;font-size:13px">Laddar agent-status...</div>';
   var runs = [];
   try {
-    var res = await fetch(SB_URL + '/rest/v1/pass_log?pat_id=eq.agent&type=eq.agent_run&order=logged_at.desc&limit=7', {
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }
-    });
+    var res = await fetch(SB_URL + '/rest/v1/pass_log?pat_id=eq.agent&type=eq.agent_run&order=logged_at.desc&limit=7', { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
     if (res.ok) runs = await res.json();
   } catch(e) {}
-
   var lastRun = runs[0];
   var lastRunData = lastRun ? (typeof lastRun.data === 'string' ? JSON.parse(lastRun.data) : lastRun.data) : null;
   var lastRunTime = lastRun ? new Date(lastRun.logged_at).toLocaleString('sv-SE', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : 'Aldrig';
-
   var statusColor = lastRunData ? '#3fb950' : '#8b949e';
-  var statusText  = lastRunData ? 'Aktiv' : 'Ej konfigurerad';
-
   var historyRows = runs.map(function(r) {
     var d = typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
     var t = new Date(r.logged_at).toLocaleString('sv-SE', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
-    return '<tr>' +
-      '<td style="padding:7px 12px;color:#8b949e;font-size:12px">' + t + '</td>' +
-      '<td style="padding:7px 12px;color:#e6edf3;font-size:12px">' + (d.bookings||0) + ' bokningar</td>' +
-      '<td style="padding:7px 12px;color:#e6edf3;font-size:12px">' + ((d.reminders||0)+(d.followups||0)+(d.nudges||0)) + ' meddelanden</td>' +
-      '<td style="padding:7px 12px;font-size:12px;color:' + (d.briefing ? '#3fb950' : '#484f58') + '">' + (d.briefing ? '✓ Briefing skickad' : '– Ingen briefing') + '</td>' +
-      '</tr>';
+    return '<tr><td style="padding:7px 12px;color:#8b949e;font-size:12px">' + t + '</td><td style="padding:7px 12px;color:#e6edf3;font-size:12px">' + (d.bookings||0) + ' bokningar</td><td style="padding:7px 12px;color:#e6edf3;font-size:12px">' + ((d.reminders||0)+(d.followups||0)+(d.nudges||0)) + ' meddelanden</td><td style="padding:7px 12px;font-size:12px;color:' + (d.briefing ? '#3fb950' : '#484f58') + '">' + (d.briefing ? '✓ Briefing skickad' : '– Ingen briefing') + '</td></tr>';
   }).join('');
-
-  el.innerHTML = '<div style="max-width:680px;padding:28px 24px">' +
-
-    // Status card
-    '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px 24px;margin-bottom:20px">' +
-    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">' +
-    '<div style="width:10px;height:10px;border-radius:50%;background:' + statusColor + '"></div>' +
-    '<span style="font-size:15px;font-weight:700;color:#e6edf3">Daily Agent — ' + statusText + '</span>' +
-    '</div>' +
-    '<div style="font-size:13px;color:#8b949e;line-height:1.7;margin-bottom:16px">' +
-    'Kör automatiskt kl 07:00 varje dag via Supabase Edge Function + pg_cron. ' +
-    'Skickar bokningspåminnelser, uppföljningar, inaktiva-nudges och din dagsbriefing — utan att du öppnar Vela.' +
-    '</div>' +
-    '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
-    '<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px">' +
-    '<div style="font-size:11px;color:#484f58;margin-bottom:2px">Senaste körning</div>' +
-    '<div style="font-size:13px;font-weight:600;color:#e6edf3">' + lastRunTime + '</div>' +
-    '</div>' +
-    (lastRunData ? '<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px">' +
-    '<div style="font-size:11px;color:#484f58;margin-bottom:2px">Meddelanden skickade</div>' +
-    '<div style="font-size:13px;font-weight:600;color:#e6edf3">' + ((lastRunData.reminders||0)+(lastRunData.followups||0)+(lastRunData.nudges||0)) + ' st</div>' +
-    '</div>' : '') +
-    '</div>' +
-    '</div>' +
-
-    // Manual trigger
-    '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px 24px;margin-bottom:20px">' +
-    '<div style="font-size:13px;font-weight:700;color:#e6edf3;margin-bottom:8px">Kör agent nu</div>' +
-    '<div style="font-size:13px;color:#8b949e;margin-bottom:14px">Triggar en omedelbar körning — skickar briefing + alla automationer.</div>' +
-    '<button id="agent-run-btn" onclick="_triggerAgentNow()" style="padding:9px 20px;background:#238636;border:none;border-radius:6px;font-size:13px;font-weight:700;color:white;cursor:pointer;font-family:var(--font)">▶ Kör agent nu</button>' +
-    '<span id="agent-run-status" style="font-size:13px;color:#8b949e;margin-left:12px"></span>' +
-    '</div>' +
-
-    // Run history
-    (runs.length ? '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:20px">' +
-    '<div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#8b949e">Körningshistorik (7 senaste)</div>' +
-    '<table style="width:100%;border-collapse:collapse">' +
-    '<thead><tr>' +
-    '<th style="padding:7px 12px;text-align:left;font-size:11px;color:#484f58">Tid</th>' +
-    '<th style="padding:7px 12px;text-align:left;font-size:11px;color:#484f58">Bokningar</th>' +
-    '<th style="padding:7px 12px;text-align:left;font-size:11px;color:#484f58">Kommunikation</th>' +
-    '<th style="padding:7px 12px;text-align:left;font-size:11px;color:#484f58">Briefing</th>' +
-    '</tr></thead>' +
-    '<tbody>' + historyRows + '</tbody>' +
-    '</table>' +
-    '</div>' : '') +
-
-    // Setup guide
-    '<div style="background:rgba(224,118,40,.04);border:1px solid rgba(224,118,40,.15);border-radius:8px;padding:20px 24px">' +
-    '<div style="font-size:13px;font-weight:700;color:#e07628;margin-bottom:10px">Setup (om inte konfigurerad)</div>' +
-    '<ol style="font-size:13px;color:#8b949e;line-height:2;margin:0;padding-left:18px">' +
-    '<li>Deploya <code style="background:#0d1117;padding:1px 5px;border-radius:3px;color:#e6edf3">daily-agent</code> Edge Function i Supabase Dashboard</li>' +
-    '<li>Kör <code style="background:#0d1117;padding:1px 5px;border-radius:3px;color:#e6edf3">setup.sql</code> i SQL Editor för pg_cron-schema</li>' +
-    '<li>Lägg till Secrets i Supabase: <code style="background:#0d1117;padding:1px 5px;border-radius:3px;color:#e6edf3">ANTHROPIC_KEY</code>, <code style="background:#0d1117;padding:1px 5px;border-radius:3px;color:#e6edf3">RESEND_KEY</code>, <code style="background:#0d1117;padding:1px 5px;border-radius:3px;color:#e6edf3">ELKS_KEY</code></li>' +
-    '<li>Spara API-nycklar i Vela → Inställningar → API-nycklar (synkas automatiskt)</li>' +
-    '</ol>' +
-    '</div>' +
-
-    '</div>';
+  el.innerHTML = '<div style="max-width:680px;padding:28px 24px">'
+    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px 24px;margin-bottom:20px">'
+    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px"><div style="width:10px;height:10px;border-radius:50%;background:' + statusColor + '"></div><span style="font-size:15px;font-weight:700;color:#e6edf3">Daily Agent — ' + (lastRunData ? 'Aktiv' : 'Ej konfigurerad') + '</span></div>'
+    + '<div style="font-size:13px;color:#8b949e;line-height:1.7;margin-bottom:16px">Kör automatiskt kl 07:00 varje dag via Supabase Edge Function + pg_cron. Skickar bokningspåminnelser, uppföljningar och din dagsbriefing utan att du öppnar Vela.</div>'
+    + '<div style="display:flex;gap:10px"><div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px"><div style="font-size:11px;color:#484f58;margin-bottom:2px">Senaste körning</div><div style="font-size:13px;font-weight:600;color:#e6edf3">' + lastRunTime + '</div></div>'
+    + (lastRunData ? '<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px"><div style="font-size:11px;color:#484f58;margin-bottom:2px">Meddelanden</div><div style="font-size:13px;font-weight:600;color:#e6edf3">' + ((lastRunData.reminders||0)+(lastRunData.followups||0)+(lastRunData.nudges||0)) + ' st</div></div>' : '')
+    + '</div></div>'
+    + '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:20px 24px;margin-bottom:20px">'
+    + '<div style="font-size:13px;font-weight:700;color:#e6edf3;margin-bottom:8px">Kör agent nu</div>'
+    + '<div style="font-size:13px;color:#8b949e;margin-bottom:14px">Triggar en omedelbar körning.</div>'
+    + '<button id="agent-run-btn" onclick="_triggerAgentNow()" style="padding:9px 20px;background:#238636;border:none;border-radius:6px;font-size:13px;font-weight:700;color:white;cursor:pointer;font-family:var(--font)">▶ Kör agent nu</button>'
+    + '<span id="agent-run-status" style="font-size:13px;color:#8b949e;margin-left:12px"></span></div>'
+    + (runs.length ? '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:20px"><div style="padding:12px 16px;border-bottom:1px solid var(--border);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#8b949e">Körningshistorik</div><table style="width:100%;border-collapse:collapse"><thead><tr><th style="padding:7px 12px;text-align:left;font-size:11px;color:#484f58">Tid</th><th style="padding:7px 12px;text-align:left;font-size:11px;color:#484f58">Bokningar</th><th style="padding:7px 12px;text-align:left;font-size:11px;color:#484f58">Kommunikation</th><th style="padding:7px 12px;text-align:left;font-size:11px;color:#484f58">Briefing</th></tr></thead><tbody>' + historyRows + '</tbody></table></div>' : '')
+    + '</div>';
 }
 
 async function _triggerAgentNow() {
-  var btn = document.getElementById('agent-run-btn');
-  var status = document.getElementById('agent-run-status');
-  if (btn) { btn.disabled = true; btn.textContent = 'Kör…'; }
-  if (status) status.textContent = 'Startar…';
+  var btn = document.getElementById('agent-run-btn'), status = document.getElementById('agent-run-status');
+  if (btn) { btn.disabled = true; btn.textContent = 'Kör...'; }
+  if (status) status.textContent = 'Startar...';
   try {
-    var res = await fetch(SB_URL + '/functions/v1/daily-agent', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SB_KEY,
-        'Authorization': 'Bearer ' + SB_KEY
-      },
-      body: '{}'
-    });
+    var res = await fetch(SB_URL + '/functions/v1/daily-agent', { method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }, body: '{}' });
     var data = await res.json();
     if (data.ok) {
       var s = data.stats || {};
-      if (status) status.textContent = '✓ Klar! ' + (s.remindersSent+s.followupsSent+s.nudgesSent) + ' meddelanden, briefing ' + (s.briefingSent ? 'skickad' : 'ej konfigurerad');
+      if (status) status.textContent = '✓ Klar! ' + ((s.remindersSent||0)+(s.followupsSent||0)+(s.nudgesSent||0)) + ' meddelanden, briefing ' + (s.briefingSent ? 'skickad' : 'ej konfigurerad');
       if (btn) btn.textContent = '✓ Kördes';
       showAutoSaveToast('Daily Agent körd ✓');
     } else {
@@ -24816,7 +23911,7 @@ async function _triggerAgentNow() {
       if (btn) { btn.disabled = false; btn.textContent = '▶ Kör agent nu'; }
     }
   } catch(ex) {
-    if (status) status.textContent = '✗ Kunde inte nå edge function — är den deployad?';
+    if (status) status.textContent = '✗ Kunde inte nå edge function';
     if (btn) { btn.disabled = false; btn.textContent = '▶ Kör agent nu'; }
   }
 }
@@ -25013,15 +24108,12 @@ async function sbSignIn(email, password) {
     if (data.access_token) {
       _authUser = data.user;
       localStorage.setItem('kansei:auth', JSON.stringify({ token: data.access_token, user: data.user, exp: Date.now() + (data.expires_in||3600)*1000 }));
-      // Sync clinician email + current data to Supabase for daily-agent
       setTimeout(async function() {
         try {
           var cfg = getClinicConfig ? getClinicConfig() : {};
           if (!cfg.email && email) { cfg.email = email; saveClinicConfig && saveClinicConfig(cfg); }
-          // Sync bookings so agent can read them
           var bks = typeof getBookings === 'function' ? getBookings() : [];
           if (bks.length) await _sbSyncBookings(bks);
-          // Sync comm rules
           var rules = typeof getCommRules === 'function' ? getCommRules() : null;
           if (rules) {
             var s = await _sbLoadClinicSettings() || {};
@@ -26590,7 +25682,7 @@ async function loadPublicPlan(patId, visitId) {
             renderPublicPlan(visit.plan, pat);
           } catch(renderErr) {
             console.error('renderPublicPlan failed:', renderErr);
-            el.innerHTML = `<div style="text-align:center;padding:60px 24px;font-family:system-ui,sans-serif"><div style="font-size:20px;color:#f85149;margin-bottom:8px">Fel vid laddning</div><div style="font-size:13px;color:#888">Tekniskt fel: ${renderErr && renderErr.message ? renderErr.message : 'okänt'}</div></div>`;
+            el.innerHTML = '<div style="text-align:center;padding:60px 24px;font-family:system-ui,sans-serif"><div style="font-size:20px;color:#f85149;margin-bottom:8px">Fel vid laddning</div><div style="font-size:13px;color:#888">Tekniskt fel: ' + (renderErr && renderErr.message ? renderErr.message : 'okänt') + '</div></div>';
             return;
           }
           if (shouldShowOnboarding(patId)) {
@@ -26608,7 +25700,7 @@ async function loadPublicPlan(patId, visitId) {
           if (window._pubLoadTimeout) clearTimeout(window._pubLoadTimeout);
           try { renderPublicPlan(fallbackVisit.plan, pat); } catch(e) {
             console.error('renderPublicPlan fallback failed:', e);
-            document.getElementById('s-public-plan').innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#0e1825"><div style="text-align:center;color:white"><div style="font-size:18px;margin-bottom:8px">Fel: ${e&&e.message||'okänt'}</div></div></div>`;
+            document.getElementById('s-public-plan').innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#0e1825"><div style="text-align:center;color:white"><div style="font-size:18px;margin-bottom:8px">Fel: ' + (e&&e.message||'okänt') + '</div></div></div>';
           }
           return;
         }
@@ -30782,23 +29874,17 @@ function _velaSetApiKey(id, val) {
     try { obj = JSON.parse(localStorage.getItem('vela:api-keys') || '{}') || {}; } catch {}
     obj[id] = _velaObfuscate(val);
     localStorage.setItem('vela:api-keys', JSON.stringify(obj));
-    // Sync plain key to Supabase clinic_settings so edge functions can read it
-    // We store a non-obfuscated version server-side (Supabase is already encrypted at rest)
     _sbSyncApiKeyForAgent(id, val);
   } catch {}
 }
 
-// Sync API keys to Supabase so daily-agent edge function can use them
-// Stored under clinic_settings.data.agentKeys (not exposed to browser beyond this session)
 async function _sbSyncApiKeyForAgent(id, val) {
   try {
     var keyMap = { anthropic: 'ANTHROPIC_KEY', resend: 'RESEND_KEY', '46elks': 'ELKS_KEY' };
-    var secretName = keyMap[id];
-    if (!secretName || !val) return;
-    // Store in clinic_settings under agentKeys — edge function reads this at boot
+    if (!keyMap[id] || !val) return;
     var settings = await _sbLoadClinicSettings() || {};
     settings.agentKeys = settings.agentKeys || {};
-    settings.agentKeys[id] = val; // plain — server-side only
+    settings.agentKeys[id] = val;
     await _sbSaveClinicSettings(settings);
   } catch(e) {}
 }
@@ -31183,14 +30269,14 @@ async function _velaSendTestSms() {
   resEl.textContent = 'Skickar...';
   var result = await _velaSendSMS(num, body);
   if (result.ok) {
-    resEl.innerHTML = `<span style="color:var(--green)">✓ Skickat! 46elks-ID: ${result.id||'–'}</span>`;
+    resEl.innerHTML = '<span style="color:var(--green)">✓ Skickat! 46elks-ID: ' + (result.id||'–') + '</span>';
   } else {
     var hint = result.err === 'no_key'
       ? 'Ingen 46elks-nyckel sparad under Inställningar → Kommunikation → API-nycklar.'
       : result.err === 'invalid_key_format'
       ? 'Nyckeln ska vara i formatet <em>username:password</em>.'
       : result.err || 'Okänt fel';
-    resEl.innerHTML = `<span style="color:var(--red)">✗ Misslyckades — ${hint}</span>`;
+    resEl.innerHTML = '<span style="color:var(--red)">✗ Misslyckades — ' + hint + '</span>';
   }
 }
 
@@ -34361,7 +33447,7 @@ async function _saveAndVerifyKey() {
         + '<span style="font-size:13px;font-weight:700;color:#c03030">Fel: ' + errMsg + '</span></div>';
     }
   } catch(err) {
-    if (statusEl) statusEl.innerHTML = `<div style="font-size:13px;color:#c03030;padding:8px 0">Kunde inte ansluta: ${err.message||'nätverksfel'}</div>`;
+    if (statusEl) statusEl.innerHTML = '<div style="font-size:13px;color:#c03030;padding:8px 0">Kunde inte ansluta: ' + (err.message||'nätverksfel') + '</div>';
   }
 }
 
@@ -35504,7 +34590,7 @@ Vela-fält för ekonomi: date, service, amount, description`;
 
       _showImportPreview(file, analysis, content, isPatients);
     } catch(err) {
-      if (statusEl) statusEl.innerHTML = `<span style="color:var(--red)">Fel vid analys: ${e(err.message)}</span>`;
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--red)">Fel vid analys: ' + e(err.message) + '</span>';
     }
   };
   if (file.name.endsWith('.pdf') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
@@ -36894,7 +35980,7 @@ function _bodyMapClick(side, regionId) {
   var steps = _getIntakeSteps();
   var step = steps[window._intakeState.step];
   var bodySection = document.querySelector('.intake-section');
-  if (bodySection) bodySection.innerHTML = `<div class="intake-section-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><path d="M9 20l3-6 3 6M6 8h12M8 14h8"/></svg>${step.title}</div>${step.render(st)}`;
+  if (bodySection) bodySection.innerHTML = '<div class="intake-section-title"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1"/><path d="M9 20l3-6 3 6M6 8h12M8 14h8"/></svg>' + step.title + '</div>' + step.render(st);
 }
 
 function _intakeSaveCurrentStep() {
@@ -36965,7 +36051,9 @@ async function _intakeSubmit() {
   // Show completion screen
   var el = document.getElementById('s-intake');
   if (el) {
-    el.innerHTML = `<div class="intake-wrap"><div class="intake-hero"><div class="intake-logo">${e(getClinicConfig().name||'Vela')}</div></div><div class="intake-body"><div class="intake-complete"><div class="intake-complete-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div><div style="font-size:22px;font-weight:800;color:#e6edf3;margin-bottom:8px">Tack!</div><div style="font-size:14px;color:#8b949e;line-height:1.7">Ditt formulär har skickats till kliniken.<br>Vi ser fram emot att träffa dig!</div>${form.redFlagCount > 0 ? '<div class="redflag-banner" style="margin-top:20px;text-align:left"><div class="redflag-banner-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div><div class="redflag-banner-text"><div class="redflag-banner-title">Dina uppgifter är noterade</div>Din behandlare kommer att gå igenom dina svar extra noga.</div></div>' : ''}</div></div></div>`;
+    el.innerHTML = '<div class="intake-wrap"><div class="intake-hero"><div class="intake-logo">' + e(getClinicConfig().name||'Vela') + '</div></div><div class="intake-body"><div class="intake-complete"><div class="intake-complete-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg></div><div style="font-size:22px;font-weight:800;color:#e6edf3;margin-bottom:8px">Tack!</div><div style="font-size:14px;color:#8b949e;line-height:1.7">Ditt formulär har skickats till kliniken.<br>Vi ser fram emot att träffa dig!</div>'
+      + (form.redFlagCount > 0 ? '<div class="redflag-banner" style="margin-top:20px;text-align:left"><div class="redflag-banner-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div><div class="redflag-banner-text"><div class="redflag-banner-title">Dina uppgifter är noterade</div>Din behandlare kommer att gå igenom dina svar extra noga.</div></div>' : '')
+      + '</div></div></div>';
   }
   // Reset state
   window._intakeState = { step:0, answers:{}, bodyMap:{}, redFlags:[], patientId:null, formId:null };
@@ -37547,7 +36635,7 @@ async function generateTreatmentRecommendation(patId, visitId) {
     try { recs = JSON.parse(txt.replace(/```json|```/g,'').trim()); } catch { recs = null; }
 
     if (!el) return;
-    if (!recs || !recs.length) { el.innerHTML = `<div style="font-size:13px;color:#8b949e">${txt}</div>`; return; }
+    if (!recs || !recs.length) { el.innerHTML = '<div style="font-size:13px;color:#8b949e">' + txt + '</div>'; return; }
 
     var catColors = {'Manuell terapi':'var(--teal)','Rehabilitering':'#4a7aee','Egenvård/råd':'#9b6ee0'};
     el.innerHTML = recs.map(function(r) {
@@ -39369,7 +38457,7 @@ async function sbFullSync() {
     if (panel) {
       var resultDiv = document.createElement('div');
       resultDiv.style.cssText = 'margin-top:12px;padding:12px 14px;background:rgba(26,122,74,.08);border:1px solid rgba(26,122,74,.2);border-radius:6px;font-size:13px;color:#3fb950';
-      resultDiv.innerHTML = `✓ ${msg}<br><span style="font-size:13px;color:#8b949e">${new Date().toLocaleString('sv-SE')}</span>`;
+      resultDiv.innerHTML = '✓ ' + msg + '<br><span style="font-size:13px;color:#8b949e">' + new Date().toLocaleString('sv-SE') + '</span>';
       panel.appendChild(resultDiv);
     }
 
@@ -40347,7 +39435,8 @@ function _recUpdatePreview() {
     dates.push(new Date(d).toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short'}) + ' kl ' + time);
     d.setDate(d.getDate()+days);
   }
-  el.innerHTML = `<div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:6px">${count} bokningar skapas:</div>${dates.map(function(dt){ return '<div style="color:#e6edf3;margin-bottom:2px">· ' + dt + '</div>'; }).join('')}`;
+  el.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:6px">' + count + ' bokningar skapas:</div>' +
+    dates.map(function(dt){ return '<div style="color:#e6edf3;margin-bottom:2px">· ' + dt + '</div>'; }).join('');
 }
 
 function _saveRecurringBookings(patId) {
@@ -42385,7 +41474,7 @@ function _aiProfileToggleOption(qId, type, btn, opt) {
     btn.style.background = 'rgba(224,118,40,.05)';
     btn.style.color = 'var(--teal)';
     btn.style.fontWeight = '600';
-    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>${opt}`;
+    btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>' + opt;
   } else {
     var arr = Array.isArray(window._aiProfileDraft[qId]) ? window._aiProfileDraft[qId] : [];
     var i = arr.indexOf(opt);
@@ -42402,7 +41491,7 @@ function _aiProfileToggleOption(qId, type, btn, opt) {
       btn.style.background = 'rgba(224,118,40,.05)';
       btn.style.color = 'var(--teal)';
       btn.style.fontWeight = '600';
-      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>${opt}`;
+      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:7px;vertical-align:-1px"><path d="M20 6L9 17l-5-5"/></svg>' + opt;
     }
     window._aiProfileDraft[qId] = arr;
   }

@@ -32608,56 +32608,63 @@ function _renderSettingsNav() {
   if (!nav) return;
   const cur = window._settingsActiveTab || 'general';
 
-  function tab(id, label, iconPath) {
+  // Agent status badge
+  var agentFeed = typeof _agentGetFeed === 'function' ? _agentGetFeed() : [];
+  var agentToday = agentFeed.filter(function(f){ return Date.now()-f.ts < 86400000; }).length;
+  var pendingAppr = typeof getPendingApprovals === 'function' ? getPendingApprovals() : [];
+  var actionPend = pendingAppr.filter(function(a){ return a.type === 'cancel_request' || a.type === 'reschedule_request'; }).length;
+
+  function tab(id, label, iconPath, badge) {
     var active = cur === id;
+    var badgeHtml = badge ? '<span style="margin-left:auto;font-size:10px;font-weight:700;background:' + (active?'rgba(224,118,40,.25)':'rgba(224,118,40,.12)') + ';color:var(--orange);padding:1px 6px;border-radius:20px">' + badge + '</span>' : '';
     return '<button class="vela-stab' + (active ? ' active' : '') + '" data-tab="' + id + '">'
       + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="flex-shrink:0;opacity:' + (active?'1':'.6') + '">' + iconPath + '</svg>'
-      + label + '</button>';
+      + '<span style="flex:1">' + label + '</span>' + badgeHtml + '</button>';
   }
 
-  function group(label) {
-    return '<div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8b949e;padding:16px 12px 5px;cursor:default">' + label + '</div>';
+  function group(label, desc) {
+    return '<div style="padding:18px 14px 5px;cursor:default">'
+      + '<div style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#484f58">' + label + '</div>'
+      + (desc ? '<div style="font-size:11px;color:#484f58;margin-top:1px">' + desc + '</div>' : '')
+      + '</div>';
   }
 
   var h = '';
 
-  // ── Arbetsyta ─────────────────────────────────────────────────────────
-  h += group('Arbetsyta');
-  h += tab('general',   'Allmänt',            '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>');
-  h += tab('users',     'Behandlare',         '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>');
-  h += tab('services',  'Tjänster & priser',  '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>');
-  h += tab('schedule',  'Tillgänglighet',     '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
+  // ── Kliniken ──────────────────────────────────────────────────────────
+  h += group('Kliniken');
+  h += tab('general',   'Allmänt',           '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>');
+  h += tab('users',     'Behandlare',        '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>');
+  h += tab('services',  'Tjänster & priser', '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>');
+  h += tab('schedule',  'Tillgänglighet',    '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
 
-  // ── Automation ────────────────────────────────────────────────────────
-  h += group('Automation');
-  h += tab('comms',     'Kommunikation',      '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>');
-  h += tab('agent',     'Daily Agent',        '<path d="M12 2a10 10 0 100 20A10 10 0 0012 2z"/><path d="M12 6v6l4 2"/>');
-  h += tab('ai',        'AI & retention',     '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>');
-  h += tab('workflow',  'Arbetsflöde',        '<path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>');
+  // ── Kommunikation ─────────────────────────────────────────────────────
+  h += group('Kommunikation');
+  h += tab('comms',     'Mail & SMS',        '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>');
+  h += tab('workflow',  'Auto-komm',         '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>');
+  h += tab('integrations','Kopplingar',      '<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>');
+
+  // ── VelaAgent ─────────────────────────────────────────────────────────
+  h += group('VelaAgent');
+  h += tab('velaagent', 'Agent & automatik',  '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', actionPend ? actionPend + ' väntar' : (agentToday ? agentToday + ' idag' : null));
+  h += tab('ai',        'AI-profil & minne',  '<circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/>');
 
   // ── Konto ─────────────────────────────────────────────────────────────
   h += group('Konto');
-  h += tab('apikey',    'API-nycklar',        '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>');
-  h += tab('billing',   'Abonnemang',         '<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>');
-  h += tab('sync',      'Synk & data',        '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>');
-
-    h += tab('integrations', 'Kopplingar', '<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>');
-
+  h += tab('apikey',   'API-nycklar',         '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>');
+  h += tab('billing',  'Abonnemang',          '<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>');
+  h += tab('sync',     'Synk & data',         '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>');
 
   // ── Din profil ─────────────────────────────────────────────────────────
   h += group('Din profil');
-  h += tab('profile',      'Profil & inloggning', '<path d=\"M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2\"/><circle cx=\"12\" cy=\"7\" r=\"4\"/>');
-  h += tab('preferences',  'Preferenser',         '<path d=\"M4 6h16M4 12h16M4 18h7\"/>');
-  h += '<div style=\"margin:10px 10px 4px;padding:9px 12px;background:rgba(224,118,40,.06);border:1px solid rgba(224,118,40,.12);border-radius:6px;font-size:11px;color:#8b949e;line-height:1.55\">'
-    + '<strong style=\"color:var(--teal)\">Arbetsyta</strong> = klinikens inställningar. '
-    + '<strong style=\"color:var(--teal)\">Din profil</strong> = dina personliga val.'
-    + '</div>';
+  h += tab('profile',     'Profil & inloggning', '<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>');
+  h += tab('preferences', 'Preferenser',         '<path d="M4 6h16M4 12h16M4 18h7"/>');
+
   nav.innerHTML = h;
 
   nav.querySelectorAll('.vela-stab').forEach(function(btn) {
     btn.onclick = function() {
       var tabId = btn.getAttribute('data-tab');
-      // Tillgänglighet → go to dedicated screen
       if (tabId === 'schedule') { go('availability'); return; }
       window._settingsActiveTab = tabId;
       _renderSettingsNav();
@@ -32673,20 +32680,21 @@ function _renderSettingsContent(tab) {
   const cfg = getClinicConfig();
   const key = S.apiKey || getKey();
   if (tab === 'general' || tab === 'clinic') el.innerHTML = _stGeneral(cfg);
-  else if (tab === 'users')    el.innerHTML = _stUsers();
-  else if (tab === 'services') el.innerHTML = _stServices();
-  else if (tab === 'comms')    el.innerHTML = _stComms(cfg);
-  else if (tab === 'ai')       el.innerHTML = _stAISettings();
-  else if (tab === 'agent')    _stAgentStatus(el);
-  else if (tab === 'apikey')   el.innerHTML = _stApiKey(key);
-  else if (tab === 'billing')  el.innerHTML = _stBilling();
-  else if (tab === 'sync')     el.innerHTML = _stSync();
-  else if (tab === 'workflow')  el.innerHTML = _stWorkflow();
-  else if (tab === 'schedule')      el.innerHTML = _stSchedule();
-  else if (tab === 'integrations')  el.innerHTML = _stIntegrations();
-  else if (tab === 'profile')       el.innerHTML = _stUserProfile();
-  else if (tab === 'preferences')   el.innerHTML = _stPreferences();
-  else if (tab === 'sms')           { window._commsTab = 'sms'; el.innerHTML = _stComms(cfg); }
+  else if (tab === 'users')        el.innerHTML = _stUsers();
+  else if (tab === 'services')     el.innerHTML = _stServices();
+  else if (tab === 'comms')        el.innerHTML = _stComms(cfg);
+  else if (tab === 'ai')           el.innerHTML = _stAISettings();
+  else if (tab === 'velaagent')    _stVelaAgent(el);
+  else if (tab === 'agent')        _stVelaAgent(el);   // legacy redirect
+  else if (tab === 'apikey')       el.innerHTML = _stApiKey(key);
+  else if (tab === 'billing')      el.innerHTML = _stBilling();
+  else if (tab === 'sync')         el.innerHTML = _stSync();
+  else if (tab === 'workflow')     el.innerHTML = _stWorkflow();
+  else if (tab === 'schedule')     el.innerHTML = _stSchedule();
+  else if (tab === 'integrations') el.innerHTML = _stIntegrations();
+  else if (tab === 'profile')      el.innerHTML = _stUserProfile();
+  else if (tab === 'preferences')  el.innerHTML = _stPreferences();
+  else if (tab === 'sms')          { window._commsTab = 'sms'; el.innerHTML = _stComms(cfg); }
   else if (tab === 'rebook-policy') el.innerHTML = _stRebookPolicy();
 }
 
@@ -33327,11 +33335,9 @@ function _stField(id, label, val, placeholder, type) {
 }
 
 // ── KOMMUNIKATION TAB ────────────────────────────────────────
-// ── KOMMUNIKATION TAB ────────────────────────────────────────
 function _stComms(cfg) {
   var tab = window._commsTab || 'mail';
 
-  // Resolve template variables with live clinic data
   function resolveVars(text, patName) {
     patName = patName || 'Patienten';
     var clinic = getActiveClinic && getActiveClinic() || cfg;
@@ -33357,329 +33363,388 @@ function _stComms(cfg) {
   var clinicName = clinic.name || cfg.name || 'Kliniken';
 
   var h = '<div class="vela-st-section" style="max-width:820px">';
-  h += '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px">';
-  h += '<div><div class="vela-st-title" style="margin-bottom:4px">Kommunikation</div>';
-  h += '<div class="vela-st-desc">Automatiska mail och SMS. Allt skickas från klinikens adress och loggas på kundkortet.</div></div>';
-  h += '<div style="flex-shrink:0;background:#161b22;border:1px solid #30363d;border-radius:6px;padding:7px 12px;display:flex;align-items:center;gap:7px">';
-  h += svgIcon('<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',13);
-  h += '<span style="font-size:13px;font-weight:600;color:#e6edf3">'+e(clinicName)+'</span></div>';
-  h += '</div>';
+  h += '<div class="vela-st-title">Kommunikation</div>';
+  h += '<div class="vela-st-desc">VelaAgent hanterar mail, SMS och ombokningar proaktivt. Du notifieras bara när något sticker ut eller kräver din bedömning.</div>';
 
-  // Tab bar
+  // ── Sub-tabs ───────────────────────────────────────────────────────────────
   var tabs = [
-    {id:'mail',      label:'Mail & AI-svar',   path:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>'},
-    {id:'sms',       label:'SMS-automation',   path:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'},
-    {id:'autocomm',  label:'Auto-kommunikation', path:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>'},
-    {id:'signature', label:'Signatur',          path:'<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>'},
-    {id:'connect',   label:'Kopplingar',        path:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'},
+    {id:'mail',     label:'Mail',       path:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>'},
+    {id:'sms',      label:'SMS',        path:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'},
+    {id:'autocomm', label:'Auto-komm',  path:'<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>'},
+    {id:'connect',  label:'Kopplingar', path:'<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>'},
   ];
-  h += '<div style="display:flex;gap:2px;background:var(--bg);border:1px solid #30363d;border-radius:6px;padding:3px;margin-bottom:22px">';
+  h += '<div style="display:flex;gap:2px;background:var(--bg);border:1px solid #30363d;border-radius:6px;padding:3px;margin:16px 0 22px">';
   tabs.forEach(function(t) {
     var a = tab === t.id;
     h += '<button onclick="window._commsTab=\''+t.id+'\';_renderSettingsContent(\'comms\')"'
-      +' style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border:none;border-radius:9px;font-size:13px;font-weight:'+(a?'700':'500')+';cursor:pointer;font-family:var(--font);background:'+(a?'#161b22':'transparent')+';color:'+(a?'var(--teal)':'var(--muted)')+';transition:all .12s">';
-    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">'+t.path+'</svg>'+t.label+'</button>';
+      +' style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border:none;border-radius:9px;font-size:13px;font-weight:'+(a?'700':'500')+';cursor:pointer;font-family:var(--font);background:'+(a?'var(--surface)':'transparent')+';color:'+(a?'var(--orange)':'var(--text)')+';transition:all .12s">';
+    h += svgIcon(t.path, 13)+t.label+'</button>';
   });
   h += '</div>';
 
-  // ═══ MAIL ═══════════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MAIL
+  // ═══════════════════════════════════════════════════════════════════════════
   if (tab === 'mail') {
-    var aiOn = localStorage.getItem('vela:ai-mail') === 'on';
-    var mailConn = !!localStorage.getItem('vela:mail-connected');
-    var tone = localStorage.getItem('vela:mail-tone') || 'professional';
+    var aiOn = localStorage.getItem('vela:ai-mail') !== 'off'; // on by default
+    var gmailOk = _gmailIsAuthed && _gmailIsAuthed();
 
-    // Status row
-    h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">';
-    [
-      {l:'Mailkonto',    v:mailConn?'Kopplat':'Ej kopplat',   ok:mailConn, action:"window._commsTab='connect';_renderSettingsContent('comms')"},
-      {l:'AI-svar',      v:aiOn?'Aktivt':'Inaktivt',          ok:aiOn,     action:'_toggleAiMail()'},
-      {l:'Aktiva mallar',v:(function(){var n=0;['intake','plan','reminder','followup'].forEach(function(x){try{if(JSON.parse(localStorage.getItem('vela:mail-tmpl:'+x)||'{}').active)n++;}catch(ex){}});return n||2;})()+' av 4', ok:true, action:null},
-      {l:'Händelselogg', v:'Alltid på',                       ok:true,     action:null},
-    ].forEach(function(s) {
-      h += '<div style="background:#161b22;border:1px solid '+(s.ok?'rgba(224,118,40,.1)':'var(--border)')+';border-radius:6px;padding:11px 13px;cursor:'+(s.action?'pointer':'default')+'"'+(s.action?' onclick="'+s.action+'"':'')+' >';
-      h += '<div style="font-size:12px;color:#8b949e;margin-bottom:3px">'+s.l+'</div>';
-      h += '<div style="font-size:13px;font-weight:700;color:'+(s.ok?'var(--teal)':'#c07070')+'">'+s.v+'</div>';
-      h += '</div>';
-    });
-    h += '</div>';
+    // ── VelaAgent mail-hantering ──────────────────────────────────────────────
+    var MAIL_AGENT_KEY = 'vela:agent:mail-autonomy';
+    var mailAutonomy = {};
+    try { mailAutonomy = JSON.parse(localStorage.getItem(MAIL_AGENT_KEY)||'{}'); } catch(e) {}
 
-    // AI mail toggle card
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;margin-bottom:14px">';
-    h += '<div style="padding:14px 18px;border-bottom:1px solid #30363d;display:flex;align-items:center;justify-content:space-between">';
-    h += '<div style="display:flex;align-items:center;gap:10px">';
-    h += '<div style="width:34px;height:34px;border-radius:9px;background:rgba(224,118,40,.06);display:flex;align-items:center;justify-content:center">';
-    h += svgIcon('<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>', 16);
-    h += '</div>';
-    h += '<div><div style="font-size:13px;font-weight:700;color:#e6edf3">AI-mailsvar</div>';
-    h += '<div style="font-size:13px;color:#8b949e">AI föreslår svar — du granskar innan det skickas</div></div></div>';
-    h += '<div style="display:flex;align-items:center;gap:8px">';
-    h += '<span style="font-size:13px;color:#8b949e">'+(aiOn?'Aktivt':'Inaktivt')+'</span>';
-    h += '<div style="width:38px;height:21px;border-radius:11px;background:'+(aiOn?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;flex-shrink:0;transition:background .2s" onclick="_toggleAiMail()">';
-    h += '<div style="position:absolute;top:3px;left:'+(aiOn?'19px':'3px')+';width:15px;height:15px;border-radius:50%;background:#fff;transition:left .2s"></div></div>';
-    h += '</div></div>';
-    if (aiOn) {
-      // Flow diagram
-      h += '<div style="padding:12px 18px;border-bottom:1px solid #30363d">';
-      h += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">';
-      ['Patient mailar','AI klassificerar','Förslag skapas','Du godkänner','Skickas'].forEach(function(s,i) {
-        if(i) h += svgIcon('<path d="M5 12h14M12 5l7 7-7 7"/>',11);
-        h += '<span style="font-size:13px;padding:3px 9px;border-radius:6px;background:'+(i>=3?'rgba(224,118,40,.06)':'var(--bg)')+';color:'+(i>=3?'var(--teal)':'var(--text)')+';font-weight:'+(i>=3?700:400)+'">'+s+'</span>';
-      });
-      h += '</div></div>';
-      // Tone
-      h += '<div style="padding:12px 18px"><div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8b949e;margin-bottom:8px">Svarstonalitet</div>';
-      h += '<div style="display:flex;gap:8px">';
-      [['professional','Professionell','Formellt och sakligt'],['warm','Varm','Personlig och omtänksam'],['brief','Kortfattat','Direkt och effektivt']].forEach(function(t) {
-        var sel = tone === t[0];
-        h += '<button onclick="localStorage.setItem(\'vela:mail-tone\',\''+t[0]+'\');_renderSettingsContent(\'comms\')" style="flex:1;padding:8px;border:1.5px solid '+(sel?'var(--teal)':'var(--border)')+';border-radius:9px;background:'+(sel?'rgba(224,118,40,.07)':'none')+';cursor:pointer;font-family:var(--font)">';
-        h += '<div style="font-size:13px;font-weight:'+(sel?700:500)+';color:'+(sel?'var(--teal)':'var(--ink)')+'">'+t[1]+'</div>';
-        h += '<div style="font-size:12px;color:#8b949e;margin-top:2px">'+t[2]+'</div></button>';
-      });
-      h += '</div></div>';
-    }
-    h += '</div>';
-
-    // Mail templates
-    var tmplDefs = [
-      {id:'intake',   icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
-        label:'Intake-formulär', trigger:'Skickas när du delar formulärlänk',
-        body:'Hej [namn],\n\nVälkommen till [klinik]! Fyll i ditt hälsoformulär inför besöket:\n[länk]\n\nMed vänliga hälsningar,\n[signatur]\n[klinik] · [telefon]'},
-      {id:'plan',     icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
-        label:'Hael-plan klar', trigger:'Skickas automatiskt när planen godkänns',
-        body:'Hej [namn],\n\nDin rehabplan är klar! Öppna den direkt:\n[länk]\n\nHör av dig om du har frågor.\n\nMed vänliga hälsningar,\n[signatur]\n[klinik] · [telefon]'},
-      {id:'reminder', icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-        label:'Påminnelse inför besök', trigger:'Skickas 24h innan bokat besök',
-        body:'Hej [namn],\n\nPåminnelse om din tid imorgon [datum] kl [tid].\n\nAdress: [adress]\n\nÄndra eller avboka:\n[länk]\n\n[signatur]\n[klinik] · [telefon]'},
-      {id:'followup', icon:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
-        label:'Uppföljning efter besök', trigger:'Skickas 48h efter avslutat besök',
-        body:'Hej [namn],\n\nHoppas besöket hos oss gick bra! Hör av dig om du har frågor.\n\n[telefon] · [mail]\n\nMed vänliga hälsningar,\n[signatur]\n[klinik]'},
+    var autonomyDefs = [
+      {
+        id: 'cancel',
+        label: 'Avbokningar',
+        icon: '<path d="M6 18L18 6M6 6l12 12"/>',
+        iconCol: 'var(--red)',
+        desc: 'Patient mailar att de inte kan komma.',
+        auto:  'Avbokar tid, notifierar väntelistan, skickar bekräftelsemail.',
+        semi:  'Avbokar tid, lägger bekräftelsemail i signaturkön.',
+        manual:'Lägger allt i signaturkön — inget händer förrän du godkänner.'
+      },
+      {
+        id: 'reschedule',
+        label: 'Ombokningar',
+        icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+        iconCol: 'var(--amber)',
+        desc: 'Patient vill byta tid.',
+        auto:  'Hittar lediga tider, skickar direkt till patienten.',
+        semi:  'Hittar lediga tider, lägger förslag i signaturkön.',
+        manual:'Lägger i signaturkön — du väljer vilka tider som erbjuds.'
+      },
+      {
+        id: 'clinical',
+        label: 'Kliniska frågor',
+        icon: '<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>',
+        iconCol: 'var(--orange)',
+        desc: 'Frågor om smärta, övningar, behandling.',
+        auto:  'AI svarar direkt baserat på journal och Hael-plan.',
+        semi:  'AI draftar svar, skickar efter 2h om du inte avvisar.',
+        manual:'AI draftar svar, hamnar i signaturkön.'
+      },
+      {
+        id: 'other',
+        label: 'Övriga mail',
+        icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+        iconCol: 'var(--text2)',
+        desc: 'Tackmail, feedbackfrågor, admin.',
+        auto:  'AI svarar direkt med personligt anpassat svar.',
+        semi:  'AI draftar, skickar efter 4h.',
+        manual:'Hamnar i signaturkön.'
+      },
     ];
 
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">';
-    h += '<div style="padding:13px 18px;border-bottom:1px solid #30363d;display:flex;align-items:center;justify-content:space-between">';
-    h += '<div><div style="font-size:13px;font-weight:700;color:#e6edf3">Automatiska mailmallar</div>';
-    h += '<div style="font-size:13px;color:#8b949e;margin-top:1px">[klinik], [adress], [telefon], [signatur] ersätts automatiskt med <strong style="color:var(--teal)">'+e(clinicName)+'</strong>s uppgifter</div></div>';
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:16px">';
+    h += '<div style="padding:14px 18px;background:var(--surface2);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between">';
+    h += '<div>';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">VelaAgent — mailhantering</div>';
+    h += '<div style="font-size:12px;color:var(--text2);margin-top:2px">Ange per kategori hur autonomt agenten agerar</div>';
+    h += '</div>';
+    h += '<div style="display:flex;align-items:center;gap:8px">';
+    h += '<span style="font-size:12px;color:var(--text2)">AI-mail</span>';
+    h += '<div style="width:34px;height:19px;border-radius:10px;background:'+(aiOn?'var(--orange)':'var(--border)')+';position:relative;cursor:pointer;transition:background .2s" onclick="_toggleAiMail()">';
+    h += '<div style="position:absolute;top:2.5px;left:'+(aiOn?'16px':'2.5px')+';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div></div>';
+    h += '</div></div>';
+
+    if (aiOn) {
+      // Column headers
+      h += '<div style="display:grid;grid-template-columns:1fr repeat(3,80px);gap:0;padding:8px 18px;border-bottom:1px solid var(--border2)">';
+      h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2)">Kategori</div>';
+      ['Autopilot','Notifiera','Granska'].forEach(function(lbl,i) {
+        var cols = ['var(--orange)','var(--amber)','var(--text2)'];
+        h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:'+cols[i]+';text-align:center">'+lbl+'</div>';
+      });
+      h += '</div>';
+
+      autonomyDefs.forEach(function(def, idx) {
+        var cur = mailAutonomy[def.id] || 'semi';
+        h += '<div style="display:grid;grid-template-columns:1fr repeat(3,80px);gap:0;padding:12px 18px;'+(idx>0?'border-top:1px solid var(--border2)':'')+';align-items:center">';
+        // Label
+        h += '<div style="display:flex;align-items:center;gap:10px">';
+        h += '<div style="width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+        h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+def.iconCol+'" stroke-width="1.8" stroke-linecap="round">'+def.icon+'</svg>';
+        h += '</div>';
+        h += '<div><div style="font-size:13px;font-weight:600;color:var(--ink)">'+def.label+'</div>';
+        h += '<div style="font-size:12px;color:var(--text2)">'+def.desc+'</div></div>';
+        h += '</div>';
+        // Radio buttons
+        ['auto','semi','manual'].forEach(function(level) {
+          var sel = cur === level;
+          var ringCol = level==='auto'?'var(--orange)':level==='semi'?'var(--amber)':'var(--text2)';
+          h += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px">';
+          h += '<div onclick="_setMailAutonomy(\''+def.id+'\',\''+level+'\')" style="width:18px;height:18px;border-radius:50%;border:2px solid '+(sel?ringCol:'var(--border)')+';background:'+(sel?ringCol+'20':'none')+';cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s">';
+          if (sel) h += '<div style="width:8px;height:8px;border-radius:50%;background:'+ringCol+'"></div>';
+          h += '</div>';
+          h += '</div>';
+        });
+        h += '</div>';
+        // Description of current mode
+        var modeDesc = cur === 'auto' ? def.auto : cur === 'semi' ? def.semi : def.manual;
+        var modeCol  = cur === 'auto' ? 'rgba(224,118,40,.06)' : cur === 'semi' ? 'rgba(210,153,34,.05)' : 'rgba(255,255,255,.02)';
+        var modeBdr  = cur === 'auto' ? 'rgba(224,118,40,.15)' : cur === 'semi' ? 'rgba(210,153,34,.15)' : 'var(--border2)';
+        h += '<div style="grid-column:1/-1;margin:0 0 4px;padding:7px 12px;background:'+modeCol+';border:1px solid '+modeBdr+';border-radius:5px;font-size:12px;color:var(--text);line-height:1.5">';
+        h += '<strong style="color:var(--ink)">'+(cur==='auto'?'Autopilot':cur==='semi'?'Notifierar dig':'Alltid granska')+':</strong> '+modeDesc;
+        h += '</div>';
+      });
+      h += '</div>';
+
+      // ── Vad AI läser om patienten ───────────────────────────────────────────
+      h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:16px">';
+      h += '<div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+      h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Vad AI l\xE4ser om patienten vid varje svar</div>';
+      h += '<div style="font-size:12px;color:var(--text2);margin-top:2px">Ingen statisk ton-inställning \u2014 AI anpassar sig efter kontexten och individen</div>';
+      h += '</div>';
+      var contextItems = [
+        { icon:'<path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>',   label:'Journal & SOAP', desc:'Senaste bedömning, diagnos, behandlingsplan, testresultat' },
+        { icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',                                                                                              label:'Hael-plan',      desc:'Aktiva övningar, NRS-trend, fas, följsamhet' },
+        { icon:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',                                                                       label:'SMS-historik',   desc:'Tidigare konversationer, ton patienten använder' },
+        { icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',  label:'Bokningshistorik', desc:'Antal besök, senaste datum, kommande tider, avbokningar' },
+        { icon:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>',                                                                          label:'Behandlarnoteringar', desc:'Interna noteringar du lagt till på patientkortet' },
+        { icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',                                label:'Dagsform & NRS', desc:'Patientens rapporterade mående inför senaste besök' },
+      ];
+      h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0">';
+      contextItems.forEach(function(ci, i) {
+        h += '<div style="display:flex;align-items:flex-start;gap:10px;padding:11px 16px;'+(i%2===0?'border-right:1px solid var(--border2)':'')+';'+(i>=2?'border-top:1px solid var(--border2)':'')+'">';
+        h += '<div style="width:26px;height:26px;border-radius:6px;background:rgba(224,118,40,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">';
+        h += svgIcon(ci.icon, 12)+'</div>';
+        h += '<div><div style="font-size:13px;font-weight:600;color:var(--ink)">'+ci.label+'</div>';
+        h += '<div style="font-size:12px;color:var(--text2);margin-top:1px;line-height:1.4">'+ci.desc+'</div></div>';
+        h += '</div>';
+      });
+      h += '</div>';
+      h += '<div style="padding:10px 18px;background:rgba(224,118,40,.03);border-top:1px solid var(--border2);font-size:12px;color:var(--text2);line-height:1.5">';
+      h += '\uD83D\uDCA1 AI anpassar ton, l\xE4ngd och detaljeringsgrad efter varje individ \u2014 en nydebuterad patient f\xE5r ett varmare svar \xE4n en rutinpatient som fr\xE5gar n\xE5got kort.';
+      h += '</div>';
+      h += '</div>';
+    }
+
+    // ── Mailmallar ─────────────────────────────────────────────────────────────
+    var tmplDefs = [
+      {id:'intake',   icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>', label:'Intake-formulär', trigger:'Skickas när du delar formulärlänk', body:'Hej [namn],\n\nVälkommen till [klinik]! Fyll i ditt hälsoformulär inför besöket:\n[länk]\n\nMed vänliga hälsningar,\n[signatur]\n[klinik] · [telefon]'},
+      {id:'plan',     icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',                                                         label:'Hael-plan klar',   trigger:'Skickas automatiskt när planen godkänns', body:'Hej [namn],\n\nDin rehabplan är klar! Öppna den direkt:\n[länk]\n\nHör av dig om du har frågor.\n\nMed vänliga hälsningar,\n[signatur]\n[klinik] · [telefon]'},
+      {id:'reminder', icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',                                        label:'Påminnelse',        trigger:'Skickas 24h innan bokat besök', body:'Hej [namn],\n\nPåminnelse om din tid imorgon [datum] kl [tid].\n\nAdress: [adress]\n\nÄndra eller avboka:\n[länk]\n\n[signatur]\n[klinik] · [telefon]'},
+      {id:'followup', icon:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',                                  label:'Uppföljning',       trigger:'Skickas 48h efter avslutat besök', body:'Hej [namn],\n\nHoppas besöket hos oss gick bra! Hör av dig om du har frågor.\n\n[telefon] · [mail]\n\nMed vänliga hälsningar,\n[signatur]\n[klinik]'},
+    ];
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:16px">';
+    h += '<div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Automatiska mailmallar</div>';
+    h += '<div style="font-size:12px;color:var(--text2);margin-top:2px">[klinik] [signatur] [namn] [datum] [tid] [länk] byts ut automatiskt med klinikens uppgifter</div>';
     h += '</div>';
     tmplDefs.forEach(function(tmpl,i) {
       var stored = null; try { stored = JSON.parse(localStorage.getItem('vela:mail-tmpl:'+tmpl.id)||'null'); } catch(ex) {}
       var active  = stored ? stored.active  : (tmpl.id==='intake'||tmpl.id==='plan');
       var body    = stored ? stored.body    : tmpl.body;
-      // Live-resolved preview (first line only)
-      var preview = resolveVars(body).split('\n').filter(function(l){return l.trim();}).slice(0,2).join(' — ');
-      window._mailTmplCache = window._mailTmplCache || {};
-      window._mailTmplCache[tmpl.id] = {label: tmpl.label, body: body};
-
+      var preview = resolveVars(body).split('\n').filter(function(l){return l.trim();}).slice(0,2).join(' \u2014 ');
       h += '<div style="padding:12px 18px;'+(i>0?'border-top:1px solid var(--border2)':'')+';display:flex;align-items:center;gap:12px">';
-      h += '<div style="width:30px;height:30px;border-radius:8px;background:rgba(224,118,40,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--teal)">';
-      h += svgIcon(tmpl.icon, 14)+'</div>';
+      h += '<div style="width:30px;height:30px;border-radius:7px;background:rgba(224,118,40,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--orange)">';
+      h += svgIcon(tmpl.icon, 13)+'</div>';
       h += '<div style="flex:1;min-width:0">';
-      h += '<div style="font-size:13px;font-weight:600;color:#e6edf3">'+tmpl.label+'</div>';
-      h += '<div style="font-size:13px;color:#8b949e;margin-top:1px">'+tmpl.trigger+'</div>';
-      h += '<div style="font-size:13px;color:var(--text3);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px" title="'+e(resolveVars(body))+'">'+e(preview)+'</div>';
+      h += '<div style="font-size:13px;font-weight:600;color:var(--ink)">'+tmpl.label+'</div>';
+      h += '<div style="font-size:12px;color:var(--text2)">'+tmpl.trigger+'</div>';
+      h += '<div style="font-size:12px;color:var(--text2);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:380px">'+e(preview)+'</div>';
       h += '</div>';
       h += '<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">';
-      // Active toggle
-      h += '<span style="font-size:12px;color:#8b949e">'+(active?'Aktiv':'Av')+'</span>';
-      h += '<div style="width:32px;height:18px;border-radius:9px;background:'+(active?'var(--teal)':'var(--border)')+';position:relative;cursor:pointer;transition:background .2s" onclick="_toggleMailTemplate(\''+tmpl.id+'\',\''+active+'\')">';
+      h += '<div style="width:32px;height:18px;border-radius:9px;background:'+(active?'var(--orange)':'var(--border)')+';position:relative;cursor:pointer;transition:background .2s" onclick="_toggleMailTemplate(\''+tmpl.id+'\',\''+active+'\')">';
       h += '<div style="position:absolute;top:2px;left:'+(active?'14px':'2px')+';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div></div>';
-      h += '<button onclick="_openMailEditor(\''+tmpl.id+'\')" style="padding:4px 10px;background:none;border:1px solid #30363d;border-radius:7px;font-size:13px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Redigera</button>';
+      h += '<button onclick="_openMailEditor(\''+tmpl.id+'\')" style="padding:4px 10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--orange);cursor:pointer;font-family:var(--font)">Redigera</button>';
       h += '</div></div>';
     });
     h += '</div>';
 
-  // ═══ SMS — unified single-flow panel ══════════════════════════════════════
+    // ── Signatur (integrerat under Mail) ────────────────────────────────────────
+    var sigName = clinic.signatory || clinic.name || cfg.name || '';
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:16px">';
+    h += '<div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Mailsignatur</div>';
+    h += '</div>';
+    // Live preview
+    h += '<div style="padding:16px 18px;border-bottom:1px solid var(--border2)">';
+    h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:8px">F\xF6rhandsgranskning</div>';
+    h += '<div style="background:var(--bg);border:1px solid var(--border2);border-radius:6px;overflow:hidden">';
+    h += '<div style="padding:7px 12px;border-bottom:1px solid var(--border2);font-size:12px;color:var(--text2)">Fr\xE5n: '+e(clinic.email||cfg.email||'din@klinik.se')+'</div>';
+    h += '<div style="padding:12px">';
+    h += '<div style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.7">Hej [patientnamn],<br><br>[Ditt meddelande]</div>';
+    h += '<div style="border-top:1px solid var(--border2);padding-top:10px;font-size:13px;color:var(--ink);line-height:1.8">';
+    h += '<strong>'+e(sigName||'Ditt namn')+'</strong><br>';
+    if (clinic.name||cfg.name) h += e(clinic.name||cfg.name)+'<br>';
+    var contactLine = [clinic.phone||cfg.phone, clinic.email||cfg.email].filter(Boolean).join(' \xB7 ');
+    if (contactLine) h += e(contactLine);
+    h += '</div></div></div>';
+    h += '<div style="margin-top:10px;font-size:12px;color:var(--text2)">\xC4ndra namn under <button onclick="window._settingsActiveTab=\'general\';_renderSettingsNav();_renderSettingsContent(\'general\')" style="background:none;border:none;color:var(--orange);cursor:pointer;font-size:12px;padding:0;font-family:var(--font)">Kliniken \u2192 Allm\xE4nt</button></div>';
+    h += '</div>';
+    // Upload
+    h += '<div style="padding:14px 18px">';
+    var uploadedSig = clinic.emailSignature || cfg.emailSignature;
+    if (uploadedSig) {
+      h += '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:6px;margin-bottom:10px">';
+      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
+      h += '<span style="font-size:13px;color:var(--green);font-weight:600">Anpassad signatur uppladdad</span>';
+      h += '<button onclick="var cfg2=getClinicConfig();delete cfg2.emailSignature;saveClinicConfig(cfg2);_renderSettingsContent(\'comms\')" style="margin-left:auto;font-size:12px;color:var(--red);background:none;border:none;cursor:pointer;font-family:var(--font)">Ta bort</button>';
+      h += '</div>';
+    }
+    h += '<label style="display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px dashed var(--border);border-radius:6px;cursor:pointer" onmouseover="this.style.borderColor=\'var(--orange)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
+    h += svgIcon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',16);
+    h += '<div><div style="font-size:13px;font-weight:600;color:var(--orange)">Ladda upp HTML-signatur</div>';
+    h += '<div style="font-size:12px;color:var(--text2)">.html .htm \u2014 exportera fr\xE5n Gmail/Outlook och ladda upp h\xE4r</div></div>';
+    h += '<input type="file" accept=".html,.htm" style="display:none" onchange="_uploadSignature(this)"></label>';
+    h += '</div>';
+    h += '</div>';
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SMS
+  // ═══════════════════════════════════════════════════════════════════════════
   } else if (tab === 'sms') {
     var elksKey    = (_velaGetApiKey && _velaGetApiKey('46elks')) || '';
     var smsEnabled = localStorage.getItem('vela:sms-enabled') !== 'off';
     var smsName    = cfg.smsName || cfg.name || '';
     var keyOk      = elksKey && elksKey.indexOf(':') !== -1;
     var svcItems = [
-      {id:'sms_booking',  label:'Bokningsbekräftelse', sub:'Direkt vid ny bokning',    icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', tpl:'Bokning bekräftad hos [klinik] — [datum] kl [tid]. Adress: [adress]. Frågor: [telefon]'},
-      {id:'sms_reminder', label:'Påminnelse',           sub:'24h innan besöket',        icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',           tpl:'Påminnelse: tid hos [klinik] imorgon [datum] kl [tid]. Avboka: [länk]'},
-      {id:'sms_cancel',   label:'Avbokning',            sub:'Direkt vid avbokning',     icon:'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>', tpl:'Din tid hos [klinik] [datum] är avbokad. Ny tid: [länk]'},
-      {id:'sms_plan',     label:'Hael-plan klar',       sub:'När planen skickas',       icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',                            tpl:'Din rehabplan från [klinik] är klar: [länk]'},
-      {id:'sms_after',    label:'Uppföljning',          sub:'3h efter besök',           icon:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',     tpl:'Hoppas besöket gick bra! Frågor: [telefon] — [klinik]'},
-      {id:'sms_followup', label:'Uppföljning 7 dagar',  sub:'7 dagar efter senaste besök', icon:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>',                              tpl:'Hur mår du? Dags för uppföljning? Boka: [länk] · [klinik]'},
+      {id:'sms_booking',  label:'Bokningsbekräftelse', sub:'Direkt vid ny bokning',           icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',      tpl:'Bokning bekräftad hos [klinik] — [datum] kl [tid]. Adress: [adress]. Frågor: [telefon]'},
+      {id:'sms_reminder', label:'Påminnelse',           sub:'24h innan besöket',               icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',           tpl:'Påminnelse: tid hos [klinik] imorgon [datum] kl [tid]. Avboka: [länk]'},
+      {id:'sms_cancel',   label:'Avbokning',            sub:'Direkt vid avbokning',            icon:'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',                                                           tpl:'Din tid hos [klinik] [datum] är avbokad. Ny tid: [länk]'},
+      {id:'sms_plan',     label:'Hael-plan klar',       sub:'När planen skickas',              icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',                            tpl:'Din rehabplan från [klinik] är klar: [länk]'},
+      {id:'sms_after',    label:'Uppföljning',          sub:'3h efter besök',                  icon:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',     tpl:'Hoppas besöket gick bra! Frågor: [telefon] — [klinik]'},
+      {id:'sms_followup', label:'Uppföljning 7 dagar',  sub:'7 dagar efter senaste besök',    icon:'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>',                                  tpl:'Hur mår du? Dags för uppföljning? Boka: [länk] · [klinik]'},
     ];
-
-    // ── STEG 1: Anslut 46elks ────────────────────────────────────────────────
-    h += '<div style="max-width:680px">';
 
     // Status banner
     if (keyOk && smsEnabled) {
-      h += '<div style="background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.25);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:20px">';
-      h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>';
-      h += '<div style="flex:1"><span style="font-size:14px;font-weight:700;color:#3fb950">SMS aktiverat</span>';
-      h += '<span style="font-size:13px;color:#8b949e;margin-left:10px">Avsändare: <strong style="color:#e6edf3">' + e(smsName.slice(0,11) || '—') + '</strong></span></div>';
-      h += '<button onclick="_velaDeleteApiKey(\'46elks\'); localStorage.setItem(\'vela:sms-enabled\',\'off\'); showAutoSaveToast(\'46elks frånkopplat\'); _renderSettingsContent(\'sms\')" style="padding:5px 12px;background:none;border:1px solid rgba(248,81,73,.3);border-radius:6px;font-size:12px;color:#f85149;cursor:pointer;font-family:var(--font)">Koppla från</button>';
+      h += '<div style="background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.25);border-radius:6px;padding:11px 16px;display:flex;align-items:center;gap:10px;margin-bottom:16px">';
+      h += svgIcon('<circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/>',14);
+      h += '<div style="flex:1;font-size:13px;font-weight:700;color:var(--green)">SMS aktiverat &mdash; Avsändare: <span style="color:var(--ink)">'+e(smsName.slice(0,11)||'\u2014')+'</span></div>';
+      h += '<button onclick="_velaDeleteApiKey(\'46elks\');localStorage.setItem(\'vela:sms-enabled\',\'off\');showAutoSaveToast(\'46elks frånkopplat\');_renderSettingsContent(\'comms\')" style="padding:4px 10px;background:none;border:1px solid rgba(248,81,73,.3);border-radius:5px;font-size:12px;color:var(--red);cursor:pointer;font-family:var(--font)">Koppla fr\xE5n</button>';
       h += '</div>';
     } else {
-      h += '<div style="background:rgba(210,153,34,.07);border:1px solid rgba(210,153,34,.25);border-radius:8px;padding:14px 16px;margin-bottom:20px">';
-      h += '<div style="font-size:14px;font-weight:700;color:#d29922;margin-bottom:4px">46elks ej konfigurerat</div>';
-      h += '<div style="font-size:13px;color:#8b949e;line-height:1.6">Fyll i dina API-uppgifter nedan för att aktivera SMS-utskick.</div>';
+      h += '<div style="background:rgba(210,153,34,.06);border:1px solid rgba(210,153,34,.2);border-radius:6px;padding:12px 16px;margin-bottom:16px">';
+      h += '<div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:3px">46elks ej konfigurerat</div>';
+      h += '<div style="font-size:12px;color:var(--text2)">Fyll i API-uppgifter nedan f\xF6r att aktivera SMS-utskick.</div>';
       h += '</div>';
     }
 
-    // ── Inställningskortet ────────────────────────────────────────────────────
-    h += '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:20px">';
-
-    // Header
-    h += '<div style="padding:14px 18px;border-bottom:1px solid #30363d;background:#161b22;display:flex;align-items:center;gap:10px">';
-    h += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
-    h += '<div style="flex:1"><div style="font-size:14px;font-weight:700;color:#e6edf3">46elks SMS</div>';
-    h += '<div style="font-size:12px;color:#8b949e">Svensk SMS-leverantör · GDPR-säker</div></div>';
-    h += '<a href="https://dashboard.46elks.com" target="_blank" style="font-size:12px;color:#58a6ff;text-decoration:none">Öppna dashboard ↗</a>';
+    // Config card
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:16px">';
+    h += '<div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:8px">';
+    h += svgIcon('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',14);
+    h += '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--ink)">46elks</div>';
+    h += '<div style="font-size:12px;color:var(--text2)">Svensk SMS-leverant\xF6r \xB7 GDPR-s\xE4ker</div></div>';
+    h += '<a href="https://dashboard.46elks.com" target="_blank" style="font-size:12px;color:var(--blue);text-decoration:none">Dashboard \u2197</a>';
     h += '</div>';
-
-    h += '<div style="padding:18px">';
-
-    // API-nyckel
-    h += '<div style="margin-bottom:16px">';
-    h += '<label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;margin-bottom:6px">API-uppgifter</label>';
+    h += '<div style="padding:16px 18px">';
+    h += '<div style="margin-bottom:14px"><label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:6px">API-uppgifter</label>';
     h += '<div style="display:flex;gap:8px">';
-    h += '<input id="sms-elks-key" class="field" type="password" placeholder="u1xxxxxx:ditt_password" value="' + e(elksKey) + '" style="flex:1;font-family:var(--font-mono);font-size:13px">';
-    h += '<button onclick="_velaSaveAndTestKey(\'46elks\',document.getElementById(\'sms-elks-key\').value)" class="act-btn act-btn-primary" style="white-space:nowrap">Spara</button>';
+    h += '<input id="sms-elks-key" class="field" type="password" placeholder="u1xxxxxx:ditt_password" value="'+e(elksKey)+'" style="flex:1;font-family:var(--font-mono);font-size:12px">';
+    h += '<button onclick="_velaSaveAndTestKey(\'46elks\',document.getElementById(\'sms-elks-key\').value)" class="btn btn-p" style="white-space:nowrap">Spara</button>';
+    h += '</div></div>';
+    h += '<div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;margin-bottom:14px">';
+    h += '<div><label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:6px">Avs\xE4ndarnamn (max 11 tecken)</label>';
+    h += '<input id="sms-name" class="field" placeholder="t.ex. Kansei" maxlength="11" value="'+e(smsName)+'" oninput="var cfg=getClinicConfig();cfg.smsName=this.value.slice(0,11);saveClinicConfig(cfg)" style="width:100%;box-sizing:border-box"></div>';
+    h += '<div style="padding-bottom:22px"><div onclick="var on=localStorage.getItem(\'vela:sms-enabled\')!==\'off\';localStorage.setItem(\'vela:sms-enabled\',on?\'off\':\'on\');_renderSettingsContent(\'comms\')" '
+      + 'style="width:38px;height:21px;border-radius:11px;background:'+(smsEnabled?'var(--orange)':'var(--border)')+';position:relative;cursor:pointer;transition:background .2s">';
+    h += '<div style="position:absolute;top:3px;left:'+(smsEnabled?'18px':'3px')+';width:15px;height:15px;border-radius:50%;background:#fff;transition:left .2s"></div></div></div>';
     h += '</div>';
-    h += '<div style="font-size:12px;color:#6e7681;margin-top:5px">Hitta under <strong>Account</strong> i 46elks dashboard. Format: <code style="background:#21262d;padding:1px 5px;border-radius:3px;font-family:var(--font-mono)">username:password</code></div>';
-    h += '</div>';
-
-    // Avsändarnamn + aktivera toggle
-    h += '<div style="display:grid;grid-template-columns:1fr auto;gap:16px;align-items:end;margin-bottom:16px">';
-    h += '<div><label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;margin-bottom:6px">Avsändarnamn</label>';
-    h += '<input id="sms-name" class="field" placeholder="Max 11 tecken — t.ex. Kansei" maxlength="11" value="' + e(smsName) + '" oninput="var cfg=getClinicConfig();cfg.smsName=this.value.slice(0,11);saveClinicConfig(cfg)" style="width:100%;box-sizing:border-box">';
-    h += '<div style="font-size:12px;color:#6e7681;margin-top:4px">Visas som avsändare. Max 11 tecken, inga specialtecken.</div></div>';
-    h += '<div style="padding-bottom:22px"><label style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b949e;margin-bottom:8px">SMS aktiv</label>';
-    h += '<div onclick="var on=localStorage.getItem(\'vela:sms-enabled\')!==\'off\';localStorage.setItem(\'vela:sms-enabled\',on?\'off\':\'on\');_renderSettingsContent(\'sms\')" ';
-    h += 'style="width:40px;height:22px;border-radius:11px;background:' + (smsEnabled ? 'var(--teal)' : 'var(--border)') + ';position:relative;cursor:pointer;transition:background .2s">';
-    h += '<div style="position:absolute;top:4px;left:' + (smsEnabled ? '20px' : '4px') + ';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div>';
+    // Test SMS
+    h += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:12px 14px">';
+    h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:8px">Skicka test-SMS</div>';
+    h += '<div style="display:flex;gap:8px">';
+    h += '<input id="sms-test-number" class="field" placeholder="+46701234567" style="width:150px">';
+    h += '<input id="sms-test-body" class="field" placeholder="Testmeddelande fr\xE5n Vela" style="flex:1">';
+    h += '<button onclick="_velaSendTestSms()" class="btn btn-p" style="white-space:nowrap">Skicka \u2192</button>';
+    h += '</div><div id="sms-test-result" style="font-size:12px;color:var(--text2);margin-top:6px;min-height:16px"></div>';
     h += '</div></div></div>';
 
-    // ── Test-SMS direkt här ───────────────────────────────────────────────────
-    h += '<div style="background:var(--bg);border:1px solid #30363d;border-radius:8px;padding:14px 16px">';
-    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3;margin-bottom:10px;display:flex;align-items:center;gap:7px">';
-    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6A19.79 19.79 0 012.12 4.18 2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>';
-    h += 'Skicka test-SMS</div>';
-    h += '<div style="display:flex;gap:8px;margin-bottom:8px">';
-    h += '<input id="sms-test-number" class="field" placeholder="+46701234567" style="width:160px">';
-    h += '<input id="sms-test-body" class="field" placeholder="Testmeddelande från Vela" style="flex:1">';
-    h += '<button onclick="_velaSendTestSms()" class="act-btn act-btn-primary" style="white-space:nowrap">Skicka →</button>';
+    // SMS templates
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
+    h += '<div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Automatiska SMS-mallar</div>';
+    h += '<div style="font-size:12px;color:var(--text2);margin-top:2px">[klinik] [datum] [tid] [adress] [telefon] [länk] byts ut automatiskt</div>';
     h += '</div>';
-    h += '<div id="sms-test-result" style="font-size:13px;color:#8b949e;min-height:18px"></div>';
-    h += '</div>';
-
-    h += '</div></div>'; // padding + card
-
-    // ── SMS-mallar ────────────────────────────────────────────────────────────
-    h += '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:16px">';
-    h += '<div style="padding:12px 18px;border-bottom:1px solid #30363d;background:#161b22">';
-    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3">Automatiska SMS-mallar</div>';
-    h += '<div style="font-size:12px;color:#8b949e;margin-top:2px">[klinik] [datum] [tid] [adress] [telefon] [länk] byts ut automatiskt</div>';
-    h += '</div>';
-
     svcItems.forEach(function(sms, i) {
       var stored = null; try{stored=JSON.parse(localStorage.getItem('vela:sms:'+sms.id)||'null');}catch(ex){}
       var on   = stored ? stored.active !== false : (i < 4);
       var text = stored ? stored.text : sms.tpl;
-      var preview = resolveVars(text);
-      h += '<div style="padding:14px 18px;' + (i > 0 ? 'border-top:1px solid var(--border2)' : '') + '">';
+      h += '<div style="padding:13px 18px;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
       h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
       h += '<div style="width:28px;height:28px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round">' + sms.icon + '</svg></div>';
-      h += '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:#e6edf3">' + sms.label + '</div>';
-      h += '<div style="font-size:12px;color:#8b949e">' + sms.sub + '</div></div>';
-      h += '<div onclick="_toggleSms2(\'' + sms.id + '\')" style="width:32px;height:18px;border-radius:9px;background:' + (on ? 'var(--teal)' : 'var(--border)') + ';position:relative;cursor:pointer;flex-shrink:0;transition:background .2s">';
-      h += '<div style="position:absolute;top:2px;left:' + (on ? '14px' : '2px') + ';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div></div>';
+      h += svgIcon(sms.icon,13)+'</div>';
+      h += '<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--ink)">'+sms.label+'</div>';
+      h += '<div style="font-size:12px;color:var(--text2)">'+sms.sub+'</div></div>';
+      h += '<div onclick="_toggleSms2(\''+sms.id+'\')" style="width:32px;height:18px;border-radius:9px;background:'+(on?'var(--orange)':'var(--border)')+';position:relative;cursor:pointer;flex-shrink:0;transition:background .2s">';
+      h += '<div style="position:absolute;top:2px;left:'+(on?'14px':'2px')+';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div></div>';
       h += '</div>';
-      h += '<div style="background:var(--bg);border:1px solid #30363d;border-radius:7px;overflow:hidden">';
-      h += '<textarea id="sms-text-' + sms.id + '" oninput="_saveSmsText(\'' + sms.id + '\',this.value)" style="width:100%;background:none;border:none;border-bottom:1px solid var(--border2);outline:none;font-size:13px;color:#e6edf3;font-family:var(--font);resize:none;padding:8px 11px;box-sizing:border-box" rows="2">' + e(text) + '</textarea>';
-      h += '<div style="padding:5px 11px;font-size:12px;color:var(--teal);line-height:1.5">' + e(preview) + '</div>';
-      h += '</div></div>';
+      h += '<textarea id="sms-text-'+sms.id+'" oninput="_saveSmsText(\''+sms.id+'\',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;outline:none;font-size:12px;color:var(--ink);font-family:var(--font);resize:none;padding:7px 10px;box-sizing:border-box;line-height:1.5" rows="2">'+e(text)+'</textarea>';
+      h += '</div>';
     });
     h += '</div>';
 
-    h += '</div>'; // max-width wrapper
-
-  // ═══ AUTO-KOMMUNIKATION ══════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════
+  // AUTO-KOMMUNIKATION
+  // ═══════════════════════════════════════════════════════════════════════════
   } else if (tab === 'autocomm') {
     var rules = getCommRules();
     var ruleList = [
-      { key:'welcome',          emoji:'👋', label:'Välkomstmeddelande',          sub:'Skickas när nytt kundkort skapas', vars:'{name} {clinic} {clinician} {bookingInfo}' },
-      { key:'bookingReminder',  emoji:'📅', label:'Bokningspåminnelse',           sub:'Skickas ' + rules.bookingReminder.hoursBeforeVisit + 'h innan besök', vars:'{name} {clinic} {clinician} {time}' },
-      { key:'dagsformReminder', emoji:'☀️', label:'Dagsform-påminnelse',          sub:'Skickas morgon av besöksdag (06–09)', vars:'{name} {clinician} {time}' },
-      { key:'intakeReminder',   emoji:'📋', label:'Intake-påminnelse',            sub:'Skickas om formulär ej ifyllt 24h innan', vars:'{name} {clinician} {time}' },
-      { key:'noShow',           emoji:'⚠️', label:'Uteblev (no-show)',            sub:'Skickas när du markerar patient som uteblev', vars:'{name} {clinician}' },
-      { key:'postVisitFollowup',emoji:'💬', label:'Uppföljning efter besök',      sub:'Skickas ' + rules.postVisitFollowup.daysAfterVisit + ' dagar efter besök', vars:'{name} {clinician}' },
-      { key:'rebookConfirm',    emoji:'🔄', label:'Ombokning bekräftad',          sub:'Skickas när tid bokas om i kalender', vars:'{name} {clinic} {clinician} {date} {time}' },
-      { key:'clinicCancel',     emoji:'❌', label:'Kliniken avbokar',             sub:'Skickas när du avbokar patientens tid', vars:'{name} {clinician} {date} {time} {reason}' },
-      { key:'returnVisitNudge', emoji:'🔁', label:'Återbesök-påminnelse',         sub:'Skickas ' + rules.returnVisitNudge.daysBeforeReturn + ' dagar innan planerat återbesök', vars:'{name} {clinic} {clinician} {bookingUrl}' },
-      { key:'inactivePatient',  emoji:'💤', label:'Inaktiv patient',              sub:'Skickas om ' + rules.inactivePatient.inactiveDays + ' dagar utan besök', vars:'{name} {clinician}' },
-      { key:'birthdayGreeting', emoji:'🎂', label:'Födelsedag',                   sub:'Skickas på patientens födelsedag', vars:'{name} {clinic}' },
-      { key:'treatmentComplete',emoji:'✅', label:'Behandlingsserie avslutad',    sub:'Skickas ' + rules.treatmentComplete.weeksAfterEnd + ' veckor efter avslutad plan', vars:'{name} {clinician} {weeks}' },
-      { key:'waitlistSlot',     emoji:'🔔', label:'Ledig tid (väntelista)',        sub:'Skickas till matchande patienter på väntelistan när en tid frigörs', vars:'{name} {clinic} {clinician} {date} {time}' },
-      { key:'feedbackRequest',  emoji:'⭐', label:'Feedbackförfrågan',             sub:'Skickas ' + ((rules.feedbackRequest&&rules.feedbackRequest.daysAfterEnd)||7) + ' dagar efter avslutad behandlingsserie', vars:'{name} {clinician} {feedbackUrl}' },
+      { key:'welcome',          emoji:'\uD83D\uDC4B', label:'V\xE4lkomstmeddelande',          sub:'Skickas n\xE4r nytt kundkort skapas', vars:'{name} {clinic} {clinician} {bookingInfo}' },
+      { key:'bookingReminder',  emoji:'\uD83D\uDCC5', label:'Bokningsp\xE5minnelse',           sub:'Skickas '+(rules.bookingReminder.hoursBeforeVisit||24)+'h innan bes\xF6k', vars:'{name} {clinic} {clinician} {time}' },
+      { key:'dagsformReminder', emoji:'\u2600\uFE0F', label:'Dagsform-p\xE5minnelse',          sub:'Skickas morgon av bes\xF6ksdag (06\u201309)', vars:'{name} {clinician} {time}' },
+      { key:'intakeReminder',   emoji:'\uD83D\uDCCB', label:'Intake-p\xE5minnelse',            sub:'Skickas om formul\xE4r ej ifyllt 24h innan', vars:'{name} {clinician} {time}' },
+      { key:'noShow',           emoji:'\u26A0\uFE0F', label:'Uteblev (no-show)',               sub:'Skickas n\xE4r du markerar patient som uteblev', vars:'{name} {clinician}' },
+      { key:'postVisitFollowup',emoji:'\uD83D\uDCAC', label:'Uppf\xF6ljning efter bes\xF6k',    sub:'Skickas '+(rules.postVisitFollowup.daysAfterVisit||2)+' dagar efter bes\xF6k', vars:'{name} {clinician}' },
+      { key:'rebookConfirm',    emoji:'\uD83D\uDD04', label:'Ombokning bekr\xE4ftad',           sub:'Skickas n\xE4r tid bokas om', vars:'{name} {clinic} {clinician} {date} {time}' },
+      { key:'clinicCancel',     emoji:'\u274C', label:'Kliniken avbokar',                       sub:'Skickas n\xE4r du avbokar patientens tid', vars:'{name} {clinician} {date} {time} {reason}' },
+      { key:'returnVisitNudge', emoji:'\uD83D\uDD01', label:'\xC5terbes\xF6k-p\xE5minnelse',    sub:'Skickas '+(rules.returnVisitNudge.daysBeforeReturn||7)+' dagar innan planerat \xE5terbes\xF6k', vars:'{name} {clinic} {clinician} {bookingUrl}' },
+      { key:'inactivePatient',  emoji:'\uD83D\uDCA4', label:'Inaktiv patient',                  sub:'Skickas om '+(rules.inactivePatient.inactiveDays||45)+' dagar utan bes\xF6k', vars:'{name} {clinician}' },
+      { key:'birthdayGreeting', emoji:'\uD83C\uDF82', label:'F\xF6delsedag',                    sub:'Skickas p\xE5 patientens f\xF6delsedag', vars:'{name} {clinic}' },
+      { key:'treatmentComplete',emoji:'\u2705', label:'Behandlingsserie avslutad',              sub:'Skickas efter avslutad plan', vars:'{name} {clinician} {weeks}' },
+      { key:'waitlistSlot',     emoji:'\uD83D\uDD14', label:'Ledig tid (v\xE4ntelista)',         sub:'Skickas till matchande patienter n\xE4r en tid frig\xF6rs', vars:'{name} {clinic} {date} {time}' },
+      { key:'feedbackRequest',  emoji:'\u2B50', label:'Feedbackf\xF6rfr\xE5gan',                sub:'Skickas '+(rules.feedbackRequest&&rules.feedbackRequest.daysAfterEnd||7)+' dagar efter avslutad serie', vars:'{name} {clinician} {feedbackUrl}' },
     ];
     var previewPat = { name: 'Anna Lindgren', phone: '+46701234567' };
-    var previewVars = { bookingInfo: ' Ditt första besök är 2025-06-15 kl 10:00.', date: '2025-06-15', time: '10:00', reason: ' (sjukdom)', weeks: '4' };
+    var previewVars = { bookingInfo: ' Ditt f\xF6rsta bes\xF6k \xE4r 2025-06-15 kl 10:00.', date: '2025-06-15', time: '10:00', reason: ' (sjukdom)', weeks: '4' };
 
-    h += '<div style="margin-bottom:12px;padding:10px 14px;background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.2);border-radius:6px;font-size:13px;color:var(--text)">';
-    h += '<strong style="color:var(--ink)">Alla mallar är redigerbara.</strong> Variablerna ersätts automatiskt. Klicka på ett meddelande för att redigera.';
+    h += '<div style="margin-bottom:12px;padding:10px 14px;background:rgba(224,118,40,.05);border:1px solid rgba(224,118,40,.12);border-radius:6px;font-size:13px;color:var(--text)">';
+    h += 'Alla mallar aktiveras av h\xE4ndelser och k\xF6rs av VelaAgent automatiskt. Klicka p\xE5 en regel f\xF6r att redigera mallen.';
     h += '</div>';
-
     h += '<div style="display:flex;flex-direction:column;gap:6px">';
     ruleList.forEach(function(rule) {
       var r = rules[rule.key] || { enabled: false, msg: '', channel: 'sms' };
-      var preview = typeof _fillCommTemplate === 'function'
-        ? _fillCommTemplate(r.msg||'', previewPat, previewVars)
-        : r.msg||'';
+      var preview = typeof _fillCommTemplate === 'function' ? _fillCommTemplate(r.msg||'', previewPat, previewVars) : r.msg||'';
       var collapseId = 'acr-' + rule.key;
-
       h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
-      // Header — clickable to expand
-      h += '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer" onclick="var b=document.getElementById(\'' + collapseId + '\');b.style.display=b.style.display===\'none\'?\'\':\'none\'">';
-      h += '<span style="font-size:15px;flex-shrink:0">' + rule.emoji + '</span>';
-      h += '<div style="flex:1;min-width:0">';
-      h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">' + e(rule.label) + '</div>';
-      h += '<div style="font-size:11px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:360px">' + e(preview||rule.sub) + '</div>';
-      h += '</div>';
+      h += '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer" onclick="var b=document.getElementById(\''+collapseId+'\');b.style.display=b.style.display===\'none\'?\'\':\' none\'">';
+      h += '<span style="font-size:15px;flex-shrink:0">'+rule.emoji+'</span>';
+      h += '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--ink)">'+e(rule.label)+'</div>';
+      h += '<div style="font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:360px">'+e(preview||rule.sub)+'</div></div>';
       h += '<label style="display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0" onclick="event.stopPropagation()">';
-      h += '<input type="checkbox"' + (r.enabled?' checked':'') + ' onchange="_toggleCommRule(\'' + rule.key + '\',this.checked)" style="width:14px;height:14px;accent-color:var(--teal)">';
-      h += '<span style="font-size:12px;color:var(--text2)">' + (r.enabled?'På':'Av') + '</span></label>';
-      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><polyline points="6 9 12 15 18 9"/></svg>';
+      h += '<input type="checkbox"'+(r.enabled?' checked':'')+' onchange="_toggleCommRule(\''+rule.key+'\',this.checked)" style="width:14px;height:14px;accent-color:var(--orange)">';
+      h += '<span style="font-size:12px;color:var(--text2)">'+(r.enabled?'P\xE5':'Av')+'</span></label>';
+      h += svgIcon('<polyline points="6 9 12 15 18 9"/>',11);
       h += '</div>';
-
-      // Expandable body (hidden by default)
-      h += '<div id="' + collapseId + '" style="display:none;border-top:1px solid var(--border2)">';
-      // Edit
-      h += '<div style="padding:12px 14px;border-bottom:1px solid var(--border2)">';
-      h += '<label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:5px">Mall</label>';
-      h += '<textarea id="commrule-msg-' + rule.key + '" rows="3" class="field" style="width:100%;resize:vertical;font-family:var(--font);line-height:1.6;font-size:13px" oninput="_previewCommRule(\'' + rule.key + '\')">' + e(r.msg) + '</textarea>';
-      h += '<div style="font-size:11px;color:var(--text2);margin-top:3px">Tillgängliga variabler: <code style="background:var(--surface2);padding:1px 4px;border-radius:3px">' + e(rule.vars) + '</code></div>';
+      h += '<div id="'+collapseId+'" style="display:none;border-top:1px solid var(--border2)"><div style="padding:12px 14px;border-bottom:1px solid var(--border2)">';
+      h += '<label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:5px">Mall</label>';
+      h += '<textarea id="commrule-msg-'+rule.key+'" rows="3" class="field" style="width:100%;resize:vertical;font-family:var(--font);line-height:1.6;font-size:13px" oninput="_previewCommRule(\''+rule.key+'\')">'+e(r.msg)+'</textarea>';
+      h += '<div style="font-size:11px;color:var(--text2);margin-top:3px">Variabler: <code style="background:var(--surface2);padding:1px 4px;border-radius:3px">'+e(rule.vars)+'</code></div>';
       h += '</div>';
-      // Live preview
-      h += '<div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
-      h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:5px">Förhandsgranskning — Anna Lindgren</div>';
-      h += '<div id="commrule-preview-' + rule.key + '" style="font-size:13px;color:var(--ink);background:var(--bg);padding:8px 10px;border-radius:5px;border:1px solid var(--border);line-height:1.6">' + e(preview) + '</div>';
+      h += '<div style="padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+      h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:5px">F\xF6rhandsgranskning \u2014 Anna Lindgren</div>';
+      h += '<div id="commrule-preview-'+rule.key+'" style="font-size:13px;color:var(--ink);background:var(--bg);padding:7px 10px;border-radius:5px;border:1px solid var(--border);line-height:1.6">'+e(preview)+'</div>';
       h += '</div>';
-      // Channel + Save
       h += '<div style="display:flex;align-items:center;gap:8px;padding:10px 14px">';
-      h += '<span style="font-size:12px;color:var(--text)">Kanal:</span>';
-      h += '<select id="commrule-ch-' + rule.key + '" class="field" style="width:100px;padding:4px 8px">';
-      h += '<option value="sms"' + (r.channel==='sms'?' selected':'') + '>SMS</option>';
-      h += '<option value="mail"' + (r.channel==='mail'?' selected':'') + '>Mail</option>';
+      h += '<span style="font-size:12px;color:var(--text2)">Kanal:</span>';
+      h += '<select id="commrule-ch-'+rule.key+'" class="field" style="width:100px;padding:4px 8px">';
+      h += '<option value="sms"'+(r.channel==='sms'?' selected':'')+'>SMS</option>';
+      h += '<option value="mail"'+(r.channel==='mail'?' selected':'')+'>Mail</option>';
       h += '</select>';
-      h += '<button onclick="_saveCommRuleMsg(\'' + rule.key + '\')" style="padding:6px 16px;background:#238636;border:none;border-radius:6px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font)">Spara</button>';
-      h += '<span id="commrule-saved-' + rule.key + '" style="font-size:12px;color:var(--green);display:none">✓ Sparad</span>';
-      h += '</div>';
-      h += '</div>'; // expandable
-      h += '</div>'; // card
+      h += '<button onclick="_saveCommRuleMsg(\''+rule.key+'\')" style="padding:5px 14px;background:#238636;border:none;border-radius:6px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font)">Spara</button>';
+      h += '<span id="commrule-saved-'+rule.key+'" style="font-size:12px;color:var(--green);display:none">\u2713 Sparad</span>';
+      h += '</div></div></div>';
     });
     h += '</div>';
-
-    // Comm log
-    var log = getCommLog().slice(0,8);
+    var log = getCommLog().slice(0,6);
     if (log.length) {
       h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-top:12px">';
-      h += '<div style="padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border2);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Senast skickade</div>';
+      h += '<div style="padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border2);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2)">Senast skickade</div>';
       log.forEach(function(l){
         var lp = (S.patients||[]).find(function(x){ return x.id===l.patId; });
         h += '<div style="padding:7px 14px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:8px">';
@@ -33691,177 +33756,83 @@ function _stComms(cfg) {
       h += '</div>';
     }
 
-  // ═══ SIGNATUR ════════════════════════════════════════════════
-  } else if (tab === 'signature') {
-    var sigName = clinic.signatory || clinic.name || cfg.name || '';
-
-    h += '<div style="display:grid;gap:14px">';
-
-    // Live mail preview
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">';
-    h += '<div style="padding:13px 18px;border-bottom:1px solid #30363d;display:flex;align-items:center;justify-content:space-between">';
-    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3">Förhandsgranskning — uppdateras live</div>';
-    h += '<div style="font-size:13px;color:#8b949e">Ändra klinikuppgifter under Klinik-fliken</div></div>';
-    h += '<div style="padding:18px 20px">';
-    h += '<div style="background:var(--bg);border:1px solid #30363d;border-radius:9px;overflow:hidden">';
-    h += '<div style="padding:9px 13px;border-bottom:1px solid #30363d;font-size:13px;color:#8b949e">Från: '+e(clinic.email||cfg.email||'din@klinik.se')+'</div>';
-    h += '<div style="padding:14px 13px">';
-    h += '<div style="font-size:13px;color:#8b949e;margin-bottom:14px;line-height:1.8">Hej [patientnamn],<br><br>[Ditt meddelande]<br><br></div>';
-    h += '<div style="border-top:1px solid #30363d;padding-top:11px;display:flex;gap:12px;align-items:flex-start">';
-        h += '<div style="font-size:13px;color:#e6edf3;line-height:1.9"><strong>'+e(sigName)+'</strong><br>';
-    if (clinic.name||cfg.name) h += e(clinic.name||cfg.name)+'<br>';
-    var contactLine = [clinic.phone||cfg.phone, clinic.email||cfg.email].filter(Boolean).join(' · ');
-    if (contactLine) h += e(contactLine)+'<br>';
-    if (clinic.website||cfg.website) h += '<span style="color:var(--teal)">'+e(clinic.website||cfg.website)+'</span>';
-    h += '</div></div></div></div>';
-    h += '<div style="padding:9px 18px;background:rgba(224,118,40,.03);border-top:1px solid #30363d;font-size:13px;color:#8b949e">';
-    h += 'Ändra signatur-namn: Klinik → Behandlarnamn</div>';
-    h += '</div>';
-
-    // Upload custom signature
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px 18px">';
-    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3;margin-bottom:4px">Ladda upp anpassad signatur</div>';
-    h += '<div style="font-size:13px;color:#8b949e;margin-bottom:12px">HTML-signatur från Gmail/Outlook eller bildfil. Används i alla Vela-mail.</div>';
-    var uploadedSig = clinic.emailSignature || cfg.emailSignature;
-    if (uploadedSig) {
-      h += '<div style="background:var(--bg);border:1px solid rgba(224,118,40,.1);border-radius:8px;padding:10px 13px;margin-bottom:10px;font-size:13px;color:var(--teal)">Signatur uppladdad ✓</div>';
-    }
-    h += '<label style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px;border:1.5px dashed var(--border);border-radius:6px;cursor:pointer;text-align:center" onmouseover="this.style.borderColor=\'var(--teal)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
-    h += svgIcon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',20);
-    h += '<div><div style="font-size:13px;font-weight:600;color:var(--teal)">Dra hit eller klicka</div>';
-    h += '<div style="font-size:13px;color:#8b949e">.html .htm .png .jpg — max 200 kb</div></div>';
-    h += '<input type="file" accept=".html,.htm,.png,.jpg,.jpeg" style="display:none" onchange="_uploadSignature(this)"></label>';
-    h += '</div>';
-
-    // Gmail guide
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;padding:15px 18px">';
-    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3;margin-bottom:10px">Kopiera din Gmail-signatur</div>';
-    ['Gmail → Inställningar → Se alla inställningar','Scrolla till Signatur — markera och kopiera','Klistra in i .html-fil och ladda upp ovan','Klart — Vela använder din existerande signatur'].forEach(function(s,i) {
-      h += '<div style="display:flex;gap:9px;padding:5px 0;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
-      h += '<div style="width:19px;height:19px;border-radius:50%;background:rgba(224,118,40,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700;color:var(--teal)">'+(i+1)+'</div>';
-      h += '<div style="font-size:13px;color:#e6edf3;padding-top:1px">'+s+'</div></div>';
-    });
-    h += '</div>';
-    h += '</div>';
-
-  // ═══ KOPPLINGAR ══════════════════════════════════════════════
+  // ═══════════════════════════════════════════════════════════════════════════
+  // KOPPLINGAR
+  // ═══════════════════════════════════════════════════════════════════════════
   } else if (tab === 'connect') {
-    h += '<div style="display:grid;gap:14px">';
+    var _rk = _velaGetApiKey('resend');
+    var _ek = _velaGetApiKey('46elks');
+    var _gmailAuthed = _gmailIsAuthed ? _gmailIsAuthed() : false;
+    var _gcid = localStorage.getItem('vela:gmail-client-id') || '';
 
-    // What you get card
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">';
-    h += '<div style="padding:13px 18px;border-bottom:1px solid #30363d">';
-    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3">Vad du får när du kopplar ett mailkonto</div></div>';
+    // What you get
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:16px">';
+    h += '<div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border2);font-size:13px;font-weight:700;color:var(--ink)">Vad du f\xE5r med ett kopplat mailkonto</div>';
     h += '<div style="display:grid;grid-template-columns:1fr 1fr">';
     [
-      ['<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>','Inkorg i Vela','Inkommande mail sorterat per patient — ingen separat mailapp'],
-      ['<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>','Automatisk händelselogg','Varje mail sparas direkt på kundkortet'],
-      ['<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>','AI-svarförslag','AI läser patientens journal och föreslår relevant svar'],
-      ['<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>','Skicka från din adress','Svar skickas från din befintliga adress — patienten ser inget om Vela'],
+      ['<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',   'Inkorg i Vela',          'Inkommande mail sorterat per patient'],
+      ['<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',                                                                         'Automatisk h\xE4ndelselogg','Varje mail sparas p\xE5 kundkortet'],
+      ['<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>',                                                 'AI-svarf\xF6rslag',      'AI l\xE4ser journalen och f\xF6resl\xE5r relevant svar'],
+      ['<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',                                              'Skicka fr\xE5n din adress','Svar skickas fr\xE5n din befintliga adress'],
     ].forEach(function(b,i) {
-      h += '<div style="padding:14px 16px;'+(i%2===0?'border-right:1px solid var(--border2)':'')+';'+(i>=2?'border-top:1px solid var(--border2)':'')+';display:flex;gap:10px">';
-      h += '<div style="width:30px;height:30px;border-radius:8px;background:rgba(224,118,40,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--teal)">';
-      h += svgIcon(b[0],14)+'</div>';
-      h += '<div><div style="font-size:13px;font-weight:700;color:#e6edf3">'+b[1]+'</div>';
-      h += '<div style="font-size:13px;color:#8b949e;margin-top:2px;line-height:1.5">'+b[2]+'</div></div></div>';
+      h += '<div style="padding:13px 16px;'+(i%2===0?'border-right:1px solid var(--border2)':'')+';'+(i>=2?'border-top:1px solid var(--border2)':'')+';display:flex;gap:10px">';
+      h += '<div style="width:28px;height:28px;border-radius:7px;background:rgba(224,118,40,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0">'+svgIcon(b[0],13)+'</div>';
+      h += '<div><div style="font-size:13px;font-weight:700;color:var(--ink)">'+b[1]+'</div>';
+      h += '<div style="font-size:12px;color:var(--text2);margin-top:2px">'+b[2]+'</div></div></div>';
     });
     h += '</div></div>';
 
-        // ── Resend + 46elks API keys ──────────────────────────────────────────────
-    var _rk = _velaGetApiKey('resend');
-    var _ek = _velaGetApiKey('46elks');
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:14px">';
-    h += '<div style="padding:13px 18px;border-bottom:1px solid #30363d">';
-    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3">API-nycklar för utskick</div>';
-    h += '<div style="font-size:13px;color:#8b949e;margin-top:1px">Krävs för att Vela ska skicka mail och SMS automatiskt.</div></div>';
+    // API keys
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:16px">';
+    h += '<div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border2)"><div style="font-size:13px;font-weight:700;color:var(--ink)">Utskicks-API</div></div>';
     // Resend
     h += '<div style="padding:14px 18px;border-bottom:1px solid var(--border2)">';
     h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
-    h += '<div><div style="font-size:13px;font-weight:600;color:#e6edf3">Resend — mail</div>';
-    h += '<div style="font-size:13px;color:#8b949e">resend.com · Gratis upp till 3 000 mail/mån</div></div>';
-    h += _rk ? '<span style="font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(224,118,40,.06);color:var(--teal)">Ansluten</span>'
-             : '<span style="font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.06);color:#8b949e">Ej ansluten</span>';
-    h += '</div>';
-    h += '<div style="display:flex;gap:8px">';
-    h += '<input id="st-resend-key" type="password" class="field" style="margin-bottom:0;flex:1;font-size:13px" placeholder="re_xxxxxxxxxxxxxxxx" value="' + e(_rk) + '">';
-    h += '<button onclick="_velaSaveAndTestKey(&quot;resend&quot;,document.getElementById(&quot;st-resend-key&quot;).value)" class="btn btn-p" style="font-size:13px;white-space:nowrap">Spara &#38; testa</button>';
+    h += '<div><div style="font-size:13px;font-weight:600;color:var(--ink)">Resend \u2014 mail</div>';
+    h += '<div style="font-size:12px;color:var(--text2)">resend.com \xB7 Gratis upp till 3 000 mail/m\xE5n</div></div>';
+    h += _rk ? '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(63,185,80,.08);color:var(--green)">Ansluten</span>' : '<span style="font-size:11px;color:var(--text2)">Ej ansluten</span>';
+    h += '</div><div style="display:flex;gap:8px">';
+    h += '<input id="st-resend-key" type="password" class="field" style="margin-bottom:0;flex:1;font-size:12px" placeholder="re_xxxxxxxxxxxxxxxx" value="'+e(_rk)+'">';
+    h += '<button onclick="_velaSaveAndTestKey(\'resend\',document.getElementById(\'st-resend-key\').value)" class="btn btn-p" style="font-size:13px;white-space:nowrap">Spara</button>';
     h += '</div></div>';
     // 46elks
     h += '<div style="padding:14px 18px">';
     h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
-    h += '<div><div style="font-size:13px;font-weight:600;color:#e6edf3">46elks — SMS</div>';
-    h += '<div style="font-size:13px;color:#8b949e">46elks.com · Svensk leverantör, GDPR-säker · Format: användarnamn:lösenord</div></div>';
-    h += _ek ? '<span style="font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(224,118,40,.06);color:var(--teal)">Ansluten</span>'
-             : '<span style="font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.06);color:#8b949e">Ej ansluten</span>';
-    h += '</div>';
-    h += '<div style="display:flex;gap:8px">';
-    h += '<input id="st-elks-key" type="password" class="field" style="margin-bottom:0;flex:1;font-size:13px" placeholder="u_abc123:abc123xyz" value="' + e(_ek) + '">';
-    h += '<button onclick="_velaSaveAndTestKey(&quot;46elks&quot;,document.getElementById(&quot;st-elks-key&quot;).value)" class="btn btn-p" style="font-size:13px;white-space:nowrap">Spara</button>';
-    h += '</div></div>';
-    h += '</div>';
+    h += '<div><div style="font-size:13px;font-weight:600;color:var(--ink)">46elks \u2014 SMS</div>';
+    h += '<div style="font-size:12px;color:var(--text2)">Svensk leverant\xF6r \xB7 GDPR-s\xE4ker \xB7 Format: anv:l\xF6senord</div></div>';
+    h += _ek ? '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(63,185,80,.08);color:var(--green)">Ansluten</span>' : '<span style="font-size:11px;color:var(--text2)">Ej ansluten</span>';
+    h += '</div><div style="display:flex;gap:8px">';
+    h += '<input id="st-elks-key" type="password" class="field" style="margin-bottom:0;flex:1;font-size:12px" placeholder="u_abc123:abc123xyz" value="'+e(_ek)+'">';
+    h += '<button onclick="_velaSaveAndTestKey(\'46elks\',document.getElementById(\'st-elks-key\').value)" class="btn btn-p" style="font-size:13px;white-space:nowrap">Spara</button>';
+    h += '</div></div></div>';
 
-    // Provider list
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">';
-    h += '<div style="padding:13px 18px;border-bottom:1px solid #30363d">';
-    h += '<div style="font-size:13px;font-weight:700;color:#e6edf3">Mailkopplingar</div>';
-    // Gmail OAuth Client ID
-    var _gcid = localStorage.getItem('vela:gmail-client-id') || '';
-    var _gmailAuthed = _gmailIsAuthed ? _gmailIsAuthed() : false;
-    h += '<div style="margin:12px 0 16px;padding:14px 16px;background:#21262d;border:1px solid #30363d;border-radius:9px">';
-    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
-    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="' + (_gmailAuthed?'var(--green)':'var(--text2)') + '" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
-    h += '<span style="font-size:13px;font-weight:600;color:#e6edf3">Gmail (calle@kansei.se)</span>';
-    h += '<span class="status-pill ' + (_gmailAuthed?'green':'muted') + '" style="font-size:12px">' + (_gmailAuthed?'Ansluten':'Ej ansluten') + '</span>';
+    // Gmail
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
+    h += '<div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:8px">';
+    h += svgIcon('<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',14);
+    h += '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--ink)">Gmail</div></div>';
+    h += '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+(_gmailAuthed?'rgba(63,185,80,.08)':'rgba(255,255,255,.04)')+';color:'+(_gmailAuthed?'var(--green)':'var(--text2)')+'">'+(_gmailAuthed?'Ansluten':'Ej ansluten')+'</span>';
     h += '</div>';
-    h += '<div style="font-size:13px;color:#8b949e;margin-bottom:10px;line-height:1.6">Google Client ID aktiverar Gmail-inkorgen direkt i Vela. Skapa ett på <a href="https://console.cloud.google.com/" target="_blank" style="color:var(--teal)">Google Cloud Console</a> med Gmail API och din Vela-URL som Authorized Origin.</div>';
+    h += '<div style="padding:14px 18px">';
+    h += '<div style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.6">Google Client ID aktiverar Gmail-inkorgen direkt i Vela. Skapa ett p\xE5 <a href="https://console.cloud.google.com/" target="_blank" style="color:var(--orange)">Google Cloud Console</a> med Gmail API och din Vela-URL som Authorized Origin.</div>';
     h += '<div style="display:flex;gap:8px">';
-    h += '<input id="gcid-inp" type="text" placeholder="xxxx.apps.googleusercontent.com" value="' + e(_gcid) + '" style="flex:1;background:var(--bg);border:1px solid #30363d;border-radius:7px;padding:8px 12px;font-size:13px;color:#e6edf3;font-family:var(--font);outline:none">';
-    h += '<button onclick="var v=document.getElementById(\'gcid-inp\').value.trim();if(v){localStorage.setItem(\'vela:gmail-client-id\',v);showAutoSaveToast(\'Client ID sparat\');}" class="act-btn" style="font-size:13px">Spara</button>';
-    h += '<button onclick="_gmailAuth(function(){showAutoSaveToast(\'Gmail ansluten! &aring;ppna Aktivitet.\');})" class="act-btn act-btn-primary" style="font-size:13px">' + (_gmailAuthed?'Återanslut':'Anslut') + '</button>';
-    h += '</div></div>';
-    h += '<div style="font-size:13px;color:#8b949e;margin-top:1px">Gmail ansluts via Google Client ID ovan. IMAP/SMTP fungerar för övriga mailservrar.</div></div>';
-    [
-      {name:'Gmail / Google Workspace', col:'#EA4335', icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>',
-       note:'Ansluts via Google Client ID — se ovan.', avail:false},
-      {name:'Outlook / Microsoft 365', col:'#0078D4', icon:'<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
-       note:'Ansluts via OAuth. IMAP fungerar redan idag.', avail:false},
-      {name:'IMAP / SMTP (alla mailservrar)', col:'#6B7280', icon:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.06 6.06l.82-.82a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 1 2.81.7A2 2 0 0 1 22 16.92z"/>',
-       note:'Loopia, Telia, One.com, eget mailserver — aktiveras nu.', avail:true},
-    ].forEach(function(p,i) {
-      h += '<div style="display:flex;align-items:center;gap:13px;padding:14px 18px;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
-      h += '<div style="width:34px;height:34px;border-radius:9px;background:'+p.col+'18;display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-      h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="'+p.col+'" stroke-width="2" stroke-linecap="round">'+p.icon+'</svg></div>';
-      h += '<div style="flex:1;min-width:0">';
-      h += '<div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">';
-      h += '<div style="font-size:13px;font-weight:600;color:#e6edf3">'+p.name+'</div>';
-      if(!p.avail) h += '<span style="font-size:12px;font-weight:600;color:#8a6000;background:rgba(138,96,0,.1);padding:2px 7px;border-radius:20px">Vela 2.0</span>';
-      else h += '<span style="font-size:12px;font-weight:600;color:#3fb950;background:rgba(26,122,74,.1);padding:2px 7px;border-radius:20px">Tillgänglig nu</span>';
-      h += '</div><div style="font-size:13px;color:#8b949e">'+p.note+'</div></div>';
-      if(p.avail) h += '<button onclick="_openImapSetup()" style="padding:6px 13px;background:none;border:1px solid #30363d;border-radius:8px;font-size:13px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font);white-space:nowrap">Konfigurera →</button>';
-      else h += '<button onclick="showAutoSaveToast(\'Notifierar dig när OAuth2 lanseras\')" style="padding:6px 13px;background:none;border:1px solid #30363d;border-radius:8px;font-size:13px;color:#8b949e;cursor:pointer;font-family:var(--font);white-space:nowrap">Notifiera mig</button>';
-      h += '</div>';
-    });
-    h += '</div>';
-
-    // IMAP setup form
-    h += '<div id="imap-setup" style="display:none;background:#161b22;border:1px solid rgba(224,118,40,.3);border-radius:6px;padding:16px 18px">';
-    h += '<div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:13px">IMAP/SMTP-konfiguration</div>';
-    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">';
-    [['imap-host','IMAP-server','imap.gmail.com'],['imap-port','IMAP-port','993'],['imap-user','E-postadress','din@klinik.se'],['imap-pass','App-lösenord',''],['smtp-host','SMTP-server','smtp.gmail.com'],['smtp-port','SMTP-port','587']].forEach(function(f) {
-      h += '<div><div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8b949e;margin-bottom:5px">'+f[1]+'</div>';
-      h += '<input id="'+f[0]+'" class="field" type="'+(f[0].includes('pass')?'password':'text')+'" placeholder="'+f[2]+'" style="margin-bottom:0"></div>';
-    });
-    h += '</div>';
-    h += '<div style="display:flex;gap:8px">';
-    h += '<button onclick="document.getElementById(\'imap-setup\').style.display=\'none\'" style="flex:1;padding:9px;background:none;border:1px solid #30363d;border-radius:9px;font-size:13px;color:#8b949e;cursor:pointer;font-family:var(--font)">Avbryt</button>';
-    h += '<button onclick="showAutoSaveToast(\'IMAP sparad — testar anslutning...\')" class="btn btn-p" style="flex:1;padding:9px">Testa & spara</button>';
-    h += '</div></div>';
-
-    h += '</div>';
+    h += '<input id="gcid-inp" type="text" placeholder="xxxx.apps.googleusercontent.com" value="'+e(_gcid)+'" class="field" style="flex:1;font-size:12px">';
+    h += '<button onclick="var v=document.getElementById(\'gcid-inp\').value.trim();if(v){localStorage.setItem(\'vela:gmail-client-id\',v);showAutoSaveToast(\'Client ID sparat\');}" class="btn" style="font-size:13px">Spara</button>';
+    h += '<button onclick="_gmailAuth(function(){showAutoSaveToast(\'Gmail ansluten!\');})" class="btn btn-p" style="font-size:13px">'+(_gmailAuthed?'\xC5teranslut':'Anslut')+'</button>';
+    h += '</div></div></div>';
   }
 
   h += '</div>';
   return h;
+}
+
+function _setMailAutonomy(category, level) {
+  var key = 'vela:agent:mail-autonomy';
+  var obj = {};
+  try { obj = JSON.parse(localStorage.getItem(key)||'{}'); } catch(e) {}
+  obj[category] = level;
+  try { localStorage.setItem(key, JSON.stringify(obj)); } catch(e) {}
+  _renderSettingsContent('comms');
 }
 
 
@@ -33967,6 +33938,191 @@ async function _saveAndVerifyKey() {
   } catch(err) {
     if (statusEl) statusEl.innerHTML = '<div style="font-size:13px;color:#c03030;padding:8px 0">Kunde inte ansluta: ' + (err.message||'nätverksfel') + '</div>';
   }
+}
+
+async function _stVelaAgent(el) {
+  el.innerHTML = '<div style="padding:40px 32px;color:var(--text2);font-size:13px">Laddar agent-status\u2026</div>';
+  var cfg = getClinicConfig ? getClinicConfig() : {};
+
+  // Fetch daily agent run history from Supabase
+  var runs = [];
+  try {
+    var res = await fetch(SB_URL + '/rest/v1/pass_log?pat_id=eq.agent&type=eq.agent_run&order=logged_at.desc&limit=5', { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
+    if (res.ok) runs = await res.json();
+  } catch(e) {}
+
+  var lastRun = runs[0];
+  var lastRunData = lastRun ? (typeof lastRun.data === 'string' ? JSON.parse(lastRun.data) : lastRun.data) : null;
+  var lastRunTime = lastRun ? new Date(lastRun.logged_at).toLocaleString('sv-SE', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : 'Aldrig';
+
+  // Local agent feed
+  var feed = typeof _agentGetFeed === 'function' ? _agentGetFeed() : [];
+  var feed24 = feed.filter(function(f){ return Date.now()-f.ts < 86400000; });
+
+  // Triage stats
+  var triaged = {};
+  try { triaged = JSON.parse(localStorage.getItem('vela:mail-triaged')||'{}'); } catch(e) {}
+  var triagedCount7d = Object.values(triaged).filter(function(ts){ return Date.now()-ts < 7*86400000; }).length;
+
+  // Pending action approvals
+  var pending = typeof getPendingApprovals === 'function' ? getPendingApprovals() : [];
+  var cancelPend = pending.filter(function(a){ return a.type === 'cancel_request'; });
+  var schedPend  = pending.filter(function(a){ return a.type === 'reschedule_request'; });
+  var msgPend    = pending.filter(function(a){ return a.type === 'patient_message'; });
+
+  // Scan status
+  var SCAN_KEYS = [
+    { key:'overdue',   label:'F\xF6rsenade \xE5terbes\xF6k',  desc:'Patient saknar ny bokning efter planerat datum' },
+    { key:'journals',  label:'Saknade journaler',   desc:'Genomf\xF6rda bes\xF6k utan SOAP-dokumentation' },
+    { key:'nrs',       label:'NRS-spike',            desc:'Sm\xE4rta \xF6kade \u22652 enheter sedan senaste bes\xF6k' },
+    { key:'gaps',      label:'Schemagapp',           desc:'Lediga block >90 min kommande 7 dagar' },
+    { key:'inactive',  label:'Inaktiva patienter',   desc:'Ej bes\xF6k och ej kommande bokning p\xE5 >45 dagar' },
+    { key:'homeprogram', label:'Hemprogram inaktivt', desc:'Ingen \xF6vningslogg p\xE5 >7 dagar (aktiv Hael-plan)' },
+  ];
+  var scanEnabled = {};
+  try { scanEnabled = JSON.parse(localStorage.getItem('vela:agent:scans-disabled')||'{}'); } catch(e) {}
+
+  var h = '<div class="vela-st-section" style="max-width:800px">';
+  h += '<div class="vela-st-title">VelaAgent</div>';
+  h += '<div class="vela-st-desc">Agenten bevakar kliniken proaktivt — analyserar bokningar, mail, patientstatus och schema. Allt du beh\xF6ver agera p\xE5 samlas i inkorgen och signaturk\xF6n.</div>';
+
+  // ── Live status row ────────────────────────────────────────────────────────
+  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px;margin-bottom:20px">';
+  [
+    { l: 'Signaturk\xF6', v: cancelPend.length + schedPend.length + msgPend.length || '\u2713', c: (cancelPend.length+schedPend.length+msgPend.length) ? 'var(--amber)' : 'var(--green)', sub: cancelPend.length ? cancelPend.length + ' avbokning' : schedPend.length ? schedPend.length + ' tidsbyte' : 'Tom' },
+    { l: 'Mail triagerade (7d)', v: triagedCount7d || '0', c: triagedCount7d ? 'var(--ink)' : 'var(--text2)', sub: triagedCount7d ? 'senaste 7 dagar' : 'Inga \xE4nnu' },
+    { l: '\u00c5tg\xE4rder idag', v: feed24.length || '0', c: feed24.length ? 'var(--orange)' : 'var(--text2)', sub: feed24.length ? feed24.length + ' h\xE4ndelser' : 'Ingen aktivitet' },
+    { l: 'Daily Agent', v: lastRunData ? '\u2713 Aktiv' : 'Ej k\xF6rd', c: lastRunData ? 'var(--green)' : 'var(--text2)', sub: lastRunTime },
+  ].forEach(function(k) {
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:13px 15px">';
+    h += '<div style="font-size:18px;font-weight:700;color:'+k.c+';margin-bottom:3px">'+k.v+'</div>';
+    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text)">'+k.l+'</div>';
+    h += '<div style="font-size:11px;color:var(--text2);margin-top:2px">'+k.sub+'</div>';
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // ── Aktiva skanningar ──────────────────────────────────────────────────────
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:14px">';
+  h += '<div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between">';
+  h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">Proaktiva skanningar</div>';
+  h += '<div style="font-size:12px;color:var(--text2)">K\xF6r var 30:e minut</div>';
+  h += '</div>';
+  SCAN_KEYS.forEach(function(sc) {
+    var on = !scanEnabled[sc.key];
+    h += '<div style="display:flex;align-items:center;gap:14px;padding:11px 18px;border-bottom:1px solid var(--border2)">';
+    h += '<div style="flex:1;min-width:0">';
+    h += '<div style="font-size:13px;font-weight:600;color:var(--ink)">'+sc.label+'</div>';
+    h += '<div style="font-size:12px;color:var(--text2)">'+sc.desc+'</div>';
+    h += '</div>';
+    h += '<div style="width:36px;height:20px;border-radius:10px;background:'+(on?'var(--orange)':'var(--border)')+';position:relative;cursor:pointer;flex-shrink:0;transition:background .2s" onclick="_agentToggleScan(\''+sc.key+'\')">';
+    h += '<div style="position:absolute;top:3px;left:'+(on?'17px':'3px')+';width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s"></div>';
+    h += '</div>';
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // ── Väntande åtgärder ──────────────────────────────────────────────────────
+  if (cancelPend.length || schedPend.length || msgPend.length) {
+    h += '<div style="background:var(--surface);border:1px solid rgba(210,153,34,.3);border-radius:6px;overflow:hidden;margin-bottom:14px">';
+    h += '<div style="padding:12px 18px;background:rgba(210,153,34,.04);border-bottom:1px solid rgba(210,153,34,.15);display:flex;align-items:center;justify-content:space-between">';
+    h += '<div style="font-size:13px;font-weight:700;color:var(--ink)">V\xE4ntar i signaturk\xF6n</div>';
+    h += '<button onclick="rSignatureQueue&&rSignatureQueue()" style="font-size:12px;padding:4px 12px;background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.25);border-radius:5px;color:var(--amber);cursor:pointer;font-family:var(--font)">Granska \u2192</button>';
+    h += '</div>';
+    var items = [];
+    if (cancelPend.length) items.push({ icon:'\uD83D\uDEAB', text: cancelPend.length + ' avbokning'+(cancelPend.length>1?'ar':''), sub: cancelPend.map(function(a){return a.patName;}).join(', ') });
+    if (schedPend.length)  items.push({ icon:'\uD83D\uDCC5', text: schedPend.length + ' tidsbyte'+(schedPend.length>1?'n':''),  sub: schedPend.map(function(a){return a.patName;}).join(', ') });
+    if (msgPend.length)    items.push({ icon:'\uD83D\uDCEC', text: msgPend.length + ' patientmail',                              sub: msgPend.map(function(a){return a.patName;}).join(', ') });
+    items.forEach(function(item) {
+      h += '<div style="display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid var(--border2)">';
+      h += '<span style="font-size:16px">'+item.icon+'</span>';
+      h += '<div><div style="font-size:13px;font-weight:600;color:var(--ink)">'+item.text+'</div>';
+      h += '<div style="font-size:12px;color:var(--text2)">'+e(item.sub)+'</div></div>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  // ── Agent-feed senaste 24h ─────────────────────────────────────────────────
+  if (feed24.length) {
+    var feedIcons2 = { cancel_detected:'\uD83D\uDEAB', booking_cancelled:'\u2705', reschedule_detected:'\uD83D\uDCC5', reschedule_sent:'\uD83D\uDCE4', nudge_queued:'\uD83D\uDCA4', gap_detected:'\uD83D\uDDD3', inactive_flagged:'\uD83D\uDCA4' };
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:14px">';
+    h += '<div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border2);font-size:13px;font-weight:700;color:var(--ink)">\u00c5tg\xE4rdslogg \u2014 senaste 24h</div>';
+    feed24.slice(0,8).forEach(function(f) {
+      var icon3 = feedIcons2[f.type] || '\u25C6';
+      var tAgo = Math.round((Date.now()-f.ts)/60000);
+      var tLabel = tAgo < 1 ? 'nu' : tAgo < 60 ? tAgo + ' min sedan' : Math.round(tAgo/60) + 'h sedan';
+      h += '<div style="display:flex;align-items:center;gap:12px;padding:8px 18px;border-bottom:1px solid var(--border2)">';
+      h += '<span style="font-size:14px;flex-shrink:0">'+icon3+'</span>';
+      h += '<span style="font-size:13px;color:var(--ink);flex:1">'+e(f.summary)+'</span>';
+      h += '<span style="font-size:11px;color:var(--text2);flex-shrink:0">'+tLabel+'</span>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  // ── Daily Agent (server-side) ──────────────────────────────────────────────
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:14px">';
+  h += '<div style="padding:12px 18px;background:var(--surface2);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between">';
+  h += '<div><div style="font-size:13px;font-weight:700;color:var(--ink)">Daily Agent \u2014 k\xF6rs kl 07:00</div>';
+  h += '<div style="font-size:12px;color:var(--text2)">Supabase Edge Function via pg_cron \u2014 oberoende av browser</div></div>';
+  h += '<span style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;background:'+(lastRunData?'rgba(63,185,80,.08)':'var(--bg)')+';color:'+(lastRunData?'var(--green)':'var(--text2)')+'">'+( lastRunData?'\u2713 Aktiv':'Ej k\xF6rd')+'</span>';
+  h += '</div>';
+  if (lastRunData) {
+    h += '<div style="display:flex;gap:10px;padding:12px 18px;border-bottom:1px solid var(--border2);flex-wrap:wrap">';
+    [
+      { l: 'Senaste k\xF6rning', v: lastRunTime },
+      { l: 'P\xE5minnelser', v: ((lastRunData.reminders||0)+(lastRunData.followups||0)+(lastRunData.nudges||0)) + ' st' },
+      { l: 'Briefing', v: lastRunData.briefing ? '\u2713 Skickad' : '\u2013' },
+    ].forEach(function(kk) {
+      h += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 12px">';
+      h += '<div style="font-size:11px;color:var(--text2);margin-bottom:2px">'+kk.l+'</div>';
+      h += '<div style="font-size:13px;font-weight:600;color:var(--ink)">'+kk.v+'</div>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+  if (runs.length) {
+    h += '<div style="padding:10px 18px">';
+    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:8px">Historik</div>';
+    runs.slice(0,4).forEach(function(r) {
+      var rd = typeof r.data === 'string' ? JSON.parse(r.data) : r.data;
+      var rt = new Date(r.logged_at).toLocaleString('sv-SE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      h += '<div style="display:flex;align-items:center;gap:10px;padding:4px 0;font-size:12px;color:var(--text)">';
+      h += '<span style="color:var(--text2);min-width:110px">'+rt+'</span>';
+      h += '<span>'+((rd.reminders||0)+(rd.followups||0)+(rd.nudges||0))+' meddelanden</span>';
+      h += (rd.briefing ? '<span style="color:var(--green);margin-left:auto">\u2713 Briefing</span>' : '');
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+  h += '<div style="padding:12px 18px;display:flex;align-items:center;gap:12px;border-top:1px solid var(--border)">';
+  h += '<button id="agent-run-btn" onclick="_triggerAgentNow()" style="padding:8px 18px;background:#238636;border:none;border-radius:6px;font-size:13px;font-weight:700;color:white;cursor:pointer;font-family:var(--font)">\u25B6 K\xF6r agent nu</button>';
+  h += '<span id="agent-run-status" style="font-size:13px;color:var(--text2)"></span>';
+  h += '</div>';
+  h += '</div>';
+
+  // ── Autonominivå (quick link to AI-profil) ─────────────────────────────────
+  var mode = typeof getRetentionMode === 'function' ? getRetentionMode() : 'manual';
+  var modeLabels = { manual: 'Manuellt \u2014 du godk\xE4nner allt', semi: 'Semi-auto \u2014 du kan avvisa inom 24h', auto: 'Autopilot \u2014 agerar fullt autonomt' };
+  var modeColors2 = { manual: 'var(--text2)', semi: 'var(--orange)', auto: 'var(--amber)' };
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">';
+  h += '<div><div style="font-size:13px;font-weight:700;color:var(--ink)">AI-autonominiv\xE5</div>';
+  h += '<div style="font-size:13px;color:'+(modeColors2[mode]||'var(--text2)')+';margin-top:3px">'+(modeLabels[mode]||mode)+'</div></div>';
+  h += '<button onclick="window._settingsActiveTab=\'ai\';_renderSettingsNav();_renderSettingsContent(\'ai\')" style="padding:7px 14px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Byt niv\xE5 \u2192</button>';
+  h += '</div>';
+
+  h += '</div>';
+  el.innerHTML = h;
+}
+
+function _agentToggleScan(key) {
+  var disabled = {};
+  try { disabled = JSON.parse(localStorage.getItem('vela:agent:scans-disabled')||'{}'); } catch(e) {}
+  if (disabled[key]) delete disabled[key]; else disabled[key] = true;
+  try { localStorage.setItem('vela:agent:scans-disabled', JSON.stringify(disabled)); } catch(e) {}
+  var el = document.getElementById('vela-settings-content');
+  if (el) _stVelaAgent(el);
 }
 
 function _stAISettings() {

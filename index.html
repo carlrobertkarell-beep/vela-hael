@@ -19902,6 +19902,75 @@ function rSignatureQueue() {
   _renderSigQueue();
 }
 
+// ── Special card renderer för cancel_request / reschedule_request ────────────
+function _sigqSpecialCard(a) {
+  if (a.type !== 'cancel_request' && a.type !== 'reschedule_request') return null;
+  var isCancl = a.type === 'cancel_request';
+  var age = a.createdAt ? _relativeDate(a.createdAt.slice(0,10)) : '';
+  var borderCol = isCancl ? 'rgba(248,81,73,.35)' : 'rgba(210,153,34,.35)';
+  var iconPath = isCancl
+    ? '<path d="M6 18L18 6M6 6l12 12"/>'
+    : '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>';
+  var iconBg = isCancl ? 'rgba(248,81,73,.08)' : 'rgba(210,153,34,.08)';
+  var iconCol = isCancl ? 'var(--red)' : 'var(--amber)';
+  var typeLabel = isCancl ? 'Avbokning' : 'Tidsbyte';
+
+  var h = '<div id="sigq-item-' + a.id + '" style="background:var(--surface);border:1.5px solid ' + borderCol + ';border-radius:6px;margin-bottom:12px;overflow:hidden">';
+
+  // Header
+  h += '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border2)">';
+  h += '<div style="width:32px;height:32px;border-radius:6px;background:' + iconBg + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="' + iconCol + '" stroke-width="2" stroke-linecap="round">' + iconPath + '</svg>';
+  h += '</div>';
+  h += '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--ink)">' + e(a.patName||'Okänd') + '</div>';
+  h += '<div style="font-size:12px;color:var(--text)">' + typeLabel + (age ? ' \xB7 ' + age : '') + '</div></div>';
+  h += '<span style="font-size:11px;color:var(--text2);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 7px">~10 sek</span>';
+  h += '</div>';
+
+  // Body
+  h += '<div style="padding:12px 16px;border-bottom:1px solid var(--border2)">';
+
+  if (isCancl) {
+    var bkLabel = (a.meta && a.meta.bookingLabel) || 'Ingen kommande tid hittad';
+    var hasBk = !!(a.meta && a.meta.bookingId);
+    h += '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:' + (hasBk?'rgba(248,81,73,.06)':'var(--bg)') + ';border:1px solid ' + (hasBk?'rgba(248,81,73,.2)':'var(--border)') + ';border-radius:6px;margin-bottom:10px">';
+    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="' + (hasBk?'var(--red)':'var(--text2)') + '" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+    h += '<span style="font-size:13px;font-weight:' + (hasBk?'600':'400') + ';color:var(--ink)">' + e(bkLabel) + '</span>';
+    if (!hasBk) h += '<span style="font-size:11px;color:var(--amber);margin-left:auto">\u26A0 Ingen bokning matchad</span>';
+    h += '</div>';
+  } else {
+    var hint = (a.meta && a.meta.extractedHint) || {};
+    var slots = (a.meta && a.meta.suggestedSlots) || [];
+    if (hint.day || hint.partOfDay) {
+      h += '<div style="font-size:12px;color:var(--text);margin-bottom:8px">Önskemål: <strong style="color:var(--ink)">' + e(hint.day || hint.partOfDay) + '</strong></div>';
+    }
+    if (slots.length) {
+      h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text);margin-bottom:6px">Föreslagna lediga tider</div>';
+      h += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">';
+      slots.forEach(function(sl) {
+        h += '<span style="font-size:12px;padding:4px 10px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.25);border-radius:5px;color:var(--ink)">' + e(sl.dateLabel) + ' <strong>kl ' + e(sl.time) + '</strong></span>';
+      });
+      h += '</div>';
+    } else {
+      h += '<div style="font-size:12px;color:var(--amber);margin-bottom:8px">\u26A0 Inga lediga tider hittades \u2014 redigera svaret manuellt</div>';
+    }
+  }
+
+  h += '<div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text);margin-bottom:5px">Svarsmail till patienten</div>';
+  h += '<textarea id="sigq-ta-' + a.id + '" style="width:100%;min-height:100px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--ink);font-family:var(--font);resize:vertical;line-height:1.6;box-sizing:border-box">' + e(a.aiContent||'') + '</textarea>';
+  h += '</div>';
+
+  // Actions
+  var approveLabel = isCancl ? '\u2713 Avboka &amp; skicka svar' : '\u2713 Skicka tider till patient';
+  h += '<div style="display:flex;gap:8px;padding:10px 16px">';
+  h += '<button onclick="_sigqApprove(\'' + a.id + '\')" style="flex:2;padding:10px;background:#238636;border:none;border-radius:6px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:var(--font)">' + approveLabel + '</button>';
+  h += '<button onclick="_sigqReject(\'' + a.id + '\')" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avvisa</button>';
+  if (a.patId && a.patId.indexOf('unknown_') !== 0) h += '<button onclick="openPat(\'' + a.patId + '\')" style="padding:10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Patient \u2192</button>';
+  h += '</div>';
+  h += '</div>';
+  return h;
+}
+
 function _renderSigQueue() {
   var el = document.getElementById('s-sigqueue');
   if (!el) return;
@@ -19914,14 +19983,18 @@ function _renderSigQueue() {
     hael_plan: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
     patient_message: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
     intake_summary: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+    cancel_request: '<path d="M6 18L18 6M6 6l12 12"/>',
+    reschedule_request: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
   };
   var typeLabel = {
     soap: 'Journal', hael_plan: 'Hael-plan',
     patient_message: 'Patientbrev', intake_summary: 'Intake',
+    cancel_request: 'Avbokning', reschedule_request: 'Tidsbyte',
   };
   var typeTime = {
     soap: '~1 min', hael_plan: '~2 min',
     patient_message: '~30 sek', intake_summary: '~1 min',
+    cancel_request: '~10 sek', reschedule_request: '~10 sek',
   };
 
   var h = '<div style="display:flex;flex-direction:column;height:100%;background:var(--bg);font-family:var(--font)">';
@@ -19961,6 +20034,10 @@ function _renderSigQueue() {
     h += '</div>';
   } else {
     pending.forEach(function(a, idx) {
+      // Special rendering for action-intent types
+      var specialHtml = typeof _sigqSpecialCard === 'function' ? _sigqSpecialCard(a) : null;
+      if (specialHtml !== null) { h += specialHtml; return; }
+
       var icon = typeIcon[a.type] || typeIcon.soap;
       var label = typeLabel[a.type] || a.type;
       var time = typeTime[a.type] || '~1 min';
@@ -20047,6 +20124,58 @@ function _sigqApprove(id) {
   var ta = document.getElementById('sigq-ta-' + id);
   var editedContent = ta ? ta.value.trim() : null;
   var a = getApproval(id);
+
+  // ── AVBOKNING ──────────────────────────────────────────────────────────────
+  if (a && a.type === 'cancel_request') {
+    var finalText = editedContent || a.aiContent;
+    // Cancel the booking
+    if (a.meta && a.meta.bookingId) {
+      var bk = typeof getBooking === 'function' ? getBooking(a.meta.bookingId) : null;
+      if (bk) {
+        bk.status = 'cancelled';
+        bk.cancelledAt = new Date().toISOString();
+        bk.cancelledBy = 'patient_via_mail';
+        if (typeof upsertBooking === 'function') upsertBooking(bk);
+        if (typeof _notifyWaitlistOnCancellation === 'function') _notifyWaitlistOnCancellation(bk);
+        _agentLogAction('booking_cancelled', (a.patName||'Patient') + ' — ' + (a.meta.bookingLabel||''), { patId: a.patId, bookingId: bk.id });
+      }
+    }
+    // Send reply
+    if (a.meta && a.meta.threadId && a.meta.patEmail) {
+      _agentSendGmailReply(a.meta.threadId, a.meta.patEmail, a.meta.subject||'', finalText).catch(function(){});
+    }
+    // Mark approved
+    a.status = 'approved'; a.approvedAt = new Date().toISOString();
+    if (typeof upsertApproval === 'function') upsertApproval(a);
+    if (typeof updateClinicMemoryApproval === 'function') updateClinicMemoryApproval(true);
+    var itemEl = document.getElementById('sigq-item-' + id);
+    if (itemEl) { itemEl.style.opacity = '0.4'; itemEl.style.pointerEvents = 'none'; itemEl.style.transition = 'opacity .3s'; setTimeout(function(){ itemEl.remove(); _checkSigQueueEmpty(); }, 350); }
+    if (typeof addInboxItem === 'function') addInboxItem(a.patId, a.patName||'', 'info', 'cancel_confirmed', '\u2705 Avbokning hanterad \u2014 ' + (a.patName||''), (a.meta && a.meta.bookingLabel ? a.meta.bookingLabel + ' avbokad' : 'Avbokad') + ' \xB7 Svar skickat', []);
+    showAutoSaveToast('Avbokning hanterad \u2713');
+    if (S.screen === 'dashboard') _renderPulse && _renderPulse();
+    return;
+  }
+
+  // ── TIDSBYTE ───────────────────────────────────────────────────────────────
+  if (a && a.type === 'reschedule_request') {
+    var finalText2 = editedContent || a.aiContent;
+    // Send reply with slots
+    if (a.meta && a.meta.threadId && a.meta.patEmail) {
+      _agentSendGmailReply(a.meta.threadId, a.meta.patEmail, a.meta.subject||'', finalText2).catch(function(){});
+    }
+    var slotCount = (a.meta && a.meta.suggestedSlots && a.meta.suggestedSlots.length) || 0;
+    _agentLogAction('reschedule_sent', (a.patName||'') + ' \u2014 ' + slotCount + ' tider skickade', { patId: a.patId, slots: slotCount });
+    // Mark approved
+    a.status = 'approved'; a.approvedAt = new Date().toISOString();
+    if (typeof upsertApproval === 'function') upsertApproval(a);
+    if (typeof updateClinicMemoryApproval === 'function') updateClinicMemoryApproval(true);
+    var itemEl2 = document.getElementById('sigq-item-' + id);
+    if (itemEl2) { itemEl2.style.opacity = '0.4'; itemEl2.style.pointerEvents = 'none'; itemEl2.style.transition = 'opacity .3s'; setTimeout(function(){ itemEl2.remove(); _checkSigQueueEmpty(); }, 350); }
+    if (typeof addInboxItem === 'function') addInboxItem(a.patId, a.patName||'', 'info', 'reschedule_sent', '\uD83D\uDCC5 Tider skickade \u2014 ' + (a.patName||''), (slotCount ? slotCount + ' lediga tider f\xF6reslagna' : 'Svar skickat') + ' \xB7 V\xE4ntar p\xE5 svar', []);
+    showAutoSaveToast('Tider skickade \u2713');
+    if (S.screen === 'dashboard') _renderPulse && _renderPulse();
+    return;
+  }
 
   // For hael_plan type: generate a real plan via form flow
   if (a && a.type === 'hael_plan' && a.meta && a.meta.haelData) {
@@ -20159,6 +20288,8 @@ const VelaAgent = (function() {
     _scanMissingJournals(pats, bks, todayStr);
     _scanNoHomeProgramActivity(pats, todayStr);
     _scanNRSSpike(pats);
+    _scanScheduleGaps(bks, todayStr);
+    _scanInactivePatients(pats, bks, todayStr);
 
     // Reasoning scan — progress analysis (max 3 patients per run to control cost)
     if (key) {
@@ -20317,6 +20448,151 @@ const VelaAgent = (function() {
         ]
       );
     });
+  }
+
+  // ── Scan: schemaglapp > 90 min (kommande 7 dagar) ──────────────────────────
+  function _scanScheduleGaps(bks, todayStr) {
+    var GAP_MINS = 90;
+    var GAP_SEEN_KEY = 'vela:agent:gap-seen';
+    var seen = {};
+    try { seen = JSON.parse(localStorage.getItem(GAP_SEEN_KEY)||'{}'); } catch(e) {}
+    // Prune old entries
+    var cutoff = Date.now() - 3*86400000;
+    Object.keys(seen).forEach(function(k){ if (seen[k] < cutoff) delete seen[k]; });
+
+    var cfg = getClinicConfig ? getClinicConfig() : {};
+    var therapistId = cfg.therapistId || (typeof getTherapists === 'function' ? ((getTherapists()||[])[0]||{}).id : null) || 'me';
+
+    var gaps = [];
+    for (var d = 1; d <= 7; d++) {
+      var dt = new Date(todayStr); dt.setDate(dt.getDate() + d);
+      var ds = dt.getFullYear() + '-' + String(dt.getMonth()+1).padStart(2,'0') + '-' + String(dt.getDate()).padStart(2,'0');
+      var dayNames = ['sun','mon','tue','wed','thu','fri','sat'];
+      var dayKey = dayNames[dt.getDay()];
+      var sched = typeof getTherapistWeekSchedule === 'function' ? getTherapistWeekSchedule(therapistId) : {};
+      var periods = sched[dayKey] || [];
+      if (!periods.length) continue; // Day off
+
+      // Collect all bookings this day sorted by time
+      var dayBks = bks.filter(function(b){ return b.date === ds && b.status !== 'cancelled'; })
+                      .sort(function(a,b){ return (a.time||'00:00') > (b.time||'00:00') ? 1 : -1; });
+
+      // Find gaps within working hours
+      periods.forEach(function(period) {
+        var parse = function(t){ var p=(t||'').split(':'); return parseInt(p[0]||0)*60+parseInt(p[1]||0); };
+        var workStart = parse(period.start);
+        var workEnd = parse(period.end);
+        var lunchS = period.lunchStart ? parse(period.lunchStart) : -1;
+        var lunchE = period.lunchEnd   ? parse(period.lunchEnd)   : -1;
+
+        // Build occupied blocks
+        var occupied = [];
+        dayBks.forEach(function(bk) {
+          var s = parse(bk.time||'00:00');
+          var e = s + (bk.duration||45);
+          occupied.push([s, e]);
+        });
+        if (lunchS >= 0) occupied.push([lunchS, lunchE]);
+        occupied.sort(function(a,b){ return a[0]-b[0]; });
+
+        // Walk from workStart, find free stretches
+        var cursor = workStart;
+        occupied.forEach(function(block) {
+          var freeStart = cursor;
+          var freeEnd = block[0];
+          if (freeEnd > workEnd) freeEnd = workEnd;
+          var freeMins = freeEnd - freeStart;
+          if (freeMins >= GAP_MINS) {
+            var gapId = ds + '_' + freeStart;
+            if (!seen[gapId]) {
+              var timeStr = String(Math.floor(freeStart/60)).padStart(2,'0') + ':' + String(freeStart%60).padStart(2,'0');
+              var endStr  = String(Math.floor(freeEnd/60)).padStart(2,'0') + ':' + String(freeEnd%60).padStart(2,'0');
+              var dateLabel = dt.toLocaleDateString('sv-SE', {weekday:'long', day:'numeric', month:'short'});
+              gaps.push({ id: gapId, date: ds, timeStr: timeStr, endStr: endStr, freeMins: freeMins, dateLabel: dateLabel });
+            }
+          }
+          cursor = block[1] > cursor ? block[1] : cursor;
+        });
+        // Trailing gap after last booking
+        var freeTrail = workEnd - cursor;
+        if (freeTrail >= GAP_MINS) {
+          var gapId2 = ds + '_' + cursor + '_trail';
+          if (!seen[gapId2]) {
+            var timeStr2 = String(Math.floor(cursor/60)).padStart(2,'0') + ':' + String(cursor%60).padStart(2,'0');
+            var endStr2  = String(Math.floor(workEnd/60)).padStart(2,'0') + ':' + String(workEnd%60).padStart(2,'0');
+            var dateLabel2 = dt.toLocaleDateString('sv-SE', {weekday:'long', day:'numeric', month:'short'});
+            gaps.push({ id: gapId2, date: ds, timeStr: timeStr2, endStr: endStr2, freeMins: freeTrail, dateLabel: dateLabel2 });
+          }
+        }
+      });
+    }
+
+    if (!gaps.length) return;
+    // Surface top 3 gaps as one inbox item
+    var topGaps = gaps.slice(0, 3);
+    var gapListStr = topGaps.map(function(g){ return g.dateLabel + ' ' + g.timeStr + '\u2013' + g.endStr + ' (' + g.freeMins + ' min)'; }).join(' \xB7 ');
+    var firstGap = topGaps[0];
+    addInboxItem(
+      'agent_gaps', 'Schema',
+      'info', 'schedule_gap',
+      '\uD83D\uDDD3 ' + gaps.length + ' schemagl\xE4pp ' + (gaps.length === 1 ? 'n\xE4sta vecka' : 'de n\xE4rmaste 7 dagarna'),
+      gapListStr,
+      [
+        { label: 'Fyll fr\xE5n v\xE4ntelistan', fn: 'openWaitlistDialog&&openWaitlistDialog()' },
+        { label: 'Visa kalender', fn: "go('calendar')" }
+      ]
+    );
+    // Mark all surfaced gaps as seen
+    topGaps.forEach(function(g){ seen[g.id] = Date.now(); });
+    try { localStorage.setItem(GAP_SEEN_KEY, JSON.stringify(seen)); } catch(e) {}
+    _agentLogAction('gap_detected', gaps.length + ' schemagl\xE4pp \u2014 ' + gapListStr.slice(0,60), { count: gaps.length });
+  }
+
+  // ── Scan: inaktiva patienter >45 dagar (ej utskrivna) ──────────────────────
+  function _scanInactivePatients(pats, bks, todayStr) {
+    var INACTIVE_DAYS = 45;
+    var INACTIVE_KEY = 'vela:agent:inactive-notified';
+    var notified = {};
+    try { notified = JSON.parse(localStorage.getItem(INACTIVE_KEY)||'{}'); } catch(e) {}
+    var cutoff14 = Date.now() - 14*86400000;
+    Object.keys(notified).forEach(function(k){ if (notified[k] < cutoff14) delete notified[k]; });
+
+    var inactives = [];
+    pats.forEach(function(p) {
+      if (p.status === 'discharged' || p.status === 'inactive') return;
+      if (notified[p.id]) return;
+      var visits = (p.visits||[]).slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; });
+      var lastVisitDate = visits[0] && visits[0].date;
+      if (!lastVisitDate) return;
+      var daysSince = Math.floor((new Date(todayStr) - new Date(lastVisitDate)) / 86400000);
+      if (daysSince < INACTIVE_DAYS) return;
+      // Don't flag if upcoming booking exists
+      var hasUpcoming = bks.some(function(b){ return b.patientId === p.id && b.date >= todayStr && b.status !== 'cancelled'; });
+      if (hasUpcoming) return;
+      inactives.push({ pat: p, daysSince: daysSince, lastVisit: lastVisitDate });
+    });
+
+    if (!inactives.length) return;
+
+    // Surface individually (max 3 to avoid inbox flood)
+    inactives.sort(function(a,b){ return b.daysSince - a.daysSince; });
+    inactives.slice(0, 3).forEach(function(item) {
+      var p = item.pat;
+      var months = Math.floor(item.daysSince / 30);
+      addInboxItem(
+        p.id, p.name,
+        'ai_action', 'patient_inactive',
+        '\uD83D\uDCA4 ' + p.name + ' \u2014 ' + months + ' m\xE5n sedan senaste bes\xF6k',
+        'Senaste bes\xF6k: ' + item.lastVisit + ' (' + item.daysSince + ' dagar) \xB7 Inga kommande bokningar',
+        [
+          { label: 'Boka in', fn: "openBookingDialog&&openBookingDialog(null,null,'" + p.id + "')" },
+          { label: 'Skicka n\xE4rp\xE5minnelse', fn: "_agentNudgePatient&&_agentNudgePatient('" + p.id + "')" }
+        ]
+      );
+      notified[p.id] = Date.now();
+      _agentLogAction('inactive_flagged', p.name + ' \u2014 ' + item.daysSince + ' dagar inaktiv', { patId: p.id, daysSince: item.daysSince });
+    });
+    try { localStorage.setItem(INACTIVE_KEY, JSON.stringify(notified)); } catch(e) {}
   }
 
   // ── AI: Pre-visit brief för dagens bokningar ────────────────────────────────
@@ -21098,7 +21374,12 @@ function _renderPulse() {
   // ── Dagens schema ──────────────────────────────────────────────────────
   if (todayBks.length) {
     h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:14px">';
-    h += '<div style="padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--border2);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Dagens schema</div>';
+    // Gap indicator for this week
+    var gapInbox = getInbox ? getInbox().filter(function(i){ return i.category === 'schedule_gap' && !i.done; }) : [];
+    var gapHint = gapInbox.length ? ' <span style="font-size:10px;color:var(--amber);background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:3px;padding:1px 5px;margin-left:6px">' + gapInbox.length + ' gl\xE4pp</span>' : '';
+    h += '<div style="display:flex;align-items:center;padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Dagens schema</span>' + gapHint;
+    h += '</div>';
     todayBks.forEach(function(bk){
       var bp = pats.find(function(p){ return p.id===bk.patientId; });
       var isDone = bk.status === 'completed';
@@ -21168,6 +21449,42 @@ function _renderPulse() {
     h += e(btn.l) + '</button>';
   });
   h += '</div>';
+
+  // ── Vela Agent idag ──────────────────────────────────────────────────────
+  var agentFeed = typeof _agentGetFeed === 'function' ? _agentGetFeed() : [];
+  var todayFeed = agentFeed.filter(function(f){ return Date.now() - f.ts < 86400000; });
+  var cancelPend = pending.filter(function(ap){ return ap.type === 'cancel_request'; });
+  var schedPend  = pending.filter(function(ap){ return ap.type === 'reschedule_request'; });
+  if (todayFeed.length || cancelPend.length || schedPend.length) {
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:14px">';
+    h += '<div style="display:flex;align-items:center;gap:8px;padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+    h += '<div style="width:7px;height:7px;border-radius:50%;background:var(--orange)"></div>';
+    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Vela Agent idag</span>';
+    h += '<span style="font-size:11px;color:var(--text2);margin-left:auto">' + todayFeed.length + ' \xE5tg\xE4rder</span>';
+    h += '</div>';
+    if (todayFeed.length) {
+      var feedIcons = { cancel_detected:'\uD83D\uDEAB', booking_cancelled:'\u2705', reschedule_detected:'\uD83D\uDCC5', reschedule_sent:'\uD83D\uDCE4', cancel_handled:'\u2705', cancel_confirmed:'\u2705' };
+      todayFeed.slice(0,5).forEach(function(f) {
+        var icon2 = feedIcons[f.type] || '\u25C6';
+        var tAgo = Math.round((Date.now()-f.ts)/60000);
+        var tLabel = tAgo < 1 ? 'nu' : tAgo < 60 ? tAgo + ' min' : Math.round(tAgo/60) + 'h';
+        h += '<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--border2)">';
+        h += '<span style="font-size:13px">' + icon2 + '</span>';
+        h += '<span style="font-size:12px;color:var(--ink);flex:1">' + e(f.summary) + '</span>';
+        h += '<span style="font-size:11px;color:var(--text2);flex-shrink:0">' + tLabel + '</span>';
+        h += '</div>';
+      });
+    } else {
+      h += '<div style="padding:10px 16px;font-size:12px;color:var(--text2)">Inga agent\xE5tg\xE4rder \xE4nnu idag.</div>';
+    }
+    if (cancelPend.length || schedPend.length) {
+      h += '<div style="padding:8px 16px;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid var(--border2)">';
+      if (cancelPend.length) h += '<button onclick="rSignatureQueue()" style="font-size:12px;padding:4px 10px;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:5px;color:var(--red);cursor:pointer;font-family:var(--font)">' + cancelPend.length + ' avbokning' + (cancelPend.length>1?'ar':'') + ' v\xE4ntar</button>';
+      if (schedPend.length) h += '<button onclick="rSignatureQueue()" style="font-size:12px;padding:4px 10px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:5px;color:var(--amber);cursor:pointer;font-family:var(--font)">' + schedPend.length + ' tidsbyte' + (schedPend.length>1?'n':'') + ' v\xE4ntar</button>';
+      h += '</div>';
+    }
+    h += '</div>';
+  }
 
   h += '</div></div>';
   el.innerHTML = h;
@@ -21708,6 +22025,41 @@ async function _sendIntakeReminder() {
 }
 
 // ── Lång väntelista — informera om förväntad väntetid ────────────────────────
+async function _agentNudgePatient(patId) {
+  var p = (S.patients||[]).find(function(x){ return x.id === patId; });
+  if (!p) { showAutoSaveToast('Patient ej hittad'); return; }
+  var cfg = getClinicConfig ? getClinicConfig() : {};
+  var clinName = cfg.signature || cfg.name || 'Kansei';
+  var firstName = p.name.split(' ')[0];
+  var lastVisit = (p.visits||[]).slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; })[0];
+  var lastDate = lastVisit ? lastVisit.date : '';
+  var diagnosis = p.diagnosis || lastVisit && lastVisit.soap && lastVisit.soap.A || '';
+
+  var msg = 'Hej ' + firstName + '! Det \xE4r ett tag sedan vi ses.' + (diagnosis ? ' Hoppas det g\xE5r bra med ' + diagnosis.toLowerCase().split('.')[0] + '.' : '') + ' Dags att boka en uppf\xF6ljning? Tveka inte att h\xF6ra av dig. Med v\xE4nliga h\xE4lsningar, ' + clinName;
+
+  var key = typeof getKey === 'function' ? getKey() : null;
+  if (key) {
+    // Try AI-personalized version
+    try {
+      var prompt = 'Du \xE4r ' + clinName + ', naprapat. Skriv ett kort, varmt n\xE4rp\xE5minnelse-SMS (max 2 meningar) p\xE5 svenska till patienten ' + p.name + '. Diagnos: ' + (diagnosis||'ok\xE4nd') + '. Senaste bes\xF6k: ' + (lastDate||'ok\xE4nt') + '. Avsluta INTE med "Med v\xE4nliga h\xE4lsningar" \u2014 det l\xE4ggs till. Skriv BARA SMS-texten utan rubrik.';
+      var res = await fetch('https://api.anthropic.com/v1/messages', { method:'POST', headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'}, body: JSON.stringify({ model: MODEL_HAIKU, max_tokens: 120, messages: [{role:'user',content:prompt}] }) });
+      var data = await res.json();
+      var aiText = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
+      if (aiText) msg = aiText + ' Med v\xE4nliga h\xE4lsningar, ' + clinName;
+    } catch(ex) {}
+  }
+
+  createAIApproval({
+    type: 'patient_message', patId: p.id, patName: p.name,
+    title: 'N\xE4rp\xE5minnelse \u2014 ' + p.name,
+    aiContent: msg,
+    meta: { channel: p.phone ? 'sms' : 'email', patEmail: p.email, nudge: true }
+  });
+  addInboxItem(p.id, p.name, 'info', 'nudge_queued', '\uD83D\uDCE4 N\xE4rp\xE5minnelse klar \u2014 ' + p.name, 'Granska i signaturk\xF6n innan utskick', [{ label: 'Granska', fn: 'rSignatureQueue&&rSignatureQueue()' }]);
+  _agentLogAction('nudge_queued', p.name + ' \u2014 n\xE4rp\xE5minnelse f\xF6redd', { patId: p.id });
+  showAutoSaveToast('N\xE4rp\xE5minnelse till ' + firstName + ' \u2014 granska i signaturk\xF6n');
+}
+
 function _checkWaitlistAndNotify() {
   var wl = getWaitlist ? getWaitlist() : [];
   if (wl.length < 3) return;
@@ -23808,19 +24160,85 @@ var _mailTriage = (function() {
     var pat = _matchPatient(thread.from);
     var intent = _gmailDetectIntent(thread.subject, thread.snippet);
     if (intent.id === 'system') { _markTriaged(thread.id); return; }
+
+    // Pre-fetch full body for action intents
+    var body = null;
+    if (intent.id === 'cancel' || intent.id === 'scheduling') {
+      try {
+        var ft = await _gmailLoadThread(thread.id);
+        var lm = ft && ft.messages && ft.messages[ft.messages.length-1];
+        body = lm ? _gmailGetBody(lm.payload) : thread.snippet;
+      } catch(ex) { body = thread.snippet; }
+    }
+
+    // ── AVBOKNING ─────────────────────────────────────────────────────────
+    if (intent.id === 'cancel' && pat) {
+      var upcomingBk = _agentFindActiveBookingForPatient(pat.id);
+      var bkLabel = upcomingBk ? upcomingBk.date + ' kl ' + (upcomingBk.time||'?') : 'okänd tid';
+      var clinName = cfg.signature || cfg.name || 'Kansei';
+      var cancelReply = 'Hej ' + pat.name.split(' ')[0] + '!\n\nTack för att du meddelar oss. Din tid ' + bkLabel + ' är nu avbokad.\n\nDu är välkommen att boka en ny tid när du är redo.\n\nMed vänliga hälsningar\n' + clinName;
+      createAIApproval({ type: 'cancel_request', patId: pat.id, patName: pat.name,
+        title: 'Avbokning — ' + pat.name, aiContent: cancelReply,
+        meta: { channel: 'email', threadId: thread.id, subject: thread.subject, from: thread.from,
+                patEmail: pat.email, bookingId: upcomingBk ? upcomingBk.id : null,
+                bookingDate: upcomingBk ? upcomingBk.date : null,
+                bookingTime: upcomingBk ? (upcomingBk.time||'') : null, bookingLabel: bkLabel } });
+      addInboxItem(pat.id, pat.name, 'warning', 'cancel_request',
+        '\uD83D\uDEAB Avbokning — ' + pat.name,
+        (upcomingBk ? 'Vill avboka ' + bkLabel : 'Ingen kommande tid hittad') + ' · ' + thread.subject.slice(0,40),
+        [{ label: 'Hantera avbokning', fn: 'rSignatureQueue&&rSignatureQueue()' }]);
+      _agentLogAction('cancel_detected', pat.name + ' vill avboka ' + bkLabel, { patId: pat.id, bookingId: upcomingBk ? upcomingBk.id : null });
+      _markTriaged(thread.id); return;
+    }
+
+    // ── TIDSBYTE ──────────────────────────────────────────────────────────
+    if (intent.id === 'scheduling') {
+      var hint = _agentExtractRescheduleHint(thread.subject, thread.snippet, body||'');
+      var therapistId = cfg.therapistId || (typeof getTherapists === 'function' ? ((getTherapists()||[])[0]||{}).id : null) || 'me';
+      var duration = (pat && pat.lastDuration) || cfg.defaultDuration || 45;
+      var freeSlots = _agentFindFreeSlots(therapistId, 10, duration, 3, hint.day);
+      var clinName2 = cfg.signature || cfg.name || 'Kansei';
+      var patFirstName = pat ? pat.name.split(' ')[0] : '';
+      var slotsText = freeSlots.length
+        ? freeSlots.map(function(sl,i){ return (i+1) + '. ' + sl.dateLabel + ' kl ' + sl.time; }).join('\n')
+        : 'Kontakta oss direkt för att se tillgängliga tider.';
+      var schedReply = 'Hej ' + patFirstName + '!\n\nTack för din förfrågan. Jag har följande lediga tider:\n\n' + slotsText + '\n\nMeddela vilken tid som passar så bokar jag in det.\n\nMed vänliga hälsningar\n' + clinName2;
+      var existingBkId = pat ? ((_agentFindActiveBookingForPatient(pat.id)||{}).id || null) : null;
+      createAIApproval({ type: 'reschedule_request',
+        patId: pat ? pat.id : 'unknown_' + thread.id,
+        patName: pat ? pat.name : _gmailFromName(thread.from) || thread.from,
+        title: 'Tidsbyte — ' + (pat ? pat.name : thread.subject.slice(0,40)),
+        aiContent: schedReply,
+        meta: { channel: 'email', threadId: thread.id, subject: thread.subject, from: thread.from,
+                patEmail: pat ? pat.email : _gmailFromEmail(thread.from),
+                extractedHint: hint, suggestedSlots: freeSlots, existingBookingId: existingBkId } });
+      addInboxItem(
+        pat ? pat.id : 'mail_' + thread.id,
+        pat ? pat.name : _gmailFromName(thread.from) || 'Okänd',
+        'info', 'reschedule_request',
+        '\uD83D\uDCC5 Tidsbyte — ' + (pat ? pat.name : thread.subject.slice(0,40)),
+        (freeSlots.length ? freeSlots.length + ' lediga tider hittade' : 'Inga lediga tider — justera manuellt') + (hint.day ? ' · ' + hint.day : ''),
+        [{ label: 'Granska och skicka', fn: 'rSignatureQueue&&rSignatureQueue()' }]);
+      _agentLogAction('reschedule_detected', (pat ? pat.name : 'Okänd') + ' — ' + (hint.day||hint.raw||'tidsbyte') + ' · ' + freeSlots.length + ' slots', { patId: pat ? pat.id : null, slots: freeSlots.length });
+      _markTriaged(thread.id); return;
+    }
+
+    // ── STANDARD DRAFT (klinisk / admin / övrigt) ─────────────────────────
     var draftResult = _quickDraft(thread.subject, thread.snippet, pat, cfg);
     if (!draftResult && key) {
       try {
-        var fullThread = await _gmailLoadThread(thread.id);
-        var lastMsg = fullThread && fullThread.messages && fullThread.messages[fullThread.messages.length-1];
-        var body = lastMsg ? _gmailGetBody(lastMsg.payload) : thread.snippet;
+        if (!body) {
+          var ft2 = await _gmailLoadThread(thread.id);
+          var lm2 = ft2 && ft2.messages && ft2.messages[ft2.messages.length-1];
+          body = lm2 ? _gmailGetBody(lm2.payload) : thread.snippet;
+        }
         var aiText = await _aiDraft(thread.subject, body, pat, cfg, key);
         if (aiText) draftResult = { draft: aiText, label: intent.label || 'Patientmail', quick: false };
       } catch(ex) {}
     }
     if (!draftResult) { _markTriaged(thread.id); return; }
     createAIApproval({ type: 'patient_message', patId: pat ? pat.id : 'unknown_' + thread.id, patName: pat ? pat.name : _gmailFromName(thread.from) || thread.from, title: 'Svar: ' + thread.subject, aiContent: draftResult.draft, meta: { channel: 'email', threadId: thread.id, subject: thread.subject, from: thread.from, date: thread.date, snippet: thread.snippet, intent: intent.id, quick: draftResult.quick, patEmail: pat ? pat.email : _gmailFromEmail(thread.from) } });
-    addInboxItem(pat ? pat.id : 'mail_' + thread.id, pat ? pat.name : _gmailFromName(thread.from) || 'Okänd', 'info', 'patient_reply', '📬 ' + (draftResult.quick ? 'Snabbsvar' : 'AI-svar') + ' klart — ' + thread.subject.slice(0,50), (draftResult.quick ? '⚡ Mall: ' + draftResult.label : '🤖 AI-draft klar') + ' · Granska i signaturkön', [{ label: 'Granska och skicka', fn: 'rSignatureQueue&&rSignatureQueue()' }]);
+    addInboxItem(pat ? pat.id : 'mail_' + thread.id, pat ? pat.name : _gmailFromName(thread.from) || 'Okänd', 'info', 'patient_reply', '\uD83D\uDCEC ' + (draftResult.quick ? 'Snabbsvar' : 'AI-svar') + ' klart — ' + thread.subject.slice(0,50), (draftResult.quick ? '\u26A1 Mall: ' + draftResult.label : '\uD83E\uDD16 AI-draft klar') + ' \xB7 Granska i signaturkön', [{ label: 'Granska och skicka', fn: 'rSignatureQueue&&rSignatureQueue()' }]);
     _markTriaged(thread.id);
   }
   async function run(force) {
@@ -23857,6 +24275,106 @@ function _triageMarkHandled(approvalId, threadId) {
   if (threadId) { try { var s = JSON.parse(localStorage.getItem('vela:mail-triaged') || '{}'); s[threadId] = Date.now(); localStorage.setItem('vela:mail-triaged', JSON.stringify(s)); } catch(e) {} }
   if (approvalId) rejectAIContent && rejectAIContent(approvalId);
   showAutoSaveToast('Markerat som hanterat');
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VELA AGENT HELPERS — Intent-to-action infrastructure
+// ══════════════════════════════════════════════════════════════════════════════
+var AGENT_FEED_KEY = 'vela:agent-feed';
+
+function _agentLogAction(type, summary, meta) {
+  try {
+    var feed = JSON.parse(localStorage.getItem(AGENT_FEED_KEY) || '[]');
+    feed.unshift({ id: 'af_' + Date.now(), type: type, summary: summary, meta: meta || {}, ts: Date.now() });
+    if (feed.length > 100) feed.splice(100);
+    localStorage.setItem(AGENT_FEED_KEY, JSON.stringify(feed));
+  } catch(ex) {}
+}
+
+function _agentGetFeed() {
+  try { return JSON.parse(localStorage.getItem(AGENT_FEED_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function _agentFindFreeSlots(therapistId, daysAhead, durationMins, count, preferredDayHint) {
+  var slots = [];
+  var today = new Date(); today.setHours(0,0,0,0);
+  var dur = durationMins || 45;
+  var maxDays = daysAhead || 14;
+  var needed = count || 3;
+  var dayMap = { måndag:1,tisdag:2,onsdag:3,torsdag:4,fredag:5,lördag:6,söndag:0,
+                 monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6,sunday:0,
+                 mån:1,tis:2,ons:3,tor:4,fre:5,lör:6,sön:0 };
+  var preferredDayIdx = -1;
+  if (preferredDayHint) {
+    var hint = preferredDayHint.toLowerCase();
+    Object.keys(dayMap).forEach(function(k) { if (hint.indexOf(k) >= 0) preferredDayIdx = dayMap[k]; });
+  }
+  // Build date list, preferred-day first
+  var datesToCheck = [];
+  for (var d = 1; d <= maxDays; d++) {
+    var dt = new Date(today); dt.setDate(dt.getDate() + d);
+    if (preferredDayIdx >= 0 && dt.getDay() === preferredDayIdx) datesToCheck.unshift(dt);
+    else datesToCheck.push(dt);
+  }
+  for (var i = 0; i < datesToCheck.length && slots.length < needed; i++) {
+    var dt2 = datesToCheck[i];
+    var ds = dt2.getFullYear() + '-' + String(dt2.getMonth()+1).padStart(2,'0') + '-' + String(dt2.getDate()).padStart(2,'0');
+    var daySlots = typeof getAvailableSlots === 'function' ? getAvailableSlots(therapistId, ds, dur) : [];
+    var free = daySlots.filter(function(sl){ return sl.available; });
+    var morn = free.find(function(sl){ return sl.time >= '08:00' && sl.time <= '11:45'; });
+    var aftn = free.find(function(sl){ return sl.time >= '13:00' && sl.time <= '16:30'; });
+    var dateLabel = dt2.toLocaleDateString('sv-SE', {weekday:'long', day:'numeric', month:'short'});
+    if (morn && slots.length < needed) slots.push({ date: ds, time: morn.time, dateLabel: dateLabel });
+    if (aftn && slots.length < needed) slots.push({ date: ds, time: aftn.time, dateLabel: dateLabel });
+  }
+  return slots;
+}
+
+function _agentExtractRescheduleHint(subject, snippet, body) {
+  var text = ((subject||'') + ' ' + (snippet||'') + ' ' + (body||'')).toLowerCase();
+  var days = ['måndag','tisdag','onsdag','torsdag','fredag','lördag','söndag',
+              'monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+  var foundDay = days.find(function(d){ return text.indexOf(d) >= 0; }) || null;
+  var timeMatch = text.match(/kl\.?\s*(\d{1,2})[.:](\d{2})/) || text.match(/\b(\d{1,2})[.:](\d{2})\b/);
+  var foundTime = timeMatch ? String(parseInt(timeMatch[1])).padStart(2,'0') + ':' + timeMatch[2] : null;
+  var partOfDay = null;
+  if (/förmiddag|morgon|\bfm\b/.test(text)) partOfDay = 'förmiddag';
+  else if (/eftermiddag|\bem\b/.test(text)) partOfDay = 'eftermiddag';
+  return { day: foundDay, time: foundTime, partOfDay: partOfDay, raw: foundDay || foundTime || partOfDay || '' };
+}
+
+function _agentFindActiveBookingForPatient(patId) {
+  var bks = typeof getBookings === 'function' ? getBookings() : [];
+  var today = new Date().toISOString().slice(0,10);
+  return bks.filter(function(b){ return b.patientId === patId && b.status !== 'cancelled' && b.date >= today; })
+            .sort(function(a,b){ return (a.date+(a.time||'')) > (b.date+(b.time||'')) ? 1 : -1; })[0] || null;
+}
+
+// Send a reply via Gmail thread ID + explicit recipient (works outside thread context)
+async function _agentSendGmailReply(threadId, toEmail, subject, bodyText) {
+  var cfg = getClinicConfig ? getClinicConfig() : {};
+  var subj = subject && !subject.startsWith('Re:') ? 'Re: ' + subject : (subject || 'Svar');
+  if (_gmailIsAuthed && _gmailIsAuthed() && threadId) {
+    try {
+      var msgRaw = ['To: ' + toEmail, 'Subject: ' + subj,
+                    'Content-Type: text/plain; charset=utf-8',
+                    '', bodyText, '', '-- ', cfg.name||'Kansei'].join('\r\n');
+      var encoded = btoa(unescape(encodeURIComponent(msgRaw))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+      var res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + _gmailToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ raw: encoded, threadId: threadId })
+      });
+      if (res.ok) { showAutoSaveToast('Svar skickat via Gmail ✓'); return true; }
+    } catch(ex) { console.warn('_agentSendGmailReply Gmail failed:', ex); }
+  }
+  // Fallback: Resend
+  if (toEmail && typeof _velaSendMail === 'function') {
+    var r = await _velaSendMail(toEmail, subj, bodyText);
+    if (r && r.ok) { showAutoSaveToast('Svar skickat ✓'); return true; }
+  }
+  showAutoSaveToast('Kunde ej skicka svar — kontrollera Gmail');
+  return false;
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

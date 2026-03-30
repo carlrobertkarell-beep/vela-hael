@@ -8362,7 +8362,7 @@ function _ambientSignalAction(signalId) {
 function _ambientStartListening() {
   if (_ambientState.listening) return;
   if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-    alert('Röstinspelning kräver Chrome på desktop eller Safari på iPhone.');
+    showAutoSaveToast('Röstinspelning kräver Chrome eller Safari');
     return;
   }
 
@@ -8409,7 +8409,9 @@ function _ambientStartListening() {
     if (event.error === 'no-speech') return;
     console.error('Speech recognition error:', event.error);
     if (event.error === 'not-allowed') {
-      alert('Mikrofonåtkomst nekad. Tillåt mikrofon i webbläsaren.');
+      showAutoSaveToast('Mikrofon nekad — klicka på hänglåset i adressfältet och tillåt mikrofon');
+      _ambientState.listening = false;
+      _updateAmbientStatusBar();
     }
   };
 
@@ -8427,7 +8429,7 @@ function _ambientStartListening() {
   try {
     rec.start();
   } catch(e) {
-    alert('Kunde inte starta mikrofon: ' + e.message);
+    showAutoSaveToast('Kunde inte starta mikrofon — ' + e.message);
   }
 }
 
@@ -8606,7 +8608,7 @@ function _renderAmbientConsent(pat) {
     + '<strong style="color:#e6edf3">Patienten behöver ge sitt samtycke</strong> till att besöket bearbetas av AI.'
     + '</div>'
     + '<div style="background:rgba(224,118,40,.04);border:1px solid rgba(224,118,40,.07);border-radius:6px;padding:14px 16px;margin-bottom:20px;font-size:14px;color:#8b949e;line-height:1.7">'
-    + '📋 Allt bearbetas av Anthropics Claude AI · Ingen data lagras på externa servrar · Klinikern granskar och godkänner all dokumentation'
+    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-right:6px"><polyline points="20 6 9 17 4 12"/></svg> Allt bearbetas av Anthropics Claude AI · Ingen data lagras på externa servrar · Klinikern granskar och godkänner all dokumentation'
     + '</div>'
     + '<button onclick="_ambientGrantConsent()" style="width:100%;padding:14px;background:#238636;color:white;border:none;border-radius:13px;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:10px">Patienten har samtyckt — Starta session →</button>'
     + '<button onclick="closeAmbientSession()" style="width:100%;padding:11px;background:none;border:1px solid #30363d;border-radius:13px;font-size:14px;color:#8b949e;cursor:pointer;font-family:var(--font)">Avbryt</button>'
@@ -13164,7 +13166,7 @@ function _gmailAuth(onSuccess) {
 
   var client = google.accounts.oauth2.initTokenClient({
     client_id: clientId,
-    scope: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.compose',
+    scope: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.compose',
     callback: function(resp) {
       if (resp.error) { showAutoSaveToast('Gmail: ' + resp.error); return; }
       _gmailSaveToken(resp.access_token, resp.expires_in);
@@ -14240,6 +14242,8 @@ async function _gmailLoadPatHistory(pat) {
 }
 
 
+function _gmailPollAll() { if (_gmailIsAuthed && _gmailIsAuthed()) _gmailLoadFolder(); }
+
 async function _gmailLoadFolder() {
   _gmailState.loading = true;
   _gmailRenderListPanel();
@@ -14588,8 +14592,10 @@ async function _gmailSendReply(threadId, body) {
       var toAddr   = (fromHdrs.match(/<([^>]+)>/) || [])[1] || fromHdrs;
       var subj     = (meta.subject && !meta.subject.startsWith('Re:')) ? 'Re: ' + meta.subject : (meta.subject||'Svar');
       var msgRaw   = ['To: ' + toAddr, 'Subject: ' + subj,
+                      'MIME-Version: 1.0',
                       'Content-Type: text/plain; charset=utf-8',
-                      'In-Reply-To: ' + (meta.msgId||''), '',
+                      'In-Reply-To: ' + (meta.msgId||''),
+                      'References: ' + (meta.msgId||''), '',
                       body, '', '-- ', cfg.name||'Kansei'].join('\r\n');
       var encoded  = btoa(unescape(encodeURIComponent(msgRaw))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
       var res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
@@ -14825,21 +14831,28 @@ function _gmailOpenCompose(prefillTo, prefillSubject, prefillBody) {
     var btn = this;
     btn.disabled = true; btn.textContent = 'Skickar...';
     try {
-      if (typeof _velaSendMail === 'function') {
-        await _velaSendMail(to, subj, body);
-      } else if (typeof _gmailFetch === 'function') {
+      var _sent = false;
+      // Primary: Gmail API (keeps sent in Gmail, correct From address)
+      if (typeof _gmailIsAuthed === 'function' && _gmailIsAuthed()) {
         var raw = _gmailBuildRaw(to, subj, body);
-        await _gmailFetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+        var gmRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + _gmailToken, 'Content-Type': 'application/json' },
           body: JSON.stringify({ raw: raw })
         });
-      } else {
-        throw new Error('no_send');
+        if (gmRes.ok) { _sent = true; }
       }
-      if (typeof showAutoSaveToast === 'function') showAutoSaveToast('\u2713 Mail skickat till ' + to);
+      // Fallback: Resend (transactional — no Gmail session)
+      if (!_sent && typeof _velaSendMail === 'function') {
+        var res2 = await _velaSendMail(to, subj, body);
+        if (res2 && res2.ok) _sent = true;
+      }
+      if (!_sent) throw new Error('no_send');
+      showAutoSaveToast('✓ Mail skickat till ' + to);
       el.remove();
+      setTimeout(function() { if (typeof _gmailPollAll === 'function') _gmailPollAll(); }, 1500);
     } catch(err) {
-      if (typeof showAutoSaveToast === 'function') showAutoSaveToast('Skickandet misslyckades — kontrollera Gmail-koppling');
+      showAutoSaveToast('Skickandet misslyckades — kontrollera Gmail-koppling');
       btn.disabled = false; btn.textContent = 'Skicka';
     }
   });
@@ -20258,7 +20271,12 @@ function _toolsUS() {
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
     <span style="font-size:14px;font-weight:600;color:var(--ink)">${e(p.name)}</span>
     <span style="font-size:12px;color:var(--text)">${e(p.birthdate||p.birthYear||'')}</span>
-  </div>` : '';
+    <button onclick="go('list')" style="margin-left:auto;background:none;border:none;color:var(--teal);font-size:12px;cursor:pointer;font-family:var(--font)">Byt patient</button>
+  </div>` : `<div style="margin-bottom:14px;padding:9px 12px;background:rgba(210,153,34,.06);border:1px solid rgba(210,153,34,.2);border-radius:6px;display:flex;align-items:center;gap:8px">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d29922" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span style="font-size:14px;color:#d29922;flex:1">Ingen patient laddad — utlåtandet kopplas inte till journal</span>
+    <button onclick="go('list')" style="padding:3px 10px;background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.25);border-radius:5px;font-size:12px;font-weight:600;color:#d29922;cursor:pointer;font-family:var(--font)">Välj patient</button>
+  </div>`;
 
   return `<div style="flex:1;display:flex;overflow:hidden">
     <div style="flex:1;overflow-y:auto;padding:24px 28px;min-width:0">
@@ -20504,8 +20522,7 @@ async function _toolsUSGenerateMail() {
     const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:MODEL_HAIKU,max_tokens:600,system:'Svara ALLTID med giltig JSON.',messages:[{role:'user',content:prompt}]})});
     const data = await res.json();
     const mail = JSON.parse((data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim());
-    if (typeof openComposeModal==='function') openComposeModal(p?.email||'', mail.subject||'Ultraljudsresultat', mail.body||'');
-    else { navigator.clipboard.writeText((mail.subject||'')+'\n\n'+(mail.body||'')); showAutoSaveToast('Mail kopierat till urklipp'); }
+    _gmailOpenCompose(p?.email||'', mail.subject||'Ultraljudsresultat', mail.body||'');
   } catch(err) { showAutoSaveToast('Kunde inte generera mail'); }
 }
 
@@ -22191,7 +22208,13 @@ async function _velaSendComm(p, channel, msg) {
     }
   } else if (channel === 'mail' && p.email) {
     var cfg = getClinicConfig ? getClinicConfig() : {};
-    await _velaSendMail(p.email, cfg.name || 'Meddelande från kliniken', msg, cfg.name || '');
+    // If caller passes threadId, reply in existing Gmail thread
+    var tid = p._threadId || null;
+    if (tid && typeof _gmailIsAuthed === 'function' && _gmailIsAuthed()) {
+      await _gmailSendReply(tid, msg);
+    } else {
+      await _velaSendMail(p.email, cfg.name || 'Meddelande från kliniken', msg, cfg.name || '');
+    }
     addInboxItem(p.id, p.name, 'info', 'message_sent', 'Auto-mail skickat — ' + p.name, msg.slice(0,80), []);
   }
 }
@@ -22518,7 +22541,7 @@ function _renderPulse() {
       _bs.forEach(function(sig) {
         h += '<div style="display:flex;align-items:flex-start;gap:7px">';
         h += '<span style="width:7px;height:7px;border-radius:50%;background:' + sig.col + ';flex-shrink:0;margin-top:4px"></span>';
-        h += '<span style="font-size:12px;color:var(--ink);line-height:1.5;flex:1">' + e(sig.text) + '</span>';
+        h += '<span style="font-size:14px;color:var(--ink);line-height:1.5;flex:1">' + e(sig.text) + '</span>';
         if (sig.badge) h += '<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:' + sig.col + '22;color:' + sig.col + ';font-weight:700;flex-shrink:0;margin-top:2px">' + e(sig.badge) + '</span>';
         h += '</div>';
       });
@@ -22537,9 +22560,10 @@ function _renderPulse() {
     h += '</div>';
     // Right side buttons
     h += '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">';
+    if (nextPat) h += '<button onclick="_startSmartVisit(\'' + nextPat.id + '\',\'' + (nextBk.id||'') + '\')" style="padding:6px 14px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">Starta besök</button>';
     if (nextPat) h += '<button onclick="openPat(\'' + nextPat.id + '\')" style="padding:6px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Patientkort</button>';
     if (briefValid) h += '<button onclick="VelaAgent.showBrief(\'' + nextBk.id + '\')" style="padding:6px 14px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.2);border-radius:6px;font-size:12px;font-weight:600;color:var(--orange);cursor:pointer;font-family:var(--font)">Full brief</button>';
-    if (!briefValid && nextPat) h += '<button onclick="VelaAgent.runNow&&VelaAgent.runNow();showAutoSaveToast(\'Genererar brief…\')" style="padding:6px 14px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Generera brief</button>';
+    if (!briefValid && nextPat) h += '<button onclick="VelaAgent.runNow&&VelaAgent.runNow();showAutoSaveToast(\'Genererar brief\u2026\')" style="padding:6px 14px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Generera brief</button>';
     h += '</div>';
     h += '</div></div>';
   }
@@ -23832,9 +23856,9 @@ function rPatJournal() {
           <div class="pjdoc-patient-name">${e(p.name||'Patient')}</div>
           <div class="pjdoc-diag">${e(p.diagnosis||'')}</div>
           <div class="pjdoc-meta-row">
-            <div class="pjdoc-mi"><div class="lbl">Födelsedatum</div><div class="val">${p.birthdate||p.birthYear||'--'}</div></div>
+            <div class="pjdoc-mi"><div class="lbl">Personnummer</div><div class="val">${e(p.birthdate||p.birthYear||'--')}</div></div>
             <div class="pjdoc-mi"><div class="lbl">Ålder</div><div class="val">${age} år</div></div>
-            <div class="pjdoc-mi"><div class="lbl">Födelsedatum</div><div class="val">${e(p.birthdate||'--')}</div></div>
+            <div class="pjdoc-mi"><div class="lbl">Telefon</div><div class="val">${e(p.phone||'--')}</div></div>
             <div class="pjdoc-mi"><div class="lbl">Antal besök</div><div class="val">${(p.visits||[]).length}</div></div>
             <div class="pjdoc-mi"><div class="lbl">Fas</div><div class="val">${PHASES[(p.phase||1)-1].name}</div></div>
             <div class="pjdoc-mi"><div class="lbl">Utfärdad</div><div class="val">${today}</div></div>
@@ -31876,6 +31900,39 @@ async function _gmailPollActionable() {
 }
 
 // ── Send slot suggestions respecting patient's day preference ─────────────────
+async function _aiAutoReplyGeneral(pat, thread) {
+  var key = typeof _velaGetApiKey === 'function' ? _velaGetApiKey('anthropic') : null;
+  if (!key || !pat || !thread) return;
+  var cfg = typeof getClinicConfig === 'function' ? getClinicConfig() : {};
+  var ctx = typeof getClinicMemoryContext === 'function' ? getClinicMemoryContext() : '';
+  var prompt = 'Du är en professionell och varm assistent för ' + (cfg.name||'kliniken') + '. '
+    + 'Skriv ett kort, hjälpsamt svar på svenska till ' + pat.name + ' angående deras fråga. '
+    + 'Fråga/ämne: ' + (thread.subject||'') + '. '
+    + (thread.snippet ? 'Kortfattat innehåll: ' + thread.snippet + '. ' : '')
+    + 'Max 80 ord. Signera med ' + (cfg.signature||cfg.name||'Kliniken') + '. Svara BARA med mailtext.';
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 200,
+        system: (ctx || 'Du är klinikassistent.') + ' Svara på svenska.',
+        messages: [{ role: 'user', content: prompt }] })
+    });
+    var data = await res.json();
+    var draft = (data.content && data.content[0] && data.content[0].text) || '';
+    if (!draft) return;
+    // Queue to signature queue instead of auto-sending clinical replies
+    if (typeof createAIApproval === 'function') {
+      createAIApproval({ type: 'mail_reply', patId: pat.id, patName: pat.name,
+        title: 'Mailsvar — ' + pat.name, aiContent: draft,
+        meta: { threadId: thread.id, subject: thread.subject } });
+      if (typeof addInboxItem === 'function') addInboxItem(pat.id, pat.name, 'ai_action', 'general_question',
+        'AI-utkast klart — ' + pat.name, draft.slice(0,80),
+        [{ label: 'Signera', fn: 'rSignatureQueue&&rSignatureQueue()' }]);
+    }
+  } catch(e) { console.warn('_aiAutoReplyGeneral error', e); }
+}
+
 async function _aiSendSlotSuggestions(pat, thread, targetBookingId, pref) {
   var policy = _getRebookPolicy();
   var bks = typeof getBookings==='function' ? getBookings() : [];
@@ -31894,7 +31951,7 @@ async function _aiSendSlotSuggestions(pat, thread, targetBookingId, pref) {
 
   if (!offered.length) {
     var noSlotsMsg = 'Hej '+pat.name.split(' ')[0]+'!\n\nTyvärr ser vi inga lediga tider '+(pref&&pref.hasPreference?'den dagen':'de närmaste veckorna')+'.\nVill du prova ett annat datum, eller kontakta oss via telefon?'+sig;
-    await _velaSendMail(pat.email, 'Re: '+(thread.subject||'Din bokning'), noSlotsMsg);
+    await _gmailSendReply(thread.id, noSlotsMsg);
     _mailConvState[thread.id] = { phase:'no_slots_found', ts:Date.now() };
     _saveMailConvState();
     return;
@@ -31924,7 +31981,7 @@ async function _aiSendSlotSuggestions(pat, thread, targetBookingId, pref) {
     mailBody = 'Hej '+pat.name.split(' ')[0]+'!\n\nHär är lediga tider:\n\n'+slotList2+(rebookUrl?'\n\nVälj din tid här: '+rebookUrl:'')+sig;
   }
 
-  var result = await _velaSendMail(pat.email, 'Re: '+(gmailMeta.subject||'Din bokning'), mailBody);
+  var result = await _gmailSendReply(threadId, mailBody);
   if (result && result.ok) {
     // Save state — waiting for patient to pick a slot
     _mailConvState[threadId] = { phase:'offered_slots', offered:offered, targetBookingId:targetBk&&targetBk.id, ts:Date.now() };
@@ -42815,7 +42872,10 @@ function rHael() {
       } else {
         h += '<div style="font-size:14px;color:#8b949e">—</div>';
       }
-      h += '<button onclick="event.stopPropagation();_openPublicPlanFromAdmin(\''+plan.patId+'\',\''+plan.visitId+'\')" style="padding:5px 10px;background:none;border:1px solid #30363d;border-radius:8px;font-size:14px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Öppna plan</button>';
+      h += '<div style="display:flex;flex-direction:column;gap:4px">';
+      h += '<button onclick="event.stopPropagation();_openPublicPlanFromAdmin(\''+plan.patId+'\',\''+plan.visitId+'\')" style="padding:4px 10px;background:none;border:1px solid #30363d;border-radius:6px;font-size:12px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">\u00d6ppna plan</button>';
+      if (plan.status==='inaktiv') h += '<button onclick="event.stopPropagation();_haelNudgePatient(\''+plan.patId+'\',\''+plan.visitId+'\')" style="padding:4px 10px;background:none;border:1px solid rgba(220,85,85,.3);border-radius:6px;font-size:12px;font-weight:600;color:#f85149;cursor:pointer;font-family:var(--font)">P\u00e5minn</button>';
+      h += '</div>';
       h += '</div></div>';
     });
     h += '</div>';
@@ -42996,6 +43056,38 @@ async function _generateHaelInsight() {
 
 
 function _hOpenPat(pid){if(pid){openPat(pid);}}
+
+async function _haelNudgePatient(patId, visitId) {
+  var pat = S.patients.find(function(p){return p.id===patId;});
+  if (!pat) return;
+  var visit = (pat.visits||[]).find(function(v){return v.id===visitId;});
+  var plan = visit && visit.plan;
+  var exercises = plan && plan.exercises ? plan.exercises.length : 0;
+
+  // Build nudge message
+  var firstName = (pat.name||'').split(' ')[0];
+  var msg = 'Hej ' + firstName + '! Vi ser att det åtgår ett tag sedan du gjorde dina övningar. Kom ihåg att små steg räknas — ' + exercises + ' övningar väntar på dig. Öppna din rehabiliteringsplan för att komma igång igen. Hälsningar, ' + ((typeof getClinicConfig==='function'&&getClinicConfig().name)||'Kliniken');
+
+  // Try SMS first if phone exists
+  if (pat.phone && typeof _velaSendSMS === 'function') {
+    var res = await _velaSendSMS(pat.phone, msg);
+    if (res && res.ok) {
+      showAutoSaveToast('Påminnelse SMS skickat till ' + firstName);
+      // Log to agent feed
+      if (typeof addAgentFeedItem === 'function') addAgentFeedItem({ type:'nudge_sent', patName:pat.name, patId:pat.id, channel:'sms', ts:new Date().toISOString() });
+      return;
+    }
+  }
+  // Fallback: mail
+  if (pat.email && typeof _velaSendMail === 'function') {
+    var subject = 'Din rehabiliteringsplan väntar';
+    await _velaSendMail(pat.email, subject, msg);
+    showAutoSaveToast('Påminnelse mail skickat till ' + firstName);
+    if (typeof addAgentFeedItem === 'function') addAgentFeedItem({ type:'nudge_sent', patName:pat.name, patId:pat.id, channel:'email', ts:new Date().toISOString() });
+    return;
+  }
+  showAutoSaveToast('Inget kontaktväg för ' + firstName + ' — lägg till telefon eller e-post');
+}
 
 function _openPublicPlanFromAdmin(patId, visitId) {
   var pat = S.patients.find(function(p){return p.id===patId;});

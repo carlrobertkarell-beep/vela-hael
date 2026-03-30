@@ -24042,7 +24042,7 @@ function printHomeCard(vid) {
   </div>
   <div class="ftr">${clinic.name} · ${clinic.address} · ${clinic.email}</div>
 </div>
-<script>window.onload=()=>{window.print();}<\/script>
+<script>window.onload=()=>{window.print();}<' + '/script>
 </body>
 </html>`;
 
@@ -37931,7 +37931,7 @@ function generateWebBookingWidget() {
     + 'document.getElementById("bw-confirm-text").innerHTML='
     + '"<strong>"+name+"</strong><br>"+bwState.svcName+" · "+bwState.price+" kr<br>"+fmt;'
     + 'bwShow(3);}'
-    + '<\/script></body></html>';
+    + '<' + '/script></body></html>';
 
   return widgetHTML;
 }
@@ -37943,7 +37943,7 @@ function showWebBookingSetup() {
   ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
   ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
 
-  var embedCode = '<script src="https://carlrobertkarell-beep.github.io/vela-hael/booking-widget.js" data-clinic="' + getCurrentClinicId() + '"><\/script>';
+  var embedCode = '<script src="https://carlrobertkarell-beep.github.io/vela-hael/booking-widget.js" data-clinic="' + getCurrentClinicId() + '"><' + '/script>';
 
   var h = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">';
   h += '<div style="background:var(--navy);padding:20px 24px 16px;display:flex;align-items:center;justify-content:space-between">';
@@ -51016,7 +51016,7 @@ function printHomeCard(vid) {
   </div>
   <div class="ftr">${clinic.name} · ${clinic.address} · ${clinic.email}</div>
 </div>
-<script>window.onload=()=>{window.print();}<\/script>
+<script>window.onload=()=>{window.print();}<' + '/script>
 </body>
 </html>`;
 
@@ -64905,7 +64905,7 @@ function generateWebBookingWidget() {
     + 'document.getElementById("bw-confirm-text").innerHTML='
     + '"<strong>"+name+"</strong><br>"+bwState.svcName+" · "+bwState.price+" kr<br>"+fmt;'
     + 'bwShow(3);}'
-    + '<\/script></body></html>';
+    + '<' + '/script></body></html>';
 
   return widgetHTML;
 }
@@ -64917,7 +64917,7 @@ function showWebBookingSetup() {
   ov.style.cssText = 'position:fixed;inset:0;z-index:700;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(7,16,30,.72);backdrop-filter:blur(5px)';
   ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
 
-  var embedCode = '<script src="https://carlrobertkarell-beep.github.io/vela-hael/booking-widget.js" data-clinic="' + getCurrentClinicId() + '"><\/script>';
+  var embedCode = '<script src="https://carlrobertkarell-beep.github.io/vela-hael/booking-widget.js" data-clinic="' + getCurrentClinicId() + '"><' + '/script>';
 
   var h = '<div style="background:#161b22;border-radius:20px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto" onclick="event.stopPropagation()">';
   h += '<div style="background:var(--navy);padding:20px 24px 16px;display:flex;align-items:center;justify-content:space-between">';

@@ -694,17 +694,17 @@ a:hover { text-decoration: underline; }
 /* Global topbar: always visible on desktop */
 .vela-global-topbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 400;
-  background: #0d1117;
+  background: #161b22;
   border-bottom: 1px solid #30363d;
   display: flex; flex-direction: column;
   font-family: var(--font);
 }
-/* Row 1: pure black — GitHub's topbar */
+/* Row 1: #161b22 — elevated over page, clearly separate from content */
 .vela-gtb-row1 {
   height: 52px; display: flex; align-items: center; gap: 0; width: 100%;
-  background: #0d1117;
+  background: #161b22;
   flex-shrink: 0;
-  border-bottom: 1px solid #21262d;
+  border-bottom: 1px solid #30363d;
 }
 .vela-gtb-row2 {
   height: 44px; display: flex; align-items: stretch;
@@ -752,7 +752,7 @@ a:hover { text-decoration: underline; }
 }
 .vela-gtb-search {
   display: flex; align-items: center; gap: 8px;
-  background: #161b22; border: 1px solid #30363d;
+  background: #0d1117; border: 1px solid #30363d;
   border-radius: 6px; padding: 0 10px; cursor: pointer;
   height: 28px; box-sizing: border-box;
   transition: border-color .15s;
@@ -786,7 +786,7 @@ a:hover { text-decoration: underline; }
 .vela-gtb-notif-dot {
   position: absolute; top: 5px; right: 5px;
   width: 8px; height: 8px; border-radius: 50%;
-  background: var(--orange); border: 2px solid #0d1117;
+  background: var(--orange); border: 2px solid #161b22;
 }
 
 /* Push content down when topbar is visible — row1(52) + row2(44) = 96px */
@@ -838,7 +838,7 @@ button:not([class]) { border-radius: 6px; }
 .nav-sidebar {
   width: 220px; flex-shrink: 0; background: #0d1117;
   display: flex; flex-direction: column;
-  border-right: 1px solid #21262d;
+  border-right: 1px solid #30363d;
   z-index: 150; overflow: hidden; position: relative;
   transition: width .2s cubic-bezier(.4,0,.2,1), transform .25s ease;
 }
@@ -10959,7 +10959,7 @@ function rActions() {
   // ── Inject CSS ────────────────────────────────────────────────────────
   var css = `
 <style id="ractions-css">
-.ra-shell { display:flex; height:calc(100vh - 52px); overflow:hidden; font-family:var(--font); }
+.ra-shell { display:flex; height:calc(100vh - 96px); overflow:hidden; font-family:var(--font); }
 .ra-rail { width:200px; flex-shrink:0; border-right:1px solid #21262d; overflow-y:auto; padding:12px 8px; background:#0d1117; }
 .ra-rail-item { display:flex; align-items:center; gap:9px; padding:7px 10px; border-radius:7px; cursor:pointer; font-size:13px; font-weight:500; color:#8b949e; transition:all .12s; margin-bottom:1px; }
 .ra-rail-item:hover { background:#161b22; color:#e6edf3; }
@@ -14270,7 +14270,7 @@ function rAskFull(prompt) {
     + '<span style="font-size:13px;font-weight:500;color:#8b949e">Vela Ask</span>'
     + '<div style="margin-left:auto;width:30px;height:30px;border-radius:50%;background:rgba(224,118,40,.15);border:1px solid rgba(224,118,40,.3);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--teal);font-family:var(--font-mono)">' + authInit2 + '</div>'
     + '</div>'
-    + '<div style="display:flex;height:calc(100vh - 52px);margin-top:52px;font-family:var(--font)">'
+    + '<div style="display:flex;height:calc(100vh - 96px);margin-top:0;font-family:var(--font)">'
     // ── Left sidebar ────────────────────────────────────────────────────
     + '<div style="width:260px;flex-shrink:0;background:var(--bg);border-right:1px solid #30363d;display:flex;flex-direction:column">'
     + '<div style="padding:12px 12px 8px">'

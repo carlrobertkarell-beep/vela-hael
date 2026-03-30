@@ -2403,7 +2403,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 /* ── Compose overlay ────────────────────────────────────────────────────────── */
 #gm-compose-overlay {
   position: fixed; bottom: 0; right: 28px; z-index: 9900;
-  width: 520px; max-width: calc(100vw - 40px);
+  width: 580px; max-width: calc(100vw - 40px);
   background: #1c2128; border: 1px solid #30363d; border-bottom: none;
   border-radius: 10px 10px 0 0;
   box-shadow: 0 -4px 32px rgba(0,0,0,.55);
@@ -2414,6 +2414,8 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 }
 @keyframes compose-in { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 #gm-compose-overlay.minimized { height: 44px; overflow: hidden; }
+#gm-compose-overlay.expanded { width: min(760px, calc(100vw - 40px)); }
+#gm-compose-overlay.fullscreen { position: fixed; inset: 60px 20px 20px 20px; width: auto; max-width: none; border-radius: 8px; }
 .gm-co-header {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 12px; background: #21262d;
@@ -2441,7 +2443,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 }
 .gm-co-field-inp::placeholder { color: #484f58; }
 .gm-co-body-ta {
-  width: 100%; min-height: 200px; max-height: 340px;
+  width: 100%; min-height: 240px; max-height: 520px;
   border: none; background: none;
   padding: 10px 14px; font-size: 14px; font-family: var(--font);
   color: #e6edf3; resize: vertical; outline: none;
@@ -8590,28 +8592,23 @@ function _renderAmbientConsent(pat) {
   S.screen = 'meeting';
 
   el.innerHTML = '<div class="ambient-wrap">'
-    + '<div class="ambient-header">'
-    + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'
-    + '<button onclick="closeAmbientSession()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:14px;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Tillbaka</button>'
+    + '<div style="height:52px;background:#0d1117;border-bottom:1px solid #30363d;display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0">'
+    + '<button onclick="closeAmbientSession()" style="background:none;border:none;color:#8b949e;cursor:pointer;display:flex;align-items:center;padding:4px 8px;border-radius:6px" onmouseover="this.style.color=\'#e6edf3\'" onmouseout="this.style.color=\'#8b949e\'"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>'
+    + '<span style="font-size:14px;font-weight:700;color:#e6edf3">' + e(pat.name) + '</span>'
+    + (pat.diagnosis ? '<span style="font-size:13px;color:#8b949e">· ' + e(pat.diagnosis) + '</span>' : '')
     + '</div>'
-    + '<div class="ambient-title">AI-session med ' + e(pat.name.split(' ')[0]) + '</div>'
-    + '<div class="ambient-patient">' + e(pat.name)
-    + (pat.diagnosis ? ' · ' + e(pat.diagnosis) : '') + '</div>'
-    + '</div>'
-    + '<div style="max-width:480px;margin:40px auto;padding:0 24px">'
-    + '<div style="background:#161b22;border-radius:20px;padding:28px;border:1px solid #30363d">'
-    + '<div style="font-size:32px;margin-bottom:16px">🎙️</div>'
-    + '<div style="font-size:20px;font-weight:800;color:#e6edf3;margin-bottom:8px">Starta AI-session</div>'
-    + '<div style="font-size:14px;color:#8b949e;line-height:1.7;margin-bottom:20px">'
-    + 'AI lyssnar under hela besöket och fångar automatiskt kliniska signaler, smärtnivåer, röda flaggor och patientens mål. '
-    + 'En komplett journal-utkast skapas när besöket avslutas.<br><br>'
-    + '<strong style="color:#e6edf3">Patienten behöver ge sitt samtycke</strong> till att besöket bearbetas av AI.'
-    + '</div>'
-    + '<div style="background:rgba(224,118,40,.04);border:1px solid rgba(224,118,40,.07);border-radius:6px;padding:14px 16px;margin-bottom:20px;font-size:14px;color:#8b949e;line-height:1.7">'
-    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-right:6px"><polyline points="20 6 9 17 4 12"/></svg> Allt bearbetas av Anthropics Claude AI · Ingen data lagras på externa servrar · Klinikern granskar och godkänner all dokumentation'
-    + '</div>'
-    + '<button onclick="_ambientGrantConsent()" style="width:100%;padding:14px;background:#238636;color:white;border:none;border-radius:13px;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:10px">Patienten har samtyckt — Starta session →</button>'
-    + '<button onclick="closeAmbientSession()" style="width:100%;padding:11px;background:none;border:1px solid #30363d;border-radius:13px;font-size:14px;color:#8b949e;cursor:pointer;font-family:var(--font)">Avbryt</button>'
+    + '<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px">'
+    + '<div style="width:100%;max-width:400px">'
+    + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">'
+    + '<div style="width:40px;height:40px;border-radius:10px;background:rgba(224,118,40,.1);border:1px solid rgba(224,118,40,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></div>'
+    + '<div><div style="font-size:16px;font-weight:700;color:#e6edf3">AI-inspelning</div>'
+    + '<div style="font-size:13px;color:#8b949e">Journalutkast skapas automatiskt</div></div></div>'
+    + '<div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#8b949e;line-height:1.6;display:flex;align-items:flex-start;gap:8px">'
+    + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>'
+    + '<span>Patienten har informerats och samtycker till AI-bearbetning</span></div>'
+    + '<button onclick="_ambientGrantConsent()" style="width:100%;padding:11px;background:#238636;color:white;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>Samtyckt — starta</button>'
+    + '<button onclick="closeAmbientSession()" style="width:100%;padding:8px;background:none;border:none;font-size:13px;color:#6e7681;cursor:pointer;font-family:var(--font)">Avbryt</button>'
     + '</div></div></div>';
 }
 
@@ -14700,6 +14697,9 @@ function _gmailOpenCompose(prefillTo, prefillSubject, prefillBody) {
     '<div class="gm-co-header" id="gm-co-hdr">'
   + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
   + '<span class="gm-co-title">Nytt mail</span>'
+  + '<button class="gm-co-icon-btn" id="gm-co-expand-btn" title="Expandera">'
+  + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>'
+  + '</button>'
   + '<button class="gm-co-icon-btn" id="gm-co-min-btn" title="Minimera">'
   + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>'
   + '</button>'
@@ -14767,6 +14767,14 @@ function _gmailOpenCompose(prefillTo, prefillSubject, prefillBody) {
     setTimeout(function(){ if (suggest) { suggest.style.display='none'; } }, 200);
   });
 
+  // Expand
+  var expBtn = document.getElementById('gm-co-expand-btn');
+  expBtn && expBtn.addEventListener('click', function(ev) {
+    ev.stopPropagation();
+    if (el.classList.contains('fullscreen')) { el.classList.remove('fullscreen'); expBtn.title='Expandera'; }
+    else if (el.classList.contains('expanded')) { el.classList.remove('expanded'); el.classList.add('fullscreen'); expBtn.title='Minimera'; }
+    else { el.classList.add('expanded'); expBtn.title='Fullsk\u00e4rm'; }
+  });
   // Minimize
   var minBtn = document.getElementById('gm-co-min-btn');
   var hdr    = document.getElementById('gm-co-hdr');
@@ -20314,7 +20322,7 @@ function _toolsUS() {
         </button>
       </div>
     </div>
-    <div id="us-result-panel" style="width:400px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;background:var(--surface);padding:22px">
+    <div id="us-result-panel" style="width:clamp(300px,36%,460px);flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;background:var(--surface);padding:22px">
       <div style="text-align:center;padding:56px 0">
         <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--surface3)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:10px;display:block;margin-left:auto;margin-right:auto"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
         <div style="font-size:14px;color:var(--text)">Ladda upp bilder och klicka Analysera</div>
@@ -22527,42 +22535,44 @@ function _renderPulse() {
     h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Nästa patient</span>';
     h += '</div>' + countdownHtml + '</div>';
     // Body
-    h += '<div style="padding:14px 16px;display:flex;gap:16px;align-items:flex-start">';
-    h += '<div style="flex:1;min-width:0">';
+    h += '<div style="padding:14px 16px">';
     if (nextPat) {
       var visitNr = (nextPat.visits||[]).length + 1;
-      h += '<div style="font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.01em;margin-bottom:3px">' + e(nextPat.name) + ' <span style="font-size:12px;color:var(--text2);font-weight:400">· besök ' + visitNr + '</span></div>';
-      h += '<div style="font-size:14px;color:var(--text);margin-bottom:10px">' + e(nextPat.diagnosis||nextBk.serviceName||'') + ' · ' + (nextBk.duration||45) + ' min</div>';
+      h += '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px">';
+      h += '<span style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.01em">' + e(nextPat.name) + '</span>';
+      h += '<span style="font-size:12px;color:var(--text2)">· besök ' + visitNr + '</span>';
+      h += '</div>';
+      h += '<div style="font-size:13px;color:var(--text);margin-bottom:12px">' + e(nextPat.diagnosis||nextBk.serviceName||'') + ' · ' + (nextBk.duration||45) + ' min</div>';
     }
-    // ── Compact clinical brief strip ────────────────────────────────────────
     var _bs = _buildBriefSignals(nextPat, nextBk, brief, briefValid, todayStr);
     if (_bs.length) {
-      h += '<div style="display:flex;flex-direction:column;gap:5px">';
+      h += '<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px">';
       _bs.forEach(function(sig) {
         h += '<div style="display:flex;align-items:flex-start;gap:7px">';
-        h += '<span style="width:7px;height:7px;border-radius:50%;background:' + sig.col + ';flex-shrink:0;margin-top:4px"></span>';
+        h += '<span style="width:7px;height:7px;border-radius:50%;background:' + sig.col + ';flex-shrink:0;margin-top:5px"></span>';
         h += '<span style="font-size:14px;color:var(--ink);line-height:1.5;flex:1">' + e(sig.text) + '</span>';
-        if (sig.badge) h += '<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:' + sig.col + '22;color:' + sig.col + ';font-weight:700;flex-shrink:0;margin-top:2px">' + e(sig.badge) + '</span>';
+        if (sig.badge) h += '<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:' + sig.col + '22;color:' + sig.col + ';font-weight:700;flex-shrink:0;margin-top:3px">' + e(sig.badge) + '</span>';
         h += '</div>';
       });
       if (briefValid && brief.tests && brief.tests.length) {
-        h += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding-top:3px">';
+        h += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding-top:4px">';
         h += '<span style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Test</span>';
         brief.tests.slice(0,4).forEach(function(t){ h += '<span style="font-size:11px;padding:1px 7px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--ink)">' + e(t) + '</span>'; });
         h += '</div>';
       }
       h += '</div>';
     } else if (isUrgent) {
-      h += '<div style="display:flex;align-items:center;gap:8px"><div style="width:12px;height:12px;border:2px solid rgba(224,118,40,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div><span style="font-size:12px;color:var(--text2)">Genererar brief…</span></div>';
+      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><div style="width:11px;height:11px;border:2px solid rgba(224,118,40,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div><span style="font-size:13px;color:var(--text2)">Genererar brief…</span></div>';
     } else {
-      h += '<span style="font-size:12px;color:var(--text2)">Brief genereras av VelaAgent inör besöket.</span>';
+      h += '<div style="margin-bottom:14px"><span style="font-size:13px;color:var(--text3)">Brief genereras av VelaAgent inför besöket.</span></div>';
     }
+    if (nextPat) h += '<button onclick="_startSmartVisit(\'' + nextPat.id + '\',\'' + (nextBk.id||'') + '\')" style="width:100%;padding:10px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:7px"><svg width=\'13\' height=\'13\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2.5\' stroke-linecap=\'round\'><polygon points=\'5 3 19 12 5 21 5 3\'/></svg>Starta besök</button>';
+    h += '<div style="display:flex;gap:6px">';
+    if (nextPat) h += '<button onclick="openPat(\'' + nextPat.id + '\')" style="flex:1;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Patientkort</button>';
+    if (briefValid) h += '<button onclick="VelaAgent.showBrief(\'' + nextBk.id + '\')" style="flex:1;padding:6px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.2);border-radius:6px;font-size:12px;font-weight:600;color:var(--orange);cursor:pointer;font-family:var(--font)">Full brief</button>';
+    if (!briefValid && nextPat) h += '<button onclick="VelaAgent.runNow&&VelaAgent.runNow();showAutoSaveToast(\'Genererar brief\u2026\')" style="flex:1;padding:6px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Generera brief</button>';
     h += '</div>';
-    // Right side buttons
-    h += '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">';
-    if (nextPat) h += '<button onclick="_startSmartVisit(\'' + nextPat.id + '\',\'' + (nextBk.id||'') + '\')" style="padding:6px 14px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font)">Starta besök</button>';
-    if (nextPat) h += '<button onclick="openPat(\'' + nextPat.id + '\')" style="padding:6px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Patientkort</button>';
-    if (briefValid) h += '<button onclick="VelaAgent.showBrief(\'' + nextBk.id + '\')" style="padding:6px 14px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.2);border-radius:6px;font-size:12px;font-weight:600;color:var(--orange);cursor:pointer;font-family:var(--font)">Full brief</button>';
+    h += '</div></div>';
     if (!briefValid && nextPat) h += '<button onclick="VelaAgent.runNow&&VelaAgent.runNow();showAutoSaveToast(\'Genererar brief\u2026\')" style="padding:6px 14px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Generera brief</button>';
     h += '</div>';
     h += '</div></div>';
@@ -42835,7 +42845,7 @@ function rHael() {
     h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">';
     h += '<div style="padding:12px 18px;border-bottom:1px solid #30363d;display:flex;align-items:center;justify-content:space-between">';
     h += '<div style="font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8b949e">Planer ('+visible.length+')</div>';
-    h += '<div style="display:grid;grid-template-columns:1fr 60px 60px 70px 100px;gap:8px;width:320px;text-align:right">';
+    h += '<div style="display:grid;grid-template-columns:1fr 60px 60px 70px 120px;gap:8px;width:340px;text-align:right">';
     h += '<div></div>';
     ['NRS','Pass','Kvar',''].forEach(function(lbl){
       h += '<div style="font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em">'+lbl+'</div>';
@@ -42864,7 +42874,7 @@ function rHael() {
       h += '<div style="font-size:14px;color:#8b949e">'+e(plan.diag||(plan.exercises+' övningar'))+'</div>';
       h += '</div>';
       // Stats
-      h += '<div style="display:grid;grid-template-columns:60px 60px 70px 100px;gap:8px;text-align:right;flex-shrink:0">';
+      h += '<div style="display:grid;grid-template-columns:60px 60px 70px 120px;gap:8px;text-align:right;flex-shrink:0">';
       h += '<div style="font-size:14px;font-weight:700">'+nrsDisplay+'</div>';
       h += '<div style="font-size:14px;font-weight:700;color:#e6edf3">'+plan.donePasses+'</div>';
       if (plan.status!=='avslutad'&&plan.daysLeft!==null) {

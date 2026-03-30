@@ -9560,7 +9560,7 @@ function _renderGlobalTopbar() {
   try { gmailUnread2 = (window._gmailState&&window._gmailState.threads||[]).filter(function(t){return t.unread;}).length; } catch(e3){}
 
   var TABS2 = [
-    { id:'home',         label:'Klinik',        dest:'dashboard',    icon:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
+    { id:'home',         label:'Hem',           dest:'dashboard',    icon:'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z' },
     { id:'patients',     label:typeof clientTerm==='function'?clientTerm(true,true):'Klienter', dest:'list', icon:'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', badge:(S.patients||[]).length||null },
     { id:'calendar',     label:'Kalender',       dest:'calendar',     icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z' },
     // Besök removed — accessed via patient card
@@ -9946,7 +9946,7 @@ function rTopbar() {
 
   // ── PRIMARY NAV (always shown at top) ─────────────────────────
   nh += '<div class="nav-sb-primary">';
-  nh += nb('dashboard', 'Klinik', '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>');
+  nh += nb('dashboard', 'Hem', '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>');
   nh += nb('list', 'Patienter', '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
     (S.patients||[]).length || null, 'count');
   nh += nb('calendar', 'Kalender', '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
@@ -21498,6 +21498,7 @@ function _renderPulse() {
   var el = document.getElementById('s-dashboard');
   if (!el) return;
   _startPulseTicker();
+
   var pats    = S.patients || [];
   var bks     = getBookings ? getBookings() : [];
   var now     = new Date();
@@ -21506,41 +21507,35 @@ function _renderPulse() {
   var pending = getPendingApprovals ? getPendingApprovals() : [];
   var retQ    = typeof getRetentionQueue==='function' ? getRetentionQueue() : [];
 
-  // Today's bookings
   var todayBks = bks.filter(function(b){ return b.date===todayStr && b.status!=='cancelled'; })
     .sort(function(a,b){ return (a.time||'')>(b.time||'')?1:-1; });
-  var doneBks  = todayBks.filter(function(b){ return b.status==='completed'; }).length;
+  var doneBks     = todayBks.filter(function(b){ return b.status==='completed'; }).length;
   var upcomingBks = todayBks.filter(function(b){ return b.status!=='completed'; });
-  var nextBk = upcomingBks[0] || null;
-  var nextPat = nextBk ? pats.find(function(p){ return p.id===nextBk.patientId; }) : null;
-  var minsToNext = nextBk ? _minsToBooking(nextBk) : null;
-  var isUrgent   = minsToNext !== null && minsToNext >= 0 && minsToNext <= 30;
-  var isImminent = minsToNext !== null && minsToNext >= 0 && minsToNext <= 10;
+  var nextBk      = upcomingBks[0] || null;
+  var nextPat     = nextBk ? pats.find(function(p){ return p.id===nextBk.patientId; }) : null;
+  var minsToNext  = nextBk ? _minsToBooking(nextBk) : null;
+  var isUrgent    = minsToNext !== null && minsToNext >= 0 && minsToNext <= 30;
+  var isImminent  = minsToNext !== null && minsToNext >= 0 && minsToNext <= 10;
 
-  // Revenue today
   var todayRev = todayBks.filter(function(b){ return b.status==='completed'; })
     .reduce(function(s,b){ return s + (b.price||b.servicePrice||0); }, 0);
   var monthBks = bks.filter(function(b){ return b.status==='completed' && b.date && b.date.slice(0,7)===todayStr.slice(0,7); });
   var monthRev = monthBks.reduce(function(s,b){ return s + (b.price||b.servicePrice||0); }, 0);
 
-  // Urgent signals
   var urgentCount = typeof _clinPriority==='function' ? pats.filter(function(p){ return _clinPriority(p).level>=2; }).length : 0;
   var agentItems  = getInbox().filter(function(i){ return !i.read && !i.done; }).length;
   var waitlist    = getWaitlist ? getWaitlist() : [];
 
-  // Missing journals this week
-  var weekAgo = new Date(Date.now()-7*86400000).toISOString().slice(0,10);
+  var weekAgo  = new Date(Date.now()-7*86400000).toISOString().slice(0,10);
   var missingJ = bks.filter(function(b){ return b.status==='completed' && b.date>=weekAgo && b.date<todayStr && b.patientId; }).filter(function(b){
     var p = pats.find(function(x){ return x.id===b.patientId; });
     return p && !(p.visits||[]).some(function(v){ return v.date===b.date && v.soap && (v.soap.A||v.soap.S); });
   }).length;
 
-  // Pre-visit brief for next patient
   var brief = null;
-  if (nextBk) try { brief = JSON.parse(localStorage.getItem('vela:previsit:'+nextBk.id)||'null'); } catch {}
+  if (nextBk) try { brief = JSON.parse(localStorage.getItem('vela:previsit:'+nextBk.id)||'null'); } catch(e2) {}
   var briefValid = brief && brief.date === todayStr;
 
-  // Proactive brief trigger
   if (nextBk && nextPat && isUrgent && !briefValid && typeof VelaAgent !== 'undefined') {
     var autoGenKey = 'vela:autogen:' + nextBk.id;
     if (!localStorage.getItem(autoGenKey)) {
@@ -21551,246 +21546,281 @@ function _renderPulse() {
   }
 
   var greeting = (function(){
-    var h = now.getHours();
+    var hr = now.getHours();
     var name = (cfg.signature||'').split(' ')[0] || '';
-    if (h<10) return 'God morgon' + (name?' '+name:'');
-    if (h<12) return 'God förmiddag' + (name?' '+name:'');
-    if (h<17) return 'God eftermiddag' + (name?' '+name:'');
+    if (hr<10) return 'God morgon' + (name?' '+name:'');
+    if (hr<12) return 'God förmiddag' + (name?' '+name:'');
+    if (hr<17) return 'God eftermiddag' + (name?' '+name:'');
     return 'God kväll' + (name?' '+name:'');
   })();
 
-  var h = '<div style="display:flex;flex-direction:column;height:100%;background:var(--bg);font-family:var(--font);overflow-y:auto">';
-  h += '<div style="max-width:860px;margin:0 auto;padding:28px 24px 80px;width:100%">';
+  var dateLabel = now.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'});
+  dateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
 
-  // ── Greeting ────────────────────────────────────────────────────────────
-  h += '<div style="margin-bottom:24px">';
-  h += '<div style="font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-.02em;margin-bottom:4px">' + e(greeting) + ' ☀️</div>';
-  h += '<div style="font-size:13px;color:var(--text)">' + now.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'}) + '</div>';
+  var agentFeed  = typeof _agentGetFeed==='function' ? _agentGetFeed() : [];
+  var todayFeed  = agentFeed.filter(function(f){ return Date.now()-f.ts < 86400000; });
+  var cancelPend = pending.filter(function(ap){ return ap.type==='cancel_request'; });
+  var schedPend  = pending.filter(function(ap){ return ap.type==='reschedule_request'; });
+
+  // ── Shell ──────────────────────────────────────────────────────────────────
+  var h = '<div style="min-height:100%;background:var(--bg);font-family:var(--font);overflow-y:auto">';
+  h += '<div style="max-width:1200px;margin:0 auto;padding:28px 32px 80px;width:100%;box-sizing:border-box">';
+
+  // ── Page header ────────────────────────────────────────────────────────────
+  h += '<div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)">';
+  h += '<div>';
+  h += '<div style="font-size:24px;font-weight:700;color:var(--ink);letter-spacing:-.03em;line-height:1.1;margin-bottom:5px">' + e(greeting) + '</div>';
+  h += '<div style="font-size:13px;color:var(--text)">' + e(dateLabel) + '</div>';
+  h += '</div>';
+  h += '<div style="display:flex;gap:8px">';
+  h += '<button onclick="openBookingDialog&&openBookingDialog()" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:#238636;border:none;border-radius:6px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font)">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ny bokning</button>';
+  h += '<button onclick="go(\'activity\')" style="display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Aktivitet' + (agentItems ? ' <span style="background:var(--orange);color:#fff;font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:2px">'+agentItems+'</span>' : '') + '</button>';
+  h += '</div>';
   h += '</div>';
 
-  // ── Status row ─────────────────────────────────────────────────────────
-  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">';
+  // ── KPI strip ──────────────────────────────────────────────────────────────
   var kpis = [
-    { v: doneBks + '/' + todayBks.length, l: 'Besök idag', c: doneBks===todayBks.length&&todayBks.length>0?'var(--green)':'var(--ink)', sub: upcomingBks.length + ' kvar' },
-    { v: todayRev > 0 ? todayRev.toLocaleString('sv-SE') + ' kr' : '—', l: 'Intäkt idag', c: 'var(--ink)', sub: monthRev>0 ? monthRev.toLocaleString('sv-SE')+' kr denna mån' : '' },
-    { v: pending.length || '✓', l: 'Väntar signatur', c: pending.length?'var(--amber)':'var(--green)', sub: pending.length?'AI-förslag klara':' Kön tom' },
-    { v: agentItems || '✓', l: 'Agent-notiser', c: agentItems?'var(--orange)':'var(--green)', sub: urgentCount?urgentCount+' brådskande':'' },
+    { v: todayBks.length, l: 'Besök idag', sub: doneBks + ' klara · ' + upcomingBks.length + ' kvar',
+      c: doneBks===todayBks.length&&todayBks.length>0 ? 'var(--green)' : 'var(--ink)',
+      icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
+    { v: todayRev > 0 ? todayRev.toLocaleString('sv-SE') + ' kr' : '—',
+      l: 'Intäkt idag',
+      sub: monthRev > 0 ? monthRev.toLocaleString('sv-SE') + ' kr denna mån' : 'Inga avslutade besök',
+      c: 'var(--ink)',
+      icon: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>' },
+    { v: pending.length || '✓',
+      l: 'Signaturkö',
+      sub: pending.length ? pending.length + ' AI-förslag väntar' : 'Kön tom',
+      c: pending.length ? 'var(--amber)' : 'var(--green)',
+      icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' },
+    { v: agentItems || '✓',
+      l: 'Agent-notiser',
+      sub: urgentCount ? urgentCount + ' brådskande patienter' : (agentItems ? agentItems + ' olästa' : 'Inget att agera på'),
+      c: agentItems ? 'var(--orange)' : 'var(--green)',
+      icon: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
+    { v: pats.length,
+      l: 'Aktiva patienter',
+      sub: urgentCount ? urgentCount + ' kräver åtgärd' : 'Inga aktiva varningar',
+      c: urgentCount ? 'var(--red)' : 'var(--ink)',
+      icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
+    { v: waitlist.length || '—',
+      l: 'Väntelista',
+      sub: waitlist.length ? 'Klicka för att erbjuda tid' : 'Ingen väntelista',
+      c: waitlist.length ? 'var(--blue)' : 'var(--text2)',
+      icon: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+      fn: waitlist.length ? "openWaitlistDialog&&openWaitlistDialog()" : null },
   ];
-  kpis.forEach(function(k){
-    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 16px">';
-    h += '<div style="font-size:20px;font-weight:700;color:'+k.c+';margin-bottom:3px">'+e(String(k.v))+'</div>';
-    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text)">'+e(k.l)+'</div>';
-    if (k.sub) h += '<div style="font-size:11px;color:var(--text2);margin-top:2px">'+e(k.sub)+'</div>';
+  h += '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:24px">';
+  kpis.forEach(function(k) {
+    var clickable = k.fn ? 'cursor:pointer;' : '';
+    var onclick = k.fn ? ' onclick="' + k.fn + '"' : '';
+    h += '<div' + onclick + ' style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 15px;' + clickable + '">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="' + k.c + '" stroke-width="1.8" stroke-linecap="round" opacity=".7">' + k.icon + '</svg>';
+    h += '</div>';
+    h += '<div style="font-size:22px;font-weight:700;color:' + k.c + ';letter-spacing:-.02em;line-height:1;margin-bottom:4px">' + e(String(k.v)) + '</div>';
+    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text);margin-bottom:2px">' + e(k.l) + '</div>';
+    if (k.sub) h += '<div style="font-size:11px;color:var(--text2);line-height:1.4">' + e(k.sub) + '</div>';
     h += '</div>';
   });
   h += '</div>';
 
-  // ── Nästa patient ──────────────────────────────────────────────────────
+  // ── Two-column layout ──────────────────────────────────────────────────────
+  h += '<div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">';
+
+  // ══ LEFT COLUMN ══════════════════════════════════════════════════════════
+  h += '<div style="display:flex;flex-direction:column;gap:14px">';
+
+  // ── Nästa patient ──────────────────────────────────────────────────────────
   if (nextBk) {
-    var cardBorder = isImminent ? 'border:1.5px solid var(--orange);box-shadow:0 0 0 3px rgba(224,118,40,.12)' : isUrgent ? 'border:1.5px solid rgba(224,118,40,.5)' : 'border:1px solid var(--border)';
+    var cardAccent = isImminent ? 'var(--orange)' : isUrgent ? 'rgba(224,118,40,.5)' : 'var(--border)';
+    var cardBg     = isImminent ? 'rgba(224,118,40,.03)' : 'var(--surface)';
     var countdownHtml = '';
     if (minsToNext !== null && minsToNext >= 0) {
-      if (minsToNext === 0) countdownHtml = '<span style="font-size:11px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 8px;border-radius:4px;margin-left:auto">Nu!</span>';
-      else if (minsToNext <= 10) countdownHtml = '<span style="font-size:11px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 8px;border-radius:4px;margin-left:auto">om ' + minsToNext + ' min</span>';
-      else if (minsToNext <= 30) countdownHtml = '<span style="font-size:11px;color:var(--orange);margin-left:auto">om ' + minsToNext + ' min</span>';
-      else countdownHtml = '<span style="font-size:12px;color:var(--text2);margin-left:auto">kl ' + e(nextBk.time||'?') + '</span>';
+      if      (minsToNext === 0)   countdownHtml = '<span style="font-size:12px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 10px;border-radius:4px">Nu!</span>';
+      else if (minsToNext <= 10)   countdownHtml = '<span style="font-size:12px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 10px;border-radius:4px">om ' + minsToNext + ' min</span>';
+      else if (minsToNext <= 30)   countdownHtml = '<span style="font-size:12px;color:var(--orange)">om ' + minsToNext + ' min</span>';
+      else                         countdownHtml = '<span style="font-size:12px;color:var(--text2)">kl ' + e(nextBk.time||'?') + '</span>';
     } else if (minsToNext !== null && minsToNext < 0) {
-      countdownHtml = '<span style="font-size:11px;color:var(--text2);margin-left:auto">pågår</span>';
+      countdownHtml = '<span style="font-size:12px;color:var(--text2)">pågår</span>';
     } else {
-      countdownHtml = '<span style="font-size:12px;color:var(--text2);margin-left:auto">kl ' + e(nextBk.time||'?') + '</span>';
+      countdownHtml = '<span style="font-size:12px;color:var(--text2)">kl ' + e(nextBk.time||'?') + '</span>';
     }
-    h += '<div style="background:var(--surface);' + cardBorder + ';border-radius:6px;overflow:hidden;margin-bottom:14px">';
-    h += '<div style="display:flex;align-items:center;gap:8px;padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+    h += '<div style="background:' + cardBg + ';border:1px solid ' + cardAccent + ';border-radius:6px;overflow:hidden">';
+    // Header
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+    h += '<div style="display:flex;align-items:center;gap:7px">';
     h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
     h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Nästa patient</span>';
-    h += countdownHtml;
-    h += '</div>';
-    h += '<div style="padding:12px 16px;display:flex;align-items:flex-start;gap:14px">';
+    h += '</div>' + countdownHtml + '</div>';
+    // Body
+    h += '<div style="padding:14px 16px;display:flex;gap:16px;align-items:flex-start">';
     h += '<div style="flex:1;min-width:0">';
     if (nextPat) {
       var visitNr = (nextPat.visits||[]).length + 1;
-      h += '<div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:3px">' + e(nextPat.name) + ' <span style="font-size:11px;color:var(--text2);font-weight:400">· besök ' + visitNr + '</span></div>';
-      h += '<div style="font-size:12px;color:var(--text);margin-bottom:8px">' + e(nextPat.diagnosis||nextBk.serviceName||'') + ' · ' + (nextBk.duration||45) + ' min</div>';
+      h += '<div style="font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.01em;margin-bottom:3px">' + e(nextPat.name) + ' <span style="font-size:12px;color:var(--text2);font-weight:400">· besök ' + visitNr + '</span></div>';
+      h += '<div style="font-size:13px;color:var(--text);margin-bottom:10px">' + e(nextPat.diagnosis||nextBk.serviceName||'') + ' · ' + (nextBk.duration||45) + ' min</div>';
     }
     if (briefValid && brief.focus) {
-      // Show full brief inline — no modal needed
       h += '<div style="display:flex;flex-direction:column;gap:6px">';
-
-      // Focus block (always shown)
-      h += '<div style="padding:7px 10px;background:var(--teal-lt);border-left:2px solid var(--teal);border-radius:0 4px 4px 0;font-size:12px;font-weight:600;color:var(--ink)">'
-        + e(brief.focus) + '</div>';
-
-      // prepNote — klinisk sammanfattning
-      if (brief.prepNote) {
-        h += '<div style="font-size:12px;color:var(--text);line-height:1.55;padding:0 2px">' + e(brief.prepNote) + '</div>';
-      }
-
-      // Tests — chips
+      h += '<div style="padding:8px 12px;background:rgba(224,118,40,.06);border-left:2px solid var(--orange);border-radius:0 4px 4px 0;font-size:13px;font-weight:600;color:var(--ink)">' + e(brief.focus) + '</div>';
+      if (brief.prepNote) h += '<div style="font-size:12px;color:var(--text);line-height:1.6">' + e(brief.prepNote) + '</div>';
       if (brief.tests && brief.tests.length) {
-        h += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:1px">';
-        h += '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-right:2px;align-self:center">Tester</span>';
-        brief.tests.forEach(function(t) {
-          h += '<span style="font-size:11px;padding:2px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--ink)">' + e(t) + '</span>';
-        });
+        h += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
+        h += '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);align-self:center;margin-right:2px">Tester</span>';
+        brief.tests.forEach(function(t) { h += '<span style="font-size:11px;padding:2px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--ink)">' + e(t) + '</span>'; });
         h += '</div>';
       }
-
-      // Questions — bullet list
       if (brief.questions && brief.questions.length) {
-        h += '<div style="display:flex;flex-direction:column;gap:3px;margin-top:1px">';
-        h += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:1px">Frågor till patienten</div>';
-        brief.questions.slice(0,3).forEach(function(q) {
-          h += '<div style="font-size:12px;color:var(--ink);display:flex;gap:5px;align-items:flex-start">'
-            + '<span style="color:var(--orange);font-weight:700;flex-shrink:0">→</span>'
-            + e(q) + '</div>';
-        });
+        h += '<div>';
+        h += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:4px">Frågor till patienten</div>';
+        brief.questions.slice(0,3).forEach(function(q) { h += '<div style="font-size:12px;color:var(--ink);display:flex;gap:5px;margin-bottom:2px"><span style="color:var(--orange);font-weight:700">→</span>' + e(q) + '</div>'; });
         h += '</div>';
       }
-
-      // watchFor — amber warning
-      if (brief.watchFor) {
-        h += '<div style="padding:6px 10px;background:var(--amber-lt);border-left:2px solid var(--amber);border-radius:0 4px 4px 0;font-size:12px;color:var(--ink)">'
-          + '<span style="font-weight:700;color:var(--amber)">Håll utkik: </span>' + e(brief.watchFor) + '</div>';
-      }
-
-      // Dagsform if available
-      if (brief.dagsform) {
-        h += '<div style="padding:6px 10px;background:rgba(88,166,255,.06);border-left:2px solid rgba(88,166,255,.4);border-radius:0 4px 4px 0;font-size:12px;color:var(--ink)">'
-          + '<span style="font-weight:700;color:#58a6ff">Dagsform: </span>' + e(brief.dagsform.slice(0,100)) + '</div>';
-      }
-
+      if (brief.watchFor) h += '<div style="padding:7px 12px;background:rgba(210,153,34,.06);border-left:2px solid var(--amber);border-radius:0 4px 4px 0;font-size:12px;color:var(--ink)"><span style="font-weight:700;color:var(--amber)">Håll utkik: </span>' + e(brief.watchFor) + '</div>';
       h += '</div>';
-    } else if (!briefValid) {
-      if (isUrgent) {
-        h += '<div style="display:flex;align-items:center;gap:8px;padding:8px 0"><div style="width:14px;height:14px;border:2px solid rgba(224,118,40,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div><span style="font-size:12px;color:var(--text2)">Genererar brief automatiskt…</span></div>';
-      } else {
-        h += '<div style="font-size:12px;color:var(--text2);font-style:italic">Brief genereras av VelaAgent inför besöket.</div>';
-      }
+    } else if (isUrgent) {
+      h += '<div style="display:flex;align-items:center;gap:8px"><div style="width:13px;height:13px;border:2px solid rgba(224,118,40,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div><span style="font-size:12px;color:var(--text2)">Genererar brief automatiskt…</span></div>';
+    } else {
+      h += '<span style="font-size:12px;color:var(--text2)">Brief genereras av VelaAgent inför besöket.</span>';
     }
     h += '</div>';
-    h += '<div style="display:flex;flex-direction:column;gap:5px">';
-    if (nextPat) h += '<button onclick="openPat(\''+nextPat.id+'\')" style="padding:6px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Patientkort</button>';
-    if (briefValid) h += '<button onclick="VelaAgent.showBrief(\''+nextBk.id+'\')" style="padding:6px 14px;background:rgba(224,118,40,.1);border:1px solid rgba(224,118,40,.25);border-radius:6px;font-size:12px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font)">Full brief</button>';
-    if (!briefValid && nextPat) h += '<button onclick="VelaAgent.runNow();showAutoSaveToast(\'Genererar brief…\')" style="padding:6px 14px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Generera brief</button>';
+    // Right side buttons
+    h += '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">';
+    if (nextPat) h += '<button onclick="openPat(\'' + nextPat.id + '\')" style="padding:6px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Patientkort</button>';
+    if (briefValid) h += '<button onclick="VelaAgent.showBrief(\'' + nextBk.id + '\')" style="padding:6px 14px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.2);border-radius:6px;font-size:12px;font-weight:600;color:var(--orange);cursor:pointer;font-family:var(--font)">Full brief</button>';
+    if (!briefValid && nextPat) h += '<button onclick="VelaAgent.runNow&&VelaAgent.runNow();showAutoSaveToast(\'Genererar brief…\')" style="padding:6px 14px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Generera brief</button>';
     h += '</div>';
     h += '</div></div>';
   }
 
-  // ── Dagens schema ──────────────────────────────────────────────────────
-  if (todayBks.length) {
-    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:14px">';
-    // Gap indicator for this week
-    var gapInbox = getInbox ? getInbox().filter(function(i){ return i.category === 'schedule_gap' && !i.done; }) : [];
-    var gapHint = gapInbox.length ? ' <span style="font-size:10px;color:var(--amber);background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:3px;padding:1px 5px;margin-left:6px">' + gapInbox.length + ' gl\xE4pp</span>' : '';
-    h += '<div style="display:flex;align-items:center;padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
-    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Dagens schema</span>' + gapHint;
-    h += '</div>';
-    todayBks.forEach(function(bk){
-      var bp = pats.find(function(p){ return p.id===bk.patientId; });
-      var isDone = bk.status === 'completed';
-      var isNext = bk.id === (nextBk && nextBk.id);
-      var bkBrief = null;
-      try { bkBrief = JSON.parse(localStorage.getItem('vela:previsit:'+bk.id)||'null'); } catch {}
-      var hasBrief = bkBrief && bkBrief.date === todayStr;
-      h += '<div style="display:flex;align-items:center;gap:12px;padding:9px 16px;border-bottom:1px solid var(--border2);cursor:pointer;'+(isDone?'opacity:.5':'')+(isNext?'background:rgba(224,118,40,.04)':'')+'" onclick="'+(bp?'openPat(\''+bp.id+'\')':'go(\'calendar\')')+'">';
-      h += '<span style="font-size:12px;color:var(--text2);width:36px;flex-shrink:0">'+e(bk.time||'—')+'</span>';
+  // ── Dagens schema ──────────────────────────────────────────────────────────
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
+  var gapInbox = getInbox ? getInbox().filter(function(i){ return i.category==='schedule_gap' && !i.done; }) : [];
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+  h += '<div style="display:flex;align-items:center;gap:8px">';
+  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Dagens schema</span>';
+  h += '<span style="font-size:11px;color:var(--text2)">' + todayBks.length + ' bokningar</span>';
+  if (gapInbox.length) h += '<span style="font-size:10px;color:var(--amber);background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:3px;padding:1px 6px">' + gapInbox.length + ' glapp</span>';
+  h += '</div>';
+  h += '<button onclick="go(\'calendar\')" style="font-size:12px;color:var(--text2);background:none;border:none;cursor:pointer;font-family:var(--font);padding:0">Öppna kalender →</button>';
+  h += '</div>';
+  if (todayBks.length === 0) {
+    h += '<div style="padding:28px 16px;text-align:center;color:var(--text2);font-size:13px">Inga bokningar idag</div>';
+  } else {
+    todayBks.forEach(function(bk) {
+      var bp      = pats.find(function(p){ return p.id===bk.patientId; });
+      var isDone  = bk.status === 'completed';
+      var isNext2 = bk.id === (nextBk && nextBk.id);
+      var bkBrief2 = null;
+      try { bkBrief2 = JSON.parse(localStorage.getItem('vela:previsit:'+bk.id)||'null'); } catch(e3) {}
+      var hasBrief2 = bkBrief2 && bkBrief2.date === todayStr;
+      h += '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border2);cursor:pointer;transition:background .1s;' + (isNext2?'background:rgba(224,118,40,.03)':'') + (isDone?'opacity:.55':'') + '" onclick="' + (bp?'openPat(\''+bp.id+'\')':'go(\'calendar\')') + '" onmouseover="this.style.background=\'rgba(177,186,196,.04)\'" onmouseout="this.style.background=\'' + (isNext2?'rgba(224,118,40,.03)':'') + '\'">';
+      // Time
+      h += '<span style="font-size:13px;font-weight:600;color:var(--text2);width:40px;flex-shrink:0;font-family:var(--font-mono)">' + e(bk.time||'—') + '</span>';
+      // Status dot
+      if (isDone) h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      else if (isNext2) h += '<div style="width:6px;height:6px;border-radius:50%;background:var(--orange);flex-shrink:0"></div>';
+      else h += '<div style="width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0"></div>';
+      // Name + service
       h += '<div style="flex:1;min-width:0">';
-      h += '<div style="font-size:13px;font-weight:600;color:'+(isDone?'var(--text)':'var(--ink)')+'">'+e(bk.patientName||'')+'</div>';
-      h += '<div style="font-size:11px;color:var(--text2)">'+e(bk.serviceName||'')+'</div>';
+      h += '<div style="font-size:13px;font-weight:' + (isNext2?'700':'500') + ';color:' + (isDone?'var(--text)':'var(--ink)') + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + e(bk.patientName||'') + '</div>';
+      h += '<div style="font-size:11px;color:var(--text2)">' + e(bk.serviceName||'') + (bk.duration?' · '+bk.duration+' min':'') + '</div>';
       h += '</div>';
-      if (isDone) h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
-      else if (isNext) h += '<span style="font-size:10px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.1);padding:2px 6px;border-radius:4px">Nästa</span>';
-      // Brief indicator
-      if (hasBrief && !isDone) h += '<span title="Brief klar" style="font-size:10px;color:var(--teal);background:rgba(224,118,40,.06);border:1px solid rgba(224,118,40,.15);padding:1px 5px;border-radius:3px;margin-left:2px">✓ Brief</span>';
-      else if (!isDone && !hasBrief) h += '<span title="Brief saknas" style="font-size:10px;color:var(--text2);padding:1px 5px">–</span>';
+      // Tags
+      if (isNext2) h += '<span style="font-size:10px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.1);padding:2px 7px;border-radius:4px;flex-shrink:0">Nästa</span>';
+      if (hasBrief2 && !isDone) h += '<span style="font-size:10px;color:var(--green);background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);padding:2px 6px;border-radius:4px;flex-shrink:0">Brief ✓</span>';
       h += '</div>';
+    });
+  }
+  h += '</div>'; // end schema card
+
+  // ── Åtgärder (if any) ──────────────────────────────────────────────────────
+  var actions = [];
+  if (pending.length)  actions.push({ label: pending.length + ' väntar din signatur', sub: 'AI-genererade förslag', c: 'var(--amber)', bc: 'rgba(210,153,34,.2)', fn: "rSignatureQueue()" });
+  if (missingJ > 0)    actions.push({ label: missingJ + ' journal' + (missingJ>1?'er':'') + ' saknas', sub: 'Senaste 7 dagarna', c: 'var(--red)', bc: 'rgba(248,81,73,.15)', fn: "go('list')" });
+  if (waitlist.length) actions.push({ label: waitlist.length + ' på väntelistan', sub: 'Klicka för att erbjuda tid', c: 'var(--blue)', bc: 'rgba(88,166,255,.12)', fn: "openWaitlistDialog&&openWaitlistDialog()" });
+  if (actions.length) {
+    h += '<div style="display:grid;grid-template-columns:repeat('+Math.min(actions.length,3)+',1fr);gap:8px">';
+    actions.forEach(function(a) {
+      h += '<button onclick="' + a.fn + '" style="background:var(--surface);border:1px solid var(--border);border-top:2px solid ' + a.c + ';border-radius:6px;padding:12px 14px;text-align:left;cursor:pointer;font-family:var(--font);transition:border-color .1s;width:100%">';
+      h += '<div style="font-size:13px;font-weight:700;color:' + a.c + ';margin-bottom:2px">' + a.label + '</div>';
+      h += '<div style="font-size:11px;color:var(--text2)">' + a.sub + '</div>';
+      h += '</button>';
     });
     h += '</div>';
   }
 
-  // ── Actions row ────────────────────────────────────────────────────────
-  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">';
+  h += '</div>'; // end left column
 
-  // Pending signatures
-  if (pending.length) {
-    h += '<button onclick="rSignatureQueue()" style="background:var(--surface);border:1px solid var(--amber);border-radius:6px;padding:12px 16px;text-align:left;cursor:pointer;font-family:var(--font)">';
-    h += '<div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:2px">'+pending.length+' väntar din signatur</div>';
-    h += '<div style="font-size:12px;color:var(--text)">AI-genererade förslag</div></button>';
-  }
+  // ══ RIGHT COLUMN ══════════════════════════════════════════════════════════
+  h += '<div style="display:flex;flex-direction:column;gap:14px">';
 
-  // Missing journals
-  if (missingJ > 0) {
-    h += '<button onclick="go(\'list\')" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 16px;text-align:left;cursor:pointer;font-family:var(--font)">';
-    h += '<div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px">'+missingJ+' journal'+(missingJ>1?'er':'')+' saknas</div>';
-    h += '<div style="font-size:12px;color:var(--text)">Senaste 7 dagarna</div></button>';
-  }
-
-  // Waitlist
-  if (waitlist.length > 0) {
-    h += '<button onclick="openWaitlistDialog&&openWaitlistDialog()" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 16px;text-align:left;cursor:pointer;font-family:var(--font)">';
-    h += '<div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:2px">'+waitlist.length+' på väntelistan</div>';
-    h += '<div style="font-size:12px;color:var(--text)">Klicka för att erbjuda tid</div></button>';
-  }
-
-  // Agent notis
-  if (agentItems > 0) {
-    h += '<button onclick="go(\'activity\')" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 16px;text-align:left;cursor:pointer;font-family:var(--font)">';
-    h += '<div style="font-size:13px;font-weight:700;color:var(--orange);margin-bottom:2px">'+agentItems+' olästa notiser</div>';
-    h += '<div style="font-size:12px;color:var(--text)">Öppna aktivitetsflödet</div></button>';
-  }
-
+  // ── VelaAgent feed ─────────────────────────────────────────────────────────
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+  h += '<div style="display:flex;align-items:center;gap:7px">';
+  h += '<div style="width:7px;height:7px;border-radius:50%;background:var(--orange);animation:vai-pulse 2s infinite"></div>';
+  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">VelaAgent</span>';
   h += '</div>';
-
-  // ── Snabblänkar ─────────────────────────────────────────────────────────
-  h += '<div style="display:flex;gap:8px;flex-wrap:wrap">';
-  [
-    {l:'Alla patienter', fn:"go('list')", icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>'},
-    {l:'Kalender',       fn:"go('calendar')", icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'},
-    {l:'Ny bokning',     fn:"openBookingDialog&&openBookingDialog()", icon:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'},
-    {l:'Kommunikation',  fn:"go('activity')", icon:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/>'},
-  ].forEach(function(btn){
-    h += '<button onclick="'+btn.fn+'" style="padding:7px 14px;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px">';
-    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">'+btn.icon+'</svg>';
-    h += e(btn.l) + '</button>';
-  });
+  if (agentItems) h += '<span style="font-size:11px;color:var(--orange);font-weight:600">' + agentItems + ' olästa</span>';
   h += '</div>';
-
-  // ── Vela Agent idag ──────────────────────────────────────────────────────
-  var agentFeed = typeof _agentGetFeed === 'function' ? _agentGetFeed() : [];
-  var todayFeed = agentFeed.filter(function(f){ return Date.now() - f.ts < 86400000; });
-  var cancelPend = pending.filter(function(ap){ return ap.type === 'cancel_request'; });
-  var schedPend  = pending.filter(function(ap){ return ap.type === 'reschedule_request'; });
   if (todayFeed.length || cancelPend.length || schedPend.length) {
-    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:14px">';
-    h += '<div style="display:flex;align-items:center;gap:8px;padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
-    h += '<div style="width:7px;height:7px;border-radius:50%;background:var(--orange)"></div>';
-    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Vela Agent idag</span>';
-    h += '<span style="font-size:11px;color:var(--text2);margin-left:auto">' + todayFeed.length + ' \xE5tg\xE4rder</span>';
-    h += '</div>';
-    if (todayFeed.length) {
-      var feedIcons = { cancel_detected:'\uD83D\uDEAB', booking_cancelled:'\u2705', reschedule_detected:'\uD83D\uDCC5', reschedule_sent:'\uD83D\uDCE4', cancel_handled:'\u2705', cancel_confirmed:'\u2705' };
-      todayFeed.slice(0,5).forEach(function(f) {
-        var icon2 = feedIcons[f.type] || '\u25C6';
-        var tAgo = Math.round((Date.now()-f.ts)/60000);
-        var tLabel = tAgo < 1 ? 'nu' : tAgo < 60 ? tAgo + ' min' : Math.round(tAgo/60) + 'h';
-        h += '<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--border2)">';
-        h += '<span style="font-size:13px">' + icon2 + '</span>';
-        h += '<span style="font-size:12px;color:var(--ink);flex:1">' + e(f.summary) + '</span>';
-        h += '<span style="font-size:11px;color:var(--text2);flex-shrink:0">' + tLabel + '</span>';
-        h += '</div>';
-      });
-    } else {
-      h += '<div style="padding:10px 16px;font-size:12px;color:var(--text2)">Inga agent\xE5tg\xE4rder \xE4nnu idag.</div>';
-    }
+    var feedIcons = { cancel_detected:'🚫', booking_cancelled:'✅', reschedule_detected:'📅', reschedule_sent:'📤', cancel_handled:'✅', cancel_confirmed:'✅' };
+    todayFeed.slice(0,6).forEach(function(f) {
+      var icon2  = feedIcons[f.type] || '◆';
+      var tAgo   = Math.round((Date.now()-f.ts)/60000);
+      var tLabel = tAgo < 1 ? 'nu' : tAgo < 60 ? tAgo + ' min' : Math.round(tAgo/60) + 'h';
+      h += '<div style="display:flex;align-items:flex-start;gap:9px;padding:9px 14px;border-bottom:1px solid var(--border2)">';
+      h += '<span style="font-size:13px;flex-shrink:0">' + icon2 + '</span>';
+      h += '<div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--ink);line-height:1.4">' + e(f.summary) + '</div></div>';
+      h += '<span style="font-size:10px;color:var(--text2);flex-shrink:0;margin-top:1px">' + tLabel + '</span>';
+      h += '</div>';
+    });
     if (cancelPend.length || schedPend.length) {
-      h += '<div style="padding:8px 16px;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid var(--border2)">';
-      if (cancelPend.length) h += '<button onclick="rSignatureQueue()" style="font-size:12px;padding:4px 10px;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:5px;color:var(--red);cursor:pointer;font-family:var(--font)">' + cancelPend.length + ' avbokning' + (cancelPend.length>1?'ar':'') + ' v\xE4ntar</button>';
-      if (schedPend.length) h += '<button onclick="rSignatureQueue()" style="font-size:12px;padding:4px 10px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:5px;color:var(--amber);cursor:pointer;font-family:var(--font)">' + schedPend.length + ' tidsbyte' + (schedPend.length>1?'n':'') + ' v\xE4ntar</button>';
+      h += '<div style="padding:8px 14px;display:flex;gap:6px;border-top:1px solid var(--border2)">';
+      if (cancelPend.length) h += '<button onclick="rSignatureQueue()" style="font-size:11px;padding:3px 9px;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:4px;color:var(--red);cursor:pointer;font-family:var(--font)">' + cancelPend.length + ' avbokning' + (cancelPend.length>1?'ar':'') + '</button>';
+      if (schedPend.length)  h += '<button onclick="rSignatureQueue()" style="font-size:11px;padding:3px 9px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:4px;color:var(--amber);cursor:pointer;font-family:var(--font)">' + schedPend.length + ' tidsbyte' + (schedPend.length>1?'n':'') + '</button>';
       h += '</div>';
     }
+  } else {
+    h += '<div style="padding:20px 14px;text-align:center">';
+    h += '<div style="font-size:22px;margin-bottom:8px">✓</div>';
+    h += '<div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px">Inget att agera på</div>';
+    h += '<div style="font-size:12px;color:var(--text2)">VelaAgent har koll på allt</div>';
     h += '</div>';
   }
+  h += '<div style="padding:10px 14px;border-top:1px solid var(--border2)">';
+  h += '<button onclick="go(\'activity\')" style="width:100%;padding:7px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Öppna aktivitetsflödet →</button>';
+  h += '</div>';
+  h += '</div>'; // end agent feed card
 
+  // ── Snabbåtgärder ──────────────────────────────────────────────────────────
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
+  h += '<div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Snabbåtgärder</span>';
+  h += '</div>';
+  var quickActions = [
+    { l:'Alla patienter',  fn:"go('list')",        icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
+    { l:'Kalender',        fn:"go('calendar')",     icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
+    { l:'Signaturkö',      fn:"rSignatureQueue()",  icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',  badge: pending.length||0 },
+    { l:'Ny Hael-plan',    fn:"go('form')",          icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
+    { l:'Ekonomi',         fn:"go('economy')",       icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>' },
+    { l:'Verktyg',         fn:"go('tools')",         icon:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>' },
+  ];
+  quickActions.forEach(function(a) {
+    h += '<button onclick="' + a.fn + '" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 14px;border:none;background:transparent;color:var(--text);font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font);border-bottom:1px solid var(--border2);text-align:left;transition:background .1s" onmouseover="this.style.background=\'rgba(177,186,196,.06)\';this.style.color=\'var(--ink)\'" onmouseout="this.style.background=\'transparent\';this.style.color=\'var(--text)\'">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="opacity:.6;flex-shrink:0">' + a.icon + '</svg>';
+    h += '<span>' + e(a.l) + '</span>';
+    if (a.badge) h += '<span style="margin-left:auto;font-size:10px;font-weight:700;background:rgba(210,153,34,.15);color:var(--amber);padding:1px 6px;border-radius:8px">' + a.badge + '</span>';
+    h += '</button>';
+  });
+  h += '</div>'; // end snabbåtgärder
+
+  h += '</div>'; // end right column
+  h += '</div>'; // end two-column grid
   h += '</div></div>';
   el.innerHTML = h;
 }

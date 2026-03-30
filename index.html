@@ -2225,7 +2225,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .gm-thread-row1 { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1px; }
 .gm-thread-from { font-size: 14px; font-weight: 500; color: #8b949e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
 .gm-thread-date { font-size: 11px; color: #484f58; flex-shrink: 0; margin-left: 6px; }
-.gm-thread-subj { font-size: 12px; font-weight: 400; color: #8b949e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 3px; }
+.gm-thread-subj { font-size: 14px; font-weight: 400; color: #8b949e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 3px; }
 .gm-thread-snip { font-size: 11px; color: #484f58; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gm-thread-intent { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 1px 6px; border-radius: 4px; margin-top: 3px; }
 
@@ -2365,7 +2365,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 }
 .gm-ai-card-body { padding: 10px 12px; }
 .gm-ai-draft {
-  font-size: 12px; color: #c9d1d9; line-height: 1.65; white-space: pre-wrap;
+  font-size: 14px; color: #c9d1d9; line-height: 1.65; white-space: pre-wrap;
   word-break: break-word;
 }
 
@@ -2583,7 +2583,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
   margin-bottom: 3px; line-height: 1.4;
 }
 .akt-item.unread .akt-item-title { font-weight: 600; }
-.akt-item-meta { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 6px; }
+.akt-item-meta { font-size: 14px; color: var(--text2); line-height: 1.5; margin-bottom: 6px; }
 .akt-item-time { font-size: 12px; color: var(--text2); flex-shrink: 0; white-space: nowrap; margin-top: 3px; }
 
 .akt-item-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
@@ -2603,7 +2603,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
   border-radius: 7px; padding: 8px 10px; margin: 6px 0;
 }
 .akt-ai-draft-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--teal); margin-bottom: 3px; }
-.akt-ai-draft-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.akt-ai-draft-text { font-size: 14px; color: var(--text2); line-height: 1.5; }
 
 .akt-empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -42446,7 +42446,7 @@ function openTreatmentPanel(bkId) {
     if (lastV?.soap?.S) {
       h += '<div style="margin-top:8px;background:rgba(255,255,255,.04);border-radius:8px;padding:8px 10px">';
       h += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.25);margin-bottom:3px">Senaste S</div>';
-      h += '<div style="font-size:12px;color:rgba(255,255,255,.55);line-height:1.5">' + e(lastV.soap.S.slice(0,120)) + (lastV.soap.S.length>120?'…':'') + '</div>';
+      h += '<div style="font-size:14px;color:rgba(255,255,255,.55);line-height:1.5">' + e(lastV.soap.S.slice(0,120)) + (lastV.soap.S.length>120?'…':'') + '</div>';
       h += '</div>';
     }
     h += '</div>';

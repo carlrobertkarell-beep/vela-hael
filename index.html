@@ -15633,6 +15633,7 @@ function rList() {
   });
 
   // ── Stats bar ──────────────────────────────────────────────────────────────
+  var newThisWeek    = pats.filter(function(p){ return p.createdAt && (now - new Date(p.createdAt).getTime()) < 7*86400000; }).length;
   var activeCount    = pats.filter(function(p){ var lv=(p.visits||[]).reduce(function(m,v){return v.date>m?v.date:m;},''); var d=lv?Math.floor((now-new Date(lv).getTime())/86400000):9999; return d<60&&(p.visits||[]).length>0; }).length;
   var inactiveCount  = pats.filter(function(p){ var lv=(p.visits||[]).reduce(function(m,v){return v.date>m?v.date:m;},''); var d=lv?Math.floor((now-new Date(lv).getTime())/86400000):9999; return d>=45&&d<9999&&p.status!=='discharged'; }).length;
   var riskCount      = pats.filter(function(p){ return (_clinPriority&&_clinPriority(p)||{}).level >= 2; }).length;
@@ -15776,6 +15777,10 @@ function rList() {
     style: 'border:none;background:none;outline:none;font-size:13px;color:#e6edf3;font-family:var(--font);width:160px',
     oninput: function(){ S.search = this.value; rList(); }
   });
+  var searchIcon = document.createElement('span');
+  searchIcon.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  var newIcon = document.createElement('span');
+  newIcon.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
   var headerRow = mk('div', {style:'display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px'},
     mk('div', {style:'display:flex;align-items:center;gap:10px'},
       mk('h1', {style:'font-size:18px;font-weight:600;color:#e6edf3;margin:0', text:term}),
@@ -15783,15 +15788,14 @@ function rList() {
     ),
     mk('div', {style:'display:flex;align-items:center;gap:8px'},
       mk('div', {style:'display:flex;align-items:center;gap:7px;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:4px 10px'},
-        document.createRange().createContextualFragment('<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'),
+        searchIcon,
         searchInp
       ),
       mk('button', {
         style:'display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:#238636;border:1px solid rgba(240,246,252,.1);border-radius:6px;font-size:13px;font-weight:500;color:#fff;cursor:pointer;font-family:var(--font)',
-        onclick: function(){ go('form'); }
-      }, document.createRange().createContextualFragment('<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'),
-        document.createTextNode(' Ny')
-      )
+        onclick: function(){ go('form'); },
+        html: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Ny'
+      })
     )
   );
 

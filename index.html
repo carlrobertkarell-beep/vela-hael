@@ -54,9 +54,9 @@
   /* ── Surface stack ──────────────────────────────────────── */
   /* Topbar: near-black */
   --topbar-bg:  #161b22;
-  /* Work area: Claude-dark neutral */
-  --bg:         #0d1117;
-  --bg2:        #0d1117;
+  /* Work area */
+  --bg:         #161b22;
+  --bg2:        #161b22;
   /* Cards and panels */
   --surface:    #161b22;
   --surface2:   #21262d;
@@ -92,7 +92,7 @@
   --shadow-lg: 0 8px 24px rgba(0,0,0,.5);
 
   /* ── Sidebar ────────────────────────────────────────────── */
-  --sb-bg:        #0d1117;
+  --sb-bg:        #161b22;
   --sb-border:    #30363d;
   --sb-text:      #8b949e;
   --sb-text2:     #e6edf3;
@@ -694,22 +694,22 @@ a:hover { text-decoration: underline; }
 /* Global topbar: always visible on desktop */
 .vela-global-topbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 400;
-  background: #161b22;
+  background: #0d1117;
   border-bottom: 1px solid #30363d;
   display: flex; flex-direction: column;
   font-family: var(--font);
 }
-/* Row 1: #161b22 — elevated over page, clearly separate from content */
+/* Row 1: pure black — no visible separator to row2 */
 .vela-gtb-row1 {
   height: 52px; display: flex; align-items: center; gap: 0; width: 100%;
-  background: #161b22;
+  background: #0d1117;
   flex-shrink: 0;
-  border-bottom: 1px solid #30363d;
+  border-bottom: none;
 }
 .vela-gtb-row2 {
   height: 44px; display: flex; align-items: stretch;
   padding: 0; overflow-x: auto; overflow-y: hidden;
-  flex-shrink: 0; background: #161b22;
+  flex-shrink: 0; background: #0d1117;
   border-bottom: 1px solid #30363d;
   scrollbar-width: none;
 }
@@ -752,7 +752,7 @@ a:hover { text-decoration: underline; }
 }
 .vela-gtb-search {
   display: flex; align-items: center; gap: 8px;
-  background: #0d1117; border: 1px solid #30363d;
+  background: #161b22; border: 1px solid #30363d;
   border-radius: 6px; padding: 0 10px; cursor: pointer;
   height: 28px; box-sizing: border-box;
   transition: border-color .15s;
@@ -786,7 +786,7 @@ a:hover { text-decoration: underline; }
 .vela-gtb-notif-dot {
   position: absolute; top: 5px; right: 5px;
   width: 8px; height: 8px; border-radius: 50%;
-  background: var(--orange); border: 2px solid #161b22;
+  background: var(--orange); border: 2px solid #0d1117;
 }
 
 /* Push content down when topbar is visible — row1(52) + row2(44) = 96px */
@@ -836,7 +836,7 @@ button:not([class]) { border-radius: 6px; }
 
 /* ── SIDEBAR — GITHUB EXACT ─────────────────────────────────── */
 .nav-sidebar {
-  width: 220px; flex-shrink: 0; background: #0d1117;
+  width: 220px; flex-shrink: 0; background: #161b22;
   display: flex; flex-direction: column;
   border-right: 1px solid #30363d;
   z-index: 150; overflow: hidden; position: relative;
@@ -961,7 +961,7 @@ button:not([class]) { border-radius: 6px; }
 
 /* ── CARD / ISSUE ROW — no shadow, GitHub style ──────────────── */
 .gh-card {
-  background: #161b22; border: 1px solid #30363d;
+  background: transparent; border: 1px solid #30363d;
   border-radius: 6px; overflow: hidden;
 }
 .gh-row {
@@ -1058,14 +1058,14 @@ button:not([class]) { border-radius: 6px; }
    ────────────────────────────────────────────────────────────────────────── */
 .item-list {
   border: 1px solid #30363d; border-radius: 6px; overflow: hidden;
-  background: #161b22;
+  background: transparent;
 }
 .item-list + .item-list { margin-top: 12px; }
 
 /* Row: status-icon | content (title · badge, description) | action */
 .item-row {
   display: flex; align-items: center; gap: 12px;
-  padding: 9px 14px; border-bottom: 1px solid #161b22;
+  padding: 9px 14px; border-bottom: 1px solid #21262d;
   transition: background .08s;
 }
 .item-row:last-child { border-bottom: none; }
@@ -9507,16 +9507,17 @@ function _renderGlobalTopbar() {
   h += '<svg width="10" height="10" viewBox="0 0 16 16" fill="#8b949e" style="flex-shrink:0"><path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z"/></svg>';
   h += '</button></div>';
 
-  // Search center
-  h += '<div style="flex:1;display:flex;justify-content:center;padding:0 8px;min-width:0">';
-  h += '<div class="vela-gtb-search" id="vela-gtb-search-btn" style="max-width:280px;width:100%">';
-  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-  h += '<span>S\u00f6k eller hoppa till...</span>';
-  h += '<kbd style="font-size:11px;background:rgba(177,186,196,.08);border:1px solid rgba(177,186,196,.15);border-radius:4px;padding:1px 6px;color:#6e7681;white-space:nowrap;font-family:var(--font-mono)">/</kbd>';
-  h += '</div></div>';
+  // Search — right side before icons
+  h += '<div style="flex:1"></div>';
 
   // Right
   h += '<div class="vela-gtb-right">';
+  // Search — right aligned
+  h += '<div class="vela-gtb-search" id="vela-gtb-search-btn" style="width:220px;margin-right:4px">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+  h += '<span>S\u00f6k eller hoppa till...</span>';
+  h += '<kbd style="font-size:11px;background:rgba(177,186,196,.08);border:1px solid rgba(177,186,196,.15);border-radius:4px;padding:1px 6px;color:#6e7681;white-space:nowrap;font-family:var(--font-mono)">/</kbd>';
+  h += '</div>';
   // Blixt — always visible; orange dot only when pending approvals
   h += '<button class="vela-gtb-icon-btn" id="vela-gtb-ai-btn" title="' + (pendingAppr > 0 ? 'AI v\u00e4ntar p\u00e5 dig (' + pendingAppr + ')' : '\u00d6ppna AI-panelen') + '" style="position:relative">';
   h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';

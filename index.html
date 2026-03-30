@@ -5102,6 +5102,64 @@ function renderBriefingContent(patId, briefing) {
   </div>`;
 }
 
+// ── _buildBriefSignals ───────────────────────────────────────────────────────
+// Builds a compact ordered signal list for the pre-visit brief strip.
+// Priority: red flags → intake → reactivation/visittype → AI brief points → mail
+function _buildBriefSignals(pat, bk, brief, briefValid, todayStr) {
+  var sigs = [];
+  if (!pat) return sigs;
+
+  var visits = pat.visits || [];
+  var visitNr = visits.length + 1;
+
+  // 1) Red flags from intake
+  var intake = (typeof getLatestIntakeForPatient === 'function') ? getLatestIntakeForPatient(pat.id) : null;
+  if (intake && (intake.redFlagCount||0) > 0) {
+    sigs.push({ col: '#f85149', text: (intake.redFlagCount) + ' röd' + (intake.redFlagCount>1?'a':'') + ' flagg' + (intake.redFlagCount>1?'or':'a') + ' i intake — kontrollera noga', badge: 'RÖDFLAGGA' });
+  }
+
+  // 2) Intake status
+  if (bk.intakeSent && !bk.intakeCompleted) {
+    sigs.push({ col: '#d29922', text: 'Intake skickat men ej besvarad — patienterna ifyllt inte formuläret' });
+  } else if (intake && intake.mainComplaint) {
+    var intakeAge = intake.ts ? Math.round((Date.now()-new Date(intake.ts).getTime())/(86400000)) : null;
+    var ageStr = intakeAge !== null ? ' (ifylld ' + intakeAge + ' d sedan)' : '';
+    sigs.push({ col: '#3fb950', text: 'Intake: ' + String(intake.mainComplaint).slice(0, 90) + ageStr });
+  }
+
+  // 3) Visit type + reactivation
+  var lastVisit = visits[0];
+  var daysSinceLast = lastVisit && lastVisit.date ? Math.round((Date.now()-new Date(lastVisit.date).getTime())/(86400000)) : null;
+  if (visitNr === 1) {
+    sigs.push({ col: '#4a9eff', text: 'Nybesök — ingen tidigare journal', badge: 'NY' });
+  } else if (daysSinceLast !== null && daysSinceLast > 90) {
+    var prevDiag = (pat.diagnoses && pat.diagnoses[0]) || pat.diagnosis || '';
+    var curDiag  = bk.serviceName || '';
+    var diffFlag = prevDiag && curDiag && prevDiag.toLowerCase() !== curDiag.toLowerCase();
+    sigs.push({ col: '#d29922', text: 'Återaktivering — ' + daysSinceLast + ' dagar sedan senaste besök' + (diffFlag ? ' · annan orsak (' + curDiag + ' vs ' + prevDiag + ')' : ''), badge: 'INAKTIV' });
+  } else {
+    sigs.push({ col: '#8b949e', text: 'Besök ' + visitNr + (daysSinceLast !== null ? ' · senast för ' + daysSinceLast + ' d sedan' : '') });
+  }
+
+  // 4) AI brief focus + watchFor (compact)
+  if (briefValid && brief) {
+    if (brief.focus) sigs.push({ col: 'var(--orange)', text: brief.focus });
+    if (brief.watchFor) sigs.push({ col: '#d29922', text: 'Håll utkik: ' + brief.watchFor });
+    if (brief.questions && brief.questions.length) {
+      sigs.push({ col: '#6e7681', text: '→ ' + brief.questions.slice(0,2).join('  ·  ') });
+    }
+  }
+
+  // 5) Recent patient correspondence (Gmail)
+  var gmailThreads = (window._gmailState && window._gmailState.threads) || [];
+  var patThread = pat.email ? gmailThreads.find(function(t){ return (t.fromEmail||'').toLowerCase().includes(pat.email.toLowerCase()); }) : null;
+  if (patThread && patThread.snippet) {
+    sigs.push({ col: '#4a9eff', text: 'Senaste mail: ' + String(patThread.subject||'').slice(0,40) + ' — ' + String(patThread.snippet||'').slice(0,60) });
+  }
+
+  return sigs.slice(0, 6);
+}
+
 function togBriefing(patId) {
   const body = document.getElementById('briefing-body-' + patId);
   const chev = document.getElementById('briefing-chev-' + patId);
@@ -5163,12 +5221,35 @@ async function generateBriefing(pat) {
     ? Math.round((Date.now() - new Date(lastVisit.date)) / (1000*60*60*24))
     : null;
 
-  const prompt = `Du är en erfaren klinisk kollega som briefar en naprapatt/fysioterapeut inför ett patientbesök. Ge en KORTFATTAD, KLINISKT RELEVANT briefing. Svara ENBART med JSON utan backticks.
+  // Intake enrichment
+  const intake = (typeof getLatestIntakeForPatient === 'function') ? getLatestIntakeForPatient(pat.id) : null;
+  const intakeCtx = intake ? [
+    intake.mainComplaint ? 'Huvudbesvär: ' + intake.mainComplaint : '',
+    intake.painLocation  ? 'Smärtlokal: ' + intake.painLocation   : '',
+    intake.previousTreatment ? 'Tidigare behandling: ' + intake.previousTreatment : '',
+    intake.redFlagCount > 0 ? 'RÖDA FLAGGOR: ' + intake.redFlagCount + ' st' : '',
+    intake.painDuration  ? 'Duration: ' + intake.painDuration : '',
+  ].filter(Boolean).join('\n') : 'Inget ifyllt intake-formulär.';
+
+  // Mail correspondence summary
+  const gmailThreads = (window._gmailState && window._gmailState.threads) || [];
+  const patThread = pat.email ? gmailThreads.find(function(t){ return (t.fromEmail||'').toLowerCase().includes((pat.email||'').toLowerCase()); }) : null;
+  const mailCtx = patThread ? 'Senaste korrespondens: ' + (patThread.subject||'') + ' — ' + (patThread.snippet||'').slice(0,120) : 'Ingen känd mailkorrespondens.';
+
+  // Visit type
+  const visitType = visits.length === 0 ? 'NYBESÖK (första besöket)' : (daysSinceLast !== null && daysSinceLast > 90 ? 'ÅTERAKTIVERING (' + daysSinceLast + ' dagar sedan senaste besök)' : 'ÅTERBESÖK (besök nr ' + (visits.length+1) + ')');
+
+  const prompt = `Du är en erfaren klinisk kollega som briefar en leg. naprapat inför ett patientbesök. KORTFATTAD, KLINISKT RELEVANT briefing. Svara ENBART med JSON utan backticks.
 
 Patient: ${pat.name||'Okänd'}, ${pat.birthdate||'ålder okänd'}
+Besökstyp: ${visitType}
 Diagnoser: ${diagList}
-Antal besök totalt: ${visits.length}
-${daysSinceLast !== null ? `Dagar sedan senaste besök: ${daysSinceLast}` : ''}
+
+Intake-formulär:
+${intakeCtx}
+
+Korrespondens:
+${mailCtx}
 
 Besökshistorik (senaste 3):
 ${visitSummaries}
@@ -5178,19 +5259,25 @@ ${passContext}
 
 JSON-format:
 {
+  "focus": "En mening: vad är viktigast att ha i åtanke idag (max 20 ord)",
   "points": [
-    {"text": "kort klinisk observation (max 25 ord)", "color": "green|amber|red|teal|blue"},
-    ...max 5 punkter
+    {"text": "konkret klinisk observation eller signal (max 20 ord)", "color": "green|amber|red|teal|blue"},
+    ...max 4 punkter
   ],
-  "questions": ["Fråga att ställa idag (konkret, max 15 ord)", ...max 3 frågor]
+  "questions": ["Fråga att ställa patienten (konkret, max 12 ord)", ...max 3 frågor],
+  "tests": ["Specifikt kliniskt test att utföra", ...max 3 tester],
+  "watchFor": "En mening om röd flagg eller något att vara vaksam på (om relevant, annars null)"
 }
 
 Regler:
-- Varje punkt ska vara KONKRET och HANDLINGSBAR -- inte generell
-- Använd red för varningssignaler, amber för saker att bevaka, green för positiv trend, teal för neutral info, blue för frågor/osäkerhet
-- Om smärtan ökat: red. Om genomförandegrad under 50%: amber. Om god progress: green.
-- Frågorna ska vara specifika och kliniskt relevanta för just den här patienten
-- Max 5 punkter, max 3 frågor`;
+- NYBESÖK: fokusera på intake-data, smärtbild, röda flaggor, vilka basistest att köra
+- ÅTERAKTIVERING: notera tidsgap, ev. ny besvärsbild, fråga vad som ändrats
+- ÅTERBESÖK: jämför trend, noteringarna vs förra besöket, hemprogram-följsamhet
+- red=varning/röd flagga, amber=bevaka, green=positiv trend, teal=neutral info, blue=osäkerhet
+- Röda flaggor i intake → alltid red-punkt och watchFor
+- Frågorna ska vara patientspecifika, inte generella
+- tests ska vara konkreta naprapati/fysio-tester (t.ex. "Lasègue", "SLRT", "Hawkins", "VAS vid flexion")
+- Max 4 points, max 3 questions, max 3 tests`;
 
   try {
     const result = await callAPI(prompt, MODEL_HAIKU, false);
@@ -19236,8 +19323,8 @@ function rSOAP() {
     h += '</div></div>';
   }
 
-  // Right: Editable SOAP + meta
-  h += '<div style="flex:1;overflow-y:auto;padding:20px 24px">';
+  // Right: Editable SOAP (center) + Clinical tools sidebar (right)
+  h += '<div style="flex:1;overflow-y:auto;padding:20px 24px;max-width:700px;">';
 
   // SOAP sections
   var soapLabels = {S:'Subjektivt',O:'Objektivt',A:'Bedömning',P:'Plan'};
@@ -19285,6 +19372,10 @@ function rSOAP() {
   h += '</div>';
 
   h += '</div>'; // right col
+
+  // ── Clinical tools sidebar ────────────────────────────────────────────────
+  h += _soapClinicalSidebar(S.pat, currentSOAP);
+
   h += '</div>'; // two-col
   h += '</div>'; // wrap
 
@@ -19582,6 +19673,153 @@ function smartIntakeHTML() {
   }
   h += '</div></div>';
   return h;
+}
+
+// ── Clinical tools sidebar for SOAP screen ────────────────────────────────────
+// Returns an HTML string: a narrow fixed-width right column with
+//   • Anamnes-frågor (click-to-append to S textarea)
+//   • Undersökningstester (click-to-append to O textarea)
+//   • Brief signals (intake + AI)
+// Completely stateless — re-rendered by rSOAP() on every call.
+function _soapClinicalSidebar(pat, soap) {
+  var visits  = (pat && pat.visits) || [];
+  var intake  = (pat && typeof getLatestIntakeForPatient === 'function') ? getLatestIntakeForPatient(pat.id) : null;
+  var diagRaw = (pat && (pat.diagnosis || (pat.diagnoses&&pat.diagnoses[0]))) || (soap&&soap.diagnosis) || '';
+  var diag    = diagRaw.toLowerCase();
+
+  // ── Diagnostic-aware test batteries ──────────────────────────────────────
+  var testSets = [
+    { region:'rygg/ländrygg', tests:['Lasègue (SLRT)','Omvänd Lasègue','Bragard','Kemp','Schober','Fingeravstånd golv','Valsalva','Femoralnervsträck'] },
+    { region:'nacke/cervical', tests:['Spurling (kompr.)', 'Distraktionstest', 'Adson', 'Rulle-test', 'Rotationsomfång', 'Jackson kompr.', 'Vertebralartärtest'] },
+    { region:'axel', tests:['Hawkins-Kennedy', 'Neer', 'Empty Can (Jobe)', 'Drop Arm', 'Speed', 'Apley skrapa', 'AC-kompression', 'Sulcus-tecken'] },
+    { region:'knä', tests:['Lachman', 'Anteriort/Posteriort drawer', 'McMurray', 'Apley', 'Valgus/Varusstress', 'Patellakompression', 'Thessaly'] },
+    { region:'höft', tests:['FABER (Patrick)', 'FADIR', 'Thomas test', 'Trendelenburg', 'Ober', 'Scour-test', 'Trochanter bursitis palpation'] },
+    { region:'fot/fotled', tests:['Thompson', 'Anterior drawer fotled', 'Talar tilt', 'Dorsalflexion väggl.', 'Single-leg raise', 'Moberg'] },
+    { region:'armbåge', tests:['Cozen (lat. epikondyl)', 'Golfarens armbåge (med.)', 'Valgus/Varusstress', 'Tinel nerv cubiti', 'Pronator teres test'] },
+    { region:'neurologi', tests:['DTR biceps/triceps/patellar/akillessena', 'Babinski', 'Klonus', 'Myotom L4-S1', 'Dermatomtestning', 'Kraft-gradering 0–5'] },
+  ];
+
+  // Pick relevant sets based on diagnosis or all if unknown
+  var relevantTests = [];
+  testSets.forEach(function(ts) {
+    var words = ts.region.split('/');
+    if (words.some(function(w){ return diag.includes(w) || (soap&&(soap.soap||{}).O||'').toLowerCase().includes(w); })) {
+      relevantTests = relevantTests.concat(ts.tests.map(function(t){ return { region: ts.region, test: t }; }));
+    }
+  });
+  if (!relevantTests.length) {
+    // generic defaults
+    relevantTests = [
+      { region:'generellt', test:'Rörelseomfång (alla plan)' },
+      { region:'generellt', test:'Palpation smärtlokal' },
+      { region:'generellt', test:'Neurologisk screening' },
+      { region:'generellt', test:'Lasègue (SLRT)' },
+      { region:'generellt', test:'Ortopedisk basstatus' },
+    ];
+  }
+
+  // ── Anamnesfrågor ─────────────────────────────────────────────────────────
+  var visitNr = visits.length + 1;
+  var anamnesQ = [];
+  if (visitNr === 1) {
+    anamnesQ = [
+      'När startade besvären och hur?',
+      'Konstant eller intermittent smärta?',
+      'Vad förvärrar / lindrar besvären?',
+      'Utstrålning eller domningar?',
+      'Sömnpåverkan?',
+      'Tidigare behandling för detta?',
+      'Tidigare liknande besvär?',
+      'Röda flaggor: feber, viktnedgång, nattlig smärta?',
+      'Arbete / aktivitetsnivå?',
+      'Patientens mål med behandlingen?',
+    ];
+  } else {
+    var lastSoap = visits[0] && visits[0].soap;
+    anamnesQ = [
+      'Hur har det gått sedan sist?',
+      'NRS just nu jämfört med förra besöket?',
+      'Hur har hemträningen gått?',
+      'Nya symtom sedan senast?',
+      'Hur påverkar besvären vardagen just nu?',
+      'Vad har fungerat bäst?',
+      lastSoap && lastSoap.P ? 'Följde du planen: ' + lastSoap.P.slice(0,40) + '?' : 'Följde du hemträningsprogrammet?',
+    ];
+  }
+
+  // Intake signals
+  var intakeSigs = [];
+  if (intake) {
+    if (intake.redFlagCount > 0) intakeSigs.push({ col:'#f85149', text: intake.redFlagCount + ' röd' + (intake.redFlagCount>1?'a':'') + ' flagg' + (intake.redFlagCount>1?'or':'a') + ' i intake' });
+    if (intake.mainComplaint) intakeSigs.push({ col:'#8b949e', text: intake.mainComplaint });
+    if (intake.painLocation)  intakeSigs.push({ col:'#8b949e', text: 'Smärtlokal: ' + intake.painLocation });
+    if (intake.previousTreatment) intakeSigs.push({ col:'#4a9eff', text: 'Prev. behandling: ' + intake.previousTreatment });
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  var h = '<div id="soap-tools-sidebar" style="width:260px;flex-shrink:0;border-left:1px solid #21262d;display:flex;flex-direction:column;overflow-y:auto;background:#0d1117;">';
+
+  // Header
+  h += '<div style="padding:10px 14px;border-bottom:1px solid #21262d;background:#161b22;flex-shrink:0;">';
+  h += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#6e7681;">Kliniska verktyg</div>';
+  h += '</div>';
+
+  // Intake strip (if data)
+  if (intakeSigs.length) {
+    h += '<div style="padding:10px 14px;border-bottom:1px solid #21262d;">';
+    h += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681;margin-bottom:7px;">Intake</div>';
+    intakeSigs.forEach(function(s) {
+      h += '<div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:5px;">';
+      h += '<span style="width:6px;height:6px;border-radius:50%;background:' + s.col + ';flex-shrink:0;margin-top:4px;"></span>';
+      h += '<span style="font-size:11px;color:#c9d1d9;line-height:1.5;">' + e(s.text.slice(0,80)) + '</span>';
+      h += '</div>';
+    });
+    h += '</div>';
+  }
+
+  // Anamnesfrågor
+  h += '<div style="padding:10px 14px;border-bottom:1px solid #21262d;">';
+  h += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681;margin-bottom:7px;">Anamnesfrågor <span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;color:#484f58">— klicka för att infoga i S</span></div>';
+  anamnesQ.forEach(function(q, idx) {
+    var qId = 'sq_' + idx;
+    h += '<div id="' + qId + '" style="padding:4px 8px;border-radius:4px;font-size:11px;color:#8b949e;cursor:pointer;margin-bottom:2px;line-height:1.5;transition:background .08s;border:1px solid transparent;"'
+       + ' onmouseover="this.style.background=\'rgba(177,186,196,.06)\';this.style.borderColor=\'#30363d\';"'
+       + ' onmouseout="this.style.background=\'\';this.style.borderColor=\'transparent\';"'
+       + ' onclick="_soapToolInsert(\'S\',\'' + e(q).replace(/'/g,'&#39;') + '\')">'
+       + e(q) + '</div>';
+  });
+  h += '</div>';
+
+  // Tests
+  h += '<div style="padding:10px 14px;">';
+  h += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681;margin-bottom:7px;">Tester <span style="font-size:9px;font-weight:400;text-transform:none;letter-spacing:0;color:#484f58">— klicka för att infoga i O</span></div>';
+  relevantTests.slice(0,12).forEach(function(item, idx) {
+    var tId = 'st_' + idx;
+    h += '<div id="' + tId + '" style="padding:4px 8px;border-radius:4px;font-size:11px;color:#8b949e;cursor:pointer;margin-bottom:2px;line-height:1.5;transition:background .08s;border:1px solid transparent;"'
+       + ' onmouseover="this.style.background=\'rgba(177,186,196,.06)\';this.style.borderColor=\'#30363d\';"'
+       + ' onmouseout="this.style.background=\'\';this.style.borderColor=\'transparent\';"'
+       + ' onclick="_soapToolInsert(\'O\',\'' + e(item.test).replace(/'/g,'&#39;') + ': \')">'
+       + e(item.test) + '</div>';
+  });
+  h += '</div>';
+
+  h += '</div>'; // sidebar
+  return h;
+}
+
+// Append text to a SOAP textarea and focus it
+function _soapToolInsert(letter, text) {
+  var ta = document.getElementById('soap-' + letter);
+  if (!ta) ta = document.getElementById('ms-' + letter);
+  if (!ta) return;
+  var val = ta.value;
+  var sep = val && !val.endsWith('\n') ? '\n' : '';
+  ta.value = val + sep + text;
+  if (currentSOAP && currentSOAP.soap) currentSOAP.soap[letter] = ta.value;
+  ta.focus();
+  ta.setSelectionRange(ta.value.length, ta.value.length);
+  ta.style.borderColor = 'var(--teal)';
+  setTimeout(function(){ ta.style.borderColor = 'var(--border)'; }, 600);
 }
 
 function rManualSOAP(bk) {
@@ -22069,28 +22307,28 @@ function _renderPulse() {
       h += '<div style="font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.01em;margin-bottom:3px">' + e(nextPat.name) + ' <span style="font-size:12px;color:var(--text2);font-weight:400">· besök ' + visitNr + '</span></div>';
       h += '<div style="font-size:13px;color:var(--text);margin-bottom:10px">' + e(nextPat.diagnosis||nextBk.serviceName||'') + ' · ' + (nextBk.duration||45) + ' min</div>';
     }
-    if (briefValid && brief.focus) {
-      h += '<div style="display:flex;flex-direction:column;gap:6px">';
-      h += '<div style="padding:8px 12px;background:rgba(224,118,40,.06);border-left:2px solid var(--orange);border-radius:0 4px 4px 0;font-size:13px;font-weight:600;color:var(--ink)">' + e(brief.focus) + '</div>';
-      if (brief.prepNote) h += '<div style="font-size:12px;color:var(--text);line-height:1.6">' + e(brief.prepNote) + '</div>';
-      if (brief.tests && brief.tests.length) {
-        h += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
-        h += '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);align-self:center;margin-right:2px">Tester</span>';
-        brief.tests.forEach(function(t) { h += '<span style="font-size:11px;padding:2px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--ink)">' + e(t) + '</span>'; });
+    // ── Compact clinical brief strip ────────────────────────────────────────
+    var _bs = _buildBriefSignals(nextPat, nextBk, brief, briefValid, todayStr);
+    if (_bs.length) {
+      h += '<div style="display:flex;flex-direction:column;gap:5px">';
+      _bs.forEach(function(sig) {
+        h += '<div style="display:flex;align-items:flex-start;gap:7px">';
+        h += '<span style="width:7px;height:7px;border-radius:50%;background:' + sig.col + ';flex-shrink:0;margin-top:4px"></span>';
+        h += '<span style="font-size:12px;color:var(--ink);line-height:1.5;flex:1">' + e(sig.text) + '</span>';
+        if (sig.badge) h += '<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:' + sig.col + '22;color:' + sig.col + ';font-weight:700;flex-shrink:0;margin-top:2px">' + e(sig.badge) + '</span>';
+        h += '</div>';
+      });
+      if (briefValid && brief.tests && brief.tests.length) {
+        h += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding-top:3px">';
+        h += '<span style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Test</span>';
+        brief.tests.slice(0,4).forEach(function(t){ h += '<span style="font-size:11px;padding:1px 7px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--ink)">' + e(t) + '</span>'; });
         h += '</div>';
       }
-      if (brief.questions && brief.questions.length) {
-        h += '<div>';
-        h += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin-bottom:4px">Frågor till patienten</div>';
-        brief.questions.slice(0,3).forEach(function(q) { h += '<div style="font-size:12px;color:var(--ink);display:flex;gap:5px;margin-bottom:2px"><span style="color:var(--orange);font-weight:700">→</span>' + e(q) + '</div>'; });
-        h += '</div>';
-      }
-      if (brief.watchFor) h += '<div style="padding:7px 12px;background:rgba(210,153,34,.06);border-left:2px solid var(--amber);border-radius:0 4px 4px 0;font-size:12px;color:var(--ink)"><span style="font-weight:700;color:var(--amber)">Håll utkik: </span>' + e(brief.watchFor) + '</div>';
       h += '</div>';
     } else if (isUrgent) {
-      h += '<div style="display:flex;align-items:center;gap:8px"><div style="width:13px;height:13px;border:2px solid rgba(224,118,40,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div><span style="font-size:12px;color:var(--text2)">Genererar brief automatiskt…</span></div>';
+      h += '<div style="display:flex;align-items:center;gap:8px"><div style="width:12px;height:12px;border:2px solid rgba(224,118,40,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div><span style="font-size:12px;color:var(--text2)">Genererar brief…</span></div>';
     } else {
-      h += '<span style="font-size:12px;color:var(--text2)">Brief genereras av VelaAgent inför besöket.</span>';
+      h += '<span style="font-size:12px;color:var(--text2)">Brief genereras av VelaAgent inör besöket.</span>';
     }
     h += '</div>';
     // Right side buttons

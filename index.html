@@ -9792,7 +9792,7 @@ function _renderGlobalTopbar() {
     hael:'hael', form:'hael', doc:'hael', journaldoc:'hael',
     intelligence:'intelligence', retention:'intelligence',
     actions:'actions', 'patjournal':'actions',
-    activity:'actions',
+    activity:'actions', sigqueue:'actions',
     settings:'settings', profile:'settings', availability:'settings',
   };
   var activeTab2 = tabMap2[scr2] || 'home';
@@ -9811,7 +9811,7 @@ function _renderGlobalTopbar() {
     { id:'calendar',     label:'Kalender',       dest:'calendar',     icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z' },
     // Besök removed — accessed via patient card
     { id:'hael',         label:'Hael',           dest:'hael',         icon:'M22 12h-4l-3 9L9 3l-3 9H2' },
-    { id:'actions',      label:'Åtgärder',       dest:'actions',      icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z', badge:(alerts2+pending2+gmailUnread2+unread2)||null, badgeColor:'red' },
+    { id:'actions',      label:'Åtgärder',       dest:'activity',     icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z', badge:(alerts2+pending2+gmailUnread2+unread2)||null, badgeColor:'red' },
     { id:'intelligence', label:'Insikter',       dest:'intelligence', icon:'M18 20V10M12 20V4M6 20v-6' },
     { id:'settings',     label:'Inställningar',  dest:'settings',     icon:'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z' },
   ];
@@ -9847,7 +9847,7 @@ function _renderGlobalTopbar() {
   var searchBtn = document.getElementById('vela-gtb-search-btn');
   if (searchBtn) searchBtn.onclick = function() { openCommandPalette && openCommandPalette(); };
   var inboxBtn = document.getElementById('vela-gtb-inbox-btn');
-  if (inboxBtn) inboxBtn.onclick = function() { go('actions'); };
+  if (inboxBtn) inboxBtn.onclick = function() { go('activity'); };
   var aiBtn = document.getElementById('vela-gtb-ai-btn');
   if (aiBtn) aiBtn.onclick = function() {
     var panel = document.getElementById('vela-ai-panel');
@@ -10150,7 +10150,7 @@ function rTopbar() {
   // ── Show / hide sidebar based on current screen ───────────────
   var sb = document.getElementById('nav-sidebar');
   // Screens that get sidebar
-  var SB_SCREENS = ['settings', 'availability', 'activity'];
+  var SB_SCREENS = ['settings', 'availability', 'activity', 'actions', 'sigqueue'];
   var NO_SB = [];
   if (sb) {
     var wantSidebar = SB_SCREENS.indexOf(scr) !== -1;
@@ -11277,28 +11277,7 @@ function rActions() {
   var h = css;
   h += '<div class="ra-shell">';
 
-  // ── LEFT RAIL ─────────────────────────────────────────────────────────
-  h += '<div class="ra-rail">';
-  h += '<div style="padding:4px 8px 10px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#484f58">Åtgärder</div>';
-  categories.forEach(function(cat) {
-    var cnt = cat.id
-      ? openIssues.filter(function(i){return i.type===cat.id;}).length
-      : openIssues.length;
-    var isActive = activeType === cat.id;
-    h += '<div class="ra-rail-item' + (isActive?' active':'') + '" onclick="window._actionsType=\'' + cat.id + '\';window._actionsSelected=null;rActions()">';
-    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="' + cat.icon + '"/></svg>';
-    h += '<span>' + cat.label + '</span>';
-    h += '<span class="ra-rail-count' + (cnt>0?' has-items':'') + '">' + cnt + '</span>';
-    h += '</div>';
-  });
-
-  h += '<div class="ra-rail-divider"></div>';
-  h += '<div class="ra-rail-item" onclick="window._actionsTab=\'closed\';rActions()" style="' + (activeTab==='closed'?'background:#21262d;color:#e6edf3;':'') + '">';
-  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
-  h += '<span>Hanterade</span>';
-  h += '<span class="ra-rail-count">' + closedIssues.length + '</span>';
-  h += '</div>';
-  h += '</div>'; // rail
+  // Rail removed — filter categories are in the app sidebar contextual nav
 
   // ── MIDDLE LIST ───────────────────────────────────────────────────────
   h += '<div class="ra-list">';

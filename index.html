@@ -2085,75 +2085,75 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   VELA INBOX — responsive Gmail-style UI
+   VELA MAIL — 3-panel mail client
    ══════════════════════════════════════════════════════════════════════════════ */
 
 #gm-app {
   display: flex;
-  height: calc(100vh - 107px);
+  height: calc(100vh - 96px);
   overflow: hidden;
   font-family: var(--font);
   background: var(--bg);
   position: relative;
 }
 
-/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+/* ── Sidebar ──────────────────────────────────────────────────────────────── */
 #gm-sidebar {
-  width: 220px;
+  width: 200px;
   flex-shrink: 0;
   background: var(--bg);
-  border-right: 1px solid #30363d;
+  border-right: 1px solid #21262d;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
   padding: 12px 8px;
-  gap: 2px;
+  gap: 1px;
   transition: transform .25s cubic-bezier(.4,0,.2,1);
 }
 
 .gm-compose-btn {
   display: flex; align-items: center; gap: 8px;
-  width: 100%; padding: 9px 14px;
-  background: var(--teal); color: #0d1117;
-  border: none; border-radius: 8px;
-  font-size: 13px; font-weight: 700; cursor: pointer;
-  font-family: var(--font); margin-bottom: 12px;
-  transition: filter .1s;
+  width: 100%; padding: 8px 12px;
+  background: #238636; color: #fff;
+  border: none; border-radius: 6px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  font-family: var(--font); margin-bottom: 10px;
+  transition: background .1s;
 }
-.gm-compose-btn:hover { filter: brightness(1.08); }
+.gm-compose-btn:hover { background: #2ea043; }
 
 .gm-nav-label {
-  font-size: 11px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: .06em; color: var(--text2);
-  padding: 10px 10px 4px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; color: #6e7681;
+  padding: 12px 10px 4px;
 }
-.gm-nav-group { display: flex; flex-direction: column; gap: 1px; margin-bottom: 4px; }
+.gm-nav-group { display: flex; flex-direction: column; gap: 0; margin-bottom: 2px; }
 .gm-nav-btn {
-  display: flex; align-items: center; gap: 9px;
-  width: 100%; padding: 7px 10px;
-  background: none; border: none; border-radius: 7px;
-  font-size: 13px; font-weight: 400; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 6px 10px;
+  background: none; border: none; border-radius: 6px;
+  font-size: 13px; font-weight: 400; color: #8b949e;
   cursor: pointer; font-family: var(--font); text-align: left;
-  transition: background .08s, color .08s;
+  transition: background .08s, color .08s; min-height: 30px;
 }
-.gm-nav-btn:hover { background: #21262d; color: #e6edf3; }
-.gm-nav-btn.active { background: #21262d; color: #e6edf3; font-weight: 600;  }
-.gm-nav-btn svg { flex-shrink: 0; opacity: .6; }
+.gm-nav-btn:hover { background: rgba(177,186,196,.06); color: #e6edf3; }
+.gm-nav-btn.active { background: rgba(177,186,196,.06); color: #e6edf3; font-weight: 600; }
+.gm-nav-btn svg { flex-shrink: 0; opacity: .55; }
 .gm-nav-btn.active svg { opacity: 1; }
 .gm-nav-btn span:nth-child(2) { flex: 1; }
 
 .gm-badge {
-  font-size: 11px; font-weight: 700;
-  padding: 1px 6px; border-radius: 6px;
-  background: #21262d; color: var(--text2);
+  font-size: 10px; font-weight: 700;
+  padding: 1px 6px; border-radius: 10px;
+  background: rgba(177,186,196,.1); color: #8b949e;
   flex-shrink: 0;
 }
 
-/* ── List panel ──────────────────────────────────────────────────────────── */
+/* ── List panel ───────────────────────────────────────────────────────────── */
 #gm-list-panel {
-  width: 320px;
+  width: 300px;
   flex-shrink: 0;
-  border-right: 1px solid #30363d;
+  border-right: 1px solid #21262d;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2162,81 +2162,84 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 
 .gm-list-header {
   padding: 10px 12px 8px;
-  border-bottom: 1px solid #30363d;
+  border-bottom: 1px solid #21262d;
   flex-shrink: 0;
   background: #161b22;
 }
 .gm-list-title {
   display: flex; align-items: center; gap: 8px;
-  font-size: 15px; font-weight: 700; color: #e6edf3;
+  font-size: 13px; font-weight: 700; color: #e6edf3;
   margin-bottom: 8px;
+  text-transform: uppercase; letter-spacing: .06em;
 }
 .gm-filter-tag {
-  font-size: 12px; font-weight: 600; color: var(--teal);
+  font-size: 11px; font-weight: 700; color: var(--orange);
   background: rgba(224,118,40,.1); border: 1px solid rgba(224,118,40,.2);
-  padding: 2px 8px; border-radius: 20px;
-  display: flex; align-items: center; gap: 2px;
+  padding: 1px 7px; border-radius: 10px;
+  display: inline-flex; align-items: center; gap: 3px;
 }
 .gm-spinner {
-  width: 14px; height: 14px; border: 2px solid var(--border);
-  border-top-color: var(--teal); border-radius: 50%;
+  width: 12px; height: 12px; border: 2px solid #30363d;
+  border-top-color: var(--orange); border-radius: 50%;
   animation: spin 0.7s linear infinite; margin-left: auto;
 }
 
 .gm-search-wrap {
-  display: flex; align-items: center; gap: 8px;
-  background: #21262d; border: 1px solid #30363d;
-  border-radius: 7px; padding: 6px 10px;
+  display: flex; align-items: center; gap: 7px;
+  background: #0d1117; border: 1px solid #30363d;
+  border-radius: 6px; padding: 5px 10px;
 }
 .gm-search-inp {
   flex: 1; border: none; background: none;
-  font-size: 13px; color: #e6edf3; outline: none; font-family: var(--font);
+  font-size: 12px; color: #e6edf3; outline: none; font-family: var(--font);
 }
-.gm-search-inp::placeholder { color: var(--text2); }
+.gm-search-inp::placeholder { color: #484f58; }
 .gm-search-clear {
-  background: none; border: none; color: var(--text2);
-  cursor: pointer; font-size: 16px; line-height: 1; padding: 0;
+  background: none; border: none; color: #6e7681;
+  cursor: pointer; font-size: 14px; line-height: 1; padding: 0;
 }
 
 .gm-thread-list { flex: 1; overflow-y: auto; }
 
 .gm-thread-row {
   display: flex; align-items: flex-start; gap: 10px;
-  padding: 11px 14px; border-bottom: 1px solid var(--border2);
+  padding: 10px 12px; border-bottom: 1px solid #161b22;
   cursor: pointer; transition: background .08s; position: relative;
+  border-left: 3px solid transparent;
 }
-.gm-thread-row:hover { background: #21262d; }
-.gm-thread-row.selected { background: rgba(224,118,40,.06); border-left: 3px solid var(--teal); padding-left: 11px; }
+.gm-thread-row:hover { background: rgba(177,186,196,.04); }
+.gm-thread-row.selected { background: rgba(224,118,40,.04); border-left-color: var(--orange); }
 .gm-thread-row.unread .gm-thread-from { font-weight: 700; color: #e6edf3; }
-.gm-thread-row.unread .gm-thread-subj { font-weight: 600; color: #e6edf3; }
+.gm-thread-row.unread .gm-thread-subj { color: #e6edf3; }
 
 .gm-thread-avatar {
-  width: 34px; height: 34px; border-radius: 50%;
+  width: 30px; height: 30px; border-radius: 50%;
   background: #21262d; border: 1px solid #30363d;
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 700; color: var(--text);
+  font-size: 11px; font-weight: 700; color: #8b949e;
   flex-shrink: 0; margin-top: 1px;
 }
+.gm-thread-row.unread .gm-thread-avatar { background: rgba(224,118,40,.1); color: var(--orange); border-color: rgba(224,118,40,.2); }
 
 .gm-thread-body { flex: 1; min-width: 0; }
-.gm-thread-row1 { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
-.gm-thread-from { font-size: 13px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-.gm-thread-date { font-size: 11px; color: var(--text2); flex-shrink: 0; margin-left: 6px; }
-.gm-thread-row2 { display: flex; align-items: flex-start; gap: 5px; margin-bottom: 2px; }
-.gm-thread-subj { font-size: 13px; font-weight: 400; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-.gm-thread-snip { font-size: 12px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gm-thread-row1 { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1px; }
+.gm-thread-from { font-size: 13px; font-weight: 500; color: #8b949e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.gm-thread-date { font-size: 11px; color: #484f58; flex-shrink: 0; margin-left: 6px; }
+.gm-thread-subj { font-size: 12px; font-weight: 400; color: #8b949e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 3px; }
+.gm-thread-snip { font-size: 11px; color: #484f58; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gm-thread-intent { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 1px 6px; border-radius: 4px; margin-top: 3px; }
 
 .gm-unread-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--teal); flex-shrink: 0; margin-top: 6px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--orange); flex-shrink: 0; margin-top: 5px;
 }
 
 .gm-empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: 100%; gap: 10px; color: var(--text2); font-size: 14px;
+  height: 100%; gap: 10px; color: #484f58; font-size: 13px;
 }
 
-/* ── Thread / detail panel ────────────────────────────────────────────────── */
+/* ── Thread panel ─────────────────────────────────────────────────────────── */
 #gm-thread-panel {
   flex: 1; display: flex; flex-direction: column;
   overflow: hidden; min-width: 0;
@@ -2244,73 +2247,159 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 }
 .gm-thread-empty {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  height: 100%; gap: 12px; color: var(--text2); font-size: 14px;
+  height: 100%; gap: 12px; color: #484f58; font-size: 13px;
 }
 
-/* Mobile back button (shown in thread header on mobile) */
+/* Thread header */
+.gm-th-header {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid #21262d;
+  flex-shrink: 0;
+  background: #161b22;
+}
+.gm-th-subject {
+  font-size: 16px; font-weight: 700; color: #e6edf3;
+  letter-spacing: -.01em; line-height: 1.3; margin-bottom: 8px;
+}
+.gm-th-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.gm-th-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* Intent chips */
+.gm-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 700; padding: 2px 8px;
+  border-radius: 4px; border: 1px solid; white-space: nowrap;
+}
+.gm-chip.scheduling { color: #d29922; background: rgba(210,153,34,.1); border-color: rgba(210,153,34,.25); }
+.gm-chip.cancel     { color: #f85149; background: rgba(248,81,73,.08); border-color: rgba(248,81,73,.2); }
+.gm-chip.clinical   { color: var(--orange); background: rgba(224,118,40,.08); border-color: rgba(224,118,40,.2); }
+.gm-chip.patient    { color: #58a6ff; background: rgba(88,166,255,.08); border-color: rgba(88,166,255,.2); }
+.gm-chip.admin      { color: #8b949e; background: rgba(177,186,196,.06); border-color: rgba(177,186,196,.15); }
+
+/* Thread body: messages + AI side panel */
+.gm-th-body { display: flex; flex: 1; overflow: hidden; }
+
+/* Messages scroll area */
+.gm-messages-col {
+  flex: 1; overflow-y: auto; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 12px; min-width: 0;
+}
+
+/* Individual message bubble */
+.gm-msg { display: flex; gap: 10px; }
+.gm-msg.mine { flex-direction: row-reverse; }
+.gm-msg-av {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+  background: #21262d; border: 1px solid #30363d; color: #8b949e;
+}
+.gm-msg.mine .gm-msg-av { background: rgba(224,118,40,.1); border-color: rgba(224,118,40,.2); color: var(--orange); }
+.gm-msg-content { flex: 1; min-width: 0; max-width: 88%; }
+.gm-msg.mine .gm-msg-content { display: flex; flex-direction: column; align-items: flex-end; }
+.gm-msg-meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.gm-msg.mine .gm-msg-meta { justify-content: flex-end; }
+.gm-msg-from { font-size: 12px; font-weight: 600; color: #e6edf3; }
+.gm-msg-date { font-size: 11px; color: #484f58; }
+.gm-msg-bubble {
+  padding: 10px 13px;
+  font-size: 13px; color: #c9d1d9; line-height: 1.7;
+  white-space: pre-wrap; word-break: break-word;
+  background: #161b22; border: 1px solid #21262d;
+  border-radius: 3px 10px 10px 10px;
+}
+.gm-msg.mine .gm-msg-bubble {
+  background: rgba(224,118,40,.05); border-color: rgba(224,118,40,.12);
+  border-radius: 10px 3px 10px 10px;
+  color: #e6edf3;
+}
+
+/* Reply box */
+.gm-reply-box {
+  margin: 0 20px 16px;
+  border: 1px solid #30363d; border-radius: 8px; overflow: hidden;
+  background: #161b22; flex-shrink: 0;
+  transition: border-color .15s;
+}
+.gm-reply-box:focus-within { border-color: rgba(224,118,40,.4); }
+.gm-reply-to {
+  padding: 8px 12px 0;
+  font-size: 11px; color: #6e7681; display: flex; align-items: center; gap: 5px;
+}
+.gm-reply-ta {
+  width: 100%; min-height: 72px; max-height: 200px;
+  border: none; background: none;
+  padding: 8px 12px 6px; font-size: 13px; font-family: var(--font);
+  color: #e6edf3; resize: none; outline: none; box-sizing: border-box;
+  line-height: 1.65;
+}
+.gm-reply-ta::placeholder { color: #484f58; }
+.gm-reply-footer {
+  padding: 7px 10px 8px; border-top: 1px solid #21262d;
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* AI panel — always visible right side */
+#gm-ai-side {
+  width: 280px; flex-shrink: 0;
+  border-left: 1px solid #21262d;
+  display: flex; flex-direction: column;
+  overflow-y: auto;
+  background: var(--bg);
+}
+.gm-ai-hdr {
+  padding: 12px 14px 10px; border-bottom: 1px solid #21262d;
+  flex-shrink: 0; background: #161b22;
+  display: flex; align-items: center; gap: 7px;
+}
+.gm-ai-hdr-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #6e7681; flex: 1; }
+.gm-ai-body { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+
+/* AI action card */
+.gm-ai-card {
+  border: 1px solid #21262d; border-radius: 6px; overflow: hidden;
+}
+.gm-ai-card-hdr {
+  padding: 8px 12px; background: #161b22; border-bottom: 1px solid #21262d;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #6e7681;
+}
+.gm-ai-card-body { padding: 10px 12px; }
+.gm-ai-draft {
+  font-size: 12px; color: #c9d1d9; line-height: 1.65; white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Mobile back button */
 .gm-back-btn {
-  display: none;
-  background: none; border: none; color: var(--text2);
+  display: none; background: none; border: none; color: #8b949e;
   cursor: pointer; padding: 4px 8px; border-radius: 6px;
   font-family: var(--font); font-size: 13px; font-weight: 600;
   align-items: center; gap: 5px; flex-shrink: 0;
 }
-.gm-mob-menu { display: none; background: none; border: none; color: var(--text2); cursor: pointer; padding: 4px; flex-shrink: 0; }
+.gm-mob-menu { display: none; background: none; border: none; color: #8b949e; cursor: pointer; padding: 4px; flex-shrink: 0; }
 
-/* ══════════════════════════════════════════════════════════════════════════
-   MOBILE — single panel at a time, slide transition
-   ══════════════════════════════════════════════════════════════════════════ */
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  #gm-app {
-    height: calc(100vh - 107px);
-    position: relative;
-    overflow: hidden;
-  }
-
-  #gm-sidebar {
-    position: absolute; inset: 0; z-index: 20;
-    width: 100%; border-right: none;
-    transform: translateX(-100%);
-    transition: transform .25s ease;
-    background: var(--bg);
-  }
-  #gm-list-panel {
-    position: absolute; inset: 0; z-index: 10;
-    width: 100%; border-right: none;
-    transform: translateX(0);
-    transition: transform .25s ease;
-  }
-  #gm-thread-panel {
-    position: absolute; inset: 0; z-index: 15;
-    width: 100%;
-    transform: translateX(100%);
-    transition: transform .25s ease;
-  }
-
-  /* Panel switching via data attribute */
-  #gm-app[data-panel="sidebar"] #gm-sidebar  { transform: translateX(0); }
+  #gm-app { height: calc(100vh - 96px); position: relative; overflow: hidden; }
+  #gm-sidebar { position: absolute; inset: 0; z-index: 20; width: 100%; border-right: none; transform: translateX(-100%); transition: transform .25s ease; }
+  #gm-list-panel { position: absolute; inset: 0; z-index: 10; width: 100%; border-right: none; transform: translateX(0); transition: transform .25s ease; }
+  #gm-thread-panel { position: absolute; inset: 0; z-index: 15; width: 100%; transform: translateX(100%); transition: transform .25s ease; }
+  #gm-ai-side { display: none; }
+  #gm-app[data-panel="sidebar"] #gm-sidebar { transform: translateX(0); }
   #gm-app[data-panel="sidebar"] #gm-list-panel { transform: translateX(100%); }
-  #gm-app[data-panel="list"]    #gm-list-panel { transform: translateX(0); }
-  #gm-app[data-panel="thread"]  #gm-list-panel { transform: translateX(-100%); }
-  #gm-app[data-panel="thread"]  #gm-thread-panel { transform: translateX(0); }
-
+  #gm-app[data-panel="list"] #gm-list-panel { transform: translateX(0); }
+  #gm-app[data-panel="thread"] #gm-list-panel { transform: translateX(-100%); }
+  #gm-app[data-panel="thread"] #gm-thread-panel { transform: translateX(0); }
   .gm-mob-menu { display: flex; }
   .gm-back-btn { display: flex !important; }
-  .gm-thread-row { padding: 13px 14px; }
-  .gm-thread-avatar { width: 38px; height: 38px; font-size: 13px; }
-  .gm-thread-from { font-size: 14px; }
-  .gm-thread-subj { font-size: 14px; }
-  .gm-thread-snip { font-size: 13px; }
 }
 
 @media (min-width: 769px) {
   #gm-app[data-panel] #gm-sidebar,
   #gm-app[data-panel] #gm-list-panel,
-  #gm-app[data-panel] #gm-thread-panel {
-    position: static;
-    transform: none !important;
-  }
+  #gm-app[data-panel] #gm-thread-panel { position: static; transform: none !important; }
 }
+
 
 /* ══════════════════════════════════════════════════════════════════════════════
    VELA AKTIVITET — GitHub Notifications style
@@ -8740,7 +8829,7 @@ function _bk2Save() {
     };
     savePatient(newPat);
     if (!S.patients) S.patients = [];
-    S.patients.push(newPat);
+    // Note: savePatient → savePat already does S.patients.unshift — do NOT push again
     showAutoSaveToast(patName + ' skapad ✓');
     // Send welcome message
     setTimeout(function(){ _sendWelcomeMessage && _sendWelcomeMessage(newPat); }, 1500);
@@ -8814,8 +8903,14 @@ function _bk2Save() {
   document.getElementById('bk2-overlay')?.remove();
   _showBk2Confirmation(bk, patName, email || (_bkPat&&_bkPat.phone) || '', intakeSent);
 
-  if (S.screen === 'calendar') rCalendar();
-  if (S.screen === 'dashboard' || S.screen === 'calendar') rCalendar();
+  if (S.screen === 'calendar' || S.screen === 'dashboard') {
+    // Navigate calendar to the week containing the new booking
+    if (typeof getMondayOf === 'function' && bkDate) {
+      window._calState.week = getMondayOf(new Date(bkDate + 'T12:00'));
+      window._calState.view = 'week';
+    }
+    rCalendar();
+  }
 }
 
 function _showBk2Confirmation(bk, patName, email, intakeSent) {
@@ -8935,7 +9030,7 @@ function receiveWebBooking(data) {
     };
     savePatient(newPat);
     if (!S.patients) S.patients = [];
-    S.patients.push(newPat);
+    // savePatient → savePat already does unshift — no push needed
   }
 
   // Create booking
@@ -15681,6 +15776,14 @@ function rList() {
   el.classList.add('active');
   S.screen = 'list';
 
+  // Dedup guard — savePat has a race condition where two entries can appear
+  var seen = new Set();
+  S.patients = (S.patients || []).filter(function(p) {
+    if (!p || !p.id || seen.has(p.id)) return false;
+    seen.add(p.id);
+    return true;
+  });
+
   var pats = S.patients || [];
   var q    = (S.search||'').toLowerCase();
   var now  = Date.now();
@@ -19302,7 +19405,7 @@ function rManualSOAP(bk) {
 
       <!-- LEFT: SOAP form -->
       <div style="flex:1;overflow-y:auto;min-width:0">
-        <div style="padding:24px 28px 80px">
+        <div style="max-width:700px;margin:0 auto;padding:24px 28px 80px">
 
           ${smartIntakeHTML()}
 
@@ -19367,8 +19470,8 @@ function rManualSOAP(bk) {
       </div>
 
       <!-- RIGHT: AI panel (sticky, always visible) -->
-      <div style="width:320px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;background:var(--surface);display:flex;flex-direction:column">
-        <div style="padding:16px;flex:1">
+      <div style="width:300px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;background:#161b22;display:flex;flex-direction:column">
+        <div style="padding:14px;flex:1">
           ${clinicalPanelHTML()}
         </div>
       </div>
@@ -30896,6 +30999,104 @@ function _closeMailIssue(issueId) {
 }
 
 // ── Gmail poll → Åtgärder ─────────────────────────────────────────────────────
+// ── Mail conversation state — tracks rebook/clarification loops per thread ──────
+var _mailConvState = {};
+try { _mailConvState = JSON.parse(localStorage.getItem('vela:mail-conv-state')||'{}'); } catch(e6) {}
+function _saveMailConvState() { try { localStorage.setItem('vela:mail-conv-state', JSON.stringify(_mailConvState)); } catch(e7) {} }
+
+// ── Parse day/time preference from mail body text ────────────────────────────
+function _parseSchedulingPreference(text) {
+  var t = (text||'').toLowerCase();
+  var dayMap = {
+    'måndag':1,'mån':1,'monday':1,'mon':1,
+    'tisdag':2,'tis':2,'tuesday':2,'tue':2,
+    'onsdag':3,'ons':3,'wednesday':3,'wed':3,
+    'torsdag':4,'tors':4,'thursday':4,'thu':4,
+    'fredag':5,'fre':5,'friday':5,'fri':5,
+    'lördag':6,'lör':6,'saturday':6,'sat':6,
+    'söndag':0,'sön':0,'sunday':0,'sun':0
+  };
+  // Detect specific date like "3 april", "den 15:e"
+  var specificDate = null;
+  var dateMatch = t.match(/den?\s*(\d{1,2})\s*(jan|feb|mar|apr|maj|jun|jul|aug|sep|okt|nov|dec)/);
+  if (dateMatch) {
+    var monthMap = {jan:0,feb:1,mar:2,apr:3,maj:4,jun:5,jul:6,aug:7,sep:8,okt:9,nov:10,dec:11};
+    var d = new Date(); d.setMonth(monthMap[dateMatch[2]]); d.setDate(parseInt(dateMatch[1]));
+    if (d < new Date()) d.setFullYear(d.getFullYear()+1);
+    specificDate = d.toISOString().slice(0,10);
+  }
+  // Detect day preference
+  var preferredDow = null; // 0-6
+  for (var day in dayMap) {
+    if (t.includes(day)) { preferredDow = dayMap[day]; break; }
+  }
+  // Detect time-of-day preference
+  var timeOfDay = null;
+  if (/förmiddag|fm|morgon|tidigt|09|10/.test(t)) timeOfDay = 'morning';
+  else if (/eftermiddag|em|sen|15|16|17/.test(t)) timeOfDay = 'afternoon';
+  else if (/lunch|12|13/.test(t)) timeOfDay = 'midday';
+  // Detect if patient is asking open question (no preference stated)
+  var asksOpenQuestion = !preferredDow && !specificDate &&
+    /vilka tider|finns det tid|lediga tider|när kan|närmast|snabbast|passar dig|vad har ni/.test(t);
+
+  return { preferredDow:preferredDow, specificDate:specificDate, timeOfDay:timeOfDay, asksOpenQuestion:asksOpenQuestion, hasPreference: !!(preferredDow || specificDate) };
+}
+
+// ── Find 3 best slots matching a day/time preference ─────────────────────────
+function _findSlotsMatchingPreference(pref, durationMins, maxDays) {
+  var therapists = typeof getTherapists==='function' ? getTherapists() : [];
+  var tId = (therapists[0]||{}).id||'default';
+  var dur = durationMins || 45;
+  var limit = maxDays || 28;
+  var matched = [];
+
+  for (var d = 1; d < limit && matched.length < 3; d++) {
+    var dt = new Date(Date.now() + d*86400000);
+    var dow = dt.getDay();
+    var ds = dt.toISOString().slice(0,10);
+
+    // Filter by specific date or day-of-week
+    if (pref.specificDate && ds !== pref.specificDate) continue;
+    if (!pref.specificDate && pref.preferredDow !== null && dow !== pref.preferredDow) continue;
+
+    var daySlots = typeof getAvailableSlots==='function' ? getAvailableSlots(tId, ds, dur) : [];
+    var available = daySlots.filter(function(s){ return s.available; });
+
+    // Filter by time-of-day preference
+    if (pref.timeOfDay === 'morning')   available = available.filter(function(s){ return parseInt(s.time)<12; });
+    if (pref.timeOfDay === 'afternoon') available = available.filter(function(s){ return parseInt(s.time)>=13; });
+    if (pref.timeOfDay === 'midday')    available = available.filter(function(s){ var h=parseInt(s.time); return h>=11&&h<=14; });
+
+    available.slice(0, 3-matched.length).forEach(function(s){
+      matched.push({ date:ds, time:s.time });
+    });
+  }
+  return matched;
+}
+
+// ── Get next N available slots regardless of preference ───────────────────────
+function _findNextAvailableSlots(count, durationMins) {
+  var therapists = typeof getTherapists==='function' ? getTherapists() : [];
+  var tId = (therapists[0]||{}).id||'default';
+  var dur = durationMins || 45;
+  var found = [];
+  for (var d = 1; d < 42 && found.length < count; d++) {
+    var dt = new Date(Date.now() + d*86400000);
+    var ds = dt.toISOString().slice(0,10);
+    var daySlots = typeof getAvailableSlots==='function' ? getAvailableSlots(tId, ds, dur) : [];
+    daySlots.filter(function(s){ return s.available; }).forEach(function(s){
+      if (found.length < count) found.push({ date:ds, time:s.time });
+    });
+  }
+  return found;
+}
+
+// ── Format slot as Swedish readable string ────────────────────────────────────
+function _fmtSlotSv(s) {
+  var dd = new Date(s.date+'T12:00');
+  return dd.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})+' kl '+s.time;
+}
+
 var _gmailPollRunning = false;
 async function _gmailPollActionable() {
   if (_gmailPollRunning || !_gmailIsAuthed()) return;
@@ -30903,88 +31104,142 @@ async function _gmailPollActionable() {
   try {
     var threads = await _gmailLoadInbox('in:inbox is:unread -from:me', 20);
     var closed = new Set([]);
-    try { JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').forEach(function(c){ closed.add(c.id); }); } catch {}
+    try { JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').forEach(function(c){ closed.add(c.id); }); } catch(ep) {}
+
     for (var t of threads) {
       var issueId = 'mail_' + t.id;
       if (closed.has(issueId)) continue;
+
       var intent = _gmailDetectIntent(t.subject, t.snippet);
       if (intent.id === 'system') continue;
-      var fromEmail = (t.from||'').match(/<([^>]+)>/) ? t.from.match(/<([^>]+)>/)[1] : t.from;
+
+      var fromEmail = _gmailFromEmail(t.from || '');
       var pat = (S.patients||[]).find(function(p){ return p.email && fromEmail && p.email.toLowerCase()===fromEmail.toLowerCase(); });
-      var mailIssue = {
-        id: issueId, type:'mail', threadId:t.id,
-        patId: pat?pat.id:null, patName: pat?pat.name:_gmailFromName(t.from),
-        fromEmail: t.from,
-        title: t.subject||'(Inget ämne)',
-        meta: intent.id!=='other' ? intent.label : _gmailFromName(t.from),
-        intentId: intent.id, intentLabel: intent.label,
-        age: 0, ts: t.date||new Date().toISOString(),
-        aiSuggestion: null,
-        aiCanAutoHandle: (intent.id==='scheduling'||intent.id==='cancel'),
-        closeFn:'_closeMailIssue', closeLabel:'Markera hanterad',
-        snippet: t.snippet,
-      };
-      // Auto-generate AI summary for list view
+
+      // ── Check if this is a reply in an existing rebook conversation ──────────
+      var convState = _mailConvState[t.id];
+      if (convState && convState.phase === 'asked_preference' && pat) {
+        // Patient replied to our "what day suits you?" question — now parse their preference
+        var fullThread = await _gmailLoadThread(t.id);
+        var msgs = (fullThread && fullThread.messages) || [];
+        var lastMsg = msgs[msgs.length-1];
+        var lastBody = typeof _gmailGetBody==='function' ? _gmailGetBody(lastMsg && lastMsg.payload) : (t.snippet||'');
+        var pref = _parseSchedulingPreference(lastBody);
+        if (pref.hasPreference || !pref.asksOpenQuestion) {
+          // Patient gave a preference — find slots and send them
+          await _aiSendSlotSuggestions(pat, t, convState.targetBookingId, pref);
+          continue;
+        }
+        // Still no preference — let issue stay for manual review
+      }
+
+      // ── Check auto-handling based on channel rules ────────────────────────
+      var scheduleRule  = (_getCommChannelRule('reschedule')||{}).mail || 'notify';
+      var cancelRule    = (_getCommChannelRule('cancel_inbound')||{}).mail || 'notify';
+      var questionRule  = (_getCommChannelRule('booking_question')||{}).mail || 'notify';
+      var clinicalRule  = (_getCommChannelRule('clinical_question')||{}).mail || 'notify';
+      var rehabRule     = (_getCommChannelRule('rehab_question')||{}).mail || 'notify';
+      var generalRule   = (_getCommChannelRule('general_question')||{}).mail || 'notify';
+
+      var autoHandled = false;
+
+      if (intent.id === 'scheduling' && scheduleRule === 'auto' && pat) {
+        autoHandled = true;
+        // Load full thread body to parse preference
+        var fullThread2 = await _gmailLoadThread(t.id);
+        var msgs2 = (fullThread2 && fullThread2.messages) || [];
+        var lastMsg2 = msgs2[msgs2.length-1];
+        var lastBody2 = typeof _gmailGetBody==='function' ? _gmailGetBody(lastMsg2 && lastMsg2.payload) : (t.snippet||'');
+        var pref2 = _parseSchedulingPreference(lastBody2 + ' ' + (t.subject||''));
+        await _aiHandleRebookRequest({ subject:t.subject, from:t.from, body:lastBody2, pref:pref2 }, pat, t.id);
+      } else if (intent.id === 'cancel' && cancelRule === 'auto' && pat) {
+        autoHandled = true;
+        _aiHandleCancelFromIssue(issueId);
+      } else if ((intent.id === 'clinical' || intent.id === 'other') &&
+                 (clinicalRule === 'auto' || rehabRule === 'auto' || generalRule === 'auto') && pat) {
+        autoHandled = true;
+        await _aiAutoReplyGeneral(pat, t);
+      }
+
+      // ── Generate AI summary (always, for list display) ────────────────────
       _gmailGenerateSummary(t, pat, intent);
-      _addMailIssue(mailIssue);
+
+      // ── Add to issues list (unless fully auto-handled and closed) ─────────
+      if (!autoHandled || !closed.has(issueId)) {
+        var mailIssue = {
+          id:issueId, type:'mail', threadId:t.id,
+          patId:pat?pat.id:null, patName:pat?pat.name:_gmailFromName(t.from||''),
+          fromEmail:t.from,
+          title:t.subject||'(Inget ämne)',
+          meta:intent.id!=='other' ? intent.label : _gmailFromName(t.from||''),
+          intentId:intent.id, intentLabel:intent.label,
+          age:0, ts:t.date||new Date().toISOString(),
+          aiSuggestion:null,
+          aiCanAutoHandle:(intent.id==='scheduling'||intent.id==='cancel'),
+          closeFn:'_closeMailIssue', closeLabel:'Markera hanterad',
+          snippet:t.snippet,
+        };
+        _addMailIssue(mailIssue);
+      }
     }
     if (typeof _aktUpdateBadge==='function') _aktUpdateBadge();
   } finally { _gmailPollRunning = false; }
 }
 
-// ── Rebook flow ───────────────────────────────────────────────────────────────
-async function _aiHandleRebookRequest(gmailMeta, pat, threadId) {
+// ── Send slot suggestions respecting patient's day preference ─────────────────
+async function _aiSendSlotSuggestions(pat, thread, targetBookingId, pref) {
   var policy = _getRebookPolicy();
   var bks = typeof getBookings==='function' ? getBookings() : [];
-  var futureBks = bks.filter(function(b){
-    return b.patientId===pat.id && b.status!=='cancelled' && b.date>=new Date().toISOString().slice(0,10);
-  }).sort(function(a,b){ return a.date>b.date?1:-1; });
-  var targetBk = futureBks[0];
+  var targetBk = bks.find(function(b){ return b.id===targetBookingId; }) ||
+    bks.filter(function(b){ return b.patientId===pat.id && b.status!=='cancelled' && b.date>=new Date().toISOString().slice(0,10); })
+      .sort(function(a,b){ return a.date>b.date?1:-1;})[0];
 
-  if (targetBk) {
-    var hours = (new Date(targetBk.date+'T'+(targetBk.time||'08:00')) - new Date()) / 3600000;
-    if (hours < policy.minNoticeHours) {
-      var cfg = getClinicConfig();
-      await _velaSendMail(pat.email, 'Re: '+(gmailMeta.subject||'Din bokning'),
-        'Hej '+pat.name.split(' ')[0]+',\n\nTyvärr är det för sent att boka om (kräver '+policy.minNoticeHours+'h varsel).\nKontakta oss gärna via telefon.\n\nMed vänliga hälsningar,\nCarl-Robert Kärell\nKansei Ortopedi & Rehabcenter');
-      if (threadId) _closeMailIssue('mail_'+threadId);
-      showAutoSaveToast('AI svarade: för kort varsel');
-      return { ok:true, action:'too_late' };
-    }
-  }
+  var dur = targetBk ? (targetBk.duration||45) : 45;
+  var offered = pref && pref.hasPreference
+    ? _findSlotsMatchingPreference(pref, dur, 42)
+    : _findNextAvailableSlots(policy.slotsToOffer, dur);
 
-  var therapists = typeof getTherapists==='function' ? getTherapists() : [];
-  var tId = (therapists[0]||{}).id||'default';
-  var allSlots = [];
-  for (var d=1; d<21 && allSlots.length < policy.slotsToOffer*4; d++) {
-    var dt = new Date(Date.now()+d*86400000);
-    var ds = dt.toISOString().slice(0,10);
-    var daySlots = getAvailableSlots(tId, ds, targetBk?(targetBk.duration||45):45);
-    daySlots.filter(function(s){ return s.available; }).forEach(function(s){ allSlots.push({date:ds,time:s.time}); });
-  }
-  var offered = allSlots.slice(0, policy.slotsToOffer);
+  var key = typeof _velaGetApiKey==='function' ? _velaGetApiKey('anthropic') : null;
+  var cfg = typeof getClinicConfig==='function' ? getClinicConfig() : {};
+  var sig = '\n\nMed v\u00e4nliga h\u00e4lsningar,\n'+(cfg.signature||'Carl-Robert Kärell')+'\n'+(cfg.name||'Kansei Ortopedi & Rehabcenter');
 
   if (!offered.length) {
-    await _velaSendMail(pat.email, 'Re: '+(gmailMeta.subject||'Din bokning'),
-      'Hej '+pat.name.split(' ')[0]+',\n\nVi ser inga lediga tider de närmaste dagarna. Vi återkommer!\n\nMed vänliga hälsningar,\nCarl-Robert Kärell\nKansei Ortopedi & Rehabcenter');
-    return { ok:true, action:'no_slots' };
+    var noSlotsMsg = 'Hej '+pat.name.split(' ')[0]+'!\n\nTyvärr ser vi inga lediga tider '+(pref&&pref.hasPreference?'den dagen':'de närmaste veckorna')+'.\nVill du prova ett annat datum, eller kontakta oss via telefon?'+sig;
+    await _velaSendMail(pat.email, 'Re: '+(thread.subject||'Din bokning'), noSlotsMsg);
+    _mailConvState[thread.id] = { phase:'no_slots_found', ts:Date.now() };
+    _saveMailConvState();
+    return;
   }
 
-  var slotParam = offered.map(function(s){ return s.date+'@'+s.time; }).join(',');
-  var rebookUrl = getPortalEntryUrl(pat.id) + '?rebook='+(targetBk?targetBk.id:'new')+'&slots='+encodeURIComponent(slotParam);
+  var slotsList = offered.map(function(s,i){ return (i+1)+'. '+_fmtSlotSv(s); }).join('\n');
+  var portalUrl = typeof getPortalEntryUrl==='function' ? getPortalEntryUrl(pat.id)+'?rebook='+(targetBk?targetBk.id:'new')+'&slots='+encodeURIComponent(offered.map(function(s){return s.date+'@'+s.time;}).join(',')) : '';
 
-  function fmtSv(s) {
-    var dd = new Date(s.date+'T12:00');
-    return dd.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'})+' kl '+s.time;
+  var mailBody;
+  if (key) {
+    // Use AI to write a natural, personalized reply
+    try {
+      var aiPrompt = 'Skriv ett kort, varmt svar på svenska till '+pat.name.split(' ')[0]+' som vill boka om. '
+        +'Presentera dessa '+ offered.length +' lediga tider: '+slotsList+' '
+        +(portalUrl?'Inkludera denna länk för val: '+portalUrl+' ':'')
+        +'Instruktion: max 80 ord, naturlig ton, inga listsymboler. Signera: '+(cfg.signature||'Carl-Robert K\xe4rell')+', '+(cfg.name||'Kansei Ortopedi & Rehabcenter')+'. Svara BARA med mailtext, inget annat.';
+      var aiRes = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,messages:[{role:'user',content:aiPrompt}]})
+      });
+      var aiData = await aiRes.json();
+      mailBody = (aiData.content&&aiData.content[0]&&aiData.content[0].text)||null;
+    } catch(eai) {}
+  }
+  if (!mailBody) {
+    mailBody = 'Hej '+pat.name.split(' ')[0]+'!\n\nHär är lediga tider:\n\n'+slotList2+(rebookUrl?'\n\nVälj din tid här: '+rebookUrl:'')+sig;
   }
 
-  var mailBody = 'Hej '+pat.name.split(' ')[0]+'!\n\nInga problem, vi hjälper dig att boka om.\n\nLediga tider:\n\n'
-    + offered.map(function(s){ return '  \u2022 '+fmtSv(s); }).join('\n')
-    + '\n\nKlicka här för att välja din tid:\n' + rebookUrl
-    + '\n\nHör av dig om ingen tid passar!\n\nMed vänliga hälsningar,\nCarl-Robert Kärell\nKansei Ortopedi & Rehabcenter';
-
-  var result = await _velaSendMail(pat.email, 'Lediga tider för ombokning', mailBody);
+  var result = await _velaSendMail(pat.email, 'Re: '+(gmailMeta.subject||'Din bokning'), mailBody);
   if (result && result.ok) {
+    // Save state — waiting for patient to pick a slot
+    _mailConvState[threadId] = { phase:'offered_slots', offered:offered, targetBookingId:targetBk&&targetBk.id, ts:Date.now() };
+    _saveMailConvState();
     _patRecordComplianceEvent(pat.id, 'rebook');
     _addMailIssue({
       id:'rebook_'+(targetBk?targetBk.id:Date.now()), type:'rebook',
@@ -30997,6 +31252,7 @@ async function _aiHandleRebookRequest(gmailMeta, pat, threadId) {
     });
     if (threadId) _closeMailIssue('mail_'+threadId);
     showAutoSaveToast('AI skickade '+offered.length+' tider till '+pat.name.split(' ')[0]+' ✓');
+    if (typeof _agentFeedAdd==='function') _agentFeedAdd({ type:'reschedule_sent', ts:Date.now(), summary:'Skickade '+offered.length+' tidsförslag till '+pat.name.split(' ')[0], meta:{patId:pat.id} });
     return { ok:true, action:'slots_sent', offered:offered };
   }
   return { ok:false };

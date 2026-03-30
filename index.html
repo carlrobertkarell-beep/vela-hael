@@ -24990,19 +24990,24 @@ async function _triggerAgentNow() {
   if (status) status.textContent = 'Startar...';
   try {
     var res = await fetch(SB_URL + '/functions/v1/daily-agent', { method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY }, body: '{}' });
-    var data = await res.json();
-    if (data.ok) {
+    var text = await res.text();
+    var data = {};
+    try { data = JSON.parse(text); } catch(e) {}
+    if (res.ok && data.ok) {
       var s = data.stats || {};
       if (status) status.textContent = '✓ Klar! ' + ((s.remindersSent||0)+(s.followupsSent||0)+(s.nudgesSent||0)) + ' meddelanden, briefing ' + (s.briefingSent ? 'skickad' : 'ej konfigurerad');
       if (btn) btn.textContent = '✓ Kördes';
       showAutoSaveToast('Daily Agent körd ✓');
     } else {
-      if (status) status.textContent = '✗ Fel: ' + (data.error || 'okänt');
+      var errMsg = data.error || data.message || ('HTTP ' + res.status + ': ' + text.slice(0,120));
+      if (status) status.textContent = '✗ ' + errMsg;
       if (btn) { btn.disabled = false; btn.textContent = '▶ Kör agent nu'; }
+      console.error('daily-agent response:', res.status, text);
     }
   } catch(ex) {
-    if (status) status.textContent = '✗ Kunde inte nå edge function';
+    if (status) status.textContent = '✗ Nätverksfel: ' + ex.message;
     if (btn) { btn.disabled = false; btn.textContent = '▶ Kör agent nu'; }
+    console.error('daily-agent fetch error:', ex);
   }
 }
 

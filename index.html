@@ -24956,8 +24956,7 @@ async function _stAgentStatus(el) {
   el.innerHTML = '<div style="padding:32px 24px;color:#8b949e;font-size:13px">Laddar agent-status...</div>';
   var runs = [];
   try {
-    var res = await fetch(SB_URL + '/rest/v1/pass_log?pat_id=eq.agent&type=eq.agent_run&order=logged_at.desc&limit=7', { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
-    if (res.ok) runs = await res.json();
+    runs = JSON.parse(localStorage.getItem('vela:agent-runs') || '[]');
   } catch(e) {}
   var lastRun = runs[0];
   var lastRunData = lastRun ? (typeof lastRun.data === 'string' ? JSON.parse(lastRun.data) : lastRun.data) : null;
@@ -24995,6 +24994,13 @@ async function _triggerAgentNow() {
     try { data = JSON.parse(text); } catch(e) {}
     if (res.ok && data.ok) {
       var s = data.stats || {};
+      // Persist run record so status tiles update immediately
+      try {
+        var agentRuns = JSON.parse(localStorage.getItem('vela:agent-runs') || '[]');
+        agentRuns.unshift({ logged_at: new Date().toISOString(), data: { reminders: s.remindersSent||0, followups: s.followupsSent||0, nudges: s.nudgesSent||0, briefing: !!s.briefingSent } });
+        if (agentRuns.length > 20) agentRuns = agentRuns.slice(0, 20);
+        localStorage.setItem('vela:agent-runs', JSON.stringify(agentRuns));
+      } catch(e) {}
       if (status) status.textContent = '✓ Klar! ' + ((s.remindersSent||0)+(s.followupsSent||0)+(s.nudgesSent||0)) + ' meddelanden, briefing ' + (s.briefingSent ? 'skickad' : 'ej konfigurerad');
       if (btn) btn.textContent = '✓ Kördes';
       showAutoSaveToast('Daily Agent körd ✓');
@@ -34343,15 +34349,12 @@ async function _stVelaAgent(el) {
   el.innerHTML = '<div style="padding:40px 32px;color:var(--text2);font-size:13px">Laddar agent-status\u2026</div>';
   var cfg = getClinicConfig ? getClinicConfig() : {};
 
-  // Fetch daily agent run history from Supabase
+  // Read agent run history from localStorage
   var runs = [];
-  try {
-    var res = await fetch(SB_URL + '/rest/v1/pass_log?pat_id=eq.agent&type=eq.agent_run&order=logged_at.desc&limit=5', { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
-    if (res.ok) runs = await res.json();
-  } catch(e) {}
+  try { runs = JSON.parse(localStorage.getItem('vela:agent-runs') || '[]'); } catch(e) {}
 
   var lastRun = runs[0];
-  var lastRunData = lastRun ? (typeof lastRun.data === 'string' ? JSON.parse(lastRun.data) : lastRun.data) : null;
+  var lastRunData = lastRun ? lastRun.data : null;
   var lastRunTime = lastRun ? new Date(lastRun.logged_at).toLocaleString('sv-SE', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : 'Aldrig';
 
   // Local agent feed

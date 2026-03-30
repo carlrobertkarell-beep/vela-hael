@@ -12841,6 +12841,7 @@ window._aktState = window._aktState || {
   filter: 'all',      // all | mail | system | journal | portal
   search: '',
   selected: null,
+  mailThreadId: null, // selected thread id in inline mail view
 };
 
 // ── Notification storage ──────────────────────────────────────────────────────
@@ -13291,11 +13292,82 @@ function rInbox() {
     return;
   }
 
-  if (st.filter === 'mail' || (st.filter === 'all' && st.view === 'inbox')) {
-    // Show Gmail threads inline when filter=mail or inbox
+  // ── MAIL INLINE VIEW ────────────────────────────────────────────────────────
+  if (st.filter === 'mail') {
+    var _mAuthd  = _gmailIsAuthed && _gmailIsAuthed();
+    var _mAll    = (window._gmailState && window._gmailState.threads || []);
+    var _mSelTid = st.mailThreadId || (_mAll[0] && (_mAll[0].id || _mAll[0].threadId));
+
+    if (!_mAuthd) {
+      h += '<div style="padding:60px 24px;text-align:center;color:var(--text2)">';
+      h += '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" style="margin:0 auto 16px;display:block;opacity:.3"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
+      h += '<div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:8px">E-post ej kopplad</div>';
+      h += '<button onclick="_gmailAuth(function(){rInbox()})" style="padding:8px 18px;background:var(--teal);color:#0d1117;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">Koppla Gmail</button>';
+      h += '</div>';
+    } else {
+      h += '<div style="display:flex;height:calc(100vh - 160px);overflow:hidden;min-height:0">';
+
+      // Left: thread list
+      h += '<div id="akt-mail-list" style="width:300px;border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;background:var(--bg)">';
+      if (!_mAll.length) {
+        h += '<div style="padding:40px 16px;text-align:center;color:var(--text2);font-size:13px">Laddar inkorg...</div>';
+      } else {
+        _mAll.slice(0, 40).forEach(function(t) {
+          var _mtid = t.id || t.threadId;
+          var _msel = _mtid === _mSelTid;
+          var _mint = _gmailDetectIntent(t.subject, t.snippet);
+          var _mic  = { scheduling:'#d29922', cancel:'#f85149', clinical:'var(--teal)', admin:'#8b949e' }[_mint.id] || 'var(--text2)';
+          h += '<div class="gm-thread-row' + (t.unread?' unread':'') + (_msel?' selected':'') + '" data-mail-tid="' + _mtid + '" style="padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">';
+          h += '<div style="display:flex;align-items:flex-start;gap:8px">';
+          if (t.unread) h += '<div style="width:7px;height:7px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:4px"></div>';
+          else          h += '<div style="width:7px;height:7px;flex-shrink:0"></div>';
+          h += '<div style="flex:1;min-width:0">';
+          h += '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:4px;margin-bottom:2px">';
+          h += '<span class="gm-thread-from" style="font-size:13px;font-weight:' + (t.unread?'700':'500') + ';color:' + (t.unread?'var(--ink)':'var(--text)') + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + e(t.fromName||t.from||'') + '</span>';
+          h += '<span style="font-size:11px;color:var(--text2);flex-shrink:0">' + _gmailDateStr(t.date) + '</span>';
+          h += '</div>';
+          h += '<div style="font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px">' + e((t.subject||'(Inget ämne)').slice(0,50)) + '</div>';
+          if (_mint.id !== 'other') h += '<span style="font-size:10px;color:' + _mic + ';font-weight:700;text-transform:uppercase;letter-spacing:.05em">' + _mint.label + '</span>';
+          h += '</div></div></div>';
+        });
+      }
+      h += '</div>'; // akt-mail-list
+
+      // Right: thread content — _gmailOpenThread populates this by id
+      h += '<div id="gm-thread-panel" style="flex:1;overflow-y:auto;min-width:0;background:var(--bg)">';
+      if (!_mSelTid) {
+        h += '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;color:var(--text2)">';
+        h += '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" style="opacity:.25"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
+        h += '<span style="font-size:14px">Välj ett mail för att läsa</span>';
+        h += '</div>';
+      } else {
+        h += '<div style="display:flex;align-items:center;justify-content:center;height:100%;gap:10px">';
+        h += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6-8.5"/></svg>';
+        h += '<span style="font-size:13px;color:var(--text2)">Laddar tråd...</span>';
+        h += '</div>';
+      }
+      h += '</div>'; // gm-thread-panel
+
+      h += '</div>'; // two-pane flex
+    }
+    h += '</div></div></div>'; // list, main, shell
+    el.innerHTML = h;
+    _aktWireEvents(el);
+    if (_mAuthd && _mSelTid) {
+      _gmailState.selectedThread = null;
+      _gmailOpenThread(_mSelTid);
+    }
+    if (_mAuthd && !_mAll.length) {
+      _gmailLoadFolder().then(function(){ rInbox(); });
+    }
+    return;
+  }
+
+  // Show unread mail preview in Inkorg (filter=all)
+  if (st.filter === 'all' && st.view === 'inbox') {
     var gmailThreads = (window._gmailState && window._gmailState.threads || []).filter(function(t){ return t.unread; }).slice(0,5);
-    if (gmailThreads.length && st.filter !== 'system' && st.filter !== 'journal' && st.filter !== 'portal') {
-      if (st.filter === 'all') h += '<div class="akt-group-header">Mail · Olästa</div>';
+    if (gmailThreads.length) {
+      h += '<div class="akt-group-header">Mail · Olästa</div>';
       gmailThreads.forEach(function(t) {
         var intent = _gmailDetectIntent(t.subject, t.snippet);
         var ic = { scheduling:'#d29922', cancel:'#f85149', clinical:'var(--teal)' }[intent.id];
@@ -13310,9 +13382,6 @@ function rInbox() {
         h += '<div class="akt-item-time">' + _gmailDateStr(t.date) + '</div>';
         h += '</div>';
       });
-    }
-    if (st.filter === 'mail' && _gmailIsAuthed && _gmailIsAuthed()) {
-      h += '<div style="padding:12px 20px"><button onclick="go(\'activity\');_gmailLoadFolder()" style="font-size:13px;color:var(--teal);background:none;border:none;cursor:pointer;font-family:var(--font)">Öppna hela inkorgen i Gmail-vyn →</button></div>';
     }
   }
 
@@ -24307,7 +24376,11 @@ var _velaPortalAuth = (function() {
     var pat = (S && S.patients || []).find(function(p){ return (p.email || '').toLowerCase() === email.toLowerCase(); });
     if (pat) { _launchPortalUI(pat.id); return true; }
     try {
-      var r = await fetch(SB_URL + '/rest/v1/patients?select=id,data', { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY } });
+      // Använd portal-session-token (ej anon-nyckel) för att respektera RLS på patients
+      var _portalSession = null;
+      try { _portalSession = JSON.parse(sessionStorage.getItem('vela:portal-auth-session') || 'null'); } catch(ex2) {}
+      var _portalToken = (_portalSession && _portalSession.token) ? _portalSession.token : SB_KEY;
+      var r = await fetch(SB_URL + '/rest/v1/patients?select=id,data', { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + _portalToken } });
       if (r.ok) {
         var rows = await r.json();
         for (var i = 0; i < rows.length; i++) {
@@ -24728,9 +24801,20 @@ function _aktWireEvents(el) {
   });
   shell.querySelectorAll('[data-mail-tid]').forEach(function(el2) {
     el2.addEventListener('click', function() {
-      _gmailOpenThread(el2.getAttribute('data-mail-tid'));
+      var _tid = el2.getAttribute('data-mail-tid');
       window._aktState.filter = 'mail';
-      rInbox();
+      window._aktState.mailThreadId = _tid;
+      // If gm-thread-panel already in DOM (inline view), load directly
+      var _tp = document.getElementById('gm-thread-panel');
+      if (_tp) {
+        _tp.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;gap:10px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6-8.5"/></svg><span style="font-size:13px;color:#8b949e">Laddar...</span></div>';
+        // Update selection highlight in list
+        document.querySelectorAll('#akt-mail-list [data-mail-tid]').forEach(function(r){ r.classList.toggle('selected', r.getAttribute('data-mail-tid') === _tid); });
+        _gmailState.selectedThread = null;
+        _gmailOpenThread(_tid);
+      } else {
+        rInbox();
+      }
     });
   });
   shell.querySelectorAll('[data-nid]').forEach(function(el2) {
@@ -33085,7 +33169,7 @@ function _renderSettingsContent(tab) {
   const cfg = getClinicConfig();
   const key = S.apiKey || getKey();
   if (tab === 'general' || tab === 'clinic') el.innerHTML = _stGeneral(cfg);
-  else if (tab === 'users')         el.innerHTML = _stUsers();
+  else if (tab === 'users')         { el.innerHTML = _stUsers(); _stUsersWireEvents(); }
   else if (tab === 'services')      el.innerHTML = _stServices();
   else if (tab === 'comms')         el.innerHTML = _stComms(cfg);
   else if (tab === 'integrations')  el.innerHTML = _stIntegrations();
@@ -34745,197 +34829,310 @@ function _stClinic(cfg) {
 }
 
 // ── ANVÄNDARE & ROLLER ───────────────────────────────────────
-function _stUsers() {
+// ══════════════════════════════════════════════════════════════════════════════
+//  RBAC — roller, dimensioner, behörigheter
+// ══════════════════════════════════════════════════════════════════════════════
+
+var VELA_ROLES = [
+  { id:'owner',      label:'Ägare',         desc:'Allt — inkl. billing och API-nycklar',        color:'#e07628' },
+  { id:'manager',    label:'Chef',           desc:'Allt operationellt, ej prenumeration',         color:'#378ADD' },
+  { id:'staff',      label:'Personal',       desc:'Egna kunder som default, journal, kommunik.',  color:'#3fb950' },
+  { id:'front_desk', label:'Reception',      desc:'Schema och kunder, ej ekonomi eller journal',  color:'#d29922' },
+];
+
+var VELA_DIMS = [
+  { id:'clients',    label:'Kunder',         icon:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100 8 4 4 0 000-8z' },
+  { id:'calendar',   label:'Schema',         icon:'M3 4h18a2 2 0 012 2v14a2 2 0 01-2 2H3a2 2 0 01-2-2V6a2 2 0 012-2zM16 2v4M8 2v4M2 10h20' },
+  { id:'financials', label:'Ekonomi',        icon:'M12 2a10 10 0 100 20 10 10 0 000-20zM12 6v6l4 2' },
+  { id:'notes',      label:'Anteckningar',   icon:'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6' },
+  { id:'comms',      label:'Kommunikation',  icon:'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z' },
+  { id:'reports',    label:'Rapporter',      icon:'M18 20V10M12 20V4M6 20v-6' },
+  { id:'team',       label:'Team',           icon:'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M9 7a4 4 0 100 8 4 4 0 000-8z' },
+];
+
+// scope: none < own < location < all
+// access: none < read < write < admin
+var VELA_ROLE_DEFAULTS = {
+  owner: {
+    clients:'all/admin', calendar:'all/admin', financials:'all/admin',
+    notes:'all/admin', comms:'all/admin', reports:'all/admin', team:'all/admin',
+  },
+  manager: {
+    clients:'all/write', calendar:'all/write', financials:'all/read',
+    notes:'all/write', comms:'all/write', reports:'all/read', team:'all/write',
+  },
+  staff: {
+    clients:'own/write', calendar:'own/write', financials:'own/read',
+    notes:'own/write', comms:'own/write', reports:'own/read', team:'none/none',
+  },
+  front_desk: {
+    clients:'all/read', calendar:'all/write', financials:'none/none',
+    notes:'none/none', comms:'all/read', reports:'none/none', team:'none/none',
+  },
+};
+
+var VELA_SCOPE_ORDER  = ['none','own','location','all'];
+var VELA_ACCESS_ORDER = ['none','read','write','admin'];
+
+function _velaGetPerm(user, dim) {
+  // overrides per dimension, fallback to role default
+  var overrides = user.overrides || {};
+  if (overrides[dim]) return overrides[dim]; // 'scope/access' string
+  var role = user.role || 'staff';
+  var defaults = VELA_ROLE_DEFAULTS[role] || VELA_ROLE_DEFAULTS['staff'];
+  return defaults[dim] || 'none/none';
+}
+
+function _velaCanDo(user, dim, minScope, minAccess) {
+  var perm   = _velaGetPerm(user, dim).split('/');
+  var scope  = perm[0] || 'none';
+  var access = perm[1] || 'none';
+  var scopeOk  = VELA_SCOPE_ORDER.indexOf(scope)  >= VELA_SCOPE_ORDER.indexOf(minScope  || 'own');
+  var accessOk = VELA_ACCESS_ORDER.indexOf(access) >= VELA_ACCESS_ORDER.indexOf(minAccess || 'read');
+  return scopeOk && accessOk;
+}
+
+function _velaSetOverride(userId, dim, val) {
   var users = _getVelaUsers();
-  var currentEmail = _authUser?.email || '';
-
-  // Full 7-role definitions (excluding Vela Superadmin which is internal)
-  var klinikRoles = [
-    { id:'org_owner',    label:'Systemägare',    desc:'Äger alla kliniker, ser allt aggregerat', color:'#e07628' },
-    { id:'clinic_owner', label:'Klinikägare',    desc:'Ser och gör allt inom sin klinik',         color:'#e07628' },
-    { id:'it_admin',     label:'IT / Admin',     desc:'Inställningar & integrationer, ej patient',color:'#378ADD' },
-    { id:'therapist',    label:'Behandlare',     desc:'Egna patienter, journal, egna intäkter',   color:'#EF9F27' },
-    { id:'reception',    label:'Reception',      desc:'Bokning & patientlista, ej journal',        color:'#D85A30' },
-    { id:'report_reader',label:'Rapportläsare',  desc:'Dashboard & rapporter, ej patientdata',    color:'#888780' },
-  ];
-
-  function roleName(id) {
-    var r = klinikRoles.find(function(x){return x.id===id;});
-    return r ? r.label : id;
+  var u = users.find(function(x){ return x.id === userId; });
+  if (!u) return;
+  if (!u.overrides) u.overrides = {};
+  var def = (VELA_ROLE_DEFAULTS[u.role] || VELA_ROLE_DEFAULTS['staff'])[dim] || 'none/none';
+  if (val === def) {
+    delete u.overrides[dim]; // ta bort override om den matchar defaulten
+  } else {
+    u.overrides[dim] = val;
   }
-  function roleColor(id) {
-    var r = klinikRoles.find(function(x){return x.id===id;});
-    return r ? r.color : '#888';
-  }
+  _saveVelaUsers(users);
+  _renderSettingsContent && _renderSettingsContent('users');
+}
 
-  var h = '<div class="vela-st-section" style="max-width:820px">';
-  h += '<div class="vela-st-title" style="margin-bottom:4px">Användare & Roller</div>';
-  h += '<div class="vela-st-desc">Bjud in teammedlemmar och sätt vad de får se och göra.</div>';
+function _velaRoleChange(userId, newRole) {
+  var users = _getVelaUsers();
+  var u = users.find(function(x){ return x.id === userId; });
+  if (!u) return;
+  u.role = newRole;
+  u.overrides = {}; // rensa overrides när rollen byts
+  _saveVelaUsers(users);
+  _renderSettingsContent && _renderSettingsContent('users');
+}
 
-  // Role cards — all 6 clinic roles
-  h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0">';
-  klinikRoles.forEach(function(r) {
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;padding:13px 15px">';
-    h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">';
-    h += '<div style="width:10px;height:10px;border-radius:50%;background:'+r.color+';flex-shrink:0"></div>';
+// ── SCOPE/ACCESS CYCLE LABELS ────────────────────────────────
+var _SCOPE_LABELS  = { none:'Ingen', own:'Egna', location:'Platsen', all:'Alla' };
+var _ACCESS_LABELS = { none:'—', read:'Läs', write:'Skriv', admin:'Admin' };
+var _SCOPE_CYCLE   = ['none','own','location','all'];
+var _ACCESS_CYCLE  = ['none','read','write','admin'];
+
+// ── SETTINGS USERS TAB ───────────────────────────────────────
+
+function _stUsers() {
+  var users        = _getVelaUsers();
+  var currentEmail = (_authUser && _authUser.email) || '';
+  var selfUser     = users.find(function(u){ return u.email === currentEmail; }) || users[0] || { role:'owner' };
+  var canManage    = _velaCanDo(selfUser, 'team', 'all', 'write');
+
+  var h = '<div class="vela-st-section" style="max-width:900px">';
+  h += '<div class="vela-st-title" style="margin-bottom:4px">Användare & Behörigheter</div>';
+  h += '<div class="vela-st-desc">Bjud in teammedlemmar. Klicka på en behörighet för att justera för en enskild användare.</div>';
+
+  // ── Roll-kort ─────────────────────────────────────────────
+  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0">';
+  VELA_ROLES.forEach(function(r) {
+    var def = VELA_ROLE_DEFAULTS[r.id];
+    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px 14px">';
+    h += '<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">';
+    h += '<div style="width:9px;height:9px;border-radius:50%;background:'+r.color+';flex-shrink:0"></div>';
     h += '<div style="font-size:13px;font-weight:700;color:#e6edf3">'+r.label+'</div></div>';
-    h += '<div style="font-size:13px;color:#8b949e;line-height:1.5">'+r.desc+'</div>';
+    h += '<div style="font-size:12px;color:#8b949e;line-height:1.5;margin-bottom:8px">'+r.desc+'</div>';
+    // Mini-grid: dim → scope
+    VELA_DIMS.forEach(function(d) {
+      var perm = (def[d.id]||'none/none').split('/');
+      if (perm[0]==='none') return;
+      h += '<div style="display:flex;justify-content:space-between;font-size:11px;color:#8b949e;margin-top:3px">';
+      h += '<span>'+d.label+'</span>';
+      h += '<span style="color:'+r.color+';font-weight:600">'+(_SCOPE_LABELS[perm[0]]||perm[0])+'</span>';
+      h += '</div>';
+    });
     h += '</div>';
   });
   h += '</div>';
 
-  // Active users section
+  // ── Aktiva användare med permission grid ──────────────────
   h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:16px">';
-  h += '<div style="padding:13px 18px;border-bottom:1px solid #30363d">';
-  h += '<div style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal)">Aktiva användare</div>';
+  h += '<div style="padding:12px 18px;border-bottom:1px solid #30363d;display:flex;align-items:center;justify-content:space-between">';
+  h += '<div style="font-size:13px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--teal)">Aktiva användare</div>';
+  h += '<div style="font-size:12px;color:#8b949e">Klicka på en cell för att justera</div>';
   h += '</div>';
 
+  // Header row
+  h += '<div style="overflow-x:auto">';
+  h += '<table style="width:100%;border-collapse:collapse;min-width:700px">';
+  h += '<thead><tr style="background:var(--bg)">';
+  h += '<th style="text-align:left;padding:9px 14px;font-size:12px;font-weight:700;color:#8b949e;white-space:nowrap">Användare</th>';
+  h += '<th style="padding:9px 10px;font-size:12px;font-weight:700;color:#8b949e;text-align:center">Roll</th>';
+  VELA_DIMS.forEach(function(d) {
+    h += '<th style="padding:9px 6px;font-size:11px;font-weight:700;color:#8b949e;text-align:center;white-space:nowrap">'+d.label+'</th>';
+  });
+  h += '<th></th>';
+  h += '</tr></thead><tbody>';
+
   users.forEach(function(u, i) {
-    var isSelf = u.email === currentEmail;
+    var isSelf   = u.email === currentEmail;
     var initials = (u.name||u.email||'?').split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
-    var rColor = roleColor(u.role);
-    h += '<div style="display:flex;align-items:center;gap:14px;padding:13px 18px;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
-    h += '<div style="width:36px;height:36px;border-radius:50%;background:rgba(224,118,40,.06);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--teal);flex-shrink:0">'+initials+'</div>';
-    h += '<div style="flex:1;min-width:0">';
-    h += '<div style="font-size:13px;font-weight:600;color:#e6edf3">'+e(u.name||u.email)+(isSelf?' <span style="font-size:12px;color:#8b949e">(dig)</span>':'')+'</div>';
-    h += '<div style="font-size:13px;color:#8b949e">'+e(u.email)+'</div>';
-    if (u.speciality) h += '<div style="font-size:13px;color:#8b949e">'+e(u.speciality)+'</div>';
-    h += '</div>';
-    // Role badge + dropdown
-    h += '<div style="position:relative">';
-    h += '<div style="font-size:13px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+rColor+'18;color:'+rColor+';cursor:pointer;white-space:nowrap" data-ddid="role-dd-" data-ddidx="' + i + '" onclick="_toggleRoleDropdown(this.dataset.ddid+this.dataset.ddidx)">';
-    h += roleName(u.role||'therapist')+' ▾</div>';
-    h += '<div id="role-dd-'+i+'" style="display:none;position:absolute;right:0;top:28px;background:var(--navy);border:1px solid #30363d;border-radius:6px;overflow:hidden;z-index:100;min-width:140px">';
-    klinikRoles.forEach(function(r) {
-      h += '<div onclick="_velaRoleSelect(\'' + e(u.email) + '\',\'' + r.id + '\''+ ',' + i + ')" style="padding:8px 13px;font-size:13px;color:#e6edf3;cursor:pointer;display:flex;align-items:center;gap:8px" onmouseover="this.style.background=\'rgba(255,255,255,.06)\'" onmouseout="this.style.background=\'none\'">';
-      h += '<div style="width:8px;height:8px;border-radius:50%;background:'+r.color+';flex-shrink:0"></div>'+r.label+'</div>';
-    });
-    h += '</div></div>';
-    // Remove (not self, not last owner)
-    if (!isSelf) {
-      h += '<button onclick="_velaRemoveUser(\'' + e(u.email) + '\')" style="background:none;border:none;color:#8b949e;cursor:pointer;font-size:18px;line-height:1;padding:4px">×</button>';
+    var roleObj  = VELA_ROLES.find(function(r){ return r.id === u.role; }) || VELA_ROLES[2];
+    var bg       = i%2===0 ? '#161b22' : 'var(--bg)';
+
+    h += '<tr style="background:'+bg+';border-top:1px solid var(--border2)">';
+
+    // Name cell
+    h += '<td style="padding:10px 14px;white-space:nowrap">';
+    h += '<div style="display:flex;align-items:center;gap:9px">';
+    h += '<div style="width:30px;height:30px;border-radius:50%;background:rgba(224,118,40,.07);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--teal);flex-shrink:0">'+initials+'</div>';
+    h += '<div><div style="font-size:13px;font-weight:600;color:#e6edf3">'+e(u.name||u.email)+(isSelf?' <span style="font-size:11px;color:#8b949e">(dig)</span>':'')+'</div>';
+    if (u.name) h += '<div style="font-size:12px;color:#8b949e">'+e(u.email)+'</div>';
+    h += '</div></div></td>';
+
+    // Role cell — dropdown
+    h += '<td style="padding:10px;text-align:center">';
+    if (canManage && !isSelf) {
+      h += '<select data-uid="' + u.id + '" onchange="var _u=this.getAttribute(\'data-uid\');_velaRoleChange(_u,this.value)" style="background:#21262d;border:1px solid #30363d;border-radius:5px;color:#e6edf3;font-size:12px;padding:4px 6px;font-family:var(--font);cursor:pointer">';
+      VELA_ROLES.forEach(function(r) {
+        h += '<option value="'+r.id+'"'+(u.role===r.id?' selected':'')+'>'+r.label+'</option>';
+      });
+      h += '</select>';
+    } else {
+      h += '<span style="font-size:12px;font-weight:700;color:'+roleObj.color+'">'+roleObj.label+'</span>';
     }
-    h += '</div>';
+    h += '</td>';
+
+    // Permission cells per dimension
+    VELA_DIMS.forEach(function(d) {
+      var perm    = _velaGetPerm(u, d.id).split('/');
+      var scope   = perm[0] || 'none';
+      var access  = perm[1] || 'none';
+      var def     = (VELA_ROLE_DEFAULTS[u.role]||VELA_ROLE_DEFAULTS['staff'])[d.id] || 'none/none';
+      var isOverride = (u.overrides && u.overrides[d.id]);
+      var isNone  = scope === 'none';
+      var scopeColor = { none:'#8b949e', own:'#d29922', location:'#378ADD', all:'#3fb950' }[scope] || '#8b949e';
+
+      h += '<td style="padding:8px 4px;text-align:center">';
+      if (canManage && !isSelf) {
+        // Clickable cell — cycles scope, shift+click cycles access
+        var nextScope  = _SCOPE_CYCLE[(_SCOPE_CYCLE.indexOf(scope)+1) % _SCOPE_CYCLE.length];
+        var nextAccess = _ACCESS_CYCLE[(_ACCESS_CYCLE.indexOf(access)+1) % _ACCESS_CYCLE.length];
+        var newValScope  = nextScope+'/'+access;
+        var newValAccess = scope+'/'+nextAccess;
+        var _titleOv = isOverride ? ' · Override aktiv' : '';
+        h += '<div class="vela-perm-cell" data-uid="'+u.id+'" data-dim="'+d.id+'" data-scope-val="'+newValScope+'" data-access-val="'+newValAccess+'" style="display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer" title="Klick = byt räckvidd · Shift+klick = byt access'+_titleOv+'">';
+        h += '<span style="font-size:11px;font-weight:700;color:'+scopeColor+(isOverride?';text-decoration:underline':'')+'">';
+        h += (_SCOPE_LABELS[scope]||scope)+'</span>';
+        if (!isNone) h += '<span style="font-size:10px;color:#8b949e">'+(_ACCESS_LABELS[access]||access)+'</span>';
+        h += '</div>';
+      } else {
+        h += '<span style="font-size:11px;color:'+scopeColor+'">'+(_SCOPE_LABELS[scope]||scope)+'</span>';
+      }
+      h += '</td>';
+    });
+
+    // Remove button
+    h += '<td style="padding:8px 12px;text-align:center">';
+    if (canManage && !isSelf) {
+      h += '<button class="vela-remove-user" data-email="'+e(u.email)+'" style="background:none;border:none;color:#8b949e;cursor:pointer;font-size:16px;padding:2px 5px" title="Ta bort">×</button>';
+    }
+    h += '</td>';
+
+    h += '</tr>';
   });
 
   if (!users.length) {
-    h += '<div style="padding:20px;text-align:center;font-size:13px;color:#8b949e">Inga användare ännu</div>';
+    h += '<tr><td colspan="'+(VELA_DIMS.length+3)+'" style="padding:20px;text-align:center;font-size:13px;color:#8b949e">Inga användare ännu</td></tr>';
   }
-  h += '</div>';
 
-  // Invite form
-  h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px 18px;margin-bottom:18px">';
-  h += '<div style="font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin-bottom:13px">Bjud in ny användare</div>';
-  h += '<div style="display:grid;grid-template-columns:1fr 1fr auto auto;gap:10px;align-items:end">';
-  h += '<div><div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8b949e;margin-bottom:5px">Namn</div>';
-  h += '<input id="inv-name" class="field" placeholder="T.ex. Anna Lindqvist" style="margin-bottom:0"></div>';
-  h += '<div><div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8b949e;margin-bottom:5px">E-post</div>';
-  h += '<input id="inv-email" class="field" type="email" placeholder="anna@klinik.se" style="margin-bottom:0"></div>';
-  h += '<div><div style="font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8b949e;margin-bottom:5px">Roll</div>';
-  h += '<select id="inv-role" class="field" style="margin-bottom:0;padding:9px 10px">';
-  klinikRoles.forEach(function(r) {
-    h += '<option value="'+r.id+'">'+r.label+'</option>';
-  });
-  h += '</select></div>';
-  h += '<button onclick="_inviteVelaUser()" class="btn btn-p" style="padding:9px 16px;white-space:nowrap">Bjud in</button>';
-  h += '</div></div>';
+  h += '</tbody></table></div></div>';
 
-  // Permission matrix
-  h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">';
-  h += '<div style="padding:13px 18px;border-bottom:1px solid #30363d">';
-  h += '<div style="font-size:13px;font-weight:700;color:#e6edf3">Behörighetsmatris</div></div>';
-  h += _stPermMatrix();
-  h += '</div>';
+  // ── Bjud in ───────────────────────────────────────────────
+  if (canManage) {
+    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px 18px">';
+    h += '<div style="font-size:13px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--teal);margin-bottom:13px">Bjud in ny användare</div>';
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr 140px auto;gap:10px;align-items:end">';
+    h += '<div><div style="font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8b949e;margin-bottom:5px">Namn</div>';
+    h += '<input id="inv-name" class="field" placeholder="T.ex. Anna Lindqvist" style="margin-bottom:0"></div>';
+    h += '<div><div style="font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8b949e;margin-bottom:5px">E-post</div>';
+    h += '<input id="inv-email" class="field" type="email" placeholder="anna@klinik.se" style="margin-bottom:0"></div>';
+    h += '<div><div style="font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:#8b949e;margin-bottom:5px">Roll</div>';
+    h += '<select id="inv-role" class="field" style="margin-bottom:0;padding:9px 10px">';
+    VELA_ROLES.forEach(function(r) {
+      h += '<option value="'+r.id+'">'+r.label+'</option>';
+    });
+    h += '</select></div>';
+    h += '<button onclick="_inviteVelaUser()" class="btn btn-p" style="padding:9px 16px;white-space:nowrap">Bjud in</button>';
+    h += '</div>';
+    h += '<div style="margin-top:10px;font-size:12px;color:#8b949e">Klick på en behörighetscell = byt räckvidd (Egna/Platsen/Alla). Shift+klick = byt åtkomstnivå (Läs/Skriv/Admin). Understrykning = override.</div>';
+    h += '</div>';
+  }
 
   h += '</div>';
   return h;
 }
 
-function _stPermMatrix() {
-  var perms = [
-    { label:'Patientlista & kundkort',    org_owner:true,  clinic_owner:true,  it_admin:false, therapist:true,  reception:true,  report_reader:false },
-    { label:'Journalföring (SOAP)',        org_owner:true,  clinic_owner:true,  it_admin:false, therapist:true,  reception:false, report_reader:false },
-    { label:'Hael-plan (skapa)',           org_owner:true,  clinic_owner:true,  it_admin:false, therapist:true,  reception:false, report_reader:false },
-    { label:'AI-konsultation',             org_owner:true,  clinic_owner:true,  it_admin:false, therapist:true,  reception:false, report_reader:false },
-    { label:'Egna intäkter',               org_owner:true,  clinic_owner:true,  it_admin:false, therapist:true,  reception:false, report_reader:false },
-    { label:'Alla klinikintäkter',         org_owner:true,  clinic_owner:true,  it_admin:false, therapist:false, reception:false, report_reader:true  },
-    { label:'Ekonomirapporter (alla klin.)',org_owner:true,  clinic_owner:false, it_admin:false, therapist:false, reception:false, report_reader:true  },
-    { label:'Klinikanalys (Intelligence)', org_owner:true,  clinic_owner:true,  it_admin:false, therapist:false, reception:false, report_reader:true  },
-    { label:'Inställningar (klinik)',      org_owner:true,  clinic_owner:true,  it_admin:true,  therapist:false, reception:false, report_reader:false },
-    { label:'Integrationer & API',         org_owner:true,  clinic_owner:true,  it_admin:true,  therapist:false, reception:false, report_reader:false },
-    { label:'Tjänster & priser',           org_owner:true,  clinic_owner:true,  it_admin:false, therapist:false, reception:false, report_reader:false },
-    { label:'Bjuda in användare',          org_owner:true,  clinic_owner:true,  it_admin:false, therapist:false, reception:false, report_reader:false },
-    { label:'Multi-klinik overview',       org_owner:true,  clinic_owner:false, it_admin:false, therapist:false, reception:false, report_reader:false },
-  ];
-  var roles = [
-    { key:'org_owner',    label:'Systemägare' },
-    { key:'clinic_owner', label:'Klinikägare' },
-    { key:'it_admin',     label:'IT/Admin' },
-    { key:'therapist',    label:'Behandlare' },
-    { key:'reception',    label:'Reception' },
-    { key:'report_reader',label:'Rapport­läsare' },
-  ];
-  var chk = function(v) {
-    return v
-      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>'
-      : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-  };
-  var cols = '1fr ' + roles.map(function(){return '60px';}).join(' ');
-  var h = '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;overflow-x:auto">';
-  h += '<div style="display:grid;grid-template-columns:'+cols+';min-width:600px">';
-  h += '<div style="padding:10px 14px;font-size:13px;font-weight:700;color:#8b949e;background:var(--bg)">Funktion</div>';
-  roles.forEach(function(r) {
-    h += '<div style="padding:10px 6px;font-size:12px;font-weight:700;color:#8b949e;background:var(--bg);text-align:center;line-height:1.3">'+r.label+'</div>';
-  });
-  perms.forEach(function(p, i) {
-    var bg = i%2===0 ? '#161b22' : 'var(--bg)';
-    h += '<div style="padding:9px 14px;font-size:13px;color:#e6edf3;background:'+bg+';border-top:1px solid var(--border2)">'+p.label+'</div>';
-    roles.forEach(function(r) {
-      h += '<div style="display:flex;align-items:center;justify-content:center;background:'+bg+';border-top:1px solid var(--border2)">'+chk(p[r.key])+'</div>';
+function _stUsersWireEvents() {
+  document.querySelectorAll('.vela-remove-user').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      _velaRemoveUser(btn.getAttribute('data-email'));
     });
   });
-  h += '</div></div>';
-  return h;
+  document.querySelectorAll('.vela-perm-cell').forEach(function(cell) {
+    cell.addEventListener('click', function(ev) {
+      var uid = cell.getAttribute('data-uid');
+      var dim = cell.getAttribute('data-dim');
+      var val = ev.shiftKey ? cell.getAttribute('data-access-val') : cell.getAttribute('data-scope-val');
+      _velaSetOverride(uid, dim, val);
+    });
+  });
 }
-
 
 function _getVelaUsers() {
   try {
-    const raw = localStorage.getItem('vela:users');
-    const users = raw ? JSON.parse(raw) : [];
-    // Always include self as owner
-    const selfEmail = _authUser?.email || '';
-    const selfName = selfEmail.split('@')[0] || 'Ägare';
-    if (!users.find(u => u.id === 'owner-self')) {
-      users.unshift({ id:'owner-self', name: selfName, email: selfEmail, role:'owner' });
+    var raw   = localStorage.getItem('vela:users');
+    var users = raw ? JSON.parse(raw) : [];
+    var selfEmail = (_authUser && _authUser.email) || '';
+    var selfName  = selfEmail.split('@')[0] || 'Ägare';
+    if (!users.find(function(u){ return u.id === 'owner-self'; })) {
+      users.unshift({ id:'owner-self', name:selfName, email:selfEmail, role:'owner', overrides:{} });
     }
     return users;
-  } catch { return []; }
+  } catch(e) { return []; }
 }
+
 function _saveVelaUsers(users) {
-  try { localStorage.setItem('vela:users', JSON.stringify(users.filter(u => u.id !== 'owner-self'))); } catch {}
+  try {
+    localStorage.setItem('vela:users', JSON.stringify(
+      users.filter(function(u){ return u.id !== 'owner-self'; })
+    ));
+  } catch(e) {}
 }
+
 function _inviteVelaUser() {
-  const name  = document.getElementById('inv-name')?.value?.trim();
-  const email = document.getElementById('inv-email')?.value?.trim();
-  const role  = document.getElementById('inv-role')?.value || 'therapist';
+  var name  = (document.getElementById('inv-name')  && document.getElementById('inv-name').value  || '').trim();
+  var email = (document.getElementById('inv-email') && document.getElementById('inv-email').value || '').trim();
+  var role  = (document.getElementById('inv-role')  && document.getElementById('inv-role').value)  || 'staff';
   if (!name || !email) { showAutoSaveToast('Fyll i namn och e-post'); return; }
-  const users = _getVelaUsers();
-  if (users.find(u => u.email === email)) { showAutoSaveToast('Användaren finns redan'); return; }
-  users.push({ id: 'u_'+Date.now(), name, email, role, invitedAt: new Date().toISOString() });
+  var users = _getVelaUsers();
+  if (users.find(function(u){ return u.email === email; })) { showAutoSaveToast('Användaren finns redan'); return; }
+  users.push({ id:'u_'+Date.now(), name:name, email:email, role:role, overrides:{}, invitedAt:new Date().toISOString() });
   _saveVelaUsers(users);
   showAutoSaveToast(name + ' inbjuden som ' + role);
-  _renderSettingsContent('users');
+  _renderSettingsContent && _renderSettingsContent('users');
 }
-function _removeVelaUser(id) {
-  const users = _getVelaUsers().filter(u => u.id !== id);
+
+function _velaRemoveUser(email) {
+  var users = _getVelaUsers().filter(function(u){ return u.email !== email; });
   _saveVelaUsers(users);
-  _renderSettingsContent('users');
+  _renderSettingsContent && _renderSettingsContent('users');
 }
+
 function _updateUserRole(id, role) {
-  const users = _getVelaUsers();
-  const u = users.find(u => u.id === id);
-  if (u) { u.role = role; _saveVelaUsers(users); }
+  _velaRoleChange(id, role);
 }
 
 // ── TJÄNSTER TAB ─────────────────────────────────────────────

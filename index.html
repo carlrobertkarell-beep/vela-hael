@@ -55,10 +55,10 @@
   /* Topbar: near-black */
   --topbar-bg:  #161b22;
   /* Work area */
-  --bg:         #0c1414;
-  --bg2:        #0c1414;
+  --bg:         #0d1117;
+  --bg2:        #0d1117;
   /* Cards and panels */
-  --surface:    #0d1117;
+  --surface:    #161b22;
   --surface2:   #161b22;
   --surface3:   #21262d;
   --navy:       #161b22;
@@ -92,7 +92,7 @@
   --shadow-lg: 0 8px 24px rgba(0,0,0,.5);
 
   /* ── Sidebar ────────────────────────────────────────────── */
-  --sb-bg:        #0c1414;
+  --sb-bg:        #0d1117;
   --sb-border:    #30363d;
   --sb-text:      #8b949e;
   --sb-text2:     #e6edf3;
@@ -2400,6 +2400,69 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
   #gm-app[data-panel] #gm-thread-panel { position: static; transform: none !important; }
 }
 
+/* ── Compose overlay ────────────────────────────────────────────────────────── */
+#gm-compose-overlay {
+  position: fixed; bottom: 0; right: 28px; z-index: 9900;
+  width: 520px; max-width: calc(100vw - 40px);
+  background: #1c2128; border: 1px solid #30363d; border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  box-shadow: 0 -4px 32px rgba(0,0,0,.55);
+  display: flex; flex-direction: column;
+  font-family: var(--font);
+  animation: compose-in .18s ease;
+  transition: height .15s ease;
+}
+@keyframes compose-in { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+#gm-compose-overlay.minimized { height: 44px; overflow: hidden; }
+.gm-co-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; background: #21262d;
+  border-radius: 10px 10px 0 0; border-bottom: 1px solid #30363d;
+  cursor: pointer; flex-shrink: 0; user-select: none;
+}
+.gm-co-title { flex: 1; font-size: 13px; font-weight: 700; color: #e6edf3; }
+.gm-co-icon-btn {
+  background: none; border: none; color: #8b949e;
+  cursor: pointer; padding: 3px; border-radius: 4px;
+  display: flex; align-items: center; transition: background .08s, color .08s;
+}
+.gm-co-icon-btn:hover { background: rgba(177,186,196,.1); color: #e6edf3; }
+.gm-co-field {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 14px; border-bottom: 1px solid #21262d; flex-shrink: 0; position: relative;
+}
+.gm-co-field-label {
+  font-size: 10px; font-weight: 700; color: #6e7681;
+  text-transform: uppercase; letter-spacing: .07em; width: 48px; flex-shrink: 0;
+}
+.gm-co-field-inp {
+  flex: 1; border: none; background: none;
+  font-size: 13px; color: #e6edf3; outline: none; font-family: var(--font);
+}
+.gm-co-field-inp::placeholder { color: #484f58; }
+.gm-co-body-ta {
+  width: 100%; min-height: 200px; max-height: 340px;
+  border: none; background: none;
+  padding: 10px 14px; font-size: 13px; font-family: var(--font);
+  color: #e6edf3; resize: vertical; outline: none;
+  box-sizing: border-box; line-height: 1.7;
+}
+.gm-co-body-ta::placeholder { color: #484f58; }
+.gm-co-footer {
+  padding: 8px 12px; border-top: 1px solid #21262d;
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+.gm-co-suggest {
+  position: absolute; top: 100%; left: 62px; right: 0; z-index: 10001;
+  background: #161b22; border: 1px solid #30363d; border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.5); max-height: 180px; overflow-y: auto;
+}
+.gm-co-pat-row {
+  padding: 7px 12px; cursor: pointer; font-size: 13px; color: #e6edf3;
+  display: flex; gap: 8px; align-items: center;
+}
+.gm-co-pat-row:hover { background: rgba(177,186,196,.06); }
+.gm-co-pat-email { color: #8b949e; font-size: 11px; margin-left: auto; }
 
 /* ══════════════════════════════════════════════════════════════════════════════
    VELA AKTIVITET — GitHub Notifications style
@@ -14323,17 +14386,201 @@ function _gmailNotConnectedHTML() {
     + '</div>';
 }
 
-function _gmailOpenCompose() {
-  showAutoSaveToast('Skriv nytt mail — kommer snart');
+function _gmailOpenCompose(prefillTo, prefillSubject, prefillBody) {
+  // Toggle: close if already open
+  var existing = document.getElementById('gm-compose-overlay');
+  if (existing && !prefillTo) { existing.remove(); return; }
+  if (existing) existing.remove();
+
+  var el = document.createElement('div');
+  el.id = 'gm-compose-overlay';
+
+  var toVal   = prefillTo      || '';
+  var subjVal = prefillSubject || '';
+  var bodyVal = prefillBody    || '';
+
+  el.innerHTML =
+    '<div class="gm-co-header" id="gm-co-hdr">'
+  + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+  + '<span class="gm-co-title">Nytt mail</span>'
+  + '<button class="gm-co-icon-btn" id="gm-co-min-btn" title="Minimera">'
+  + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+  + '</button>'
+  + '<button class="gm-co-icon-btn" id="gm-co-close-btn" title="St\u00e4ng">'
+  + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+  + '</button>'
+  + '</div>'
+  + '<div class="gm-co-field">'
+  + '<span class="gm-co-field-label">Till</span>'
+  + '<input id="gm-co-to" class="gm-co-field-inp" placeholder="E-postadress eller patientnamn..." value="" autocomplete="off">'
+  + '<div id="gm-co-suggest" class="gm-co-suggest" style="display:none"></div>'
+  + '</div>'
+  + '<div class="gm-co-field">'
+  + '<span class="gm-co-field-label">\u00c4mne</span>'
+  + '<input id="gm-co-subj" class="gm-co-field-inp" placeholder="\u00c4mne..." value="">'
+  + '</div>'
+  + '<textarea id="gm-co-body" class="gm-co-body-ta" placeholder="Skriv ditt meddelande..."></textarea>'
+  + '<div class="gm-co-footer">'
+  + '<button id="gm-co-send-btn" class="act-btn act-btn-primary" style="font-size:13px">Skicka</button>'
+  + '<button id="gm-co-ai-btn" style="display:flex;align-items:center;gap:5px;padding:5px 12px;background:none;border:1px solid rgba(224,118,40,.35);border-radius:6px;font-size:13px;color:var(--teal);cursor:pointer;font-family:var(--font)">'
+  + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Skriv med AI</button>'
+  + '<span style="flex:1"></span>'
+  + '<button id="gm-co-discard-btn" style="background:none;border:none;color:#6e7681;cursor:pointer;font-size:13px;font-family:var(--font);padding:4px 8px">Kasta</button>'
+  + '</div>';
+
+  document.body.appendChild(el);
+
+  // Set values after mount (avoids XSS via .value)
+  var toInp   = document.getElementById('gm-co-to');
+  var subjInp = document.getElementById('gm-co-subj');
+  var bodyTa  = document.getElementById('gm-co-body');
+  if (toInp)   toInp.value   = toVal;
+  if (subjInp) subjInp.value = subjVal;
+  if (bodyTa)  bodyTa.value  = bodyVal;
+  if (prefillTo && bodyTa) bodyTa.focus(); else if (toInp) toInp.focus();
+
+  // Patient autocomplete
+  var suggest = document.getElementById('gm-co-suggest');
+  toInp && toInp.addEventListener('input', function() {
+    var q = toInp.value.toLowerCase().trim();
+    if (!suggest) return;
+    if (!q || q.length < 2) { suggest.style.display = 'none'; suggest.innerHTML = ''; return; }
+    var matches = (S.patients||[]).filter(function(p){
+      return p.email && (p.name.toLowerCase().includes(q) || p.email.toLowerCase().includes(q));
+    }).slice(0, 6);
+    if (!matches.length) { suggest.style.display = 'none'; return; }
+    suggest.style.display = 'block';
+    suggest.innerHTML = matches.map(function(p){
+      return '<div class="gm-co-pat-row" data-email="' + p.email + '">'
+        + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+        + '<span>' + p.name + '</span>'
+        + '<span class="gm-co-pat-email">' + p.email + '</span>'
+        + '</div>';
+    }).join('');
+    suggest.querySelectorAll('.gm-co-pat-row').forEach(function(row) {
+      row.addEventListener('mousedown', function(ev) {
+        ev.preventDefault();
+        toInp.value = row.getAttribute('data-email');
+        suggest.style.display = 'none'; suggest.innerHTML = '';
+        if (subjInp && !subjInp.value) subjInp.focus(); else if (bodyTa) bodyTa.focus();
+      });
+    });
+  });
+  toInp && toInp.addEventListener('blur', function() {
+    setTimeout(function(){ if (suggest) { suggest.style.display='none'; } }, 200);
+  });
+
+  // Minimize
+  var minBtn = document.getElementById('gm-co-min-btn');
+  var hdr    = document.getElementById('gm-co-hdr');
+  minBtn && minBtn.addEventListener('click', function(ev){ ev.stopPropagation(); el.classList.toggle('minimized'); });
+  hdr    && hdr.addEventListener('click',    function(){ if (el.classList.contains('minimized')) el.classList.remove('minimized'); });
+
+  // Close
+  var closeBtn   = document.getElementById('gm-co-close-btn');
+  var discardBtn = document.getElementById('gm-co-discard-btn');
+  function _coClose(ev){ if(ev) ev.stopPropagation(); el.remove(); }
+  closeBtn   && closeBtn.addEventListener('click', _coClose);
+  discardBtn && discardBtn.addEventListener('click', _coClose);
+
+  // AI compose
+  var aiBtn = document.getElementById('gm-co-ai-btn');
+  aiBtn && aiBtn.addEventListener('click', async function(){
+    var to    = toInp   ? toInp.value.trim()   : '';
+    var subj  = subjInp ? subjInp.value.trim()  : '';
+    var instr = bodyTa  ? bodyTa.value.trim()   : '';
+    var pat = (S.patients||[]).find(function(p){ return p.email && to && p.email.toLowerCase() === to.toLowerCase(); });
+    var btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="animation:spin .8s linear infinite"><path d="M21 12a9 9 0 11-6-8.5"/></svg>&nbsp;Skriver...';
+    try {
+      var ctx = (typeof getClinicMemoryContext === 'function') ? getClinicMemoryContext() : '';
+      var prompt = 'Skriv ett professionellt och varmt e-postmeddelande p\u00e5 svenska till ' + (pat ? pat.name + ' (patient p\u00e5 kliniken)' : to) + '.'
+        + (subj ? ' \u00c4mne: ' + subj + '.' : '')
+        + (instr ? ' Instruktion: ' + instr : '')
+        + '\nSvara med ENBART mailkroppen (ingen Subject-rad). Avsluta med h\u00e4lsning fr\u00e5n Kansei Ortopedi & Rehabcenter.';
+      var apiKey = (typeof _velaGetApiKey === 'function') ? _velaGetApiKey('anthropic') : null;
+      var headers = { 'Content-Type': 'application/json' };
+      if (apiKey) headers['x-api-key'] = apiKey;
+      var resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          model: (typeof MODEL_SONNET !== 'undefined') ? MODEL_SONNET : 'claude-sonnet-4-20250514',
+          max_tokens: 700,
+          system: (ctx || 'Du \u00e4r en professionell assistent f\u00f6r en naprapatmottagning i Stockholm.') + '\nSvara p\u00e5 svenska.',
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      var data = await resp.json();
+      var draft = (data.content && data.content[0] && data.content[0].text) || '';
+      if (bodyTa && draft) { bodyTa.value = draft; bodyTa.focus(); }
+    } catch(err) {
+      if (typeof showAutoSaveToast === 'function') showAutoSaveToast('AI-skrivning misslyckades');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Skriv med AI';
+  });
+
+  // Send
+  var sendBtn = document.getElementById('gm-co-send-btn');
+  sendBtn && sendBtn.addEventListener('click', async function(){
+    var to   = toInp   ? toInp.value.trim()   : '';
+    var subj = subjInp ? subjInp.value.trim()  : '';
+    var body = bodyTa  ? bodyTa.value.trim()   : '';
+    if (!to)   { if (typeof showAutoSaveToast === 'function') showAutoSaveToast('Fyll i mottagare'); return; }
+    if (!subj) { if (typeof showAutoSaveToast === 'function') showAutoSaveToast('Fyll i \u00e4mne'); return; }
+    if (!body) { if (typeof showAutoSaveToast === 'function') showAutoSaveToast('Mailtexten \u00e4r tom'); return; }
+    var btn = this;
+    btn.disabled = true; btn.textContent = 'Skickar...';
+    try {
+      if (typeof _velaSendMail === 'function') {
+        await _velaSendMail(to, subj, body);
+      } else if (typeof _gmailFetch === 'function') {
+        var raw = _gmailBuildRaw(to, subj, body);
+        await _gmailFetch('https://www.googleapis.com/gmail/v1/users/me/messages/send', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ raw: raw })
+        });
+      } else {
+        throw new Error('no_send');
+      }
+      if (typeof showAutoSaveToast === 'function') showAutoSaveToast('\u2713 Mail skickat till ' + to);
+      el.remove();
+    } catch(err) {
+      if (typeof showAutoSaveToast === 'function') showAutoSaveToast('Skickandet misslyckades — kontrollera Gmail-koppling');
+      btn.disabled = false; btn.textContent = 'Skicka';
+    }
+  });
 }
 
+// Build base64url RFC 2822 raw message for Gmail API
+function _gmailBuildRaw(to, subject, body) {
+  var from = (_authUser && _authUser.email) || 'calle@kansei.se';
+  function b64(str) {
+    try { return btoa(unescape(encodeURIComponent(str))); } catch(e) { return btoa(str); }
+  }
+  var msg =
+    'From: ' + from + '\r\n' +
+    'To: ' + to + '\r\n' +
+    'Subject: =?UTF-8?B?' + b64(subject) + '?=\r\n' +
+    'MIME-Version: 1.0\r\n' +
+    'Content-Type: text/plain; charset=utf-8\r\n' +
+    'Content-Transfer-Encoding: base64\r\n' +
+    '\r\n' +
+    b64(body);
+  return b64(msg).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
 
-
-function _gmailRunSearch() {
-  var q = document.getElementById('gmail-search-inp')?.value || '';
-  window._inboxSearch = q;
-  window._inboxTab = 'all';
-  _gmailLoadAndRender('all', q);
+function _gmailRunSearch(q) {
+  if (q === undefined) {
+    var inp = document.getElementById('gm-search-inp');
+    q = inp ? inp.value : '';
+  }
+  _gmailState.search = q;
+  _gmailState.selectedThread = null;
+  _gmailRenderListPanel();
+  _gmailRenderThreadPanel();
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

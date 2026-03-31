@@ -9019,12 +9019,16 @@ function _startSmartVisit(patId, bkId) {
   var bks = typeof getBookings==='function' ? getBookings() : [];
   var bk = bkId ? bks.find(function(b){ return b.id===bkId; }) : null;
   lastAnalyzedText = '';
-  var prefill = window._intakePrefill || {};
+  var intakePrefill = window._intakePrefill || {};
   window._intakePrefill = null;
+  // Use intake prefill if present, else return-visit prefill, else blank
+  var hasIntake = !!(intakePrefill.S || intakePrefill.O || intakePrefill.A);
+  var rp = (!hasIntake && !checkJournalDraft()) ? (_buildReturnPrefill(pat) || {}) : {};
+  var prefill = hasIntake ? intakePrefill : rp;
   currentSOAP = {
     soap: { S:prefill.S||'', O:prefill.O||'', A:prefill.A||'', P:prefill.P||'' },
     journalNr: _nextJournalNr(),
-    diagnosis: (bk && bk.serviceName) ? bk.serviceName : (pat.diagnosis||''),
+    diagnosis: prefill.A || ((bk && bk.serviceName) ? bk.serviceName : (pat.diagnosis||'')),
     customDiagnosis:'', icd10:'', icd10desc:'',
     pain:5, motivation:6,
     history:(pat.visits||[]).length > 0 ? 'sporadisk' : 'ingen',
@@ -9032,8 +9036,9 @@ function _startSmartVisit(patId, bkId) {
     transcript: (window._ambientState && window._ambientState.transcript) || [],
     date: new Date().toISOString().slice(0,10),
     note:'', manual:true,
-    aiGenerated:!!(prefill.S),
+    aiGenerated:!!(hasIntake && prefill.S),
     bookingId: bkId||null,
+    _returnContext: rp._fromVisit || null
   };
   window._ambientJournalDraft = null;
   if (bk && bk.status === 'pending') {
@@ -20018,14 +20023,44 @@ function restoreJournalDraft(draft) {
 }
 
 
+// ── Return visit prefill ─────────────────────────────────────────────────────
+function _buildReturnPrefill(pat) {
+  var visits = pat.visits || [];
+  if (!visits.length) return null; // nybesök → ingen prefill
+  var last = visits[visits.length - 1];
+  var soap = last.soap || {};
+  var nrs = (function() {
+    var logs = (last.logs||[]).filter(function(l){ return l.nrs != null; });
+    return logs.length ? logs[logs.length-1].nrs : null;
+  })();
+  var diag = (last.soapMeta&&last.soapMeta.diagnosis) || last.form&&last.form.diagnosis || pat.diagnosis || '';
+  var dateStr = last.date || '';
+
+  // S: compact återbesökskontext
+  var sLines = ['\u00c5terbes\u00f6k. F\u00f6reg\u00e5ende bes\u00f6k: ' + dateStr];
+  if (soap.P && soap.P.trim()) sLines.push('Plan senast: ' + soap.P.trim());
+  if (nrs != null) sLines.push('NRS senast: ' + nrs + '/10');
+  var S_prefill = sLines.join('\n');
+
+  return {
+    S: S_prefill,
+    O: '',          // behandlaren gör egna fynd
+    A: diag,        // senaste diagnos som startpunkt
+    P: '',          // alltid blank
+    _fromVisit: { date: dateStr, soap: soap, nrs: nrs, diag: diag }
+  };
+}
+
 function startManualSOAP() {
   if (!S.pat) return;
   lastAnalyzedText = ''; // reset so clinical AI triggers on fresh text
-  const draft = checkJournalDraft();
+  var draft = checkJournalDraft();
+  var returnPrefill = !draft ? _buildReturnPrefill(S.pat) : null;
+  var rp = returnPrefill || {};
   currentSOAP = {
-    soap: {S:'',O:'',A:'',P:''},
+    soap: {S: rp.S||'', O: rp.O||'', A: rp.A||'', P: rp.P||''},
     journalNr: _nextJournalNr(),
-    diagnosis: S.pat.diagnosis||'',
+    diagnosis: rp.A || S.pat.diagnosis||'',
     customDiagnosis: '',
     icd10: '',
     icd10desc: '',
@@ -20040,7 +20075,8 @@ function startManualSOAP() {
     transcript: [],
     date: new Date().toISOString().slice(0,10),
     note: '',
-    manual: true
+    manual: true,
+    _returnContext: rp._fromVisit || null
   };
   go('manualsoap');
   if (draft) restoreJournalDraft(draft);
@@ -20308,6 +20344,26 @@ function rManualSOAP(bk) {
         <div style="max-width:700px;margin:0 auto;padding:24px 28px 80px">
 
           ${smartIntakeHTML()}
+
+          ${(function() {
+            var rc = currentSOAP && currentSOAP._returnContext;
+            if (!rc) return '';
+            var soap = rc.soap || {};
+            var rows = '';
+            if (soap.O && soap.O.trim()) rows += '<div style="display:flex;gap:8px;margin-bottom:6px"><span style="font-size:11px;font-weight:700;width:16px;color:#a78bfa;flex-shrink:0;margin-top:1px">O</span><span style="font-size:13px;color:#c9d1d9;line-height:1.6;flex:1">' + e(soap.O.trim().slice(0,200)) + (soap.O.trim().length>200?'\u2026':'') + '</span></div>';
+            if (soap.A && soap.A.trim()) rows += '<div style="display:flex;gap:8px;margin-bottom:6px"><span style="font-size:11px;font-weight:700;width:16px;color:#22d3ee;flex-shrink:0;margin-top:1px">A</span><span style="font-size:13px;color:#c9d1d9;line-height:1.6;flex:1">' + e(soap.A.trim().slice(0,200)) + (soap.A.trim().length>200?'\u2026':'') + '</span></div>';
+            if (soap.P && soap.P.trim()) rows += '<div style="display:flex;gap:8px"><span style="font-size:11px;font-weight:700;width:16px;color:#34d399;flex-shrink:0;margin-top:1px">P</span><span style="font-size:13px;color:#c9d1d9;line-height:1.6;flex:1">' + e(soap.P.trim().slice(0,200)) + (soap.P.trim().length>200?'\u2026':'') + '</span></div>';
+            if (!rows) return '';
+            var nrsBadge = rc.nrs != null ? '<span style="font-size:11px;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(181,138,0,.15);color:#e3b341;border:1px solid rgba(181,138,0,.3);margin-left:8px">NRS\u00a0' + rc.nrs + '</span>' : '';
+            return '<details style="margin-bottom:16px;background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">'
+              + '<summary style="display:flex;align-items:center;gap:8px;padding:9px 14px;cursor:pointer;list-style:none;user-select:none;font-size:12px;color:#8b949e;font-weight:600">'
+              + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>'
+              + 'F\u00f6reg\u00e5ende bes\u00f6k \u2014 ' + e(rc.date) + nrsBadge
+              + '<span style="margin-left:auto;font-size:11px;color:#6e7681">klicka f\u00f6r att expandera</span>'
+              + '</summary>'
+              + '<div style="padding:10px 14px 12px;border-top:1px solid #21262d">' + rows + '</div>'
+              + '</details>';
+          })()}
 
           <!-- SOAP fields -->
           <div style="display:flex;flex-direction:column;gap:0;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:18px">

@@ -6068,9 +6068,24 @@ function pubMsgSectionHTML(pat, visitId) {
   </div>`;
 }
 
+var _navStack = [];
+var _navSilent = false; // true = don't push to stack (used by goBack)
+
 function go(scr){
   if (scr !== 'dashboard' && typeof _stopPulseTicker === 'function') _stopPulseTicker();
   if((S.screen==='manualsoap'||S.screen==='sbs-soap') && scr!==S.screen) autoSaveJournalDraft();
+  // Push current state to nav stack (unless navigating silently)
+  if (!_navSilent && S.screen && S.screen !== scr) {
+    _navStack.push({
+      scr: S.screen,
+      patId: S.pat ? S.pat.id : null,
+      visitId: S.visitId || null,
+      detailTab: window._detailTab || 'overview',
+      planObj: S.plan || null
+    });
+    if (_navStack.length > 30) _navStack.shift();
+    try { history.pushState({n: _navStack.length}, '', location.pathname + location.search); } catch(e) {}
+  }
   S.screen=scr;
   document.querySelectorAll(".screen").forEach(el=>el.classList.remove("active"));
   const el=document.getElementById("s-"+scr);if(el)el.classList.add("active");
@@ -10798,32 +10813,61 @@ function rTopbar() {
 
 
 function goBack(){
-  const s = S.screen;
-  const hasPat = !!S.pat;
-  if (s === 'meeting') {
-    stopListening(); go(hasPat ? 'detail' : 'list');
-  } else if (s === 'soap') {
-    // SOAP review -- came from meeting, go back to detail to not lose data
-    go(hasPat ? 'detail' : 'list');
-  } else if (s === 'manualsoap' || s === 'sbs-soap') {
-    autoSaveJournalDraft();
-    go(hasPat ? 'detail' : 'list');
-  } else if (s === 'form' || s === 'editex') {
-    go(hasPat ? 'detail' : 'list');
-  } else if (s === 'doc') {
-    go(hasPat ? 'detail' : 'list');
-  } else if (s === 'editpat') {
-    go(hasPat ? 'detail' : 'list');
-  } else if (s === 'journaldoc' || s === 'patjournal') {
-    go(hasPat ? 'detail' : 'list');
-  } else if (s === 'detail') {
-    go('list');
-  } else if (s === 'list') {
-    go('dashboard');
-  } else {
-    go('dashboard');
-  }
+  _goBackInternal();
 }
+
+function _goBackInternal(){
+  var s = S.screen;
+  // Screen-specific cleanup before leaving
+  if (s === 'meeting') { if (typeof stopListening === 'function') stopListening(); }
+  if (s === 'manualsoap' || s === 'sbs-soap') { autoSaveJournalDraft(); }
+
+  var prev = _navStack.pop();
+  if (!prev) {
+    // No history — fall back to sensible defaults
+    var hasPat = !!S.pat;
+    _navSilent = true;
+    if (s === 'detail' || s === 'editpat' || s === 'patjournal') go('list');
+    else if (hasPat && (s === 'manualsoap'||s==='sbs-soap'||s==='soap'||s==='meeting'||s==='form'||s==='doc'||s==='journaldoc'||s==='editex'||s==='hael')) go('detail');
+    else go('dashboard');
+    _navSilent = false;
+    return;
+  }
+
+  // Restore patient if needed
+  if (prev.patId) {
+    if (!S.pat || S.pat.id !== prev.patId) {
+      var found = (S.patients||[]).find(function(x){ return x.id === prev.patId; });
+      if (!found) {
+        try {
+          var raw = localStorage.getItem('pat:'+prev.patId) || localStorage.getItem('kansei-data:'+prev.patId);
+          if (raw) found = JSON.parse(raw);
+        } catch(e2) {}
+      }
+      if (found) S.pat = found;
+    }
+  }
+  if (prev.visitId !== undefined) S.visitId = prev.visitId;
+  if (prev.planObj !== undefined) S.plan = prev.planObj;
+  if (prev.detailTab) window._detailTab = prev.detailTab;
+
+  _navSilent = true;
+  go(prev.scr);
+  _navSilent = false;
+}
+
+// Wire browser back button
+(function(){
+  try {
+    // Push an initial state so back button has something to pop
+    history.replaceState({n:0}, '', location.pathname + location.search);
+    window.addEventListener('popstate', function(e) {
+      _goBackInternal();
+      // Re-push so back button keeps working
+      try { history.pushState({n: _navStack.length}, '', location.pathname + location.search); } catch(ex) {}
+    });
+  } catch(e) {}
+})();
 function togSettings(){
   go('settings');
 }
@@ -17085,6 +17129,12 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
       h += '<span style="font-size:14px;color:#e6edf3;line-height:1.6">' + e((f[2]||'').slice(0,180)) + ((f[2]||'').length>180?'…':'') + '</span>';
       h += '</div>';
     });
+    if (lastVisit.etiology) {
+      h += '<div style="display:flex;gap:10px;margin-top:2px">';
+      h += '<span style="font-size:11px;font-weight:800;color:#f59e0b;background:rgba(245,158,11,.12);border-radius:4px;padding:2px 6px;flex-shrink:0;height:fit-content;margin-top:1px">E</span>';
+      h += '<span style="font-size:13px;color:#c9d1d9;line-height:1.6">' + e((lastVisit.etiology||'').slice(0,160)) + ((lastVisit.etiology||'').length>160?'…':'') + '</span>';
+      h += '</div>';
+    }
     h += '</div>';
   }
 
@@ -18448,6 +18498,111 @@ function _renderNarrative(slot, narrative, strategyShift, phase, pattern, nextFo
   slot.innerHTML = h;
 }
 
+// ── VelaAgent Proactive Action Engine ────────────────────────────────────────
+// Called when patient intel generates a nextAction. Instead of showing text,
+// VelaAgent classifies, drafts and queues the action immediately.
+async function _velaAgentAct(pat, nextAction, risk, summary) {
+  var key = getKey();
+  if (!key) return;
+
+  // Dedup: don't queue same action for same patient within 24h
+  var dedupKey = 'vela:agent-act:' + (pat.id||'') + ':' + nextAction.slice(0,40).replace(/\s+/g,'_');
+  try {
+    var last = localStorage.getItem(dedupKey);
+    if (last && Date.now() - parseInt(last) < 24*60*60*1000) {
+      _velaAgentActUpdateUI('already_queued', null);
+      return;
+    }
+  } catch(e) {}
+
+  // Check for existing pending agent_action for this patient
+  var existing = getApprovals().find(function(a) {
+    return a.type === 'agent_action' && a.status === 'pending' && a.patId === pat.id;
+  });
+  if (existing) {
+    _velaAgentActUpdateUI('already_queued', existing.id);
+    return;
+  }
+
+  // Classify action type from nextAction text
+  var lc = nextAction.toLowerCase();
+  var actionType = 'contact'; // default
+  if (/boka|bokning|tid|schemal/i.test(lc)) actionType = 'book';
+  else if (/intake|anamnes|formul/i.test(lc)) actionType = 'intake';
+  else if (/plan|\u00f6vers|justera|revidера/i.test(lc)) actionType = 'review_plan';
+  else if (/kontakt|ring|skicka|mejl|sms|n\u00e5|h\u00f6r/i.test(lc)) actionType = 'contact';
+
+  var firstName = (pat.name || '').split(' ')[0] || 'patienten';
+  var clinicName = (typeof getClinicConfig === 'function' ? (getClinicConfig().name || 'Kliniken') : 'Kliniken');
+
+  // Draft prompt based on action type
+  var draftPrompt = '';
+  if (actionType === 'contact') {
+    draftPrompt = 'Skriv ett kort, professionellt SMS (max 45 ord) fr\u00e5n ' + clinicName + ' till patienten ' + firstName + '. Bakgrund: ' + summary.slice(0,200) + '. VelaAgent identifierade att: ' + nextAction + '. Skriv ett naturligt, varmt meddelande som initierar kontakt utan att l\u00e5ta automatiserat. BARA meddelandet.';
+  } else if (actionType === 'book') {
+    draftPrompt = 'Skriv ett kort SMS (max 45 ord) fr\u00e5n ' + clinicName + ' till ' + firstName + ' f\u00f6r att f\u00f6resl\u00e5 ett nytt bes\u00f6k. Bakgrund: ' + summary.slice(0,200) + '. Anledning: ' + nextAction + '. Inkludera att de kan svara f\u00f6r att boka. BARA meddelandet.';
+  } else if (actionType === 'intake') {
+    draftPrompt = 'Skriv ett kort SMS (max 45 ord) fr\u00e5n ' + clinicName + ' till ' + firstName + ' f\u00f6r att be dem fylla i ett anamnesformul\u00e4r inf\u00f6r deras bes\u00f6k. V\u00e4nlig, professionell ton. BARA meddelandet.';
+  } else {
+    // review_plan - internal note for clinician
+    draftPrompt = 'Sammanfatta i 2-3 meningar varf\u00f6r behandlingsplanen f\u00f6r ' + firstName + ' b\u00f6r ses \u00f6ver. Bakgrund: ' + summary.slice(0,200) + '. Agent-rekommendation: ' + nextAction + '. Klinisk, faktabaserad ton. BARA sammanfattningen.';
+  }
+
+  try {
+    var draftText = await callAPI(draftPrompt, MODEL_HAIKU, false);
+    if (!draftText || !draftText.trim()) return;
+
+    var typeLabels = {
+      contact: 'Patientkontakt',
+      book: 'Bokningsf\u00f6rslag',
+      intake: 'Intake-utskick',
+      review_plan: 'Plangranskning'
+    };
+
+    var approval = createAIApproval({
+      type: 'agent_action',
+      patId: pat.id,
+      patName: pat.name || 'Ok\u00e4nd',
+      title: typeLabels[actionType] + ' \u2014 ' + (pat.name || '').split(' ')[0],
+      aiContent: draftText.trim(),
+      meta: {
+        actionType: actionType,
+        nextAction: nextAction,
+        patientSummary: summary,
+        risk: risk,
+        channel: (actionType === 'review_plan') ? 'internal' : 'sms',
+        autoGenerated: true
+      }
+    });
+
+    // Mark dedup
+    try { localStorage.setItem(dedupKey, String(Date.now())); } catch(e) {}
+
+    // Update inbox badge
+    if (typeof updateInboxBadge === 'function') updateInboxBadge();
+    if (S.screen === 'dashboard' && typeof _renderPulse === 'function') _renderPulse();
+
+    // Update UI row on patient card
+    _velaAgentActUpdateUI('queued', approval.id);
+
+  } catch(err) { /* silent */ }
+}
+
+function _velaAgentActUpdateUI(state, approvalId) {
+  var row = document.getElementById('pat-intel-action-row');
+  if (!row) return;
+  if (state === 'queued') {
+    row.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3fb950" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>'
+      + '<span style="font-size:13px;color:#3fb950;font-weight:600;flex:1">VelaAgent lade en \u00e5tg\u00e4rd i signaturk\u00f6n</span>'
+      + '<button onclick="go(\'sigqueue\')" style="font-size:11px;padding:2px 9px;background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.25);border-radius:4px;color:#3fb950;cursor:pointer;font-family:var(--font)">Granska \u2192</button>';
+    row.style.borderTop = '1px solid rgba(63,185,80,.15)';
+  } else if (state === 'already_queued') {
+    row.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 8 12 12 14 14"/></svg>'
+      + '<span style="font-size:13px;color:var(--text2);flex:1">\u00c5tg\u00e4rd redan i signaturk\u00f6n</span>'
+      + (approvalId ? '<button onclick="go(\'sigqueue\')" style="font-size:11px;padding:2px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text2);cursor:pointer;font-family:var(--font)">Visa \u2192</button>' : '');
+  }
+}
+
 function _showPatientIntel(pat) {
   const slot = document.getElementById('pat-intel-slot');
   if (!slot) return;
@@ -18516,11 +18671,16 @@ score: 0-100 hälsopoäng. scoreLabel: Kritisk/Svag/Måttlig/God/Utmärkt. score
       ${r.signals&&r.signals.length?`<div style="display:flex;gap:6px;flex-wrap:wrap;padding:9px 16px;border-bottom:1px solid var(--border2)">
         ${r.signals.map(s=>`<span style="font-size:12px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 8px">${e(s)}</span>`).join('')}
       </div>`:''}
-      <div style="padding:10px 16px;display:flex;align-items:center;gap:6px">
+      <div id="pat-intel-action-row" style="padding:10px 16px;display:flex;align-items:center;gap:8px">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        <span style="font-size:14px;color:var(--ink)">${e(r.nextAction)}</span>
+        <span style="font-size:13px;color:var(--text);flex:1;line-height:1.4">${e(r.nextAction)}</span>
+        <span style="font-size:11px;color:var(--text2)">VelaAgent arbetar…</span>
       </div>
     </div>`;
+    // VelaAgent acts immediately — classify + draft + push to sigqueue
+    if (r.nextAction && r.nextAction.trim().length > 10) {
+      _velaAgentAct(pat, r.nextAction, r.risk || 'none', r.summary || '');
+    }
   }).catch(()=>{ slot.innerHTML=''; });
 }
 // Close any overlay with ID by pressing ESC
@@ -19513,6 +19673,79 @@ function renderClinicalPanel(r) {
   panel.innerHTML = h||`<div style="padding:12px;font-size:14px;color:var(--text)">Analysen uppdateras automatiskt.</div>`;
   // Inject evidence button after render
   setTimeout(_renderEvidenceButton, 50);
+  // Auto-push red flags to signature queue
+  if (r.redFlags && r.redFlags.length) {
+    _pushRedFlagApproval(r);
+  }
+}
+
+// ── Red Flag → Signature Queue auto-push ────────────────────────────────────
+var _rfApprovalPushed = {}; // session dedup: { [patId + flagKey]: true }
+
+function _pushRedFlagApproval(r) {
+  var p = S.pat;
+  var flags = r.redFlags || [];
+  if (!flags.length) return;
+
+  // Dedup key: patient + sorted flag content
+  var dedupKey = (p ? p.id : 'nopat') + '|' + flags.slice().sort().join('|');
+  if (_rfApprovalPushed[dedupKey]) return;
+  _rfApprovalPushed[dedupKey] = true;
+
+  // Check if a pending red_flag approval already exists for same patient+flags
+  var existing = getApprovals().find(function(a) {
+    return a.type === 'red_flag' && a.status === 'pending'
+      && a.patId === (p ? p.id : null)
+      && JSON.stringify((a.meta && a.meta.flags || []).slice().sort()) === JSON.stringify(flags.slice().sort());
+  });
+  if (existing) return;
+
+  // Build summary
+  var soap = {};
+  ['S','O','A','P'].forEach(function(l) {
+    var el = document.getElementById('ms-' + l) || document.getElementById('sbs-' + l);
+    soap[l] = el ? el.value : '';
+  });
+  var soapSnippet = [
+    soap.S ? 'S: ' + soap.S.slice(0, 200) : '',
+    soap.A ? 'A: ' + soap.A.slice(0, 200) : ''
+  ].filter(Boolean).join('\n');
+
+  var topDiag = (r.tentativeDiagnosis && r.tentativeDiagnosis[0]) ? r.tentativeDiagnosis[0].name : '';
+  var urgentLabel = flags.join(', ');
+
+  createAIApproval({
+    type: 'red_flag',
+    patId: p ? p.id : 'unknown',
+    patName: p ? p.name : 'Okänd patient',
+    title: 'Röd flagga: ' + urgentLabel.slice(0, 80),
+    aiContent: soapSnippet,
+    visitId: S.visitId || null,
+    meta: {
+      flags: flags,
+      nextStep: r.nextStep || '',
+      topDiag: topDiag,
+      diagList: (r.tentativeDiagnosis || []).map(function(d){ return d.name + (d.icd10 ? ' (' + d.icd10 + ')' : ''); }),
+      soapSnippet: soapSnippet,
+      urgency: 'high'
+    }
+  });
+
+  // Badge update
+  if (typeof updateInboxBadge === 'function') updateInboxBadge();
+  if (S.screen === 'dashboard' && typeof _renderPulse === 'function') _renderPulse();
+
+  // Toast — stays longer for urgent items
+  var toastEl = document.createElement('div');
+  toastEl.style.cssText = 'position:fixed;bottom:80px;right:24px;z-index:9999;background:#7d1212;border:1.5px solid rgba(248,81,73,.5);border-radius:8px;padding:12px 16px;max-width:300px;box-shadow:0 4px 16px rgba(0,0,0,.4);font-family:var(--font)';
+  toastEl.innerHTML = '<div style="display:flex;align-items:flex-start;gap:10px">'
+    + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+    + '<div style="flex:1"><div style="font-size:13px;font-weight:700;color:#f85149;margin-bottom:3px">Röd flagga → Signåturkö</div>'
+    + '<div style="font-size:12px;color:#e6edf3;line-height:1.5">' + e(flags[0]) + (flags.length > 1 ? ' +' + (flags.length-1) + ' till' : '') + '</div>'
+    + '<button onclick="go(\'sigqueue\')" style="margin-top:7px;padding:4px 10px;background:rgba(248,81,73,.15);border:1px solid rgba(248,81,73,.3);border-radius:5px;font-size:12px;font-weight:600;color:#f85149;cursor:pointer;font-family:var(--font)">Granska nu →</button>'
+    + '</div></div>';
+  document.body.appendChild(toastEl);
+  setTimeout(function(){ toastEl.style.transition='opacity .4s'; toastEl.style.opacity='0'; setTimeout(function(){ if(toastEl.parentNode) toastEl.parentNode.removeChild(toastEl); }, 400); }, 7000);
 }
 
 function setClinicalICD(code, diagName) {
@@ -20099,39 +20332,67 @@ async function _msEtiologyAI() {
 
 function autoSaveJournalDraft() {
   if (S.screen !== 'manualsoap' && S.screen !== 'sbs-soap') return;
+  var _gv = function(id){ return (document.getElementById(id)||{}).value||''; };
   const draft = {
     patId: S.pat && S.pat.id,
     screen: S.screen,
     soap: {
-      S: (document.getElementById('ms-S')||document.getElementById('sbs-S')||{}).value||'',
-      O: (document.getElementById('ms-O')||document.getElementById('sbs-O')||{}).value||'',
-      A: (document.getElementById('ms-A')||document.getElementById('sbs-A')||{}).value||'',
-      P: (document.getElementById('ms-P')||document.getElementById('sbs-P')||{}).value||''
+      S: _gv('ms-S')||_gv('sbs-S'),
+      O: _gv('ms-O')||_gv('sbs-O'),
+      A: _gv('ms-A')||_gv('sbs-A'),
+      P: _gv('ms-P')||_gv('sbs-P')
     },
+    etiology: _gv('ms-E'),
+    etiologyPatient: _gv('ms-E-patient'),
+    diagnosis: _gv('ms-diag'),
+    customDiagnosis: _gv('ms-custom'),
+    icd10: _gv('ms-icd'),
+    icd10desc: _gv('ms-icddesc'),
     savedAt: Date.now()
   };
   try { sessionStorage.setItem('hael:journaldraft', JSON.stringify(draft)); } catch{}
+  // Also persist to localStorage so draft survives tab close
+  try { if (S.pat) localStorage.setItem('vela:journaldraft:'+S.pat.id, JSON.stringify(draft)); } catch{}
 }
 
 function checkJournalDraft() {
   try {
-    const raw = sessionStorage.getItem('hael:journaldraft');
+    var raw = sessionStorage.getItem('hael:journaldraft');
+    if (!raw && S.pat) raw = localStorage.getItem('vela:journaldraft:'+S.pat.id);
     if (!raw) return false;
     const d = JSON.parse(raw);
     if (!d || !S.pat || d.patId !== S.pat.id) return false;
-    if (Date.now() - d.savedAt > 2*60*60*1000) return false; // 2h expiry
+    if (Date.now() - d.savedAt > 8*60*60*1000) return false; // 8h expiry
     return d;
   } catch(e) { return false; }
 }
 
 function restoreJournalDraft(draft) {
-  setTimeout(() => {
-    ['S','O','A','P'].forEach(l => {
-      const el = document.getElementById('ms-'+l) || document.getElementById('sbs-'+l);
-      if (el && draft.soap[l]) { el.value = draft.soap[l]; el.dispatchEvent(new Event('input')); }
+  setTimeout(function() {
+    ['S','O','A','P'].forEach(function(l) {
+      var el = document.getElementById('ms-'+l) || document.getElementById('sbs-'+l);
+      if (el && draft.soap && draft.soap[l]) { el.value = draft.soap[l]; el.dispatchEvent(new Event('input')); }
     });
-    sessionStorage.removeItem('hael:journaldraft');
-    showAutoSaveToast('Utkast återställt');
+    // Restore etiology
+    var eEl = document.getElementById('ms-E');
+    if (eEl && draft.etiology) { eEl.value = draft.etiology; eEl.dispatchEvent(new Event('input')); }
+    var epEl = document.getElementById('ms-E-patient');
+    if (epEl && draft.etiologyPatient) {
+      epEl.value = draft.etiologyPatient;
+      var wrap = document.getElementById('ms-e-patient-wrap');
+      if (wrap) wrap.style.display = '';
+    }
+    // Restore diagnosis
+    var diagEl = document.getElementById('ms-diag');
+    if (diagEl && draft.diagnosis) { diagEl.value = draft.diagnosis; }
+    var custEl = document.getElementById('ms-custom');
+    if (custEl && draft.customDiagnosis) custEl.value = draft.customDiagnosis;
+    var icdEl = document.getElementById('ms-icd');
+    if (icdEl && draft.icd10) icdEl.value = draft.icd10;
+    var icdDescEl = document.getElementById('ms-icddesc');
+    if (icdDescEl && draft.icd10desc) icdDescEl.value = draft.icd10desc;
+    try { sessionStorage.removeItem('hael:journaldraft'); } catch(e){}
+    showAutoSaveToast('Utkast \u00e5terst\u00e4llt');
   }, 200);
 }
 
@@ -20479,7 +20740,7 @@ function rManualSOAP(bk) {
           })()}
 
           <!-- SOAP fields -->
-          <div style="display:flex;flex-direction:column;gap:0;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:18px">
+          <div style="display:flex;flex-direction:column;gap:0;border:1px solid #30363d;border-top-left-radius:6px;border-top-right-radius:6px;overflow:hidden;margin-bottom:0">
             ${soapFields.map((f, i) => `
             <div style="border-bottom:${i < 3 ? '1px solid #30363d' : 'none'};background:#161b22">
               <div style="display:flex;align-items:center;gap:8px;padding:10px 14px">
@@ -20502,7 +20763,7 @@ function rManualSOAP(bk) {
           </div>
 
           <!-- Etiologi -->
-          <div style="margin-bottom:18px;background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
+          <div style="margin-bottom:18px;background:#161b22;border:1px solid #30363d;border-top:none;border-bottom-left-radius:6px;border-bottom-right-radius:6px;overflow:hidden">
             <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border2)">
               <div style="width:21px;height:21px;border-radius:5px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">
                 <span style="font-size:11px;font-weight:800;color:#f59e0b">E</span>
@@ -21388,6 +21649,159 @@ function _sigqSpecialCard(a) {
   return h;
 }
 
+function _sigqAgentActionCard(a) {
+  var meta       = a.meta || {};
+  var actionType = meta.actionType || 'contact';
+  var channel    = meta.channel || 'sms';
+  var nextAction = meta.nextAction || '';
+  var summary    = meta.patientSummary || '';
+  var risk       = meta.risk || 'none';
+  var age        = a.createdAt ? _relativeDate(a.createdAt.slice(0,10)) : '';
+
+  var actionLabels = {
+    contact: 'Patientkontakt',
+    book: 'Bokningsförslag',
+    intake: 'Intake-utskick',
+    review_plan: 'Plangranskning'
+  };
+  var actionIcons = {
+    contact: '<path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 13a19.79 19.79 0 01-3.07-8.67A2 2 0 013.34 2.2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l.91-.91a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/>',
+    book: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    intake: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>',
+    review_plan: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'
+  };
+  var isInternal = (actionType === 'review_plan');
+  var accentCol  = isInternal ? 'var(--amber)' : 'var(--teal)';
+  var accentBg   = isInternal ? 'rgba(210,153,34,.08)' : 'rgba(224,118,40,.08)';
+  var accentBorder = isInternal ? 'rgba(210,153,34,.3)' : 'rgba(224,118,40,.25)';
+
+  var h = '<div id="sigq-item-' + a.id + '" style="background:var(--surface);border:1.5px solid ' + accentBorder + ';border-radius:6px;margin-bottom:12px;overflow:hidden">';
+
+  // Header
+  h += '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:' + accentBg + ';border-bottom:1px solid ' + accentBorder + '">';
+  h += '<div style="width:32px;height:32px;border-radius:6px;background:' + accentBg + ';border:1px solid ' + accentBorder + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="' + accentCol + '" stroke-width="2" stroke-linecap="round">' + (actionIcons[actionType]||actionIcons.contact) + '</svg>';
+  h += '</div>';
+  h += '<div style="flex:1;min-width:0">';
+  h += '<div style="font-size:14px;font-weight:700;color:var(--ink)">' + e(actionLabels[actionType]||'VelaAgent') + ' — ' + e(a.patName||'Okänd') + '</div>';
+  h += '<div style="font-size:12px;color:var(--text)">VelaAgent • ' + (age||'nyss') + (isInternal ? ' • Intern anteckning' : ' • ' + (channel==='sms'?'SMS':'Mail')) + '</div>';
+  h += '</div>';
+  if (risk === 'high') {
+    h += '<span style="font-size:11px;font-weight:700;color:var(--red);background:var(--red-lt);border:1px solid rgba(248,81,73,.3);border-radius:4px;padding:2px 7px">Hög risk</span>';
+  }
+  h += '</div>';
+
+  // Agent reasoning
+  if (nextAction || summary) {
+    h += '<div style="padding:10px 16px;border-bottom:1px solid var(--border2)">';
+    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text);margin-bottom:5px">VelaAgent identifierade</div>';
+    h += '<div style="font-size:13px;color:var(--text);line-height:1.5;font-style:italic">' + e(nextAction.slice(0,200)) + '</div>';
+    h += '</div>';
+  }
+
+  // Draft content (editable)
+  h += '<div style="padding:12px 16px;border-bottom:1px solid var(--border2)">';
+  h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text);margin-bottom:6px">';
+  h += isInternal ? 'Klinisk anteckning (intern)' : 'Utskick till patient (' + (channel==='sms'?'SMS':'Mail') + ')';
+  h += '</div>';
+  h += '<textarea id="sigq-ta-' + a.id + '" style="width:100%;min-height:90px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:14px;color:var(--ink);font-family:var(--font);resize:vertical;line-height:1.65;box-sizing:border-box">' + e(a.aiContent||'') + '</textarea>';
+  h += '</div>';
+
+  // Actions
+  h += '<div style="display:flex;gap:8px;padding:10px 16px;flex-wrap:wrap">';
+  if (!isInternal) {
+    var sendLabel = channel === 'sms' ? '✓ Skicka SMS' : '✓ Skicka mail';
+    h += '<button onclick="_sigqApprove(\'' + a.id + '\')" style="flex:2;padding:10px;background:#238636;border:none;border-radius:6px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:var(--font)">' + sendLabel + '</button>';
+  } else {
+    h += '<button onclick="_sigqApprove(\'' + a.id + '\')" style="flex:2;padding:10px;background:rgba(210,153,34,.12);border:1px solid rgba(210,153,34,.3);border-radius:6px;font-size:14px;font-weight:700;color:var(--amber);cursor:pointer;font-family:var(--font)">✓ Noterat — åtgärda</button>';
+  }
+  h += '<button onclick="_sigqApprovePerfect(\'' + a.id + '\')" title="Perfekt" style="padding:10px;background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--green);font-family:var(--font)">Perfekt</button>';
+  h += '<button onclick="_sigqReject(\'' + a.id + '\')" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Avvisa</button>';
+  if (a.patId && a.patId.indexOf('unknown') !== 0) {
+    h += '<button onclick="openPat(\'' + a.patId + '\')" style="padding:10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Patient →</button>';
+  }
+  h += '</div>';
+  h += '</div>';
+  return h;
+}
+
+function _sigqRedFlagCard(a) {
+  var flags  = (a.meta && a.meta.flags)    || [];
+  var step   = (a.meta && a.meta.nextStep) || '';
+  var diags  = (a.meta && a.meta.diagList) || [];
+  var age    = a.createdAt ? _relativeDate(a.createdAt.slice(0,10)) : '';
+  var patId  = a.patId || '';
+
+  var h = '<div id="sigq-item-' + a.id + '" style="background:var(--surface);border:1.5px solid rgba(248,81,73,.4);border-radius:6px;margin-bottom:12px;overflow:hidden">';
+
+  // Header
+  h += '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(248,81,73,.05);border-bottom:1px solid rgba(248,81,73,.2)">';
+  h += '<div style="width:32px;height:32px;border-radius:6px;background:rgba(248,81,73,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+  h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+  h += '</div>';
+  h += '<div style="flex:1;min-width:0">';
+  h += '<div style="font-size:14px;font-weight:700;color:#f85149">Röd flagga — ' + e(a.patName || 'Okänd') + '</div>';
+  h += '<div style="font-size:12px;color:var(--text)">Klinisk AI • ' + (age || 'nyss') + ' • Kräver åtgärd</div>';
+  h += '</div>';
+  h += '<span style="font-size:11px;font-weight:700;color:#f85149;background:rgba(248,81,73,.1);border:1px solid rgba(248,81,73,.3);border-radius:4px;padding:2px 8px">Akut</span>';
+  h += '</div>';
+
+  // Flags list
+  h += '<div style="padding:12px 16px;border-bottom:1px solid rgba(248,81,73,.15)">';
+  h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:#f85149;margin-bottom:8px">Identifierade flaggor</div>';
+  flags.forEach(function(f) {
+    h += '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px">';
+    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2.5" stroke-linecap="round" style="flex-shrink:0;margin-top:2px"><polyline points="9 18 15 12 9 6"/></svg>';
+    h += '<span style="font-size:14px;color:var(--ink);line-height:1.5">' + e(f) + '</span>';
+    h += '</div>';
+  });
+  h += '</div>';
+
+  // Next step + differentials
+  if (step || diags.length) {
+    h += '<div style="padding:12px 16px;border-bottom:1px solid var(--border2)">';
+    if (step) {
+      h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--teal);margin-bottom:6px">Rekommenderat nästa steg</div>';
+      h += '<div style="font-size:14px;color:var(--ink);line-height:1.55;margin-bottom:10px;padding:8px 12px;background:rgba(224,118,40,.06);border-left:2px solid var(--teal);border-radius:0 4px 4px 0">' + e(step) + '</div>';
+    }
+    if (diags.length) {
+      h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text);margin-bottom:5px">Differentialdiagnoser</div>';
+      h += '<div style="display:flex;flex-wrap:wrap;gap:5px">';
+      diags.slice(0,4).forEach(function(d) {
+        h += '<span style="font-size:12px;padding:2px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--ink)">' + e(d) + '</span>';
+      });
+      h += '</div>';
+    }
+    h += '</div>';
+  }
+
+  // Journal snippet if available
+  if (a.aiContent && a.aiContent.trim()) {
+    h += '<div style="padding:10px 16px;border-bottom:1px solid var(--border2)">';
+    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text);margin-bottom:5px">Journalutdrag</div>';
+    h += '<div style="font-size:12px;color:var(--text);line-height:1.6;font-style:italic">' + e(a.aiContent.slice(0,240)) + (a.aiContent.length>240?'…':'') + '</div>';
+    h += '</div>';
+  }
+
+  // Actions
+  h += '<div style="display:flex;gap:8px;padding:12px 16px;flex-wrap:wrap">';
+  if (patId && patId.indexOf('unknown') !== 0) {
+    h += '<button onclick="openPat(\'' + patId + '\')" style="flex:2;padding:10px 12px;background:rgba(248,81,73,.1);border:1.5px solid rgba(248,81,73,.3);border-radius:6px;font-size:14px;font-weight:700;color:#f85149;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    h += 'Gå till patient</button>';
+  }
+  if (patId && patId.indexOf('unknown') !== 0) {
+    h += '<button onclick="_openRemissModal&&_openRemissModal();openPat(\'' + patId + '\');_renderSigQueue()" style="flex:2;padding:10px 12px;background:none;border:1px solid var(--border);border-radius:6px;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+    h += 'Remiss</button>';
+  }
+  h += '<button onclick="_sigqReject(\'' + a.id + '\')" style="padding:10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Kvitterat</button>';
+  h += '</div>';
+
+  h += '</div>';
+  return h;
+}
+
 function _renderSigQueue() {
   var el = document.getElementById('s-sigqueue');
   if (!el) return;
@@ -21402,16 +21816,20 @@ function _renderSigQueue() {
     intake_summary: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
     cancel_request: '<path d="M6 18L18 6M6 6l12 12"/>',
     reschedule_request: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    red_flag: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+    agent_action: '<path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>',
   };
   var typeLabel = {
     soap: 'Journal', hael_plan: 'Hael-plan',
     patient_message: 'Patientbrev', intake_summary: 'Intake',
     cancel_request: 'Avbokning', reschedule_request: 'Tidsbyte',
+    red_flag: 'Röd flagga', agent_action: 'VelaAgent',
   };
   var typeTime = {
     soap: '~1 min', hael_plan: '~2 min',
     patient_message: '~30 sek', intake_summary: '~1 min',
     cancel_request: '~10 sek', reschedule_request: '~10 sek',
+    red_flag: 'Akut', agent_action: '~15 sek',
   };
 
   var h = '<div style="display:flex;flex-direction:column;height:100%;background:var(--bg);font-family:var(--font)">';
@@ -21453,6 +21871,8 @@ function _renderSigQueue() {
     pending.forEach(function(a, idx) {
       // Special rendering for action-intent types
       var specialHtml = typeof _sigqSpecialCard === 'function' ? _sigqSpecialCard(a) : null;
+      if (specialHtml === null && a.type === 'red_flag') specialHtml = _sigqRedFlagCard(a);
+      if (specialHtml === null && a.type === 'agent_action') specialHtml = _sigqAgentActionCard(a);
       if (specialHtml !== null) { h += specialHtml; return; }
 
       var icon = typeIcon[a.type] || typeIcon.soap;

@@ -1741,6 +1741,162 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 .stitle { font-family:var(--font-serif,Georgia,serif); font-size:22px; font-weight:400; color:var(--navy); margin-bottom:4px; }
 .ssub { font-size:14px; color:var(--muted); margin-bottom:20px; }
 
+/* PatJournal screen — dark app view */
+.pj-screen { min-height:100vh; background:var(--bg); padding:0 0 48px; }
+.pj-toolbar {
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding:14px 24px; border-bottom:1px solid var(--border);
+  background:var(--bg); position:sticky; top:0; z-index:10;
+}
+.pj-search {
+  display:flex; align-items:center; gap:8px;
+  background:#161b22; border:1px solid var(--border);
+  border-radius:6px; padding:0 10px; height:32px;
+  flex:1; min-width:180px; max-width:320px;
+  transition:border-color .15s;
+}
+.pj-search:focus-within { border-color:#58a6ff; }
+.pj-search input {
+  background:none; border:none; outline:none;
+  font-size:14px; color:#e6edf3; width:100%;
+  font-family:var(--font);
+}
+.pj-search input::placeholder { color:#6e7681; }
+.pj-filter-btn {
+  padding:0 12px; height:32px; border:1px solid var(--border);
+  border-radius:6px; background:none; color:#8b949e;
+  font-size:13px; cursor:pointer; font-family:var(--font);
+  white-space:nowrap; transition:all .12s;
+}
+.pj-filter-btn:hover { border-color:#8b949e; color:#e6edf3; }
+.pj-filter-btn.active { background:rgba(224,118,40,.1); border-color:var(--orange); color:var(--orange); }
+.pj-back-btn {
+  display:flex; align-items:center; gap:6px;
+  padding:0 12px; height:32px; border:1px solid var(--border);
+  border-radius:6px; background:none; color:#8b949e;
+  font-size:13px; cursor:pointer; font-family:var(--font);
+  flex-shrink:0; transition:all .12s;
+}
+.pj-back-btn:hover { border-color:#8b949e; color:#e6edf3; }
+.pj-print-btn {
+  padding:0 14px; height:32px; border:1px solid #238636;
+  border-radius:6px; background:rgba(35,134,54,.1); color:#3fb950;
+  font-size:13px; font-weight:600; cursor:pointer; font-family:var(--font);
+  flex-shrink:0; transition:all .12s;
+}
+.pj-print-btn:hover { background:#238636; color:#fff; }
+
+/* NRS sparkline strip */
+.pj-nrs-strip {
+  margin:16px 24px 0;
+  background:#161b22; border:1px solid var(--border);
+  border-radius:6px; padding:14px 18px;
+}
+.pj-nrs-strip-title {
+  font-size:11px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.08em; color:#8b949e; margin-bottom:10px;
+}
+.pj-sparkline {
+  display:flex; align-items:flex-end; gap:4px; height:40px;
+}
+.pj-spark-bar {
+  flex:1; border-radius:3px 3px 0 0; min-height:4px;
+  position:relative; cursor:default; transition:opacity .12s;
+  min-width:6px; max-width:32px;
+}
+.pj-spark-bar:hover { opacity:.75; }
+.pj-nrs-summary {
+  display:flex; gap:20px; margin-top:10px; flex-wrap:wrap;
+}
+.pj-nrs-stat { font-size:12px; color:#8b949e; }
+.pj-nrs-stat span { color:#e6edf3; font-weight:600; }
+
+/* Visit blocks */
+.pj-visits { padding:16px 24px 0; display:flex; flex-direction:column; gap:10px; }
+.pj-visit-card {
+  background:#161b22; border:1px solid var(--border);
+  border-radius:6px; overflow:hidden;
+}
+.pj-visit-hdr {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px; cursor:pointer;
+  transition:background .12s;
+  user-select:none;
+}
+.pj-visit-hdr:hover { background:rgba(177,186,196,.05); }
+.pj-visit-num {
+  width:22px; height:22px; border-radius:50%;
+  background:rgba(177,186,196,.1); border:1px solid var(--border);
+  font-size:11px; font-weight:700; color:#8b949e;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.pj-visit-date {
+  font-size:13px; font-weight:600; color:#e6edf3;
+  flex-shrink:0; min-width:90px;
+}
+.pj-visit-diag {
+  font-size:13px; color:#8b949e; flex:1;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.pj-nrs-pill {
+  font-size:11px; font-weight:700; padding:2px 8px;
+  border-radius:20px; flex-shrink:0;
+}
+.pj-visit-chevron {
+  color:#6e7681; font-size:12px; flex-shrink:0;
+  transition:transform .15s;
+}
+.pj-visit-chevron.open { transform:rotate(90deg); }
+.pj-visit-body {
+  border-top:1px solid var(--border2);
+  padding:14px 14px 14px 14px;
+  display:none;
+}
+.pj-visit-body.open { display:block; }
+.pj-soap-row {
+  display:flex; gap:10px; margin-bottom:10px; align-items:flex-start;
+}
+.pj-soap-row:last-child { margin-bottom:0; }
+.pj-soap-label {
+  width:24px; height:24px; border-radius:4px;
+  font-size:11px; font-weight:800; letter-spacing:.02em;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; margin-top:1px;
+}
+.pj-soap-label.S { background:rgba(59,130,246,.15); color:#60a5fa; }
+.pj-soap-label.O { background:rgba(139,92,246,.15); color:#a78bfa; }
+.pj-soap-label.A { background:rgba(8,145,178,.15); color:#22d3ee; }
+.pj-soap-label.P { background:rgba(5,150,105,.15); color:#34d399; }
+.pj-soap-text {
+  font-size:14px; color:#c9d1d9; line-height:1.7; flex:1;
+  white-space:pre-wrap; word-break:break-word;
+}
+.pj-visit-actions {
+  display:flex; gap:8px; margin-top:14px; padding-top:12px;
+  border-top:1px solid var(--border2);
+}
+.pj-act-btn {
+  display:flex; align-items:center; gap:5px;
+  padding:4px 12px; border-radius:6px; font-size:12px;
+  font-weight:600; cursor:pointer; font-family:var(--font);
+  border:1px solid var(--border); background:none; color:#8b949e;
+  transition:all .12s;
+}
+.pj-act-btn:hover { border-color:#8b949e; color:#e6edf3; }
+.pj-empty-state {
+  padding:48px 24px; text-align:center;
+  font-size:14px; color:#6e7681; font-style:italic;
+}
+
+/* NRS color helpers */
+.nrs-low  { background:#238636; }
+.nrs-mid  { background:#b58a00; }
+.nrs-high { background:#da3633; }
+.pill-low  { background:rgba(35,134,54,.15); color:#3fb950; border:1px solid rgba(35,134,54,.3); }
+.pill-mid  { background:rgba(181,138,0,.15); color:#e3b341; border:1px solid rgba(181,138,0,.3); }
+.pill-high { background:rgba(218,54,51,.15); color:#f85149; border:1px solid rgba(218,54,51,.3); }
+
 /* ── NPF BACKDROP ────────────────────────────────────────── */
 .npf-backdrop { position:fixed;inset:0;background:rgba(7,16,30,.65);backdrop-filter:blur(5px);z-index:-1; }
 
@@ -23823,113 +23979,219 @@ function zpSetTier(patId, visitId, tierId) {
   showAutoSaveToast('Tier ändrad till ' + (PAYMENT_TIERS[tierId]?.name || tierId));
 }
 
-// -- FULL PATIENT JOURNAL EXPORT -----------------------------------------------
-function rPatJournal() {
-  const p = S.pat;
-  if (!p) { go('detail'); return; }
-  const el = document.getElementById('s-patjournal');
-  const today = new Date().toLocaleDateString('sv-SE',{year:'numeric',month:'long',day:'numeric'});
-  const age = new Date().getFullYear() - birthdateToYear(p.birthdate||p.birthYear||"");
-  const visits = [...(p.visits||[])].reverse(); // chronological order
-  const consents = p.consents||[];
+// -- FULL PATIENT JOURNAL -----------------------------------------------
+var _pjState = { q: '', mode: 'all', openIds: {} };
 
-  let visitsHtml = '';
-  if (!visits.length) {
-    visitsHtml = '<div style="font-size:14px;color:var(--text3);font-style:italic">Inga besök registrerade.</div>';
-  } else {
-    visits.forEach((v, i) => {
-      const soap = v.soap || {};
-      const soapLabels = {S:'Subjektivt',O:'Objektivt',A:'Bedömning',P:'Plan'};
-      const hasSoap = Object.values(soap).some(Boolean);
-      const hasExercises = v.plan && v.plan.exercises && v.plan.exercises.length;
-      const pay = v.payStatus || 'unpaid';
-      const payLabel = {paid:'Betald',unpaid:'Obetald',invoiced:'Fakturerad'}[pay];
-      const payCol = {paid:'#3fb950',unpaid:'#a03030',invoiced:'#8a6000'}[pay];
+function _pjNrsColor(nrs) {
+  if (nrs == null) return '#30363d';
+  if (nrs <= 3) return '#238636';
+  if (nrs <= 6) return '#b58a00';
+  return '#da3633';
+}
+function _pjNrsPillClass(nrs) {
+  if (nrs == null) return '';
+  if (nrs <= 3) return 'pill-low';
+  if (nrs <= 6) return 'pill-mid';
+  return 'pill-high';
+}
+function _pjGetVisitNrs(v) {
+  var logs = (v.logs||[]).filter(function(l){ return l.nrs != null; });
+  return logs.length ? logs[logs.length-1].nrs : null;
+}
 
-      const vid2 = v.id || ('v_' + i);
-      visitsHtml += `<div class="pjdoc-visit-block" id="pjblock-${vid2}">
-        <div class="pjdoc-visit-hdr">
-          <div class="pjdoc-visit-n">${i+1}</div>
-          <div class="pjdoc-visit-date">${v.date||'--'}</div>
-          <div style="font-size:14px;color:var(--text3);margin-left:4px;flex:1">${e(v.form&&v.form.diagnosis||v.soapMeta&&v.soapMeta.diagnosis||p.diagnosis||'')}</div>
-          <button onclick="_pjEditVisit('${p.id}','${vid2}')" style="display:flex;align-items:center;gap:4px;padding:3px 10px;background:none;border:1px solid #30363d;border-radius:5px;font-size:12px;font-weight:600;color:#8b949e;cursor:pointer;font-family:var(--font);flex-shrink:0" onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='#30363d';this.style.color='#8b949e'"><svg width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'><path d='M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7'/><path d='M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z'/></svg>Redigera</button>
-        </div>`;
+function _pjApplyFilter(visits) {
+  var q = _pjState.q.toLowerCase().trim();
+  var mode = _pjState.mode;
+  var cutoff = null;
+  if (mode === '3m') { var d = new Date(); d.setMonth(d.getMonth()-3); cutoff = d.toISOString().slice(0,10); }
+  if (mode === '6m') { var d2 = new Date(); d2.setMonth(d2.getMonth()-6); cutoff = d2.toISOString().slice(0,10); }
+  return visits.filter(function(v) {
+    if (mode === 'soap' && !Object.values(v.soap||{}).some(Boolean)) return false;
+    if (mode === 'nrs' && _pjGetVisitNrs(v) == null) return false;
+    if (cutoff && (v.date||'') < cutoff) return false;
+    if (!q) return true;
+    var haystack = [v.date||'', (v.soapMeta&&v.soapMeta.diagnosis)||'', (v.form&&v.form.diagnosis)||'',
+      Object.values(v.soap||{}).join(' '), v.note||''].join(' ').toLowerCase();
+    return haystack.indexOf(q) !== -1;
+  });
+}
 
-      if (hasSoap) {
-        ['S','O','A','P'].forEach(l => {
-          if (!soap[l]) return;
-          visitsHtml += `<div class="pjdoc-soap-row">
-            <div class="pjdoc-sl ${l}">${l}</div>
-            <div class="pjdoc-soap-text" id="pjsoap-${vid2}-${l}">${e(soap[l])}</div>
-          </div>`;
-        });
-      } else if (v.note) {
-        visitsHtml += `<div style="font-size:14px;color:#8b949e;line-height:1.7;padding-left:28px">${e(v.note)}</div>`;
-      }
+function _pjRenderVisits(allVisits) {
+  var filtered = _pjApplyFilter(allVisits);
+  if (!filtered.length) {
+    return '<div class="pj-empty-state">Inga bes\u00f6k matchar filtret.</div>';
+  }
+  var html = '';
+  filtered.forEach(function(v, i) {
+    var vid = v.id || ('v_' + i);
+    var soap = v.soap || {};
+    var hasSoap = Object.values(soap).some(Boolean);
+    var diag = e((v.soapMeta&&v.soapMeta.diagnosis) || (v.form&&v.form.diagnosis) || '');
+    var nrs = _pjGetVisitNrs(v);
+    var nrsPill = nrs != null
+      ? '<span class="pj-nrs-pill ' + _pjNrsPillClass(nrs) + '">NRS ' + nrs + '</span>'
+      : '';
+    var isOpen = !!_pjState.openIds[vid];
+    var chevronCls = 'pj-visit-chevron' + (isOpen ? ' open' : '');
+    var bodyCls = 'pj-visit-body' + (isOpen ? ' open' : '');
+    var visNum = allVisits.indexOf(v) + 1;
 
-      if (hasExercises) {
-        visitsHtml += `<div class="pjdoc-exercises">
-          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:6px">Rehabövningar</div>`;
-        v.plan.exercises.forEach((ex,xi) => {
-          visitsHtml += `<div class="pjdoc-ex-row"><span class="pjdoc-ex-n">${xi+1}.</span><span style="flex:1">${e(ex.name)}</span><span style="color:var(--text3);font-size:12px">${ex.sets} set × ${ex.reps}</span></div>`;
-        });
-        visitsHtml += `</div>`;
-      }
+    var bodyHtml = '';
+    if (hasSoap) {
+      ['S','O','A','P'].forEach(function(l) {
+        if (!soap[l]) return;
+        bodyHtml += '<div class="pj-soap-row">'
+          + '<div class="pj-soap-label ' + l + '">' + l + '</div>'
+          + '<div class="pj-soap-text">' + e(soap[l]) + '</div>'
+          + '</div>';
+      });
+    } else if (v.note) {
+      bodyHtml += '<div style="font-size:14px;color:#8b949e;line-height:1.7">' + e(v.note) + '</div>';
+    } else {
+      bodyHtml += '<div style="font-size:13px;color:#6e7681;font-style:italic">Inget journalinneh\u00e5ll registrerat.</div>';
+    }
 
-      if (v.soapMeta && v.soapMeta.icd10) {
-        visitsHtml += `<div style="margin-top:6px;font-size:12px;font-family:monospace;color:var(--text3)">ICD-10: ${e(v.soapMeta.icd10)} -- ${e(v.soapMeta.icd10desc||'')}</div>`;
-      }
+    if (v.plan && v.plan.exercises && v.plan.exercises.length) {
+      bodyHtml += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border2)">'
+        + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681;margin-bottom:8px">Rehab\u00f6vningar</div>';
+      v.plan.exercises.forEach(function(ex, xi) {
+        bodyHtml += '<div style="display:flex;gap:8px;font-size:13px;color:#c9d1d9;margin-bottom:4px">'
+          + '<span style="color:#6e7681;flex-shrink:0">' + (xi+1) + '.</span>'
+          + '<span style="flex:1">' + e(ex.name) + '</span>'
+          + '<span style="color:#8b949e">' + ex.sets + ' set \u00d7 ' + ex.reps + '</span>'
+          + '</div>';
+      });
+      bodyHtml += '</div>';
+    }
 
-      visitsHtml += `</div>`;
+    if (v.soapMeta && v.soapMeta.icd10) {
+      bodyHtml += '<div style="margin-top:8px;font-size:12px;font-family:monospace;color:#6e7681">'
+        + 'ICD-10: ' + e(v.soapMeta.icd10) + (v.soapMeta.icd10desc ? ' \u2014 ' + e(v.soapMeta.icd10desc) : '') + '</div>';
+    }
+
+    bodyHtml += '<div class="pj-visit-actions">'
+      + '<button class="pj-act-btn" data-pjedit data-patid="' + e(S.pat&&S.pat.id||'') + '" data-vid="' + e(vid) + '">'
+      + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+      + 'Redigera</button>'
+      + '<button class="pj-act-btn" data-pjdoc data-vid="' + e(vid) + '">'
+      + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+      + 'Fullst\u00e4ndigt dokument</button>'
+      + '</div>';
+
+    html += '<div class="pj-visit-card" id="pjcard-' + vid + '">'
+      + '<div class="pj-visit-hdr" data-pjtoggle data-vid="' + vid + '">'
+      + '<div class="pj-visit-num">' + visNum + '</div>'
+      + '<div class="pj-visit-date">' + (v.date||'--') + '</div>'
+      + '<div class="pj-visit-diag">' + diag + '</div>'
+      + nrsPill
+      + '<svg class="' + chevronCls + '" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
+      + '</div>'
+      + '<div class="' + bodyCls + '" id="pjbody-' + vid + '">' + bodyHtml + '</div>'
+      + '</div>';
+  });
+  return html;
+}
+
+function _pjBuildSparkline(visits) {
+  if (!visits.length) return '';
+  var nrsData = visits.map(function(v){ return _pjGetVisitNrs(v); });
+  var hasAny = nrsData.some(function(n){ return n != null; });
+  if (!hasAny) return '';
+  var bars = nrsData.map(function(nrs, i) {
+    var h = nrs != null ? Math.max(4, Math.round((nrs / 10) * 40)) : 4;
+    var col = _pjNrsColor(nrs);
+    return '<div class="pj-spark-bar" style="height:' + h + 'px;background:' + col + ';opacity:' + (nrs!=null?1:.2) + '" title="Bes\u00f6k ' + (i+1) + ': ' + (nrs!=null?'NRS '+nrs:'Inget NRS') + '"></div>';
+  }).join('');
+  var validNrs = nrsData.filter(function(n){ return n != null; });
+  var first = validNrs[0];
+  var last = validNrs[validNrs.length-1];
+  var avg = validNrs.length ? Math.round(validNrs.reduce(function(a,b){return a+b;},0)/validNrs.length*10)/10 : null;
+  var trend = (first != null && last != null && validNrs.length > 1) ? Math.round((last-first)*10)/10 : null;
+  var trendStr = trend != null
+    ? (trend < 0 ? '<span style="color:#3fb950">' + trend + ' NRS</span>'
+      : trend > 0 ? '<span style="color:#f85149">+' + trend + ' NRS</span>'
+      : '<span style="color:#8b949e">Of\u00f6r\u00e4ndrat</span>')
+    : '\u2014';
+  return '<div class="pj-nrs-strip">'
+    + '<div class="pj-nrs-strip-title">NRS-trend \u2014 ' + validNrs.length + ' av ' + visits.length + ' bes\u00f6k har NRS-v\u00e4rde</div>'
+    + '<div class="pj-sparkline">' + bars + '</div>'
+    + '<div class="pj-nrs-summary">'
+    + '<div class="pj-nrs-stat">Start <span>' + (first!=null?first+'/10':'\u2014') + '</span></div>'
+    + '<div class="pj-nrs-stat">Senast <span>' + (last!=null?last+'/10':'\u2014') + '</span></div>'
+    + (avg!=null?'<div class="pj-nrs-stat">Snitt <span>'+avg+'/10</span></div>':'')
+    + '<div class="pj-nrs-stat">F\u00f6r\u00e4ndring ' + trendStr + '</div>'
+    + '</div></div>';
+}
+
+function _pjWireEvents(el, allVisits) {
+  var searchInput = el.querySelector('#pj-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      _pjState.q = this.value;
+      var container = el.querySelector('#pj-visit-list');
+      if (container) container.innerHTML = _pjRenderVisits(allVisits);
     });
   }
+  el.querySelectorAll('[data-pjmode]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      _pjState.mode = this.dataset.pjmode;
+      el.querySelectorAll('[data-pjmode]').forEach(function(b){ b.classList.remove('active'); });
+      this.classList.add('active');
+      var container = el.querySelector('#pj-visit-list');
+      if (container) container.innerHTML = _pjRenderVisits(allVisits);
+    });
+  });
+  el.addEventListener('click', function(ev) {
+    var toggle = ev.target.closest('[data-pjtoggle]');
+    if (toggle) {
+      var vid = toggle.dataset.vid;
+      _pjState.openIds[vid] = !_pjState.openIds[vid];
+      var body = document.getElementById('pjbody-' + vid);
+      var chev = toggle.querySelector('.pj-visit-chevron');
+      if (body) body.classList.toggle('open', !!_pjState.openIds[vid]);
+      if (chev) chev.classList.toggle('open', !!_pjState.openIds[vid]);
+      return;
+    }
+    var editBtn = ev.target.closest('[data-pjedit]');
+    if (editBtn) { _pjEditVisit(editBtn.dataset.patid, editBtn.dataset.vid); return; }
+    var docBtn = ev.target.closest('[data-pjdoc]');
+    if (docBtn) { S.visitId = docBtn.dataset.vid; go('journaldoc'); }
+  });
+}
 
-  const consentHtml = consents.length
-    ? consents.map(c=>`<div class="pjdoc-ex-row"><span style="color:var(--green);margin-right:6px"></span><span style="flex:1">${CONSENT_TYPES.find(t=>t.key===c.type)?.label||c.type}</span><span style="color:var(--text3);font-size:12px">${c.date}</span></div>`).join('')
-    : '<div style="font-size:14px;color:var(--text3);font-style:italic">Inga samtycken registrerade.</div>';
-
-  el.innerHTML = `
-    <div style="background:#21262d;min-height:100vh;">
-      <div class="dcontrols">
-        <button class="btn" onclick="go('detail')"><- Tillbaka</button>
-        <button class="btn btn-p" onclick="window.print()">Skriv ut / Spara PDF</button>
-        <span class="dhint">Välj "Spara som PDF" · A4 · minimala marginaler</span>
-      </div>
-      <div class="pjdoc">
-        <div class="pjdoc-cover">
-          <div class="pjdoc-clinic-name">${e(CLINIC.name)}</div>
-          <div class="pjdoc-patient-name">${e(p.name||'Patient')}</div>
-          <div class="pjdoc-diag">${e(p.diagnosis||'')}</div>
-          <div class="pjdoc-meta-row">
-            <div class="pjdoc-mi"><div class="lbl">Personnummer</div><div class="val">${e(p.birthdate||p.birthYear||'--')}</div></div>
-            <div class="pjdoc-mi"><div class="lbl">Ålder</div><div class="val">${age} år</div></div>
-            <div class="pjdoc-mi"><div class="lbl">Telefon</div><div class="val">${e(p.phone||'--')}</div></div>
-            <div class="pjdoc-mi"><div class="lbl">Antal besök</div><div class="val">${(p.visits||[]).length}</div></div>
-            <div class="pjdoc-mi"><div class="lbl">Fas</div><div class="val">${PHASES[(p.phase||1)-1].name}</div></div>
-            <div class="pjdoc-mi"><div class="lbl">Utfärdad</div><div class="val">${today}</div></div>
-          </div>
-        </div>
-
-        <div class="pjdoc-section">
-          <div class="pjdoc-sec-title">Journalhistorik -- ${visits.length} besök</div>
-          ${visitsHtml}
-        </div>
-
-        <div class="pjdoc-section">
-          <div class="pjdoc-sec-title">Samtycken (GDPR)</div>
-          ${consentHtml}
-        </div>
-
-        <div class="pjdoc-ftr">
-          <img src="${LOGO}" style="height:32px;opacity:.5">
-          <div class="pjdoc-ftr-txt">
-            <div>${e(CLINIC.name)} · ${e(CLINIC.address)}</div>
-            <div>${e(CLINIC.phone)} · ${e(CLINIC.email)}</div>
-            <div style="margin-top:2px;color:var(--text3)">Konfidentiell patientjournal -- Hael · Vela</div>
-          </div>
-        </div>
-      </div>
-    </div>`;
+function rPatJournal() {
+  var p = S.pat;
+  if (!p) { go('detail'); return; }
+  var el = document.getElementById('s-patjournal');
+  var allVisits = (p.visits||[]).slice().reverse();
+  var filterBtns = [
+    {mode:'all', label:'Alla'},
+    {mode:'soap', label:'Med SOAP'},
+    {mode:'nrs', label:'Med NRS'},
+    {mode:'3m', label:'Senaste 3 m\u00e5n'},
+    {mode:'6m', label:'Senaste 6 m\u00e5n'}
+  ].map(function(f) {
+    return '<button class="pj-filter-btn' + (_pjState.mode===f.mode?' active':'') + '" data-pjmode="' + f.mode + '">' + f.label + '</button>';
+  }).join('');
+  var sparkline = _pjBuildSparkline(allVisits);
+  el.innerHTML = '<div class="pj-screen">'
+    + '<div class="pj-toolbar">'
+    + '<button class="pj-back-btn" onclick="go(\'detail\')">'
+    + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>'
+    + e(p.name||'Patient') + '</button>'
+    + '<div class="pj-search">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6e7681" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>'
+    + '<input id="pj-search-input" type="text" placeholder="S\u00f6k i journaler\u2026" value="' + e(_pjState.q) + '">'
+    + '</div>'
+    + filterBtns
+    + '<button class="pj-print-btn" onclick="window.print()">'
+    + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="margin-right:4px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>'
+    + 'Skriv ut</button>'
+    + '</div>'
+    + (sparkline||'')
+    + '<div class="pj-visits" id="pj-visit-list">' + _pjRenderVisits(allVisits) + '</div>'
+    + '</div>';
+  _pjWireEvents(el, allVisits);
 }
 
 

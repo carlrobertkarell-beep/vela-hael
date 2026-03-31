@@ -8852,7 +8852,42 @@ function closeAmbientSession() {
 // Override _dayTaEmot to open ambient session instead of direct visit
 
 
-// Also hook _startSmartVisit to offer ambient session
+// _startSmartVisit — unified entry: Hem-card, ambient, calendar
+function _startSmartVisit(patId, bkId) {
+  var pat = (S.patients||[]).find(function(p){ return p.id===patId; });
+  if (!pat) { showAutoSaveToast('Patient ej hittad'); return; }
+  S.pat = pat;
+  var bks = typeof getBookings==='function' ? getBookings() : [];
+  var bk = bkId ? bks.find(function(b){ return b.id===bkId; }) : null;
+  lastAnalyzedText = '';
+  var prefill = window._intakePrefill || {};
+  window._intakePrefill = null;
+  currentSOAP = {
+    soap: { S:prefill.S||'', O:prefill.O||'', A:prefill.A||'', P:prefill.P||'' },
+    journalNr: _nextJournalNr(),
+    diagnosis: (bk && bk.serviceName) ? bk.serviceName : (pat.diagnosis||''),
+    customDiagnosis:'', icd10:'', icd10desc:'',
+    pain:5, motivation:6,
+    history:(pat.visits||[]).length > 0 ? 'sporadisk' : 'ingen',
+    knowledge:'låg', location:'hem', exercises:5, followup:4, clinicalFocus:'',
+    transcript: (window._ambientState && window._ambientState.transcript) || [],
+    date: new Date().toISOString().slice(0,10),
+    note:'', manual:true,
+    aiGenerated:!!(prefill.S),
+    bookingId: bkId||null,
+  };
+  window._ambientJournalDraft = null;
+  if (bk && bk.status === 'pending') {
+    bk.status = 'in_progress';
+    if (typeof upsertBooking==='function') upsertBooking(bk);
+  }
+  go('manualsoap');
+  if (!prefill.S && typeof checkJournalDraft==='function') {
+    var draft = checkJournalDraft();
+    if (draft && draft.patId === patId && typeof restoreJournalDraft==='function') restoreJournalDraft(draft);
+  }
+}
+
 
 
 
@@ -10538,23 +10573,19 @@ function rTopbar() {
     nh += stab('services', 'Tjänster & priser',  '<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>');
     nh += stab('schedule', 'Tillgänglighet',     '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
     nh += nsep('Kommunikation');
-    nh += stab('comms',        'Mail & SMS',        '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>');
-    nh += stab('integrations', 'Kopplingar',        '<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>');
+    nh += stab('comms',  'Mail & SMS',       '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>');
+    nh += stab('apikey', 'Integrationer & API', '<path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>');
     nh += nsep('VelaAgent');
     var _agPend2 = (typeof getPendingApprovals==='function' ? getPendingApprovals().filter(function(a){return a.type==='cancel_request'||a.type==='reschedule_request';}).length : 0);
-    nh += '<button class="nav-item'+(window._settingsActiveTab==='velaagent'?' active':'')+'" onclick="window._settingsActiveTab=\'velaagent\';rSettings&&rSettings()">'
+    nh += '<button class="nav-item'+((window._settingsActiveTab==='velaagent'||window._settingsActiveTab==='ai')?' active':'')+'" onclick="window._settingsActiveTab=\'velaagent\';rSettings&&rSettings()">'
       + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'
-      + '<span class="nav-item-label">Agent & automatik</span>'
+      + '<span class="nav-item-label">Agent & AI</span>'
       + (_agPend2 ? '<span class="nav-badge-alert">'+_agPend2+'</span>' : '')
       + '</button>';
-    nh += stab('ai', 'AI-profil & minne', '<circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 1 0-16 0"/>');
     nh += nsep('Konto');
-    nh += stab('apikey',  'API-nycklar',   '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>');
-    nh += stab('billing', 'Abonnemang',    '<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>');
-    nh += stab('sync',    'Synk & data',   '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>');
-    nh += nsep('Din profil');
-    nh += stab('profile',     'Profil & inloggning', '<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>');
-    nh += stab('preferences', 'Preferenser',         '<line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="18" y2="18"/>');
+    nh += stab('billing', 'Konto & data', '<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>');
+    nh += nsep('Profil');
+    nh += stab('profile', 'Min profil', '<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>');
   } else if (scr === 'activity') {
     nh += nsep('Aktivitet');
     nh += '<button class="nav-item active" data-screen="activity"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span class="nav-item-label">Inkorg</span></button>';
@@ -23812,12 +23843,13 @@ function rPatJournal() {
       const payLabel = {paid:'Betald',unpaid:'Obetald',invoiced:'Fakturerad'}[pay];
       const payCol = {paid:'#3fb950',unpaid:'#a03030',invoiced:'#8a6000'}[pay];
 
-      visitsHtml += `<div class="pjdoc-visit-block">
+      const vid2 = v.id || ('v_' + i);
+      visitsHtml += `<div class="pjdoc-visit-block" id="pjblock-${vid2}">
         <div class="pjdoc-visit-hdr">
           <div class="pjdoc-visit-n">${i+1}</div>
           <div class="pjdoc-visit-date">${v.date||'--'}</div>
-          <div style="font-size:14px;color:var(--text3);margin-left:4px">${e(v.form&&v.form.diagnosis||v.soapMeta&&v.soapMeta.diagnosis||p.diagnosis||'')}</div>
-
+          <div style="font-size:14px;color:var(--text3);margin-left:4px;flex:1">${e(v.form&&v.form.diagnosis||v.soapMeta&&v.soapMeta.diagnosis||p.diagnosis||'')}</div>
+          <button onclick="_pjEditVisit('${p.id}','${vid2}')" style="display:flex;align-items:center;gap:4px;padding:3px 10px;background:none;border:1px solid #30363d;border-radius:5px;font-size:12px;font-weight:600;color:#8b949e;cursor:pointer;font-family:var(--font);flex-shrink:0" onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='#30363d';this.style.color='#8b949e'"><svg width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round'><path d='M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7'/><path d='M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z'/></svg>Redigera</button>
         </div>`;
 
       if (hasSoap) {
@@ -23825,7 +23857,7 @@ function rPatJournal() {
           if (!soap[l]) return;
           visitsHtml += `<div class="pjdoc-soap-row">
             <div class="pjdoc-sl ${l}">${l}</div>
-            <div class="pjdoc-soap-text">${e(soap[l])}</div>
+            <div class="pjdoc-soap-text" id="pjsoap-${vid2}-${l}">${e(soap[l])}</div>
           </div>`;
         });
       } else if (v.note) {
@@ -23898,6 +23930,67 @@ function rPatJournal() {
 }
 
 
+
+function _pjEditVisit(patId, visitId) {
+  var pat = S.patients.find(function(p){return p.id===patId;}) || S.pat;
+  if (!pat) return;
+  var visit = (pat.visits||[]).find(function(v){return v.id===visitId;});
+  if (!visit) return;
+  var soap = visit.soap || {};
+
+  var ov = document.createElement('div');
+  ov.id = 'pj-edit-ov';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:800;background:rgba(7,16,30,.8);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:20px';
+  ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
+
+  var labels = {S:'Subjektivt',O:'Objektivt',A:'Bedömning',P:'Plan'};
+  var colors = {S:'#3b82f6',O:'#8b5cf6',A:'#0891b2',P:'#059669'};
+
+  var fieldsHtml = ['S','O','A','P'].map(function(l) {
+    return '<div style="margin-bottom:14px">'
+      + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:'+colors[l]+';margin-bottom:5px">'+l+' — '+labels[l]+'</div>'
+      + '<textarea id="pjedit-'+l+'" data-col="'+colors[l]+'" style="width:100%;background:#21262d;border:1px solid #30363d;border-radius:6px;padding:10px 12px;font-size:14px;color:#e6edf3;font-family:var(--font);line-height:1.65;resize:vertical;min-height:72px;outline:none;box-sizing:border-box" onfocus="this.style.borderColor=this.dataset.col" onblur="this.style.borderColor=\'#30363d\'">'
+      + (soap[l]||'')+'</textarea></div>';
+  }).join('');
+
+  ov.innerHTML = '<div style="background:#161b22;border-radius:10px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;padding:24px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">'
+    + '<div><div style="font-size:16px;font-weight:700;color:#e6edf3">Redigera journal</div>'
+    + '<div style="font-size:13px;color:#8b949e;margin-top:2px">'+(visit.date||'')+(visit.soapMeta&&visit.soapMeta.diagnosis?' · '+visit.soapMeta.diagnosis:'')+'</div></div>'
+    + '<button onclick="document.getElementById(&quot;pj-edit-ov&quot;).remove()" style="background:none;border:none;color:#8b949e;cursor:pointer;padding:4px;font-size:18px;line-height:1">×</button>'
+    + '</div>'
+    + fieldsHtml
+    + '<div style="display:flex;gap:8px;justify-content:flex-end;padding-top:4px">'
+    + '<button onclick="document.getElementById(&quot;pj-edit-ov&quot;).remove()" style="padding:8px 16px;background:none;border:1px solid #30363d;border-radius:6px;font-size:14px;color:#8b949e;cursor:pointer;font-family:var(--font)">Avbryt</button>'
+    + '<button id="pj-save-btn" style="padding:8px 18px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Spara</button>'
+    + '</div></div>';
+
+  document.body.appendChild(ov);
+  // Wire save button via event (avoids inline quote escaping)
+  var saveBtn = document.getElementById('pj-save-btn');
+  if (saveBtn) saveBtn.addEventListener('click', function() { _pjSaveVisit(patId, visitId); });
+}
+
+function _pjSaveVisit(patId, visitId) {
+  var pat = S.patients.find(function(p){return p.id===patId;}) || S.pat;
+  if (!pat) return;
+  var newSoap = {};
+  ['S','O','A','P'].forEach(function(l) {
+    var el = document.getElementById('pjedit-'+l);
+    newSoap[l] = el ? el.value.trim() : '';
+  });
+  var updVisits = (pat.visits||[]).map(function(v) {
+    if (v.id !== visitId) return v;
+    return Object.assign({}, v, { soap: newSoap, note: ['S','O','A','P'].map(function(l){return l+': '+newSoap[l];}).filter(function(s){return s.length>3;}).join('\n\n') });
+  });
+  var updPat = Object.assign({}, pat, { visits: updVisits });
+  var saved = savePat(updPat);
+  S.pat = saved;
+  document.getElementById('pj-edit-ov').remove();
+  showAutoSaveToast('✓ Journal sparad');
+  // Refresh view
+  rPatJournal();
+}
 
 function viewJournalDoc(vid) {
   S.visitId = vid;
@@ -34413,17 +34506,17 @@ function _renderSettingsContent(tab) {
   else if (tab === 'users')         { el.innerHTML = _stUsers(); _stUsersWireEvents(); }
   else if (tab === 'services')      el.innerHTML = _stServices();
   else if (tab === 'comms')         el.innerHTML = _stComms(cfg);
-  else if (tab === 'integrations')  el.innerHTML = _stIntegrations();
-  else if (tab === 'ai')            el.innerHTML = _stAISettings();
-  else if (tab === 'velaagent')     _stVelaAgent(el);
+  else if (tab === 'integrations')  el.innerHTML = _stIntegrations() + _stApiKey(key);
+  else if (tab === 'ai')            { _stVelaAgent(el); el.innerHTML += _stAISettings(); }
+  else if (tab === 'velaagent')     { _stVelaAgent(el); el.innerHTML += '<div style="margin-top:24px">' + _stAISettings() + '</div>'; }
   else if (tab === 'agent')         _stVelaAgent(el);
-  else if (tab === 'apikey')        el.innerHTML = _stApiKey(key);
-  else if (tab === 'billing')       el.innerHTML = _stBilling();
-  else if (tab === 'sync')          el.innerHTML = _stSync();
+  else if (tab === 'apikey')        el.innerHTML = _stApiKey(key) + '<div style="margin-top:24px">' + _stIntegrations() + '</div>';
+  else if (tab === 'billing')       el.innerHTML = _stBilling() + '<div style="margin-top:24px">' + _stSync() + '</div>';
+  else if (tab === 'sync')          el.innerHTML = _stBilling() + '<div style="margin-top:24px">' + _stSync() + '</div>';
   else if (tab === 'workflow')      el.innerHTML = _stWorkflow();
   else if (tab === 'schedule')      go('availability');
-  else if (tab === 'profile')       el.innerHTML = _stUserProfile();
-  else if (tab === 'preferences')   el.innerHTML = _stPreferences();
+  else if (tab === 'profile')       el.innerHTML = _stUserProfile() + '<div style="margin-top:24px">' + _stPreferences() + '</div>';
+  else if (tab === 'preferences')   el.innerHTML = _stUserProfile() + '<div style="margin-top:24px">' + _stPreferences() + '</div>';
   else if (tab === 'sms')           { window._commsTab = 'sms'; el.innerHTML = _stComms(cfg); }
   else if (tab === 'rebook-policy') el.innerHTML = _stRebookPolicy();
 }

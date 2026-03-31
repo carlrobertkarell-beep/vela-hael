@@ -19322,6 +19322,19 @@ function toggleClinicalPanel() {
   if (chevron) chevron.style.transform = clinicalPanelExpanded ? 'rotate(0deg)' : 'rotate(-90deg)';
 }
 
+function _soapPanelToggle() {
+  var panel = document.getElementById('soap-ai-panel');
+  var inner = document.getElementById('soap-panel-inner');
+  var chevron = document.getElementById('soap-panel-chevron');
+  if (!panel) return;
+  var isOpen = panel.style.width !== '0px';
+  var nowOpen = !isOpen;
+  panel.style.width = nowOpen ? '320px' : '0px';
+  if (inner) inner.style.display = nowOpen ? 'flex' : 'none';
+  if (chevron) chevron.style.transform = nowOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+  try { localStorage.setItem('vela:soap-panel-open', String(nowOpen)); } catch(e) {}
+}
+
 function triggerClinicalAnalysis(text) {
   clearTimeout(clinicalAnalysisDebounce);
   clinicalAnalysisDebounce = setTimeout(() => runClinicalAnalysis(text), 2500);
@@ -20385,16 +20398,16 @@ function rManualSOAP(bk) {
   const soap = currentSOAP && currentSOAP.soap || {};
 
   const soapFields = [
-    { l:'S', color:'#3b82f6', label:'Subjektivt',
+    { l:'S', color:'#3b82f6', label:'Subjektivt', minH:110,
       desc:'Patientens berättelse, symtom, smärtbeskrivning',
       ph:'Patienten beskriver smärta i... Debut för... Aggraveras av... Lindras av...' },
-    { l:'O', color:'#8b5cf6', label:'Objektivt',
+    { l:'O', color:'#8b5cf6', label:'Objektivt', minH:100,
       desc:'Undersökningsfynd, tester, rörelseomfång',
       ph:'Inspektion visar... Palpation... ROM... Lasègue... Kraftnedsättning...' },
-    { l:'A', color:'#0891b2', label:'Bedömning',
+    { l:'A', color:'#0891b2', label:'Bedömning', minH:80,
       desc:'Diagnos, funktionsnivå, prognos',
       ph:'Klinisk bild förenlig med... Funktionsnivå... Prognos...' },
-    { l:'P', color:'#059669', label:'Plan',
+    { l:'P', color:'#059669', label:'Plan', minH:90,
       desc:'Åtgärder, hemprogram, uppföljning',
       ph:'Behandling: ... Hemövningar... Återbesök om...' }
   ];
@@ -20441,7 +20454,7 @@ function rManualSOAP(bk) {
 
       <!-- LEFT: SOAP form -->
       <div style="flex:1;overflow-y:auto;min-width:0">
-        <div style="max-width:700px;margin:0 auto;padding:24px 28px 80px">
+        <div style="max-width:840px;margin:0 auto;padding:28px 32px 80px">
 
           ${smartIntakeHTML()}
 
@@ -20469,7 +20482,7 @@ function rManualSOAP(bk) {
           <div style="display:flex;flex-direction:column;gap:0;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:18px">
             ${soapFields.map((f, i) => `
             <div style="border-bottom:${i < 3 ? '1px solid #30363d' : 'none'};background:#161b22">
-              <div style="display:flex;align-items:center;gap:8px;padding:7px 12px">
+              <div style="display:flex;align-items:center;gap:8px;padding:10px 14px">
                 <div style="width:21px;height:21px;border-radius:5px;background:${f.color}20;border:1px solid ${f.color}40;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                   <span style="font-size:11px;font-weight:800;color:${f.color}">${f.l}</span>
                 </div>
@@ -20482,7 +20495,7 @@ function rManualSOAP(bk) {
               <textarea id="ms-${f.l}"
                 placeholder="${f.ph}"
                 oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';triggerClinicalAnalysis(collectMSOAPText());autoSaveJournalDraft();${f.l==='S'?'_triggerOAssist()':''}"
-                style="width:100%;min-height:60px;border:none;border-top:1px solid var(--border2);background:var(--bg);padding:10px 14px;font-size:14px;color:#e6edf3;font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.65"
+                style="width:100%;min-height:${f.minH||80}px;border:none;border-top:1px solid var(--border2);background:var(--bg);padding:12px 14px;font-size:14px;color:#e6edf3;font-family:var(--font);resize:none;outline:none;box-sizing:border-box;line-height:1.7"
                 >${e(soap[f.l] || '')}</textarea>
             ${f.l==='S' ? '<div id="o-assist-bar" style="display:none;padding:6px 12px;background:var(--teal-lt);border-top:1px solid rgba(224,118,40,.15)"></div>' : ''}
             </div>`).join('')}
@@ -20490,7 +20503,7 @@ function rManualSOAP(bk) {
 
           <!-- Etiologi -->
           <div style="margin-bottom:18px;background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">
-            <div style="display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--border2)">
+            <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border2)">
               <div style="width:21px;height:21px;border-radius:5px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">
                 <span style="font-size:11px;font-weight:800;color:#f59e0b">E</span>
               </div>
@@ -20567,10 +20580,17 @@ function rManualSOAP(bk) {
         </div>
       </div>
 
-      <!-- RIGHT: AI panel (sticky, always visible) -->
-      <div style="width:300px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;background:#161b22;display:flex;flex-direction:column">
-        <div style="padding:14px;flex:1">
-          ${clinicalPanelHTML()}
+      <!-- RIGHT: AI panel collapsible -->
+      <div id="soap-ai-panel" style="width:${(function(){try{return localStorage.getItem('vela:soap-panel-open')==='false'?'0':'320'}catch(e){return '320'}})()}px;flex-shrink:0;border-left:1px solid var(--border);overflow:hidden;background:#161b22;display:flex;flex-direction:column;transition:width .2s ease;position:relative">
+        <button id="soap-panel-toggle" onclick="_soapPanelToggle()"
+          title="Visa/d\u00f6lj AI-panel"
+          style="position:absolute;top:50%;left:-15px;transform:translateY(-50%);width:15px;height:48px;background:#161b22;border:1px solid var(--border);border-right:none;border-radius:4px 0 0 4px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;padding:0">
+          <svg id="soap-panel-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8b949e" stroke-width="2.5" stroke-linecap="round" style="transition:transform .2s;transform:${(function(){try{return localStorage.getItem('vela:soap-panel-open')==='false'?'rotate(180deg)':'rotate(0deg)'}catch(e){return 'rotate(0deg)'}})()}"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div id="soap-panel-inner" style="flex:1;overflow-y:auto;display:${(function(){try{return localStorage.getItem('vela:soap-panel-open')==='false'?'none':'flex'}catch(e){return 'flex'}})()};flex-direction:column;min-width:320px">
+          <div style="padding:14px;flex:1">
+            ${clinicalPanelHTML()}
+          </div>
         </div>
       </div>
 

@@ -23999,6 +23999,15 @@ function _pjGetVisitNrs(v) {
   return logs.length ? logs[logs.length-1].nrs : null;
 }
 
+// Highlight search term in text (safe, escapes first)
+function _pjHighlight(text, q) {
+  if (!q || !text) return e(text||'');
+  var esc = e(text);
+  var escQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return esc.replace(new RegExp('(' + escQ.replace(/&amp;/g,'&amp;').replace(/&lt;/g,'&lt;').replace(/&gt;/g,'&gt;') + ')', 'gi'),
+    '<mark style="background:rgba(224,118,40,.35);color:#e6edf3;border-radius:2px;padding:0 1px">$1</mark>');
+}
+
 function _pjApplyFilter(visits) {
   var q = _pjState.q.toLowerCase().trim();
   var mode = _pjState.mode;
@@ -24010,47 +24019,103 @@ function _pjApplyFilter(visits) {
     if (mode === 'nrs' && _pjGetVisitNrs(v) == null) return false;
     if (cutoff && (v.date||'') < cutoff) return false;
     if (!q) return true;
+    var transcript = (v.transcript||[]).map(function(t){ return t.text||''; }).join(' ');
+    var signals = (v.signals||[]).join(' ');
     var haystack = [v.date||'', (v.soapMeta&&v.soapMeta.diagnosis)||'', (v.form&&v.form.diagnosis)||'',
-      Object.values(v.soap||{}).join(' '), v.note||''].join(' ').toLowerCase();
+      Object.values(v.soap||{}).join(' '), v.note||'', transcript, signals].join(' ').toLowerCase();
     return haystack.indexOf(q) !== -1;
   });
 }
 
 function _pjRenderVisits(allVisits) {
   var filtered = _pjApplyFilter(allVisits);
+  var q = _pjState.q.toLowerCase().trim();
+  var searching = q.length > 0;
+
   if (!filtered.length) {
     return '<div class="pj-empty-state">Inga bes\u00f6k matchar filtret.</div>';
   }
   var html = '';
-  filtered.forEach(function(v, i) {
-    var vid = v.id || ('v_' + i);
+  filtered.forEach(function(v) {
+    var vid = v.id || ('v_idx' + allVisits.indexOf(v));
     var soap = v.soap || {};
     var hasSoap = Object.values(soap).some(Boolean);
-    var diag = e((v.soapMeta&&v.soapMeta.diagnosis) || (v.form&&v.form.diagnosis) || '');
+    var diag = (v.soapMeta&&v.soapMeta.diagnosis) || (v.form&&v.form.diagnosis) || '';
     var nrs = _pjGetVisitNrs(v);
     var nrsPill = nrs != null
       ? '<span class="pj-nrs-pill ' + _pjNrsPillClass(nrs) + '">NRS ' + nrs + '</span>'
       : '';
+    // Auto-open when searching
+    if (searching) _pjState.openIds[vid] = true;
     var isOpen = !!_pjState.openIds[vid];
     var chevronCls = 'pj-visit-chevron' + (isOpen ? ' open' : '');
     var bodyCls = 'pj-visit-body' + (isOpen ? ' open' : '');
     var visNum = allVisits.indexOf(v) + 1;
 
+    // Edit history badge
+    var editBadge = '';
+    if (v._editHistory && v._editHistory.length) {
+      var lastEdit = v._editHistory[v._editHistory.length-1];
+      editBadge = '<span style="font-size:11px;color:#8b949e;margin-left:6px" title="Senast redigerad: ' + e(lastEdit.ts) + '">'
+        + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle;margin-right:2px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+        + 'Redigerad</span>';
+    }
+
+    // Recording badge
+    var hasTranscript = v.transcript && v.transcript.length;
+    var recordBadge = hasTranscript
+      ? '<span style="font-size:11px;color:#58a6ff;margin-left:6px" title="Inspelat bes\u00f6k">'
+        + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:middle;margin-right:2px"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>'
+        + 'Inspelat</span>'
+      : '';
+
+    // ── SOAP rows
     var bodyHtml = '';
     if (hasSoap) {
       ['S','O','A','P'].forEach(function(l) {
         if (!soap[l]) return;
         bodyHtml += '<div class="pj-soap-row">'
           + '<div class="pj-soap-label ' + l + '">' + l + '</div>'
-          + '<div class="pj-soap-text">' + e(soap[l]) + '</div>'
+          + '<div class="pj-soap-text">' + _pjHighlight(soap[l], q) + '</div>'
           + '</div>';
       });
     } else if (v.note) {
-      bodyHtml += '<div style="font-size:14px;color:#8b949e;line-height:1.7">' + e(v.note) + '</div>';
+      bodyHtml += '<div style="font-size:14px;color:#8b949e;line-height:1.7">' + _pjHighlight(v.note, q) + '</div>';
     } else {
       bodyHtml += '<div style="font-size:13px;color:#6e7681;font-style:italic">Inget journalinneh\u00e5ll registrerat.</div>';
     }
 
+    // ── Inspelningsdata (transcript + signals)
+    if (hasTranscript || (v.signals && v.signals.length)) {
+      bodyHtml += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border2)">'
+        + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#58a6ff;margin-bottom:8px;display:flex;align-items:center;gap:5px">'
+        + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>'
+        + 'Inspelningsdata</div>';
+
+      if (v.signals && v.signals.length) {
+        bodyHtml += '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">';
+        v.signals.forEach(function(sig) {
+          bodyHtml += '<span style="font-size:11px;padding:2px 8px;background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.2);border-radius:20px;color:#58a6ff">'
+            + e(sig) + '</span>';
+        });
+        bodyHtml += '</div>';
+      }
+
+      if (hasTranscript) {
+        // Combine transcript segments into readable text
+        var transcriptText = v.transcript.map(function(t) {
+          var speaker = t.speaker ? '<span style="color:#6e7681;font-weight:600;margin-right:4px">' + e(t.speaker) + ':</span>' : '';
+          return '<div style="margin-bottom:4px;font-size:13px;color:#c9d1d9;line-height:1.6">' + speaker + _pjHighlight(t.text||'', q) + '</div>';
+        }).join('');
+        bodyHtml += '<div id="pj-transcript-' + vid + '" style="display:none;max-height:220px;overflow-y:auto;background:#0d1117;border-radius:4px;padding:10px;margin-top:4px">'
+          + transcriptText + '</div>'
+          + '<button data-pjtranscript data-vid="' + vid + '" style="font-size:12px;color:#58a6ff;background:none;border:none;cursor:pointer;font-family:var(--font);padding:0;margin-top:2px">'
+          + 'Visa transkript (' + v.transcript.length + ' segment)</button>';
+      }
+      bodyHtml += '</div>';
+    }
+
+    // ── Rehabövningar
     if (v.plan && v.plan.exercises && v.plan.exercises.length) {
       bodyHtml += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border2)">'
         + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681;margin-bottom:8px">Rehab\u00f6vningar</div>';
@@ -24069,6 +24134,20 @@ function _pjRenderVisits(allVisits) {
         + 'ICD-10: ' + e(v.soapMeta.icd10) + (v.soapMeta.icd10desc ? ' \u2014 ' + e(v.soapMeta.icd10desc) : '') + '</div>';
     }
 
+    // ── Edit history log
+    if (v._editHistory && v._editHistory.length) {
+      bodyHtml += '<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border2)">'
+        + '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681;margin-bottom:6px">Redigeringshistorik</div>';
+      v._editHistory.forEach(function(h) {
+        bodyHtml += '<div style="font-size:12px;color:#6e7681;margin-bottom:3px;display:flex;gap:8px">'
+          + '<span style="color:#8b949e;flex-shrink:0">' + e(h.ts) + '</span>'
+          + '<span>' + e(h.note||'Manuell redigering') + '</span>'
+          + '</div>';
+      });
+      bodyHtml += '</div>';
+    }
+
+    // ── Actions row
     bodyHtml += '<div class="pj-visit-actions">'
       + '<button class="pj-act-btn" data-pjedit data-patid="' + e(S.pat&&S.pat.id||'') + '" data-vid="' + e(vid) + '">'
       + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
@@ -24082,7 +24161,8 @@ function _pjRenderVisits(allVisits) {
       + '<div class="pj-visit-hdr" data-pjtoggle data-vid="' + vid + '">'
       + '<div class="pj-visit-num">' + visNum + '</div>'
       + '<div class="pj-visit-date">' + (v.date||'--') + '</div>'
-      + '<div class="pj-visit-diag">' + diag + '</div>'
+      + '<div class="pj-visit-diag" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;font-size:13px;color:#8b949e">'
+      + _pjHighlight(diag, q) + editBadge + recordBadge + '</div>'
       + nrsPill
       + '<svg class="' + chevronCls + '" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>'
       + '</div>'
@@ -24142,6 +24222,7 @@ function _pjWireEvents(el, allVisits) {
     });
   });
   el.addEventListener('click', function(ev) {
+    // Toggle
     var toggle = ev.target.closest('[data-pjtoggle]');
     if (toggle) {
       var vid = toggle.dataset.vid;
@@ -24152,8 +24233,24 @@ function _pjWireEvents(el, allVisits) {
       if (chev) chev.classList.toggle('open', !!_pjState.openIds[vid]);
       return;
     }
+    // Transcript toggle
+    var tcBtn = ev.target.closest('[data-pjtranscript]');
+    if (tcBtn) {
+      var tvid = tcBtn.dataset.vid;
+      var tcEl = document.getElementById('pj-transcript-' + tvid);
+      if (tcEl) {
+        var visible = tcEl.style.display !== 'none';
+        tcEl.style.display = visible ? 'none' : 'block';
+        tcBtn.textContent = visible
+          ? 'Visa transkript (' + tcEl.querySelectorAll('div').length + ' segment)'
+          : 'D\u00f6lj transkript';
+      }
+      return;
+    }
+    // Edit
     var editBtn = ev.target.closest('[data-pjedit]');
     if (editBtn) { _pjEditVisit(editBtn.dataset.patid, editBtn.dataset.vid); return; }
+    // Doc
     var docBtn = ev.target.closest('[data-pjdoc]');
     if (docBtn) { S.visitId = docBtn.dataset.vid; go('journaldoc'); }
   });
@@ -24193,7 +24290,6 @@ function rPatJournal() {
     + '</div>';
   _pjWireEvents(el, allVisits);
 }
-
 
 
 function _pjEditVisit(patId, visitId) {
@@ -24244,16 +24340,27 @@ function _pjSaveVisit(patId, visitId) {
     var el = document.getElementById('pjedit-'+l);
     newSoap[l] = el ? el.value.trim() : '';
   });
+  var ts = new Date().toLocaleString('sv-SE', {year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
   var updVisits = (pat.visits||[]).map(function(v) {
     if (v.id !== visitId) return v;
-    return Object.assign({}, v, { soap: newSoap, note: ['S','O','A','P'].map(function(l){return l+': '+newSoap[l];}).filter(function(s){return s.length>3;}).join('\n\n') });
+    // Snapshot previous SOAP into edit history (keep last 10)
+    var prevHistory = v._editHistory || [];
+    var prevSoap = v.soap || {};
+    var hasContent = Object.values(prevSoap).some(function(s){ return s && s.trim(); });
+    if (hasContent) {
+      prevHistory = prevHistory.concat([{ ts: ts, soap: Object.assign({}, prevSoap) }]).slice(-10);
+    }
+    return Object.assign({}, v, {
+      soap: newSoap,
+      _editHistory: prevHistory,
+      note: ['S','O','A','P'].map(function(l){return l+': '+newSoap[l];}).filter(function(s){return s.length>3;}).join('\n\n')
+    });
   });
   var updPat = Object.assign({}, pat, { visits: updVisits });
   var saved = savePat(updPat);
   S.pat = saved;
   document.getElementById('pj-edit-ov').remove();
-  showAutoSaveToast('✓ Journal sparad');
-  // Refresh view
+  showAutoSaveToast('\u2713 Journal sparad');
   rPatJournal();
 }
 

@@ -52,8 +52,8 @@
   --gold-lt: rgba(210,153,34,.08);
 
   /* ── Surface stack ──────────────────────────────────────── */
-  /* Topbar: near-black */
-  --topbar-bg:  #161b22;
+  /* Topbar: pure black */
+  --topbar-bg:  #000000;
   /* Work area */
   --bg:         #0d1117;
   --bg2:        #0d1117;
@@ -694,7 +694,7 @@ a:hover { text-decoration: underline; }
 /* Global topbar: always visible on desktop */
 .vela-global-topbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 400;
-  background: #0d1117;
+  background: #000000;
   border-bottom: 1px solid #30363d;
   display: flex; flex-direction: column;
   font-family: var(--font);
@@ -702,14 +702,14 @@ a:hover { text-decoration: underline; }
 /* Row 1: pure black — no visible separator to row2 */
 .vela-gtb-row1 {
   height: 52px; display: flex; align-items: center; gap: 0; width: 100%;
-  background: #0d1117;
+  background: #000000;
   flex-shrink: 0;
   border-bottom: none;
 }
 .vela-gtb-row2 {
   height: 44px; display: flex; align-items: stretch;
   padding: 0; overflow-x: auto; overflow-y: hidden;
-  flex-shrink: 0; background: #0d1117;
+  flex-shrink: 0; background: #000000;
   border-bottom: 1px solid #30363d;
   scrollbar-width: none;
 }
@@ -718,20 +718,20 @@ a:hover { text-decoration: underline; }
 .vela-gtb-tab {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 0 16px; border: none; background: none;
-  font-size: 14px; font-weight: 400; color: #8b949e;
+  font-size: 15px; font-weight: 400; color: #c9d1d9;
   cursor: pointer; font-family: var(--font); white-space: nowrap;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   transition: color .12s, border-color .12s;
   height: 44px; box-sizing: border-box;
 }
-.vela-gtb-tab:hover { color: #e6edf3; }
+.vela-gtb-tab:hover { color: #ffffff; }
 .vela-gtb-tab.active {
-  color: #e6edf3; font-weight: 600;
+  color: #ffffff; font-weight: 600;
   border-bottom-color: var(--orange);
 }
-.vela-gtb-tab svg { opacity: .6; flex-shrink: 0; transition: opacity .12s; }
-.vela-gtb-tab:hover svg { opacity: .9; }
+.vela-gtb-tab svg { opacity: .8; flex-shrink: 0; transition: opacity .12s; }
+.vela-gtb-tab:hover svg { opacity: 1; }
 .vela-gtb-tab.active svg { opacity: 1; }
 .vela-gtb-tab-badge {
   background: rgba(177,186,196,.12); color: #8b949e;
@@ -2903,9 +2903,12 @@ button, input, textarea, select, label {
 */
 
 /* Canvas always #0d1117 */
-body, .app-shell, .main-content, .screen,
-.nav-sidebar, .vela-global-topbar, .vela-gtb-row1, .vela-gtb-row2 {
+body, .app-shell, .main-content, .screen, .nav-sidebar {
   background: #0d1117 !important;
+}
+/* Topbar: pure black */
+.vela-global-topbar, .vela-gtb-row1, .vela-gtb-row2 {
+  background: #000000 !important;
 }
 
 /* Cards: border only, transparent bg */

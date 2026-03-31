@@ -13504,6 +13504,10 @@ var _gmailState = {
 // ── Intent detection ──────────────────────────────────────────────────────────
 function _gmailDetectIntent(subject, snippet) {
   var text = ((subject||'') + ' ' + (snippet||'')).toLowerCase();
+  // Bokadirekt system emails — must be caught first
+  if (/bokadirekt|ny bokning|avbokad bokning|ombokad bokning|tid bekr|appointy|behandlingstid|kund:|kund epost:/i.test(text) ||
+      /ny bokning|avbokad tid|ombokad tid|bokningsbekr/i.test(subject||''))
+    return { id:'bokadirekt', label:'Bokadirekt', color:'teal', icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' };
   if (/ombok|flytta tid|ändra tid|ny tid|annan tid|boka om|tisdag|onsdag|måndag|fredag|lördag|efter kl|kl \d|tid på|närmst en|eftermiddags/.test(text))
     return { id:'scheduling', label:'Tidsbyte',   color:'amber', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' };
   if (/avbok|inställ|ej kan komma|kan inte komma|förhind|inte möjlig/.test(text))
@@ -21649,6 +21653,84 @@ function _sigqSpecialCard(a) {
   return h;
 }
 
+function _sigqBookingImportCard(a) {
+  var meta      = a.meta || {};
+  var bkType    = meta.bkType    || 'new';
+  var parsed    = meta.parsed    || {};
+  var isNewPat  = meta.isNewPat  || false;
+  var dateStr   = meta.dateStr   || '';
+  var bookingId = meta.bookingId || null;
+  var age       = a.createdAt ? _relativeDate(a.createdAt.slice(0,10)) : '';
+
+  var typeLabels = { new: 'Ny bokning', cancelled: 'Avbokning', rescheduled: 'Ombokning' };
+  var typeColors = { new: 'var(--green)', cancelled: 'var(--red)', rescheduled: 'var(--amber)' };
+  var typeBgs    = { new: 'rgba(63,185,80,.08)', cancelled: 'rgba(248,81,73,.08)', rescheduled: 'rgba(210,153,34,.08)' };
+  var typeBorders= { new: 'rgba(63,185,80,.3)', cancelled: 'rgba(248,81,73,.3)', rescheduled: 'rgba(210,153,34,.3)' };
+  var col    = typeColors[bkType]    || 'var(--teal)';
+  var bg     = typeBgs[bkType]       || 'rgba(224,118,40,.08)';
+  var border = typeBorders[bkType]   || 'rgba(224,118,40,.25)';
+  var label  = typeLabels[bkType]    || 'Bokning';
+
+  var h = '<div id="sigq-item-' + a.id + '" style="background:var(--surface);border:1.5px solid ' + border + ';border-radius:6px;margin-bottom:12px;overflow:hidden">';
+
+  // Header
+  h += '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:' + bg + ';border-bottom:1px solid ' + border + '">';
+  h += '<div style="width:32px;height:32px;border-radius:6px;background:' + bg + ';border:1px solid ' + border + ';display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="' + col + '" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  h += '</div>';
+  h += '<div style="flex:1;min-width:0">';
+  h += '<div style="font-size:14px;font-weight:700;color:var(--ink)">' + e(label) + ' — ' + e(a.patName||'Okänd') + '</div>';
+  h += '<div style="font-size:12px;color:var(--text)">Bokadirekt • ' + (age||'nyss') + ' • Kalender uppdaterad automatiskt</div>';
+  h += '</div>';
+  if (isNewPat) {
+    h += '<span style="font-size:11px;font-weight:700;color:var(--amber);background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.3);border-radius:4px;padding:2px 7px">Ny patient</span>';
+  }
+  h += '</div>';
+
+  // Booking details
+  h += '<div style="padding:12px 16px;border-bottom:1px solid var(--border2)">';
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+
+  var fields = [
+    ['Datum & tid', dateStr],
+    ['Tjänst', parsed.service || '—'],
+    ['E-post', parsed.email || '—'],
+    ['Telefon', parsed.phone || '—'],
+    ['Personnr', parsed.pnr || '—'],
+  ].filter(function(f){ return f[1] && f[1] !== '—'; });
+
+  fields.forEach(function(f) {
+    h += '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text);margin-bottom:2px">' + f[0] + '</div>';
+    h += '<div style="font-size:13px;color:var(--ink)">' + e(f[1]) + '</div></div>';
+  });
+  h += '</div>';
+  h += '</div>';
+
+  // New patient warning
+  if (isNewPat) {
+    h += '<div style="padding:10px 16px;background:rgba(210,153,34,.05);border-bottom:1px solid rgba(210,153,34,.12);display:flex;align-items:center;gap:8px">';
+    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    h += '<span style="font-size:13px;color:var(--amber)">Ny patient skapad — komplettera med diagnos och journalinfo efter besöket</span>';
+    h += '</div>';
+  }
+
+  // Actions
+  h += '<div style="display:flex;gap:8px;padding:10px 16px;flex-wrap:wrap">';
+  if (a.patId && a.patId.indexOf('unknown') !== 0) {
+    h += '<button onclick="openPat(\'' + a.patId + '\')" style="flex:2;padding:10px 12px;background:' + bg + ';border:1.5px solid ' + border + ';border-radius:6px;font-size:14px;font-weight:700;color:' + col + ';cursor:pointer;font-family:var(--font)">';
+    h += '→ Öppna patientkort</button>';
+  }
+  if (bookingId) {
+    h += '<button onclick="go(\'calendar\')" style="flex:1;padding:10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">';
+    h += 'Kalender</button>';
+  }
+  h += '<button onclick="_sigqReject(\'' + a.id + '\')" style="padding:10px;background:none;border:1px solid var(--border);border-radius:6px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Kvitterat</button>';
+  h += '</div>';
+
+  h += '</div>';
+  return h;
+}
+
 function _sigqAgentActionCard(a) {
   var meta       = a.meta || {};
   var actionType = meta.actionType || 'contact';
@@ -21818,18 +21900,21 @@ function _renderSigQueue() {
     reschedule_request: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
     red_flag: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
     agent_action: '<path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>',
+    booking_import: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
   };
   var typeLabel = {
     soap: 'Journal', hael_plan: 'Hael-plan',
     patient_message: 'Patientbrev', intake_summary: 'Intake',
     cancel_request: 'Avbokning', reschedule_request: 'Tidsbyte',
     red_flag: 'Röd flagga', agent_action: 'VelaAgent',
+    booking_import: 'Bokadirekt',
   };
   var typeTime = {
     soap: '~1 min', hael_plan: '~2 min',
     patient_message: '~30 sek', intake_summary: '~1 min',
     cancel_request: '~10 sek', reschedule_request: '~10 sek',
     red_flag: 'Akut', agent_action: '~15 sek',
+    booking_import: '~5 sek',
   };
 
   var h = '<div style="display:flex;flex-direction:column;height:100%;background:var(--bg);font-family:var(--font)">';
@@ -21873,6 +21958,7 @@ function _renderSigQueue() {
       var specialHtml = typeof _sigqSpecialCard === 'function' ? _sigqSpecialCard(a) : null;
       if (specialHtml === null && a.type === 'red_flag') specialHtml = _sigqRedFlagCard(a);
       if (specialHtml === null && a.type === 'agent_action') specialHtml = _sigqAgentActionCard(a);
+      if (specialHtml === null && a.type === 'booking_import') specialHtml = _sigqBookingImportCard(a);
       if (specialHtml !== null) { h += specialHtml; return; }
 
       var icon = typeIcon[a.type] || typeIcon.soap;
@@ -26466,6 +26552,249 @@ var _velaPortalAuth = (function() {
 // ══════════════════════════════════════════════════════════════════════════════
 // VELA MAIL TRIAGE
 // ══════════════════════════════════════════════════════════════════════════════
+// ── Bokadirekt email parser ───────────────────────────────────────────────────
+function _parseBokadirektEmail(subject, body) {
+  if (!body) return null;
+  var subj  = (subject || '').toLowerCase();
+  var lines = body.replace(/\r/g, '').split('\n');
+
+  // Determine booking type from subject
+  var bkType = 'new';
+  if (/avbok|cancel|cancell/i.test(subj)) bkType = 'cancelled';
+  else if (/ombok|reschedule|ändrad|ändrat/i.test(subj)) bkType = 'rescheduled';
+
+  // Parser: find "Label: Value" lines (case-insensitive, colon or various separators)
+  function field(keys) {
+    for (var i = 0; i < lines.length; i++) {
+      var l = lines[i].trim();
+      for (var k = 0; k < keys.length; k++) {
+        var re = new RegExp('^' + keys[k] + '[:\s]+(.+)$', 'i');
+        var m  = l.match(re);
+        if (m) return m[1].trim();
+      }
+    }
+    return '';
+  }
+
+  // Also try to find values after a colon on the same line or next line
+  function fieldOrNext(keys) {
+    var v = field(keys);
+    if (v) return v;
+    for (var i = 0; i < lines.length - 1; i++) {
+      var l = lines[i].trim().toLowerCase();
+      for (var k = 0; k < keys.length; k++) {
+        if (l === keys[k].toLowerCase() + ':' || l === keys[k].toLowerCase()) {
+          return lines[i+1].trim();
+        }
+      }
+    }
+    return '';
+  }
+
+  var name    = fieldOrNext(['Kund', 'Namn', 'Name', 'Klientnamn']);
+  var service = fieldOrNext(['Tj\u00e4nst', 'Tj\u00e4nster', 'Behandling', 'Service', 'Tj\u00e4nst\(er\)']);
+  var person  = fieldOrNext(['Person', 'Behandlare', 'Therapist']);
+  var date    = fieldOrNext(['Datum', 'Date']);
+  var time    = fieldOrNext(['Tid', 'Time', 'Kl', 'Kl\.']);
+  var email   = fieldOrNext(['Kund epost', 'E-post', 'Email', 'Epost', 'Kund\s+epost']);
+  var phone   = fieldOrNext(['Kund tel', 'Tel', 'Phone', 'Telefon', 'Mobil']);
+  var pnr     = fieldOrNext(['Personnummer', 'Person\s*nummer', 'SSN', 'P\.nr']);
+  var place   = fieldOrNext(['Plats', 'Place', 'Klinik']);
+
+  // Fallback: scan body for patterns
+  if (!name) {
+    var nm = body.match(/Kund[:\s]+([A-Z\u00c5\u00c4\u00d6][a-z\u00e5\u00e4\u00f6A-Z\u00c5\u00c4\u00d6][^\n<]{2,40})/);
+    if (nm) name = nm[1].trim();
+  }
+  if (!email) {
+    var em = body.match(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/i);
+    if (em) email = em[0].toLowerCase();
+  }
+  if (!phone) {
+    var ph = body.match(/(?:0|\+46)[\d\s-]{8,13}/);
+    if (ph) phone = ph[0].replace(/\s/g, '');
+  }
+  if (!pnr) {
+    var pr = body.match(/\b(19|20)\d{6}[- ]?\d{4}\b/);
+    if (pr) pnr = pr[0].replace('-', '').replace(' ', '');
+  }
+  if (!date) {
+    var dt = body.match(/\b(\d{4}-\d{2}-\d{2})\b/);
+    if (dt) date = dt[1];
+  }
+  if (!time) {
+    var tm = body.match(/\b(\d{2}:\d{2})\b/);
+    if (tm) time = tm[1];
+  }
+  if (!service) {
+    var sv = body.match(/Tj\u00e4nst[\(s\)]*[:\s]+([^\n<]{3,60})/i);
+    if (sv) service = sv[1].trim();
+  }
+
+  if (!name && !email) return null; // Nothing parseable
+
+  return { bkType: bkType, name: name, service: service, person: person,
+           date: date, time: time, email: email ? email.toLowerCase() : '',
+           phone: phone, pnr: pnr, place: place };
+}
+
+// ── Bokadirekt importer ───────────────────────────────────────────────────────
+async function _bokadirektImport(parsed, threadId, subject) {
+  var now = new Date().toISOString();
+  var cfg = typeof getClinicConfig === 'function' ? getClinicConfig() : {};
+
+  // ── Find or create patient ─────────────────────────────────────────────
+  var pat = null;
+  // Match by email first, then phone, then name
+  if (parsed.email) pat = (S.patients||[]).find(function(p){ return (p.email||'').toLowerCase() === parsed.email; });
+  if (!pat && parsed.phone) {
+    var normPhone = (parsed.phone||'').replace(/[^\d+]/g,'');
+    pat = (S.patients||[]).find(function(p){
+      return (p.phone||'').replace(/[^\d+]/g,'') === normPhone;
+    });
+  }
+  if (!pat && parsed.name) {
+    pat = (S.patients||[]).find(function(p){
+      return (p.name||'').toLowerCase() === (parsed.name||'').toLowerCase();
+    });
+  }
+
+  var isNewPat = !pat;
+  if (!pat) {
+    // Create new patient shell — clinician will complete
+    var newId = 'pat_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+    pat = {
+      id:        newId,
+      name:      parsed.name || 'Ok\u00e4nd',
+      email:     parsed.email || '',
+      phone:     parsed.phone || '',
+      birthdate: parsed.pnr ? _pnrToBirthdate(parsed.pnr) : '',
+      pnr:       parsed.pnr || '',
+      diagnosis: '',
+      visits:    [],
+      messages:  [],
+      notes:     '',
+      createdAt: now,
+      source:    'bokadirekt'
+    };
+    savePat(pat);
+  } else {
+    // Update any missing fields
+    var updated = false;
+    if (!pat.email    && parsed.email) { pat.email = parsed.email; updated = true; }
+    if (!pat.phone    && parsed.phone) { pat.phone = parsed.phone; updated = true; }
+    if (!pat.pnr      && parsed.pnr)   { pat.pnr   = parsed.pnr;  pat.birthdate = _pnrToBirthdate(parsed.pnr); updated = true; }
+    if (updated) savePat(pat);
+  }
+
+  // ── Find or create booking ─────────────────────────────────────────────
+  var bkResult = { created: false, cancelled: false, bk: null };
+
+  if (parsed.bkType === 'cancelled') {
+    // Find matching upcoming booking and cancel it
+    var upBk = (getBookings ? getBookings() : []).find(function(b){
+      return b.patientId === pat.id && b.status !== 'cancelled'
+        && (!parsed.date || b.date === parsed.date);
+    });
+    if (upBk) {
+      upBk.status      = 'cancelled';
+      upBk.cancelledAt = now;
+      upBk.cancelledBy = 'bokadirekt';
+      upsertBooking(upBk);
+      bkResult.cancelled = true;
+      bkResult.bk = upBk;
+      if (typeof _notifyWaitlistOnCancellation === 'function') _notifyWaitlistOnCancellation(upBk);
+    }
+  } else {
+    // New or rescheduled — create booking
+    if (parsed.date) {
+      // Check for duplicate
+      var dupBk = (getBookings ? getBookings() : []).find(function(b){
+        return b.patientId === pat.id && b.date === parsed.date
+          && (!parsed.time || b.time === parsed.time) && b.status !== 'cancelled';
+      });
+      if (!dupBk) {
+        var bkId = 'bk_bd_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+        var newBk = {
+          id:          bkId,
+          patientId:   pat.id,
+          patientName: pat.name,
+          date:        parsed.date,
+          time:        parsed.time || '',
+          service:     parsed.service || '',
+          therapist:   parsed.person || cfg.name || '',
+          status:      parsed.bkType === 'rescheduled' ? 'rescheduled' : 'confirmed',
+          source:      'bokadirekt',
+          threadId:    threadId,
+          createdAt:   now,
+          notes:       ''
+        };
+        upsertBooking(newBk);
+        bkResult.created = true;
+        bkResult.bk = newBk;
+      } else {
+        bkResult.bk = dupBk;
+      }
+    }
+  }
+
+  // ── Push sigqueue card for confirmation ────────────────────────────────
+  var typeLabel = parsed.bkType === 'cancelled' ? 'Avbokning' :
+                  parsed.bkType === 'rescheduled' ? 'Ombokning' : 'Ny bokning';
+  var dateStr   = parsed.date ? (parsed.date + (parsed.time ? ' kl ' + parsed.time : '')) : 'Ok\u00e4nt datum';
+  var detail    = typeLabel + ' \u2014 ' + (parsed.name||'Ok\u00e4nd') + ' \u2014 ' + dateStr;
+
+  createAIApproval({
+    type:    'booking_import',
+    patId:   pat.id,
+    patName: pat.name,
+    title:   typeLabel + ' \u2014 ' + (parsed.name || 'Ok\u00e4nd'),
+    aiContent: [
+      parsed.service ? 'Tj\u00e4nst: ' + parsed.service : '',
+      parsed.date    ? 'Datum: '  + dateStr : '',
+      parsed.email   ? 'E-post: ' + parsed.email : '',
+      parsed.phone   ? 'Tel: '    + parsed.phone : '',
+      parsed.pnr     ? 'Personnr: ' + parsed.pnr : '',
+      isNewPat ? '\u26A0 Ny patient skapad \u2014 komplettera journal' : 'Befintlig patient uppdaterad'
+    ].filter(Boolean).join('\n'),
+    meta: {
+      bkType:    parsed.bkType,
+      bookingId: bkResult.bk ? bkResult.bk.id : null,
+      isNewPat:  isNewPat,
+      parsed:    parsed,
+      threadId:  threadId,
+      subject:   subject,
+      dateStr:   dateStr
+    }
+  });
+
+  if (typeof updateInboxBadge === 'function') updateInboxBadge();
+  if (S.screen === 'calendar' && typeof rCalendar === 'function') setTimeout(rCalendar, 300);
+
+  return {
+    type:    parsed.bkType,
+    patId:   pat.id,
+    label:   (bkResult.cancelled ? '\u2715 Avbokad' : bkResult.created ? '\u2713 Bokad' : '\u25A3 Uppdaterad') + ' \u2014 ' + (parsed.name||'Ok\u00e4nd') + ' \u2014 ' + dateStr,
+    detail:  (isNewPat ? 'Ny patient skapad. ' : '') + parsed.service + (parsed.email ? ' \u00b7 ' + parsed.email : ''),
+    actions: [
+      { label: 'Granska', fn: 'rSignatureQueue&&rSignatureQueue()' },
+      { label: 'Patient', fn: 'openPat&&openPat(\'' + pat.id + '\')' }
+    ]
+  };
+}
+
+function _pnrToBirthdate(pnr) {
+  if (!pnr) return '';
+  var clean = (pnr || '').replace(/[^\d]/g, '');
+  if (clean.length === 12) return clean.slice(0,4) + '-' + clean.slice(4,6) + '-' + clean.slice(6,8);
+  if (clean.length === 10) {
+    var yr = parseInt(clean.slice(0,2));
+    var fullYr = yr > 25 ? '19' + clean.slice(0,2) : '20' + clean.slice(0,2);
+    return fullYr + '-' + clean.slice(2,4) + '-' + clean.slice(4,6);
+  }
+  return '';
+}
+
 var _mailTriage = (function() {
   var TRIAGE_KEY = 'vela:mail-triage-ts', TRIAGED_KEY = 'vela:mail-triaged';
   var _running = false, _timer = null, INTERVAL = 30 * 60 * 1000;
@@ -26544,6 +26873,33 @@ var _mailTriage = (function() {
     var pat = _matchPatient(thread.from);
     var intent = _gmailDetectIntent(thread.subject, thread.snippet);
     if (intent.id === 'system') { _markTriaged(thread.id); return; }
+
+    // ── BOKADIREKT ────────────────────────────────────────────────────────
+    if (intent.id === 'bokadirekt') {
+      try {
+        // Fetch full body to parse booking details
+        var bdThread = await _gmailLoadThread(thread.id);
+        var bdMsg    = bdThread && bdThread.messages && bdThread.messages[bdThread.messages.length-1];
+        var bdBody   = bdMsg ? _gmailGetBody(bdMsg.payload) : thread.snippet;
+        var parsed   = _parseBokadirektEmail(thread.subject, bdBody);
+        if (parsed) {
+          var result = await _bokadirektImport(parsed, thread.id, thread.subject);
+          // Show result in inbox
+          addInboxItem(
+            result.patId || ('bd_' + thread.id),
+            parsed.name || 'Ny patient',
+            result.type === 'cancelled' ? 'warning' : 'info',
+            'booking_import',
+            result.label,
+            result.detail,
+            result.actions || []
+          );
+          if (typeof updateInboxBadge === 'function') updateInboxBadge();
+          if (S.screen === 'dashboard' && typeof _renderPulse === 'function') _renderPulse();
+        }
+      } catch(bdErr) { console.warn('Bokadirekt parse error:', bdErr); }
+      _markTriaged(thread.id); return;
+    }
 
     // Pre-fetch full body for action intents
     var body = null;

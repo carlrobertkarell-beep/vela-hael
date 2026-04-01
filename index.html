@@ -36795,7 +36795,7 @@ function _stComms(cfg) {
   function commToggle(eventId, channel, cur) {
     var isOn = (cur !== 'off');
     var onStyle  = 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#238636;flex-shrink:0;transition:background .15s';
-    var offStyle = 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:rgba(177,186,196,.2);flex-shrink:0;transition:background .15s';
+    var offStyle = 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#30363d;flex-shrink:0;transition:background .15s';
     var knobOn  = 'position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:17px;transition:left .15s';
     var knobOff = 'position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left .15s';
     var newLevel = isOn ? 'off' : 'auto';
@@ -36851,41 +36851,79 @@ function _stComms(cfg) {
   ];
 
   // Build follow-up rules settings block (injected after GROUPS)
+  function _fuqToggle(scenario, channel) {
+    var rules = getFollowupRules();
+    var r = rules[scenario];
+    if (channel === 'sms') {
+      r.smsOn = !r.smsOn;
+    } else {
+      r.mailOn = !r.mailOn;
+    }
+    // If both off, mark disabled
+    r.enabled = !!(r.smsOn || r.mailOn);
+    saveFollowupRules(rules);
+    _renderSettingsContent('comms');
+  }
+
+  function _fuqDays(scenario, val) {
+    var rules = getFollowupRules();
+    rules[scenario].days = parseInt(val) || 0;
+    saveFollowupRules(rules);
+  }
+
   function _renderFollowupSettings() {
     var rules = getFollowupRules();
-    var out = '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:24px">';
-    out += '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#0d1117;border-bottom:1px solid var(--border)">';
-    out += '<div style="width:22px;height:22px;border-radius:5px;background:rgba(224,118,40,.12);border:1px solid rgba(224,118,40,.2);display:flex;align-items:center;justify-content:center;color:var(--orange)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>';
-    out += '<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#6e7681">Uppföljning efter besök — timing per scenario</div>';
-    out += '<div style="font-size:12px;color:var(--text2);margin-top:1px">VelaAgent draftar och lägger i signaturkön automatiskt efter besökssparning</div></div>';
-    out += '</div>';
-    Object.keys(FOLLOWUP_DEFAULTS).forEach(function(k) {
+    var out = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:24px">';
+    // Header with column labels
+    out += '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border)">';
+    out += '<div style="flex:1;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text2)">Uppföljning efter besök</div>';
+    out += '<div style="display:grid;grid-template-columns:40px 40px 72px 14px;gap:8px;align-items:center">';
+    out += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);text-align:center">SMS</div>';
+    out += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);text-align:center">Mail</div>';
+    out += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);text-align:center">Dagar</div>';
+    out += '<div></div>';
+    out += '</div></div>';
+
+    Object.keys(FOLLOWUP_DEFAULTS).forEach(function(k, idx) {
       var r = rules[k];
-      var rowId = 'fuq-' + k;
-      out += '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border2)">';
-      // Enable toggle
-      out += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0">';
-      out += '<input type="checkbox" id="' + rowId + '-on" ' + (r.enabled ? 'checked' : '') + ' onchange="_fuqSave()" style="width:15px;height:15px;cursor:pointer;accent-color:#238636">';
-      out += '</label>';
-      // Label + desc
+      // Migrate old single-channel format to dual-channel
+      if (r.smsOn === undefined) r.smsOn = (r.channel === 'sms' && r.enabled);
+      if (r.mailOn === undefined) r.mailOn = (r.channel === 'mail' && r.enabled) || (r.channel !== 'sms' && r.enabled);
+      var bothOff = (!r.smsOn && !r.mailOn) || k === 'hael_active';
+      var rowStyle = 'display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border2);transition:opacity .15s;' + (bothOff ? 'opacity:.35;' : '');
+
+      out += '<div style="' + rowStyle + '">';
+      // Label
       out += '<div style="flex:1;min-width:0">';
-      out += '<div style="font-size:14px;font-weight:600;color:var(--ink)">' + e(r.label) + '</div>';
+      out += '<div style="font-size:14px;font-weight:500;color:var(--ink)">' + e(r.label) + '</div>';
       out += '<div style="font-size:12px;color:var(--text2);margin-top:1px">' + e(r.desc) + '</div>';
       out += '</div>';
-      // Days input (hidden for hael_active + off)
-      if (k !== 'hael_active') {
-        out += '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">';
-        out += '<input type="number" id="' + rowId + '-days" value="' + r.days + '" min="0" max="30" onchange="_fuqSave()" style="width:52px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:4px 7px;font-size:13px;color:var(--ink);font-family:var(--font);text-align:center">';
-        out += '<span style="font-size:12px;color:var(--text2)">dag(ar)</span>';
-        out += '</div>';
+
+      // Toggles + days in aligned grid
+      out += '<div style="display:grid;grid-template-columns:40px 40px 72px 14px;gap:8px;align-items:center">';
+
+      if (k === 'hael_active') {
+        out += '<div></div><div></div>';
+        out += '<div style="font-size:12px;color:var(--text2);text-align:center">—</div>';
+      } else {
+        // SMS toggle
+        var smsOn = !!r.smsOn;
+        var smsStyle = smsOn ? 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#238636;flex-shrink:0' : 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#30363d;flex-shrink:0';
+        var smsKnob = 'position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:' + (smsOn?'17':'3') + 'px';
+        out += '<div style="display:flex;justify-content:center"><button style="' + smsStyle + '" onclick="_fuqToggle(\''+k+'\',\'sms\')"><span style="' + smsKnob + '"></span></button></div>';
+
+        // Mail toggle
+        var mailOn = !!r.mailOn;
+        var mailStyle = mailOn ? 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#238636;flex-shrink:0' : 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#30363d;flex-shrink:0';
+        var mailKnob = 'position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:' + (mailOn?'17':'3') + 'px';
+        out += '<div style="display:flex;justify-content:center"><button style="' + mailStyle + '" onclick="_fuqToggle(\''+k+'\',\'mail\')"><span style="' + mailKnob + '"></span></button></div>';
+
+        // Days input
+        out += '<input type="number" value="' + r.days + '" min="0" max="30" onchange="_fuqDays(\''+k+'\',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;font-size:13px;color:var(--ink);font-family:var(--font);text-align:center;box-sizing:border-box">';
       }
-      // Channel selector
-      out += '<select id="' + rowId + '-ch" onchange="_fuqSave()" style="background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:12px;color:var(--ink);font-family:var(--font);flex-shrink:0">';
-      ['mail','sms','off'].forEach(function(ch) {
-        out += '<option value="' + ch + '"' + (r.channel === ch ? ' selected' : '') + '>' + (ch === 'off' ? 'Av' : ch.toUpperCase()) + '</option>';
-      });
-      out += '</select>';
-      out += '</div>';
+      out += '<div></div>';
+      out += '</div>'; // grid
+      out += '</div>'; // row
     });
     out += '</div>';
     return out;
@@ -37028,20 +37066,25 @@ function _stComms(cfg) {
 }
 
 function _fuqSave() {
+  // Now handled directly by _fuqToggle and _fuqDays — this is kept as a no-op for backwards compat
+}
+
+function _fuqToggle(scenario, channel) {
   var rules = getFollowupRules();
-  Object.keys(FOLLOWUP_DEFAULTS).forEach(function(k) {
-    var onEl   = document.getElementById('fuq-' + k + '-on');
-    var daysEl = document.getElementById('fuq-' + k + '-days');
-    var chEl   = document.getElementById('fuq-' + k + '-ch');
-    if (!onEl) return;
-    rules[k] = Object.assign({}, rules[k], {
-      enabled: onEl.checked,
-      days:    daysEl ? parseInt(daysEl.value) || 0 : rules[k].days,
-      channel: chEl ? chEl.value : rules[k].channel
-    });
-  });
+  var r = rules[scenario] || {};
+  if (r.smsOn === undefined) r.smsOn = (r.channel === 'sms' && r.enabled);
+  if (r.mailOn === undefined) r.mailOn = (r.channel === 'mail' && r.enabled);
+  if (channel === 'sms') r.smsOn = !r.smsOn;
+  else r.mailOn = !r.mailOn;
+  r.enabled = !!(r.smsOn || r.mailOn);
+  rules[scenario] = r;
   saveFollowupRules(rules);
-  showAutoSaveToast('Uppföljningsinställningar sparade');
+  _renderSettingsContent('comms');
+}
+
+function _fuqDays(scenario, val) {
+  var rules = getFollowupRules();
+  if (rules[scenario]) { rules[scenario].days = parseInt(val) || 0; saveFollowupRules(rules); }
 }
 
 

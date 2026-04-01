@@ -20137,6 +20137,9 @@ async function saveSOAPToVisit(goToPlan) {
     setTimeout(function(){ _silentQualityCheck(mergedSoap, saved.id); }, 2000);
   }
 
+  // ── Post-visit uppföljning (VelaAgent schemalägger) ─────────────
+  setTimeout(function(){ _schedulePostVisitFollowup(saved, mergedSoap); }, 3500);
+
   // ── Invalidera behandlingsnarrativ — ny SOAP = stale cache ────
   if (typeof _narrativeCache !== 'undefined') {
     Object.keys(_narrativeCache).forEach(function(k){
@@ -32715,6 +32718,174 @@ Om frågan rör en specifik patient du kan se i listan ovan — namnge dem.`;
 
 
 // ── VELA INTELLIGENCE SCREEN ───────────────────────────────
+// ── POST-VISIT FOLLOW-UP ENGINE ──────────────────────────────────────────────
+var FOLLOWUP_RULES_KEY = 'vela:followup-rules';
+
+var FOLLOWUP_DEFAULTS = {
+  // scenario id → { days: N, channel: 'mail'|'sms'|'off', enabled: bool }
+  high_nrs:       { days: 1,  channel: 'mail', enabled: true,  label: 'Hög smärtnivå (NRS ≥7)',       desc: 'Skickas dagen efter om NRS var 7+ vid besöket' },
+  new_patient:    { days: 2,  channel: 'mail', enabled: true,  label: 'Nybesök (första gången)',       desc: 'Skickas 2 dagar efter första besöket' },
+  return_soon:    { days: 1,  channel: 'sms',  enabled: true,  label: 'Återbesök < 5 dagar',              desc: 'Kort incheckning när nästa tid är nära' },
+  return_later:   { days: 3,  channel: 'mail', enabled: true,  label: 'Återbesök 1–2 veckor',            desc: 'Uppföljning mitt emellan besöken' },
+  no_next_visit:  { days: 4,  channel: 'mail', enabled: true,  label: 'Inget nästa besök bokat',           desc: 'Uppföljning + mjukt ombokningstips' },
+  hael_active:    { days: 0,  channel: 'off',  enabled: false, label: 'Hael-plan aktiv',                   desc: 'Hael-nudges hanterar kontakten — VelaAgent pausar' },
+};
+
+function getFollowupRules() {
+  try {
+    var saved = JSON.parse(localStorage.getItem(FOLLOWUP_RULES_KEY) || '{}');
+    var result = {};
+    Object.keys(FOLLOWUP_DEFAULTS).forEach(function(k) {
+      result[k] = Object.assign({}, FOLLOWUP_DEFAULTS[k], saved[k] || {});
+    });
+    return result;
+  } catch(e) { return Object.assign({}, FOLLOWUP_DEFAULTS); }
+}
+
+function saveFollowupRules(rules) {
+  try { localStorage.setItem(FOLLOWUP_RULES_KEY, JSON.stringify(rules)); } catch(e) {}
+}
+
+// Determine which follow-up scenario applies after a visit
+function _classifyFollowup(pat, visitSoap, todayBks) {
+  var rules = getFollowupRules();
+
+  // Extract NRS from soap S-field or currentSOAP pain score
+  var nrsMatch = (visitSoap.S || '').match(/NRS[:\s]*(\d+)/i) || (visitSoap.O || '').match(/NRS[:\s]*(\d+)/i);
+  var nrsVal   = nrsMatch ? parseInt(nrsMatch[1]) : (currentSOAP && currentSOAP.pain ? currentSOAP.pain : null);
+
+  var isNewPat = !(pat.visits || []).slice(1).length; // this is first visit if only 1 after save
+
+  // Check for active Hael plan on this visit
+  var visits    = pat.visits || [];
+  var lastVisit = visits[0];
+  var hasHael   = lastVisit && !!lastVisit.plan;
+
+  // Find next upcoming booking
+  var today = new Date().toISOString().slice(0, 10);
+  var upBks = (getBookings ? getBookings() : []).filter(function(b) {
+    return b.patientId === pat.id && b.date > today && b.status !== 'cancelled';
+  }).sort(function(a, b) { return (a.date || '') > (b.date || '') ? 1 : -1; });
+  var nextBk = upBks[0] || null;
+  var daysToNext = nextBk ? Math.ceil((new Date(nextBk.date) - new Date()) / 86400000) : null;
+
+  // Decision tree — order matters
+  if (hasHael && rules.hael_active.enabled === false) {
+    return null; // Hael handles it, skip
+  }
+  if (nrsVal !== null && nrsVal >= 7 && rules.high_nrs.enabled) {
+    return { scenario: 'high_nrs', rule: rules.high_nrs, nrs: nrsVal, nextBk: nextBk };
+  }
+  if (isNewPat && rules.new_patient.enabled) {
+    return { scenario: 'new_patient', rule: rules.new_patient, nextBk: nextBk };
+  }
+  if (daysToNext !== null && daysToNext < 5 && rules.return_soon.enabled) {
+    return { scenario: 'return_soon', rule: rules.return_soon, nextBk: nextBk, daysToNext: daysToNext };
+  }
+  if (daysToNext !== null && daysToNext >= 5 && daysToNext <= 21 && rules.return_later.enabled) {
+    return { scenario: 'return_later', rule: rules.return_later, nextBk: nextBk, daysToNext: daysToNext };
+  }
+  if (daysToNext === null && rules.no_next_visit.enabled) {
+    return { scenario: 'no_next_visit', rule: rules.no_next_visit, nextBk: null };
+  }
+  return null;
+}
+
+// Schedule a post-visit follow-up message
+async function _schedulePostVisitFollowup(pat, visitSoap) {
+  if (!pat) return;
+  var key = getKey();
+  if (!key) return;
+
+  // Dedup: only one follow-up per visit (use today's date)
+  var dedupKey = 'vela:fuq:' + pat.id + ':' + new Date().toISOString().slice(0, 10);
+  try { if (localStorage.getItem(dedupKey)) return; } catch(e) {}
+
+  var match = _classifyFollowup(pat, visitSoap || {}, []);
+  if (!match || match.rule.channel === 'off') return;
+
+  var firstName = (pat.name || '').split(' ')[0];
+  var cfg       = typeof getClinicConfig === 'function' ? getClinicConfig() : {};
+  var clinName  = cfg.signature || cfg.name || 'Kansei';
+  var channel   = match.rule.channel;
+  var days      = match.rule.days || 1;
+
+  // Prompts per scenario
+  var prompts = {
+    high_nrs:      'Skriv ett varmt, omtänksamt ' + (channel==='sms'?'SMS (max 160 tecken)':'kortfattat mail') + ' till ' + firstName + ' vars smärtnivå var ' + (match.nrs||'hög') + '/10 vid dagens besök. Fråga hur det känns, påminn att det kan vara normalt med viss ömhet 24-48h, och att de kan höra av sig om smärtan ökar. Professionell, mänsklig ton. BARA ' + (channel==='sms'?'SMS-texten':'Ämne: på rad 1 sedan mailkroppen') + '.',
+    new_patient:   'Skriv ett välkomnande uppföljnings' + (channel==='sms'?'SMS':'mail') + ' till ' + firstName + ' som precis haft sitt första besök på ' + clinName + '. Fråga hur det känner efter behandlingen och om de har frågor. Gör dem trygga med att de är välkomna att höra av sig. BARA ' + (channel==='sms'?'SMS-texten':'Ämne: på rad 1 sedan mailkroppen') + '.',
+    return_soon:   'Skriv ett kort ' + (channel==='sms'?'SMS':'mail') + ' till ' + firstName + ' inför deras kommande besök om ' + (match.daysToNext||'några') + ' dagar. Kort incheckning: hur har det gått sedan sist? BARA ' + (channel==='sms'?'SMS-texten (max 120 tecken)':'Ämne: på rad 1 sedan mailkroppen') + '.',
+    return_later:  'Skriv ett uppföljnings' + (channel==='sms'?'SMS':'mail') + ' till ' + firstName + ' som har nästa besök om ca ' + (match.daysToNext||'en vecka') + ' dagar. Fråga hur det går med besvären och om hemövningarna. Uppmuntrande, personlig ton. BARA ' + (channel==='sms'?'SMS-texten':'Ämne: på rad 1 sedan mailkroppen') + '.',
+    no_next_visit: 'Skriv ett uppföljnings' + (channel==='sms'?'SMS':'mail') + ' till ' + firstName + ' som inte har något bokat återbesök. Fråga hur det känns, nämn att de är välkomna att boka om de vill följa upp. Inte säljigt. BARA ' + (channel==='sms'?'SMS-texten':'Ämne: på rad 1 sedan mailkroppen') + '.',
+  };
+  var prompt = prompts[match.scenario] || prompts.no_next_visit;
+  prompt += '\n\nSignera som: ' + clinName;
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: MODEL_HAIKU, max_tokens: 350, messages: [{ role: 'user', content: prompt }] })
+    });
+    var data  = await res.json();
+    var draft = (data.content || []).map(function(b){ return b.text || ''; }).join('').trim();
+    if (!draft) return;
+
+    // Schedule send date
+    var sendDate = new Date();
+    sendDate.setDate(sendDate.getDate() + days);
+    // For same-day (days=1 meaning "tomorrow"), send at 18:00
+    var sendAt = sendDate.toISOString().slice(0, 10) + 'T18:00:00';
+
+    var labels = {
+      high_nrs: 'Uppföljning hög smärta',
+      new_patient: 'Uppföljning nybesök',
+      return_soon: 'Incheckning inför återbesök',
+      return_later: 'Uppföljning återbesök',
+      no_next_visit: 'Uppföljning — inget nästa besök',
+    };
+
+    // Add to retention queue
+    var q = getRetentionQueue();
+    q.push({
+      id:          'fuq_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      patId:       pat.id,
+      patName:     pat.name,
+      triggerId:   'postvisit_' + match.scenario,
+      scenario:    match.scenario,
+      channel:     channel,
+      msg:         draft,
+      scheduledFor: sendAt,
+      approved:    false,
+      createdAt:   new Date().toISOString(),
+      label:       labels[match.scenario] || 'Uppföljning'
+    });
+    saveRetentionQueue(q);
+
+    // Mark dedup
+    try { localStorage.setItem(dedupKey, '1'); } catch(e) {}
+
+    // Push sigqueue approval card
+    createAIApproval({
+      type:    'patient_message',
+      patId:   pat.id,
+      patName: pat.name,
+      title:   (labels[match.scenario] || 'Uppföljning') + ' — ' + firstName,
+      aiContent: draft,
+      meta: {
+        channel:   channel,
+        scenario:  match.scenario,
+        sendAt:    sendAt,
+        daysDelay: days,
+        triggerId: 'postvisit_' + match.scenario
+      }
+    });
+
+    if (typeof updateInboxBadge === 'function') updateInboxBadge();
+    showAutoSaveToast('Uppföljning schemalagd — ' + days + (days === 1 ? ' dag' : ' dagar'));
+
+  } catch(err) { /* silent */ }
+}
+
 // ── VELA RETENTION ENGINE ─────────────────────────────────────────────────────
 // Autonominivåer: 'manual' | 'semi' | 'auto'
 const RETENTION_MODE_KEY = 'vela:retention-mode';
@@ -36652,7 +36823,7 @@ function _stComms(cfg) {
       label: 'Uppf\xF6ljning',
       icon: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
       items: [
-        { id:'followup_48h',   label:'Uppf\xF6ljning efter bes\xF6k', icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',         trigger:'48h efter bes\xF6k' },
+        { id:'followup_48h',   label:'Uppf\xF6ljning efter bes\xF6k', icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',         trigger:'Konfigureras nedan per scenario' },
         { id:'inactive_nudge', label:'Inaktiv patient',               icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',  trigger:'>45 dagar utan bes\xF6k' },
         { id:'waitlist_slot',  label:'Ledig tid \u2014 v\xE4ntelista', icon:'<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>', trigger:'N\xE4r en tid frig\xF6rs' },
         { id:'birthday',       label:'F\xF6delsedag',                 icon:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',  trigger:'P\xE5 patientens f\xF6delsedag' },
@@ -36680,6 +36851,47 @@ function _stComms(cfg) {
       ]
     },
   ];
+
+  // Build follow-up rules settings block (injected after GROUPS)
+  function _renderFollowupSettings() {
+    var rules = getFollowupRules();
+    var out = '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:24px">';
+    out += '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#0d1117;border-bottom:1px solid var(--border)">';
+    out += '<div style="width:22px;height:22px;border-radius:5px;background:rgba(224,118,40,.12);border:1px solid rgba(224,118,40,.2);display:flex;align-items:center;justify-content:center;color:var(--orange)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>';
+    out += '<div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#6e7681">Uppföljning efter besök — timing per scenario</div>';
+    out += '<div style="font-size:12px;color:var(--text2);margin-top:1px">VelaAgent draftar och lägger i signaturkön automatiskt efter besökssparning</div></div>';
+    out += '</div>';
+    Object.keys(FOLLOWUP_DEFAULTS).forEach(function(k) {
+      var r = rules[k];
+      var rowId = 'fuq-' + k;
+      out += '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border2)">';
+      // Enable toggle
+      out += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0">';
+      out += '<input type="checkbox" id="' + rowId + '-on" ' + (r.enabled ? 'checked' : '') + ' onchange="_fuqSave()">';
+      out += '</label>';
+      // Label + desc
+      out += '<div style="flex:1;min-width:0">';
+      out += '<div style="font-size:14px;font-weight:600;color:var(--ink)">' + e(r.label) + '</div>';
+      out += '<div style="font-size:12px;color:var(--text2);margin-top:1px">' + e(r.desc) + '</div>';
+      out += '</div>';
+      // Days input (hidden for hael_active + off)
+      if (k !== 'hael_active') {
+        out += '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">';
+        out += '<input type="number" id="' + rowId + '-days" value="' + r.days + '" min="0" max="30" onchange="_fuqSave()" style="width:52px;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:4px 7px;font-size:13px;color:var(--ink);font-family:var(--font);text-align:center">';
+        out += '<span style="font-size:12px;color:var(--text2)">dag(ar)</span>';
+        out += '</div>';
+      }
+      // Channel selector
+      out += '<select id="' + rowId + '-ch" onchange="_fuqSave()" style="background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:12px;color:var(--ink);font-family:var(--font);flex-shrink:0">';
+      ['mail','sms','off'].forEach(function(ch) {
+        out += '<option value="' + ch + '"' + (r.channel === ch ? ' selected' : '') + '>' + (ch === 'off' ? 'Av' : ch.toUpperCase()) + '</option>';
+      });
+      out += '</select>';
+      out += '</div>';
+    });
+    out += '</div>';
+    return out;
+  }
 
   var h = '<div class="vela-st-section" style="max-width:940px">';
   h += '<div class="vela-st-title">Mail & SMS</div>';
@@ -36822,7 +37034,28 @@ function _stComms(cfg) {
   h += '</div>';
 
   h += '</div>';
+  h += '<div style="font-size:18px;font-weight:700;color:var(--ink);margin:28px 0 4px">Uppföljning efter besök</div>';
+  h += '<div style="font-size:14px;color:var(--text);margin-bottom:16px">VelaAgent draftar ett personligt meddelande och lägger det i signaturkön direkt när du sparar en journal. Justera antal dagar och kanal per scenario.</div>';
+  h += _renderFollowupSettings();
+
   return h;
+}
+
+function _fuqSave() {
+  var rules = getFollowupRules();
+  Object.keys(FOLLOWUP_DEFAULTS).forEach(function(k) {
+    var onEl   = document.getElementById('fuq-' + k + '-on');
+    var daysEl = document.getElementById('fuq-' + k + '-days');
+    var chEl   = document.getElementById('fuq-' + k + '-ch');
+    if (!onEl) return;
+    rules[k] = Object.assign({}, rules[k], {
+      enabled: onEl.checked,
+      days:    daysEl ? parseInt(daysEl.value) || 0 : rules[k].days,
+      channel: chEl ? chEl.value : rules[k].channel
+    });
+  });
+  saveFollowupRules(rules);
+  showAutoSaveToast('Uppföljningsinställningar sparade');
 }
 
 

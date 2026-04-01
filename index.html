@@ -66,10 +66,10 @@
 
   /* ── Typography ─────────────────────────────────────────── */
   --ink:   #e6edf3;
-  --text:  #9198a1;
-  --text2: #848d97;
+  --text:  #8b949e;
+  --text2: #6e7681;
   --text3: #6e7681;
-  --muted: #9198a1;
+  --muted: #8b949e;
 
   /* ── Borders ────────────────────────────────────────────── */
   --border:  #30363d;
@@ -94,8 +94,8 @@
   /* ── Sidebar ────────────────────────────────────────────── */
   --sb-bg:        #0d1117;
   --sb-border:    #30363d;
-  --sb-text:      #cdd9e5;
-  --sb-text2:     #ffffff;
+  --sb-text:      #8b949e;
+  --sb-text2:     #e6edf3;
   --sb-hover:     rgba(177,186,196,.06);
   --sb-active-bg: rgba(224,118,40,.1);
   --sb-active-col:#e07628;
@@ -264,8 +264,7 @@ a:hover { text-decoration: underline; }
 .nav-section { flex:1; padding:8px 8px 4px; overflow-y:auto; overflow-x:hidden; }
 .nav-section-label {
   font-size:14px; font-weight: 400; letter-spacing: 0;
-  font-size:11px; font-weight: 600; letter-spacing: .06em;
-  text-transform: uppercase; color: var(--text3);
+  text-transform: none; color: var(--text2);
   padding: 18px 10px 5px; display: block;
   white-space: nowrap; overflow: hidden; cursor: default;
 }
@@ -491,36 +490,15 @@ a:hover { text-decoration: underline; }
 .bk2-overlay { position:fixed;inset:0;z-index:700;background:rgba(7,16,30,.78);
   backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;
   padding:20px;animation:cmd-fade-in .15s ease; }
-.bk2-box { background:#161b22;border-radius:6px;width:100%;max-width:900px;
+.bk2-box { background:#161b22;border-radius:6px;width:100%;max-width:560px;
   overflow:hidden;display:flex;flex-direction:column;
   max-height:92vh; }
-.bk2-header { background:#0d1117;border-bottom:1px solid #30363d;padding:13px 20px 12px;flex-shrink:0; }
-.bk2-title { font-size:16px;font-weight:700;color:white;letter-spacing:-.01em; }
-.bk2-subtitle { font-size:12px;color:rgba(255,255,255,.35);margin-top:2px; }
-.bk2-body { display:grid;grid-template-columns:260px 1fr;flex:1;min-height:0;overflow:hidden; }
-.bk2-cal-panel { border-right:1px solid #30363d;overflow-y:auto;padding:16px 14px;
-  background:#0d1117;display:flex;flex-direction:column;gap:14px; }
-.bk2-form-panel { overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:12px; }
-.bk2-label { font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--teal);margin-bottom:5px; }
-.bk2-cal-nav { display:flex;align-items:center;justify-content:space-between;margin-bottom:8px; }
-.bk2-cal-month { font-size:12px;font-weight:700;color:#e6edf3; }
-.bk2-cal-navbtn { background:none;border:none;color:#8b949e;cursor:pointer;padding:2px 6px;font-size:16px;line-height:1;border-radius:4px; }
-.bk2-cal-navbtn:hover { background:rgba(177,186,196,.08);color:#e6edf3; }
-.bk2-cal-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:1px; }
-.bk2-cal-dow { text-align:center;color:#6e7681;font-weight:600;padding:2px 0;font-size:10px; }
-.bk2-cal-day { text-align:center;padding:4px 2px;border-radius:4px;cursor:pointer;position:relative;font-size:12px;color:#8b949e;line-height:1.6; }
-.bk2-cal-day:hover:not(.empty):not(.past) { background:rgba(177,186,196,.1);color:#e6edf3; }
-.bk2-cal-day.today { color:#e07628;font-weight:700; }
-.bk2-cal-day.selected { background:#e07628;color:#fff;font-weight:700; }
-.bk2-cal-day.has-bk::after { content:"";position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:#8b949e; }
-.bk2-cal-day.selected.has-bk::after { background:rgba(255,255,255,.6); }
-.bk2-cal-day.past { opacity:.35;cursor:default; }
-.bk2-cal-day.empty { cursor:default; }
-.bk2-day-bks { display:flex;flex-direction:column;gap:4px; }
-.bk2-day-bk { display:flex;align-items:center;gap:7px;padding:5px 8px;background:#161b22;border:1px solid #21262d;border-radius:4px;font-size:11px; }
-.bk2-day-bk.conflict { border-color:rgba(248,81,73,.4);background:rgba(248,81,73,.06); }
-.bk2-conflict-banner { background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);border-radius:6px;padding:8px 12px;font-size:12px;color:#f85149;display:flex;align-items:center;gap:7px; }
+.bk2-header { background:#0d1117;border-bottom:1px solid #30363d;padding:16px 20px 14px;flex-shrink:0; }
+.bk2-title { font-size:18px;font-weight:800;color:white;letter-spacing:-.02em; }
+.bk2-subtitle { font-size:14px;color:rgba(255,255,255,.35);margin-top:3px; }
+.bk2-body { overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:14px; }
+.bk2-label { font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--teal);margin-bottom:6px; }
 .bk2-field { background:var(--bg);border:1.5px solid var(--border);border-radius:11px;
   padding:10px 14px;color:#e6edf3;font-size:14px;font-family:var(--font);
   outline:none;width:100%;box-sizing:border-box;transition:border-color .15s; }
@@ -875,15 +853,14 @@ button:not([class]) { border-radius: 6px; }
   white-space: nowrap; font-family: var(--font);
   min-height: 32px; box-sizing: border-box;
 }
-.nav-item { color: var(--sb-text); }
-.nav-item:hover { background: rgba(177,186,196,.07); color: #e6edf3; }
+.nav-item:hover { background: rgba(177,186,196,.06); color: #e6edf3; }
 .nav-item.active {
   color: #e6edf3; font-weight: 600;
-  background: rgba(177,186,196,.05);
+  background: rgba(177,186,196,.04);
   border-left-color: var(--orange);
 }
 .nav-item.active .nav-item-icon { opacity: 1; color: var(--orange); }
-.nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: .7; transition: opacity .1s; }
+.nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: .55; transition: opacity .1s; }
 .nav-badge-count {
   margin-left: auto; font-size: 11px; font-weight: 600;
   background: rgba(177,186,196,.1); border: 1px solid rgba(177,186,196,.15);
@@ -9146,281 +9123,142 @@ function _renderBk2Dialog() {
   var st = _bk2State;
   var pat = st.patId ? (S.patients||[]).find(function(p){ return p.id===st.patId; }) : null;
   var svcs = getServices().filter(function(s){ return s.price > 0; });
-  var allBks = getBookings ? getBookings() : [];
 
   var ov = document.createElement('div');
   ov.id = 'bk2-overlay';
   ov.className = 'bk2-overlay';
   ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
 
-  // ── Mini-calendar helpers ────────────────────────────────────────────────
-  var selDate   = st.date || new Date().toISOString().slice(0,10);
-  var calYear   = st._calYear  || parseInt(selDate.slice(0,4));
-  var calMonth  = st._calMonth !== undefined ? st._calMonth : parseInt(selDate.slice(5,7))-1;
-  var todayStr2 = new Date().toISOString().slice(0,10);
-
-  // Dates that have bookings (non-cancelled)
-  var bkDates = {};
-  allBks.filter(function(b){ return b.status!=='cancelled'; }).forEach(function(b){ if(b.date) bkDates[b.date]=true; });
-
-  // Conflict check: does selected date+time overlap an existing booking?
-  var selDateBks = allBks.filter(function(b){ return b.date===selDate && b.status!=='cancelled'; })
-    .sort(function(a,b){ return (a.time||'')>(b.time||'')?1:-1; });
-  var conflictBk = null;
-  if (st.time) {
-    var [sh,sm] = st.time.split(':').map(Number);
-    var selStart = sh*60+sm, selEnd = selStart+(st.dur||45);
-    conflictBk = selDateBks.find(function(b){
-      if (!b.time) return false;
-      var [bh,bm] = b.time.split(':').map(Number);
-      var bStart = bh*60+bm, bEnd = bStart+(b.duration||45);
-      return selStart < bEnd && selEnd > bStart;
-    }) || null;
-  }
-
-  // Build mini-calendar HTML
-  var firstDay = new Date(calYear, calMonth, 1);
-  var daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
-  var startDow = (firstDay.getDay()+6)%7; // Mon=0
-  var monthNames = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
-  var dayNames = ['M','T','O','T','F','L','S'];
-
-  var calH = '<div class="bk2-cal-nav">';
-  calH += '<button class="bk2-cal-navbtn" onclick="_bk2NavCal(-1)">\u2039</button>';
-  calH += '<span class="bk2-cal-month">'+monthNames[calMonth]+' '+calYear+'</span>';
-  calH += '<button class="bk2-cal-navbtn" onclick="_bk2NavCal(1)">\u203a</button>';
-  calH += '</div>';
-  calH += '<div class="bk2-cal-grid">';
-  dayNames.forEach(function(d){ calH += '<div class="bk2-cal-dow">'+d+'</div>'; });
-  for (var i=0; i<startDow; i++) calH += '<div class="bk2-cal-day empty"></div>';
-  for (var d=1; d<=daysInMonth; d++) {
-    var dStr = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    var cls = 'bk2-cal-day';
-    if (dStr === todayStr2) cls += ' today';
-    if (dStr === selDate)   cls += ' selected';
-    if (bkDates[dStr])      cls += ' has-bk';
-    if (dStr < todayStr2)   cls += ' past';
-    calH += '<div class="'+cls+'" onclick="_bk2SetDate(\''+dStr+'\')">'+d+'</div>';
-  }
-  calH += '</div>';
-
-  // Day overview below calendar
-  var dayH = '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681;margin-bottom:6px">';
-  var dayLabel = new Date(selDate+'T12:00').toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'short'});
-  dayH += dayLabel.charAt(0).toUpperCase()+dayLabel.slice(1)+'</div>';
-
-  if (!selDateBks.length) {
-    dayH += '<div style="font-size:12px;color:#6e7681;padding:8px 0">Inga bokningar denna dag</div>';
-  } else {
-    dayH += '<div class="bk2-day-bks">';
-    selDateBks.forEach(function(b){
-      var [bh2,bm2] = (b.time||'00:00').split(':').map(Number);
-      var bS = bh2*60+bm2, bE = bS+(b.duration||45);
-      var isConflict = conflictBk && b.id===conflictBk.id;
-      var endH = Math.floor(bE/60), endM = bE%60;
-      dayH += '<div class="bk2-day-bk'+(isConflict?' conflict':'')+'">';
-      dayH += '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="'+(isConflict?'#f85149':'#8b949e')+'" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
-      dayH += '<span style="font-family:var(--font-mono);color:'+(isConflict?'#f85149':'#8b949e');
-      dayH += ';font-weight:600">'+e(b.time||'?')+'\u2013'+String(endH).padStart(2,'0')+':'+String(endM).padStart(2,'0')+'</span>';
-      dayH += '<span style="color:'+(isConflict?'#f85149':'#e6edf3')+';flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e(b.patientName||'')+'</span>';
-      if (isConflict) dayH += '<span style="font-size:10px;font-weight:700;color:#f85149;background:rgba(248,81,73,.12);padding:0 5px;border-radius:3px;flex-shrink:0">KROCK</span>';
-      dayH += '</div>';
-    });
-    dayH += '</div>';
-  }
-
-  // Free slot suggestions
-  var occupiedSlots = new Set();
-  selDateBks.forEach(function(b){
-    var [bh3,bm3] = (b.time||'00:00').split(':').map(Number);
-    var bs = bh3*60+bm3, be3 = bs+(b.duration||45);
-    for (var t=bs; t<be3; t+=15) occupiedSlots.add(t);
-  });
-  var freeSlots = [];
-  for (var t2=480; t2<=1080; t2+=30) {
-    var free2 = true;
-    for (var tt=t2; tt<t2+(st.dur||45); tt+=15) { if (occupiedSlots.has(tt)) { free2=false; break; } }
-    if (free2) freeSlots.push(t2);
-  }
-  if (freeSlots.length && selDateBks.length) {
-    dayH += '<div style="margin-top:8px">';
-    dayH += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681;margin-bottom:5px">Lediga tider</div>';
-    dayH += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
-    freeSlots.slice(0,8).forEach(function(m){
-      var hh=Math.floor(m/60),mm2=m%60;
-      var tStr=String(hh).padStart(2,'0')+':'+String(mm2).padStart(2,'0');
-      dayH += '<button onclick="_bk2SetTime(\''+tStr+'\')" style="font-size:11px;padding:2px 8px;background:#161b22;border:1px solid #30363d;border-radius:4px;color:#8b949e;cursor:pointer;font-family:var(--font-mono);transition:all .1s" onmouseover="this.style.borderColor=\'#e07628\';this.style.color=\'#e07628\'" onmouseout="this.style.borderColor=\'#30363d\';this.style.color=\'#8b949e\'">'+tStr+'</button>';
-    });
-    dayH += '</div></div>';
-  }
-
-  // ── Build dialog HTML ────────────────────────────────────────────────────
   var h = '<div class="bk2-box" onclick="event.stopPropagation()">';
 
-  // Header — compact
-  h += '<div class="bk2-header"><div style="display:flex;align-items:center;justify-content:space-between">';
-  h += '<div><div class="bk2-title">Boka tid</div>';
-  if (selDate) {
-    var hdLabel = new Date(selDate+'T12:00').toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short'});
-    h += '<div class="bk2-subtitle">'+hdLabel.charAt(0).toUpperCase()+hdLabel.slice(1)+(st.time?' \u00b7 kl '+st.time:'')+'</div>';
-  }
-  h += '</div>';
-  h += '<button onclick="document.getElementById(\'bk2-overlay\').remove()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:22px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:4px;transition:color .1s" onmouseover="this.style.color=\'white\'" onmouseout="this.style.color=\'rgba(255,255,255,.35)\'">×</button>';
+  // Header
+  h += '<div class="bk2-header">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between">';
+  h += '<div><div class="bk2-title">Boka patient</div>';
+  h += '<div class="bk2-subtitle">' + _fmtBookingDate(st.date) + (st.time ? ' · ' + st.time : '') + '</div></div>';
+  h += '<button onclick="document.getElementById(\'bk2-overlay\').remove()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:22px;cursor:pointer;line-height:1;padding:0">×</button>';
   h += '</div></div>';
 
-  // 2-col body
   h += '<div class="bk2-body">';
 
-  // ── LEFT: Calendar panel ──────────────────────────────────────────────────
-  h += '<div class="bk2-cal-panel">';
-  h += calH;
-  h += '<div style="height:1px;background:#21262d;margin:2px 0"></div>';
-  h += dayH;
-  h += '</div>';
-
-  // ── RIGHT: Form panel ─────────────────────────────────────────────────────
-  h += '<div class="bk2-form-panel">';
-
-  // Conflict banner
-  if (conflictBk) {
-    h += '<div class="bk2-conflict-banner">';
-    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
-    h += 'Kl '+st.time+' krockar med '+e(conflictBk.patientName||'annan bokning')+' ('+e(conflictBk.time)+' \u2013 '+(function(){ var ee=parseInt(conflictBk.time.split(':')[0])*60+parseInt(conflictBk.time.split(':')[1])+(conflictBk.duration||45); return String(Math.floor(ee/60)).padStart(2,'0')+':'+String(ee%60).padStart(2,'0'); })()+'). V\u00e4lj en ledig tid.';
-    h += '</div>';
-  }
-
-  // Patient section
+  // ── PATIENT SECTION ──
   if (pat) {
-    var visits2 = pat.visits||[];
-    var lastV2 = visits2.slice(-1)[0];
-    var nrsV2 = lastV2?(lastV2.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;}):[];
-    var nrsL2 = nrsV2.length?nrsV2[nrsV2.length-1]:(lastV2&&lastV2.form?lastV2.form.pain:null);
-    var diag2 = (lastV2&&lastV2.form&&lastV2.form.diagnosis)||'';
-    var initials2 = pat.name.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
-    var nrsCol2 = nrsL2==null?'var(--muted)':nrsL2>=7?'#f85149':nrsL2>=4?'#d29922':'#3fb950';
-    var wksSince = lastV2&&lastV2.date?Math.round((Date.now()-new Date(lastV2.date))/604800000):null;
-    h += '<div><div class="bk2-label">Patient</div>';
-    h += '<div class="bk2-pat-card"><div class="bk2-pat-avatar">'+initials2+'</div>';
-    h += '<div style="flex:1;min-width:0"><div class="bk2-pat-name">'+e(pat.name)+'</div>';
-    h += '<div class="bk2-pat-meta">'+(diag2?e(diag2.split('(')[0].trim()):'')+( wksSince!==null?(diag2?' \u00b7 ':'')+wksSince+' v sedan':'')+'</div>';
+    // Existing patient card
+    var visits = pat.visits || [];
+    var lastVisit = visits.slice(-1)[0];
+    var nrsVals = lastVisit ? (lastVisit.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }) : [];
+    var nrsLast = nrsVals.length ? nrsVals[nrsVals.length-1] : (lastVisit?.form?.pain ?? null);
+    var diag = lastVisit?.form?.diagnosis || lastVisit?.plan?.form?.diagnosis || '';
+    var haelActive = visits.some(function(v){
+      if (!v.plan) return false;
+      var tw = v.plan.totalWeeks||4;
+      var sd = v.date ? new Date(v.date) : null;
+      return sd && new Date(sd.getTime()+tw*7*86400000) > new Date();
+    });
+    var initials = pat.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
+    var nrsColor = nrsLast==null?'var(--muted)':nrsLast>=7?'#f85149':nrsLast>=4?'#d29922':'#3fb950';
+    var weeksSince = lastVisit?.date ? Math.round((Date.now()-new Date(lastVisit.date))/604800000) : null;
+
+    h += '<div>';
+    h += '<div class="bk2-label">Patient</div>';
+    h += '<div class="bk2-pat-card">';
+    h += '<div class="bk2-pat-avatar">' + initials + '</div>';
+    h += '<div style="flex:1;min-width:0">';
+    h += '<div class="bk2-pat-name">' + e(pat.name) + '</div>';
+    h += '<div class="bk2-pat-meta">';
+    if (diag) h += e(diag.split('(')[0].trim());
+    if (weeksSince !== null) h += (diag?' · ':'') + weeksSince + ' veckor sedan';
+    h += '</div>';
     h += '<div class="bk2-pat-stats">';
-    if (nrsL2!=null) h += '<span class="bk2-pat-stat" style="background:'+nrsCol2+'18;color:'+nrsCol2+'">NRS '+nrsL2+'</span>';
-    h += '<span class="bk2-pat-stat" style="background:rgba(255,255,255,.06);color:#8b949e">'+visits2.length+' bes\u00f6k</span>';
+    if (nrsLast !== null) h += '<span class="bk2-pat-stat" style="background:'+nrsColor+'18;color:'+nrsColor+'">NRS '+nrsLast+'</span>';
+    h += '<span class="bk2-pat-stat" style="background:rgba(255,255,255,.06);color:#8b949e">' + visits.length + ' besök</span>';
+    if (haelActive) h += '<span class="bk2-pat-stat" style="background:rgba(224,118,40,.06);color:var(--teal)">Hael aktiv</span>';
     h += '</div></div>';
-    h += '<button onclick="_bk2ClearPat()" style="background:none;border:none;color:rgba(255,255,255,.25);font-size:20px;cursor:pointer;line-height:1;flex-shrink:0;padding:0 2px">\u00d7</button>';
+    h += '<button onclick="_bk2ClearPat()" style="background:none;border:none;color:rgba(255,255,255,.25);font-size:18px;cursor:pointer;line-height:1;flex-shrink:0">×</button>';
     h += '</div></div>';
   } else {
-    h += '<div><div class="bk2-label">Patient *</div>';
+    // Patient search
+    h += '<div>';
+    h += '<div class="bk2-label">Patient *</div>';
     h += '<div style="position:relative">';
-    h += '<input id="bk2-pat-search" class="bk2-field" type="text" placeholder="S\u00f6k patient eller ange nytt namn..." value="'+e(st.patName)+'" oninput="_bk2PatSearch(this.value)" autocomplete="off">';
+    h += '<input id="bk2-pat-search" class="bk2-field" type="text" placeholder="Sök befintlig patient eller ange nytt namn..." value="' + e(st.patName) + '" oninput="_bk2PatSearch(this.value)" autocomplete="off">';
     h += '<div id="bk2-suggestions" style="display:none" class="bk2-suggestions"></div>';
     h += '</div>';
+    // New patient indicator
     if (st.patName && !st.patId) {
-      h += '<div style="font-size:12px;color:#3fb950;margin-top:4px;display:flex;align-items:center;gap:5px">';
-      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
-      h += 'Ny patient \u2014 profil skapas vid bokning';
+      h += '<div style="font-size:14px;color:var(--teal);margin-top:5px;display:flex;align-items:center;gap:5px">';
+      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+      h += 'Ny patient — profil skapas automatiskt';
       h += '</div>';
     }
     h += '</div>';
   }
 
-  // Contact row (only if needed)
+  // ── CONTACT (shown when no existing patient or patient missing contact) ──
   var showContact = !pat || !pat.email || !pat.phone;
   if (showContact) {
     h += '<div class="bk2-contact-row">';
-    h += '<div><div class="bk2-label">E-post'+(!pat?' *':'')+'</div>';
-    h += '<input id="bk2-email" class="bk2-field" type="email" placeholder="patient@exempel.se" value="'+e(st.email)+'" oninput="_bk2State.email=this.value;_bk2UpdateChain()"></div>';
+    h += '<div><div class="bk2-label">E-post' + (!pat ? ' *' : '') + '</div>';
+    h += '<input id="bk2-email" class="bk2-field" type="email" placeholder="patient@exempel.se" value="' + e(st.email) + '" oninput="_bk2State.email=this.value;_bk2UpdateChain()"></div>';
     h += '<div><div class="bk2-label">Telefon</div>';
-    h += '<input id="bk2-phone" class="bk2-field" type="tel" placeholder="070-000 00 00" value="'+e(st.phone)+'" oninput="_bk2State.phone=this.value"></div>';
+    h += '<input id="bk2-phone" class="bk2-field" type="tel" placeholder="070-000 00 00" value="' + e(st.phone) + '" oninput="_bk2State.phone=this.value"></div>';
     h += '</div>';
   }
 
-  // Time row — date hidden (handled by calendar), just time + duration
-  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
+  // ── DATE / TIME / DURATION ──
+  h += '<div class="bk2-time-row">';
+  h += '<div><div class="bk2-label">Datum *</div>';
+  h += '<input id="bk2-date" class="bk2-field" type="date" value="' + st.date + '" oninput="_bk2State.date=this.value;_bk2UpdateChain()"></div>';
   h += '<div><div class="bk2-label">Tid *</div>';
-  h += '<input id="bk2-time" class="bk2-field" type="time" value="'+st.time+'" step="900" oninput="_bk2State.time=this.value;_bk2UpdateConflict()"></div>';
-  h += '<div><div class="bk2-label">L\u00e4ngd</div>';
-  h += '<select id="bk2-dur" class="bk2-field" onchange="_bk2State.dur=parseInt(this.value);_bk2UpdateConflict()">';
+  h += '<input id="bk2-time" class="bk2-field" type="time" value="' + st.time + '" step="900" oninput="_bk2State.time=this.value"></div>';
+  h += '<div><div class="bk2-label">Längd</div>';
+  h += '<select id="bk2-dur" class="bk2-field" onchange="_bk2State.dur=parseInt(this.value)">';
   [30,45,60,75,90].forEach(function(d){
     h += '<option value="'+d+'"'+(d===st.dur?' selected':'')+'>'+d+' min</option>';
   });
   h += '</select></div></div>';
 
-  // Service
+  // ── SERVICE ──
   if (svcs.length) {
-    h += '<div><div class="bk2-label">Tj\u00e4nst</div>';
+    h += '<div><div class="bk2-label">Tjänst</div>';
     h += '<select id="bk2-svc" class="bk2-field" onchange="_bk2SvcChange(this)">';
-    h += '<option value="">V\u00e4lj tj\u00e4nst...</option>';
+    h += '<option value="">Välj tjänst...</option>';
     svcs.forEach(function(s){
-      h += '<option value="'+s.id+'" data-price="'+s.price+'" data-dur="'+(s.duration||45)+'" data-name="'+e(s.name)+'"'+(st.svcId===s.id?' selected':'')+'>'+e(s.name)+' \u00b7 '+s.price+' kr</option>';
+      h += '<option value="'+s.id+'" data-price="'+s.price+'" data-dur="'+(s.duration||45)+'" data-name="'+e(s.name)+'"'+(st.svcId===s.id?' selected':'')+'>'+e(s.name)+' · '+s.price+' kr</option>';
     });
     h += '</select></div>';
   }
 
-  // Visit type
-  h += '<div><div class="bk2-label">Bes\u00f6kstyp</div>';
+  // ── VISIT TYPE ──
+  h += '<div><div class="bk2-label">Besökstyp</div>';
   h += '<div class="bk2-type-row">';
-  [{v:'new',l:'Ny patient'},{v:'returning',l:'\u00c5terbes\u00f6k'},{v:'followup',l:'Uppf\u00f6ljning'}].forEach(function(t){
-    h += '<div class="bk2-type-pill'+(st.type===t.v?' active':'')+'\" onclick="_bk2SetType(\''+t.v+'\')">'+t.l+'</div>';
+  [{v:'new',l:'Ny patient',icon:'star'},{v:'returning',l:'Återbesök',icon:'refresh'},{v:'followup',l:'Uppföljning',icon:'clipboard'}].forEach(function(t){
+    h += '<div class="bk2-type-pill'+(st.type===t.v?' active':'')+'" onclick="_bk2SetType(\''+t.v+'\')">'+t.icon+' '+t.l+'</div>';
   });
   h += '</div></div>';
 
-  // Notes
+  // ── NOTES ──
   h += '<div><div class="bk2-label">Anteckning</div>';
-  h += '<textarea id="bk2-notes" class="bk2-field" rows="2" style="resize:none" placeholder="Intern anteckning (visas ej f\u00f6r patient)..." oninput="_bk2State.notes=this.value">'+e(st.notes)+'</textarea></div>';
+  h += '<textarea id="bk2-notes" class="bk2-field" rows="2" style="resize:none" placeholder="Kort info om besöket (visas ej för patient)..." oninput="_bk2State.notes=this.value">'+e(st.notes)+'</textarea></div>';
 
-  // Comm chain
-  h += '<div class="bk2-chain" id="bk2-chain">'+_bk2BuildChain()+'</div>';
+  // ── COMMUNICATIONS CHAIN PREVIEW ──
+  h += '<div class="bk2-chain" id="bk2-chain">' + _bk2BuildChain() + '</div>';
 
-  h += '</div>'; // end form panel
-  h += '</div>'; // end 2-col body
+  h += '</div>'; // end body
 
   // Footer
   h += '<div class="bk2-footer">';
   h += '<button class="bk2-btn-cancel" onclick="document.getElementById(\'bk2-overlay\').remove()">Avbryt</button>';
-  h += '<button class="bk2-btn-primary" onclick="_bk2Save()"'+(conflictBk?' style="opacity:.5" title="L\u00f6s krocken f\u00f6rst"':'')+' >';
-  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
-  h += 'Boka \u2192</button>';
+  h += '<button class="bk2-btn-primary" onclick="_bk2Save()">';
+  h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
+  h += 'Boka →';
+  h += '</button>';
   h += '</div>';
   h += '</div>'; // end box
 
   ov.innerHTML = h;
   document.body.appendChild(ov);
-  setTimeout(function(){
-    if (!st.patId) document.getElementById('bk2-pat-search')?.focus();
-  }, 80);
-}
-
-function _bk2NavCal(dir) {
-  var st = _bk2State;
-  var selDate = st.date || new Date().toISOString().slice(0,10);
-  var y = st._calYear  || parseInt(selDate.slice(0,4));
-  var m = st._calMonth !== undefined ? st._calMonth : parseInt(selDate.slice(5,7))-1;
-  m += dir;
-  if (m < 0) { m = 11; y--; }
-  if (m > 11) { m = 0; y++; }
-  st._calYear = y; st._calMonth = m;
-  _renderBk2Dialog();
-}
-
-function _bk2SetDate(dateStr) {
-  _bk2State.date = dateStr;
-  _bk2State._calYear  = parseInt(dateStr.slice(0,4));
-  _bk2State._calMonth = parseInt(dateStr.slice(5,7))-1;
-  // Update header subtitle and re-render
-  _renderBk2Dialog();
-}
-
-function _bk2SetTime(timeStr) {
-  _bk2State.time = timeStr;
-  _renderBk2Dialog();
-}
-
-function _bk2UpdateConflict() {
-  _bk2State.time = document.getElementById('bk2-time')?.value || _bk2State.time;
-  _bk2State.dur  = parseInt(document.getElementById('bk2-dur')?.value || _bk2State.dur);
-  // Re-render fully to update conflict state
-  _renderBk2Dialog();
+  setTimeout(function(){ document.getElementById('bk2-pat-search')?.focus(); }, 80);
 }
 
 function _bk2BuildChain() {
@@ -13666,23 +13504,40 @@ var _gmailState = {
 // ── Intent detection ──────────────────────────────────────────────────────────
 function _gmailDetectIntent(subject, snippet) {
   var text = ((subject||'') + ' ' + (snippet||'')).toLowerCase();
-  // Bokadirekt system emails — must be caught first
+  // 1. Bokadirekt — system emails from booking platform
   if (/bokadirekt|ny bokning|avbokad bokning|ombokad bokning|tid bekr|appointy|behandlingstid|kund:|kund epost:/i.test(text) ||
       /ny bokning|avbokad tid|ombokad tid|bokningsbekr/i.test(subject||''))
     return { id:'bokadirekt', label:'Bokadirekt', color:'teal', icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' };
-  if (/ombok|flytta tid|ändra tid|ny tid|annan tid|boka om|tisdag|onsdag|måndag|fredag|lördag|efter kl|kl \d|tid på|närmst en|eftermiddags/.test(text))
-    return { id:'scheduling', label:'Tidsbyte',   color:'amber', icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' };
+  // 2. Sen avbokning (avbokar samma dag / inom timmar)
+  if (/avbok|inställ|ej kan komma|kan inte komma|förhind|inte möjlig/.test(text) &&
+      /idag|ikväll|nu|om en timme|om \d+ timm|denna morgon|strax|snart/.test(text))
+    return { id:'late_cancel', label:'Sen avbokning', color:'red', icon:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>' };
+  // 3. Avbokning (normal)
   if (/avbok|inställ|ej kan komma|kan inte komma|förhind|inte möjlig/.test(text))
-    return { id:'cancel',     label:'Avbokning',  color:'red',   icon:'M6 18L18 6M6 6l12 12' };
-  if (/övning|rehab|plan|hemma|smärta|ont i|behandling|besök|hej robert|hej carl|tack för/.test(text))
-    return { id:'clinical',   label:'Klinisk',    color:'teal',  icon:'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2' };
-  if (/faktura|betalning|påminnelse|invoice|kvitto|erbjudande|pris|995|990/.test(text))
-    return { id:'admin',      label:'Admin',      color:'muted', icon:'M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z' };
+    return { id:'cancel', label:'Avbokning', color:'red', icon:'M6 18L18 6M6 6l12 12' };
+  // 4. Ombokning / tidsbyte
+  if (/ombok|flytta tid|ändra tid|ny tid|annan tid|boka om|tisdag|onsdag|måndag|fredag|lördag|efter kl|kl \d|tid på|närmst en|eftermiddags/.test(text))
+    return { id:'scheduling', label:'Tidsbyte', color:'amber', icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>' };
+  // 5. Bokningsförfrågan (ny patient eller vill boka)
+  if (/vill boka|kan jag boka|finns det tid|är ni lediga|lediga tider|ny tid hos|boka ett besök|första gången|ny patient|intresserad av/.test(text))
+    return { id:'new_booking', label:'Bokningsförfrågan', color:'green', icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>' };
+  // 6. Rehabfråga (övningar, hemträning, program)
+  if (/övning|rehab|hemträning|hemma|stretching|stretch|rörelse|övningar|program|rörlighet|hemträna/.test(text))
+    return { id:'rehab', label:'Rehabfråga', color:'teal', icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' };
+  // 7. Klinisk fråga (smärta, symptom, hur mår jag)
+  if (/smärta|ont i|värk|stel|stelhet|känner|symptom|mår|behandling|besök|hej robert|hej carl|tack för/.test(text))
+    return { id:'clinical', label:'Klinisk fråga', color:'teal', icon:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>' };
+  // 8. Klinikfråga (priser, adress, info om kliniken)
+  if (/pris|kostar|vad tar ni|adress|hitta dit|öppettider|parkering|telefon|kontakt|försäkring|färdtjänst/.test(text))
+    return { id:'clinic_info', label:'Klinikfråga', color:'muted', icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' };
+  // 9. Admin
+  if (/faktura|betalning|påminnelse|invoice|kvitto|erbjudande|995|990/.test(text))
+    return { id:'admin', label:'Admin', color:'muted', icon:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>' };
+  // 10. System
   if (/google|workspace|noreply@|no.reply|report|security|notification/.test(text))
-    return { id:'system',     label:'System',     color:'muted', icon:'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' };
+    return { id:'system', label:'System', color:'muted', icon:'<circle cx="12" cy="12" r="3"/>' };
   return { id:'other', label:'', color:'muted', icon:'' };
 }
-
 function _gmailDateStr(ms) {
   var d = new Date(parseInt(ms));
   var now = new Date();
@@ -21850,6 +21705,13 @@ function _sigqBookingImportCard(a) {
   if (isNewPat) {
     h += '<span style="font-size:11px;font-weight:700;color:var(--amber);background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.3);border-radius:4px;padding:2px 7px">Ny patient</span>';
   }
+  if (bkType === 'cancelled') {
+    var _bkFnd = meta.bookingFound !== false;
+    h += '<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;'
+      + (_bkFnd ? 'color:var(--green);background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.25)' : 'color:var(--red);background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.25)')
+      + '">'  + (_bkFnd ? '\u2713 Avbokad' : '\u26a0 Ingen bokning hittad') + '</span>';
+    if (meta.isLate && meta.lateFee) h += '<span style="font-size:11px;font-weight:700;color:var(--red);padding:2px 7px;border-radius:4px;background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.2);margin-left:4px">Avgift ' + meta.lateFee + ' kr</span>';
+  }
   h += '</div>';
 
   // Booking details
@@ -23406,15 +23268,15 @@ function _renderPulse() {
   if (!el) return;
   _startPulseTicker();
 
-  var pats     = S.patients || [];
-  var bks      = getBookings ? getBookings() : [];
-  var now      = new Date();
+  var pats    = S.patients || [];
+  var bks     = getBookings ? getBookings() : [];
+  var now     = new Date();
   var todayStr = now.toISOString().slice(0,10);
-  var cfg      = getClinicConfig ? getClinicConfig() : {};
-  var pending  = getPendingApprovals ? getPendingApprovals() : [];
-  var waitlist = getWaitlist ? getWaitlist() : [];
+  var cfg     = getClinicConfig ? getClinicConfig() : {};
+  var pending = getPendingApprovals ? getPendingApprovals() : [];
+  var retQ    = typeof getRetentionQueue==='function' ? getRetentionQueue() : [];
 
-  var todayBks    = bks.filter(function(b){ return b.date===todayStr && b.status!=='cancelled'; })
+  var todayBks = bks.filter(function(b){ return b.date===todayStr && b.status!=='cancelled'; })
     .sort(function(a,b){ return (a.time||'')>(b.time||'')?1:-1; });
   var doneBks     = todayBks.filter(function(b){ return b.status==='completed'; }).length;
   var upcomingBks = todayBks.filter(function(b){ return b.status!=='completed'; });
@@ -23425,491 +23287,380 @@ function _renderPulse() {
   var isImminent  = minsToNext !== null && minsToNext >= 0 && minsToNext <= 10;
 
   var todayRev = todayBks.filter(function(b){ return b.status==='completed'; })
-    .reduce(function(s,b){ return s+(b.price||b.servicePrice||0); }, 0);
-  var monthBks = bks.filter(function(b){ return b.status==='completed'&&b.date&&b.date.slice(0,7)===todayStr.slice(0,7); });
-  var monthRev = monthBks.reduce(function(s,b){ return s+(b.price||b.servicePrice||0); }, 0);
-  var prevMonthStr = new Date(now.getFullYear(), now.getMonth()-1, 1).toISOString().slice(0,7);
-  var prevMonthRev = bks.filter(function(b){ return b.status==='completed'&&b.date&&b.date.slice(0,7)===prevMonthStr; })
-    .reduce(function(s,b){ return s+(b.price||b.servicePrice||0); }, 0);
+    .reduce(function(s,b){ return s + (b.price||b.servicePrice||0); }, 0);
+  var monthBks = bks.filter(function(b){ return b.status==='completed' && b.date && b.date.slice(0,7)===todayStr.slice(0,7); });
+  var monthRev = monthBks.reduce(function(s,b){ return s + (b.price||b.servicePrice||0); }, 0);
 
-  var urgentPats  = typeof _clinPriority==='function' ? pats.filter(function(p){ return _clinPriority(p).level>=2; }) : [];
-  var urgentCount = urgentPats.length;
-  var agentItems  = getInbox().filter(function(i){ return !i.read&&!i.done; }).length;
-  var agentFeed   = typeof _agentGetFeed==='function' ? _agentGetFeed() : [];
+  var urgentCount = typeof _clinPriority==='function' ? pats.filter(function(p){ return _clinPriority(p).level>=2; }).length : 0;
+  var agentItems  = getInbox().filter(function(i){ return !i.read && !i.done; }).length;
+  var waitlist    = getWaitlist ? getWaitlist() : [];
 
   var weekAgo  = new Date(Date.now()-7*86400000).toISOString().slice(0,10);
-  var missingJ = bks.filter(function(b){ return b.status==='completed'&&b.date>=weekAgo&&b.date<todayStr&&b.patientId; }).filter(function(b){
+  var missingJ = bks.filter(function(b){ return b.status==='completed' && b.date>=weekAgo && b.date<todayStr && b.patientId; }).filter(function(b){
     var p = pats.find(function(x){ return x.id===b.patientId; });
-    return p && !(p.visits||[]).some(function(v){ return v.date===b.date&&v.soap&&(v.soap.A||v.soap.S); });
+    return p && !(p.visits||[]).some(function(v){ return v.date===b.date && v.soap && (v.soap.A||v.soap.S); });
   }).length;
-
-  var unreadMsgs = pats.reduce(function(acc,p){
-    return acc + (p.messages||[]).filter(function(m){ return m.from==='patient'&&!m.read; }).length;
-  }, 0);
 
   var brief = null;
   if (nextBk) try { brief = JSON.parse(localStorage.getItem('vela:previsit:'+nextBk.id)||'null'); } catch(e2) {}
   var briefValid = brief && brief.date === todayStr;
 
   if (nextBk && nextPat && isUrgent && !briefValid && typeof VelaAgent !== 'undefined') {
-    var autoGenKey = 'vela:autogen:'+nextBk.id;
+    var autoGenKey = 'vela:autogen:' + nextBk.id;
     if (!localStorage.getItem(autoGenKey)) {
       localStorage.setItem(autoGenKey, '1');
-      setTimeout(function(){ VelaAgent.runNow && VelaAgent.runNow(); }, 800);
-      setTimeout(function(){ if (S.screen==='dashboard') _renderPulse(); }, 8000);
+      setTimeout(function() { VelaAgent.runNow && VelaAgent.runNow(); }, 800);
+      setTimeout(function() { if (S.screen === 'dashboard') _renderPulse(); }, 8000);
     }
   }
 
-  var cancelPend = pending.filter(function(ap){ return ap.type==='cancel_request'; });
-  var schedPend  = pending.filter(function(ap){ return ap.type==='reschedule_request'; });
-
-  // VelaAgent Intelligence — klinisk analys med godkännbara åtgärder
-  var vaInsights = [];
-  var _vaDedupPfx = 'vela:va:' + new Date().toISOString().slice(0,10) + ':';
-  function _vaQ(key, title, body, actLabel, actFn) {
-    if (localStorage.getItem(_vaDedupPfx + key)) return;
-    upsertApproval({ id: 'apr_va_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
-      type:'agent_action', patId:null, patName:'VelaAgent', title:title, aiContent:body,
-      status:'pending', createdAt:new Date().toISOString(),
-      meta:{ actionLabel:actLabel, actionFn:actFn, source:'intelligence' } });
-    localStorage.setItem(_vaDedupPfx + key, '1');
-    updateInboxBadge && updateInboxBadge();
-  }
-  var risingNRS = pats.filter(function(p){
-    var logs=(p.symptomLogs||[]).filter(function(l){return l.nrs!=null;}).sort(function(a,b){return a.date<b.date?-1:1;});
-    return logs.length>=3 && logs[logs.length-1].nrs-logs[logs.length-3].nrs>=1.5;
-  });
-  if (risingNRS.length) {
-    var _rn=risingNRS.slice(0,2).map(function(p){return p.name.split(' ')[0];}).join(', ')+(risingNRS.length>2?' +'+(risingNRS.length-2):'');
-    _vaQ('rising-nrs','Stigande sm\u00e4rta \u2014 '+risingNRS.length+' patienter',
-      risingNRS.map(function(p){var l=(p.symptomLogs||[]).filter(function(x){return x.nrs!=null;}).sort(function(a,b){return a.date<b.date?-1:1;});var tr=l.length>=2?+(l[l.length-1].nrs-l[0].nrs).toFixed(1):0;return p.name+': NRS '+(tr>0?'+':'')+tr;}).join('\n')+'\n\nF\u00f6rslag: Skicka kort uppf\u00f6ljning.',
-      'Skicka uppf\u00f6ljning',"go('list')");
-    vaInsights.push({level:'warn',icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',col:'var(--amber)',
-      text:risingNRS.length+' patient'+(risingNRS.length>1?'er':'')+' visar stigande sm\u00e4rta (NRS-trend)',
-      sub:_rn+' \u00b7 F\u00f6rslag i signaturk\u00f6n',
-      action:{label:'Se signaturk\u00f6',fn:'rSignatureQueue&&rSignatureQueue()'}});
-  }
-  var inactivePats=pats.filter(function(p){
-    if(p.status==='discharged')return false;
-    var lv=(p.visits||[]).slice().sort(function(a,b){return b.date>a.date?1:-1;})[0];
-    if(!lv||!lv.date)return false;
-    var d=Math.floor((Date.now()-new Date(lv.date).getTime())/86400000);
-    return d>=30&&d<180;
-  });
-  if (inactivePats.length) {
-    var _in2=inactivePats.slice(0,2).map(function(p){return p.name.split(' ')[0];}).join(', ')+(inactivePats.length>2?' +'+(inactivePats.length-2):'');
-    _vaQ('inactive-30d','\u00c5terkontakt \u2014 '+inactivePats.length+' inaktiva patienter',
-      inactivePats.slice(0,5).map(function(p){var lv2=(p.visits||[]).slice().sort(function(a,b){return b.date>a.date?1:-1;})[0];var d2=lv2&&lv2.date?Math.floor((Date.now()-new Date(lv2.date).getTime())/86400000):0;return p.name+' ('+d2+' dagar)';}).join('\n')+'\n\nF\u00f6rslag: Skicka ett v\u00e4nligt meddelande.',
-      'Skicka \u00e5terkontakt',"go('list')");
-    vaInsights.push({level:'info',icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',col:'var(--blue)',
-      text:inactivePats.length+' patient'+(inactivePats.length>1?'er':'')+' utan bes\u00f6k p\u00e5 30+ dagar',
-      sub:_in2+' \u00b7 F\u00f6rslag i signaturk\u00f6n',
-      action:{label:'Se signaturk\u00f6',fn:'rSignatureQueue&&rSignatureQueue()'}});
-  }
-  if (missingJ>0) {
-    vaInsights.push({level:'warn',icon:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',col:'var(--red)',
-      text:missingJ+' journal'+(missingJ>1?'er':'')+' saknas fr\u00e5n senaste 7 dagarna',
-      sub:'Dokumentera f\u00f6re de f\u00f6rsvinner ur vyn',
-      action:{label:'Fyll i nu',fn:"go('list')"}});
-  }
-  if (prevMonthRev>0&&monthRev>0) {
-    var _dom2=now.getDate(),_dim2=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
-    var _pace2=monthRev/_dom2*_dim2,_pct2=Math.round(_pace2/prevMonthRev*100);
-    if (_pct2>=110) vaInsights.push({level:'ok',icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',col:'var(--green)',
-      text:'Int\u00e4ktspacet \u00e4r '+_pct2+'% av f\u00f6rra m\u00e5naden \u2014 stark takt',
-      sub:monthRev.toLocaleString('sv-SE')+' kr hittills',action:{label:'Se ekonomi',fn:"go('economy')"}});
-    else if (_pct2<75) {
-      _vaQ('rev-pace','Int\u00e4ktspace under f\u00f6rv\u00e4ntan','Pace: '+Math.round(_pace2).toLocaleString('sv-SE')+' kr/m\u00e5n ('+_pct2+'%).\n\nF\u00f6rslag: Kolla v\u00e4ntelistan.','Granska kalender',"go('calendar')");
-      vaInsights.push({level:'warn',icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',col:'var(--amber)',
-        text:'Int\u00e4ktspacet \u00e4r '+_pct2+'% av f\u00f6rra m\u00e5naden',
-        sub:monthRev.toLocaleString('sv-SE')+' kr hittills \u00b7 F\u00f6rslag i signaturk\u00f6n',
-        action:{label:'Se signaturk\u00f6',fn:'rSignatureQueue&&rSignatureQueue()'}});
-    }
-  }
-  var noHaelPlan=pats.filter(function(p){return (p.visits||[]).length>=2&&!(p.visits||[]).some(function(v){return v.plan;});});
-  if (noHaelPlan.length) vaInsights.push({level:'info',icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',col:'var(--text)',
-    text:noHaelPlan.length+' patient'+(noHaelPlan.length>1?'er':'')+' har 2+ bes\u00f6k utan Hael-plan',
-    sub:noHaelPlan.slice(0,2).map(function(p){return p.name.split(' ')[0];}).join(', ')+(noHaelPlan.length>2?' +'+(noHaelPlan.length-2):''),
-    action:{label:'Skapa plan',fn:"go('list')"}});
-  if (waitlist.length>0&&upcomingBks.length===0) {
-    _vaQ('waitlist-idle','Erbjud ledig tid',waitlist.length+' v\u00e4ntar.\n\nF\u00f6rslag: Kontakta '+(waitlist[0]&&waitlist[0].patName||'f\u00f6rsta patienten')+'.','Erbjud tid','openWaitlistDialog&&openWaitlistDialog()');
-    vaInsights.push({level:'ok',icon:'<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>',col:'var(--green)',
-      text:waitlist.length+' patient'+(waitlist.length>1?'er':'')+' v\u00e4ntar \u2014 du har ledig tid idag',
-      sub:'F\u00f6rslag i signaturk\u00f6n',action:{label:'Se signaturk\u00f6',fn:'rSignatureQueue&&rSignatureQueue()'}});
-  }
-  if (unreadMsgs>0) vaInsights.push({level:'warn',icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',col:'var(--blue)',
-    text:unreadMsgs+' ol\u00e4st'+(unreadMsgs>1?'a':'')+' meddelande'+(unreadMsgs>1?'n':'')+' fr\u00e5n patienter',
-    sub:'Svara f\u00f6r att h\u00e5lla relationen varm',action:{label:'Svara nu',fn:"go('activity')"} });
-  if (!vaInsights.length) vaInsights.push({level:'ok',icon:'<polyline points="20 6 9 17 4 12"/>',col:'var(--green)',
-    text:'Allt ser bra ut \u2014 inga avvikelser just nu',
-    sub:'Jag bevakar l\u00f6pande och l\u00e4gger f\u00f6rslag i signaturk\u00f6n',action:null});
-  vaInsights.sort(function(a,b){return ({warn:0,info:1,ok:2}[a.level]||1)-({warn:0,info:1,ok:2}[b.level]||1);});
-
-  // ── Greeting ─────────────────────────────────────────────────────────────
   var greeting = (function(){
     var hr = now.getHours();
     var name = (cfg.signature||'').split(' ')[0] || '';
-    if (hr<10) return 'God morgon'+(name?' '+name:'');
-    if (hr<12) return 'God f\u00f6rmiddag'+(name?' '+name:'');
-    if (hr<17) return 'God eftermiddag'+(name?' '+name:'');
-    return 'God kv\u00e4ll'+(name?' '+name:'');
+    if (hr<10) return 'God morgon' + (name?' '+name:'');
+    if (hr<12) return 'God förmiddag' + (name?' '+name:'');
+    if (hr<17) return 'God eftermiddag' + (name?' '+name:'');
+    return 'God kväll' + (name?' '+name:'');
   })();
+
   var dateLabel = now.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'});
   dateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
 
-  var tier      = typeof getClinicTier==='function' ? getClinicTier() : 'pro';
-  var tierName  = tier==='intelligence'?'Intelligence':tier==='pro'?'Pro':'Free';
-  var tierColor = tier==='intelligence'?'#58a6ff':tier==='pro'?'#3fb950':'#8b949e';
+  var agentFeed  = typeof _agentGetFeed==='function' ? _agentGetFeed() : [];
+  var todayFeed  = agentFeed.filter(function(f){ return Date.now()-f.ts < 86400000; });
+  var cancelPend = pending.filter(function(ap){ return ap.type==='cancel_request'; });
+  var schedPend  = pending.filter(function(ap){ return ap.type==='reschedule_request'; });
 
-  var lastSyncRaw   = localStorage.getItem('vela:last-sync')||'';
+  // Tier
+  var tier      = typeof getClinicTier==='function' ? getClinicTier() : 'pro';
+  var tierName  = tier==='intelligence' ? 'Intelligence' : tier==='pro' ? 'Pro' : 'Free';
+  var tierColor = tier==='intelligence' ? '#58a6ff' : tier==='pro' ? '#3fb950' : '#8b949e';
+
+  // Last sync
+  var lastSyncRaw = localStorage.getItem('vela:last-sync') || '';
   var lastSyncLabel = '';
   if (lastSyncRaw) {
     var lsDiff = Math.round((Date.now()-new Date(lastSyncRaw).getTime())/60000);
-    lastSyncLabel = lsDiff<2?'Nyss':lsDiff<60?lsDiff+' min sedan':Math.round(lsDiff/60)+'h sedan';
+    lastSyncLabel = lsDiff < 2 ? 'Nyss synkat' : lsDiff < 60 ? lsDiff+' min sedan' : Math.round(lsDiff/60)+'h sedan';
   }
 
-  // ── Counts for "Att göra" ─────────────────────────────────────────────────
-  var actionItems = [];
-  if (pending.length) actionItems.push({
-    label: pending.length+' AI-f\u00f6rslag v\u00e4ntar',
-    sub: cancelPend.length?cancelPend.length+' avbokning'+(cancelPend.length>1?'ar':''):'Godk\u00e4nn eller avvisa',
-    c:'var(--amber)', fn:'rSignatureQueue&&rSignatureQueue()',
-    icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
-  });
-  if (missingJ > 0) actionItems.push({
-    label: missingJ+' journal'+(missingJ>1?'er':'')+' saknas',
-    sub:'Senaste 7 dagarna',
-    c:'var(--red)', fn:"go('list')",
-    icon:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>'
-  });
-  if (urgentCount > 0) actionItems.push({
-    label: urgentCount+' patient'+(urgentCount>1?'er':'')+' kr\u00e4ver \u00e5tg\u00e4rd',
-    sub:'H\u00f6g klinisk prioritet',
-    c:'var(--red)', fn:"go('list')",
-    icon:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'
-  });
-  if (unreadMsgs > 0) actionItems.push({
-    label: unreadMsgs+' ol\u00e4st'+(unreadMsgs>1?'a':'')+' meddelande'+(unreadMsgs>1?'n':''),
-    sub:'Fr\u00e5n patienter',
-    c:'var(--blue)', fn:"go('activity')",
-    icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>'
-  });
-  if (waitlist.length > 0) actionItems.push({
-    label: waitlist.length+' p\u00e5 v\u00e4ntelistan',
-    sub:'Erbjud ledig tid',
-    c:'var(--blue)', fn:'openWaitlistDialog&&openWaitlistDialog()',
-    icon:'<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/>'
-  });
+  // Stats
+  var monthVisits = bks.filter(function(b){ return b.status==='completed' && b.date && b.date.slice(0,7)===todayStr.slice(0,7); }).length;
+  var agentRuns4 = []; try { agentRuns4 = JSON.parse(localStorage.getItem('vela:agent-runs')||'[]'); } catch(e5){}
+  var lastAgentRun = agentRuns4[0] ? (function(){
+    var diff = Math.round((Date.now()-new Date(agentRuns4[0].logged_at).getTime())/60000);
+    return diff < 2 ? 'Nyss' : diff < 60 ? diff+' min sedan' : Math.round(diff/60)+'h sedan';
+  })() : 'Aldrig';
 
-  var bkProgress = todayBks.length > 0 ? Math.round(doneBks/todayBks.length*100) : 0;
-  var dayDone    = doneBks===todayBks.length && todayBks.length > 0;
-
-  // ── RENDER ────────────────────────────────────────────────────────────────
+  // ── Shell ──────────────────────────────────────────────────────────────────
   var h = '<div style="min-height:100%;background:var(--bg);font-family:var(--font);overflow-y:auto">';
-  h += '<div style="max-width:1280px;margin:0 auto;padding:20px 28px 80px;width:100%;box-sizing:border-box">';
+  h += '<div style="max-width:1200px;margin:0 auto;padding:24px 32px 80px;width:100%;box-sizing:border-box">';
 
-  // ── IDENTITY HEADER (GitHub-repo stil) ────────────────────────────────────
-  h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)">';
-  h += '<div style="width:26px;height:26px;border-radius:50%;background:rgba(224,118,40,.15);border:1px solid rgba(224,118,40,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+  // ── Identity header ─────────────────────────────────────────────────────────
+  h += '<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)">';
+  // Row 1: avatar · owner / clinic · badges · actions
+  h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">';
+  h += '<div style="width:28px;height:28px;border-radius:50%;background:rgba(224,118,40,.15);border:1px solid rgba(224,118,40,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
   h += '</div>';
-  h += '<span style="font-size:14px;color:var(--text2)">'+e((cfg.signature||'').split(' ')[0]||'Kliniken')+'</span>';
-  h += '<span style="color:var(--border);font-size:16px">/</span>';
-  h += '<span style="font-size:16px;font-weight:700;color:var(--ink)">'+e(cfg.name||'Min klinik')+'</span>';
-  h += '<span style="font-size:10px;font-weight:500;padding:1px 7px;border-radius:20px;border:1px solid var(--border);color:var(--text2)">Privat</span>';
-  h += '<span style="font-size:10px;font-weight:700;padding:1px 8px;border-radius:20px;border:1px solid '+tierColor+'44;background:'+tierColor+'11;color:'+tierColor+'">'+tierName+'</span>';
+  h += '<div style="display:flex;align-items:center;gap:6px">';
+  h += '<span style="font-size:14px;color:var(--text);font-weight:400">' + e((cfg.signature||'').split(' ')[0]||'Kliniken') + '</span>';
+  h += '<span style="color:var(--border);font-size:18px;line-height:1">/</span>';
+  h += '<span style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.02em">' + e(cfg.name||'Min klinik') + '</span>';
+  h += '</div>';
+  h += '<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;border:1px solid var(--border);color:var(--text2)">Privat</span>';
+  h += '<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;border:1px solid '+tierColor+'44;background:'+tierColor+'11;color:'+tierColor+'">'+tierName+'</span>';
   h += '<div style="flex:1"></div>';
-  // Meta strip
-  h += '<div style="display:flex;align-items:center;gap:14px">';
-  h += '<span style="font-size:12px;color:var(--text2)">'+e(greeting)+'</span>';
-  h += '<span style="font-size:12px;color:var(--border2)">·</span>';
-  h += '<span style="font-size:12px;color:var(--text2)">'+e(dateLabel)+'</span>';
+  h += '<div style="display:flex;gap:6px">';
+  h += '<button onclick="openBookingDialog&&openBookingDialog()" style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:#238636;border:1px solid rgba(240,246,252,.1);border-radius:6px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font)">';
+  h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ny bokning</button>';
+  h += '<button onclick="go(\'activity\')" style="display:flex;align-items:center;gap:5px;padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">';
+  h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Aktivitet'+(agentItems?'<span style="background:var(--orange);color:#fff;font-size:10px;font-weight:700;padding:0 5px;border-radius:8px;margin-left:3px">'+agentItems+'</span>':'')+'</button>';
+  h += '<button onclick="go(\'settings\')" style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)">';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Inställningar</button>';
   h += '</div>';
-  h += '<div style="display:flex;gap:6px;margin-left:16px">';
-  h += '<button onclick="openBookingDialog&&openBookingDialog()" style="display:flex;align-items:center;gap:5px;padding:4px 12px;background:#238636;border:1px solid rgba(240,246,252,.1);border-radius:6px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--font)">';
-  h += '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ny bokning</button>';
-  h += '<button onclick="go(\'activity\')" style="display:flex;align-items:center;gap:5px;padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--ink);cursor:pointer;font-family:var(--font)">';
-  h += 'Aktivitet'+(agentItems?'<span style="background:var(--orange);color:#fff;font-size:9px;font-weight:700;padding:0 4px;border-radius:8px;margin-left:4px">'+agentItems+'</span>':'')+'</button>';
-  h += '<button onclick="go(\'settings\')" style="display:flex;align-items:center;padding:4px 9px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)">';
-  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>';
-  h += '</div></div>';
+  h += '</div>';
+  // Row 2: meta strip
+  h += '<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">';
+  var metaStrip = [
+    { icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', v: todayBks.length + ' bokningar idag' },
+    { icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>', v: pats.length + ' patienter' },
+    { icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', v: monthVisits + ' besök denna månad' },
+    { icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>', v: 'Daily Agent: ' + lastAgentRun },
+  ];
+  if (lastSyncLabel) metaStrip.push({ icon:'<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>', v: 'Synkat: ' + lastSyncLabel });
+  metaStrip.forEach(function(m) {
+    h += '<div style="display:flex;align-items:center;gap:5px">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round">' + m.icon + '</svg>';
+    h += '<span style="font-size:12px;color:var(--text2)">' + m.v + '</span>';
+    h += '</div>';
+  });
+  h += '</div>';
+  h += '</div>'; // end identity header
 
-  // ── KPI STRIP — 4 kompakta tiles ──────────────────────────────────────────
-  var nextLbl='—', nextSub='Inga fler bokningar', nextCol='var(--text2)';
-  if (nextBk) {
-    nextSub = nextPat ? e(nextPat.name) : 'Bokning';
-    if      (minsToNext===0)             { nextLbl='Nu!';              nextCol='var(--orange)'; }
-    else if (minsToNext>0&&minsToNext<=10){ nextLbl='om '+minsToNext+' min';  nextCol='var(--orange)'; }
-    else if (minsToNext>0&&minsToNext<=30){ nextLbl='om '+minsToNext+' min';  nextCol='var(--amber)'; }
-    else if (minsToNext>0)               { nextLbl='kl '+(nextBk.time||'?'); nextCol='var(--ink)'; }
-    else                                 { nextLbl='P\u00e5g\u00e5r';         nextCol='var(--orange)'; }
-  }
+  // ── Greeting ────────────────────────────────────────────────────────────────
+  h += '<div style="margin-bottom:20px">';
+  h += '<div style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.02em;margin-bottom:2px">' + e(greeting) + '</div>';
+  h += '<div style="font-size:12px;color:var(--text2)">' + e(dateLabel) + '</div>';
+  h += '</div>';
 
-  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">';
+  // ── KPI strip ──────────────────────────────────────────────────────────────
+  var kpis = [
+    { v: todayBks.length, l: 'Besök idag', sub: doneBks + ' klara · ' + upcomingBks.length + ' kvar',
+      c: doneBks===todayBks.length&&todayBks.length>0 ? 'var(--green)' : 'var(--ink)',
+      icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
+    { v: todayRev > 0 ? todayRev.toLocaleString('sv-SE') + ' kr' : '—',
+      l: 'Intäkt idag',
+      sub: monthRev > 0 ? monthRev.toLocaleString('sv-SE') + ' kr denna mån' : 'Inga avslutade besök',
+      c: 'var(--ink)',
+      icon: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>' },
+    { v: pending.length || '✓',
+      l: 'Signaturkö',
+      sub: pending.length ? pending.length + ' AI-förslag väntar' : 'Kön tom',
+      c: pending.length ? 'var(--amber)' : 'var(--green)',
+      icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' },
+    { v: agentItems || '✓',
+      l: 'Agent-notiser',
+      sub: urgentCount ? urgentCount + ' brådskande patienter' : (agentItems ? agentItems + ' olästa' : 'Inget att agera på'),
+      c: agentItems ? 'var(--orange)' : 'var(--green)',
+      icon: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
+    { v: pats.length,
+      l: 'Aktiva patienter',
+      sub: urgentCount ? urgentCount + ' kräver åtgärd' : 'Inga aktiva varningar',
+      c: urgentCount ? 'var(--red)' : 'var(--ink)',
+      icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
+    { v: waitlist.length || '—',
+      l: 'Väntelista',
+      sub: waitlist.length ? 'Klicka för att erbjuda tid' : 'Ingen väntelista',
+      c: waitlist.length ? 'var(--blue)' : 'var(--text2)',
+      icon: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+      fn: waitlist.length ? "openWaitlistDialog&&openWaitlistDialog()" : null },
+  ];
+  h += '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:24px">';
+  kpis.forEach(function(k) {
+    var clickable = k.fn ? 'cursor:pointer;' : '';
+    var onclick = k.fn ? ' onclick="' + k.fn + '"' : '';
+    h += '<div' + onclick + ' style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 15px;' + clickable + '">';
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="' + k.c + '" stroke-width="1.8" stroke-linecap="round" opacity=".7">' + k.icon + '</svg>';
+    h += '</div>';
+    h += '<div style="font-size:22px;font-weight:700;color:' + k.c + ';letter-spacing:-.02em;line-height:1;margin-bottom:4px">' + e(String(k.v)) + '</div>';
+    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text);margin-bottom:2px">' + e(k.l) + '</div>';
+    if (k.sub) h += '<div style="font-size:11px;color:var(--text2);line-height:1.4">' + e(k.sub) + '</div>';
+    h += '</div>';
+  });
+  h += '</div>';
 
-  function kpiTile(val, label, sub, col, icon, onclick, borderAccent) {
-    var oc = onclick ? ' onclick="'+onclick+'"' : '';
-    var cu = onclick ? 'cursor:pointer;' : '';
-    var ba = borderAccent ? 'border-top:2px solid '+borderAccent+';' : '';
-    var t = '<div'+oc+' style="background:var(--surface);border:1px solid var(--border);'+ba+'border-radius:6px;padding:13px 15px;'+cu+'">';
-    t += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">';
-    t += '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2)">'+label+'</span>';
-    t += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round" opacity=".4">'+icon+'</svg>';
-    t += '</div>';
-    t += '<div style="font-size:24px;font-weight:700;color:'+col+';letter-spacing:-.03em;line-height:1;margin-bottom:6px">'+val+'</div>';
-    t += '<div style="font-size:11px;color:var(--text2);line-height:1.3">'+sub+'</div>';
-    t += '</div>';
-    return t;
-  }
-
-  // Tile 1 — Besök idag
-  var bkVal = '<span>'+doneBks+'</span><span style="font-size:14px;font-weight:400;color:var(--text2);margin-left:2px">/ '+todayBks.length+'</span>';
-  var bkSub = '<div style="height:2px;background:var(--border2);border-radius:1px;margin-bottom:4px"><div style="height:2px;background:'+(dayDone?'var(--green)':'var(--orange)')+';border-radius:1px;width:'+bkProgress+'%"></div></div>'+upcomingBks.length+' kvar idag';
-  h += kpiTile(bkVal, 'Bes\u00f6k idag', bkSub, dayDone?'var(--green)':'var(--ink)',
-    '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
-    null, dayDone?'var(--green)':null);
-
-  // Tile 2 — Nästa
-  h += kpiTile(nextLbl, 'N\u00e4sta patient', nextSub, nextCol,
-    '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-    null, isImminent?'var(--orange)':null);
-
-  // Tile 3 — Intäkt
-  var revVal = todayRev>0 ? todayRev.toLocaleString('sv-SE')+'<span style="font-size:13px;font-weight:400;color:var(--text2);margin-left:2px">kr</span>' : '<span style="color:var(--text2);font-size:18px">\u2014</span>';
-  var revSub = monthRev>0 ? monthRev.toLocaleString('sv-SE')+' kr denna m\u00e5n' : 'Inga avslutade bes\u00f6k';
-  h += kpiTile(revVal, 'Int\u00e4kt idag', revSub, 'var(--ink)',
-    '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
-    "go('economy')", null);
-
-  // Tile 4 — Att göra
-  var totalAct = actionItems.length;
-  var actCol   = totalAct===0?'var(--green)':totalAct>=3?'var(--red)':'var(--amber)';
-  var actVal   = totalAct>0 ? totalAct : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
-  var actSub   = totalAct>0 ? actionItems.map(function(a){return a.label;}).slice(0,1).join('')+'\u2026' : 'Inget att \u00e5tg\u00e4rda nu';
-  h += kpiTile(actVal, 'Att g\u00f6ra', actSub, actCol,
-    '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
-    totalAct?'rSignatureQueue&&rSignatureQueue()':null, totalAct?actCol:null);
-
-  h += '</div>'; // end KPI strip
-
-  // ── MAIN LAYOUT — 2 kolumner (65/35, GitHub-stil) ─────────────────────────
+  // ── Two-column layout ──────────────────────────────────────────────────────
   h += '<div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">';
 
-  // ═══════════════ VÄNSTER KOLUMN ═══════════════════════════════════════════
-  h += '<div style="display:flex;flex-direction:column;gap:12px">';
+  // ══ LEFT COLUMN ══════════════════════════════════════════════════════════
+  h += '<div style="display:flex;flex-direction:column;gap:14px">';
 
-  // ── NÄSTA PATIENT ──────────────────────────────────────────────────────────
-  var p1Bdr = isImminent?'var(--orange)':isUrgent?'rgba(224,118,40,.4)':'var(--border)';
-  h += '<div style="background:var(--surface);border:1px solid '+p1Bdr+';border-radius:6px;overflow:hidden">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
-  h += '<div style="display:flex;align-items:center;gap:7px">';
-  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
-  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">N\u00e4sta patient</span>';
-  h += '</div>';
+  // ── Nästa patient ──────────────────────────────────────────────────────────
   if (nextBk) {
-    if (!minsToNext||minsToNext<0)       h += '<span style="font-size:11px;color:var(--text2)">p\u00e5g\u00e5r</span>';
-    else if (minsToNext===0)             h += '<span style="font-size:11px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 8px;border-radius:4px">Nu!</span>';
-    else if (minsToNext<=10)             h += '<span style="font-size:11px;font-weight:700;color:var(--orange)">om '+minsToNext+' min</span>';
-    else if (minsToNext<=30)             h += '<span style="font-size:11px;color:var(--orange)">om '+minsToNext+' min</span>';
-    else                                 h += '<span style="font-size:11px;color:var(--text2)">kl '+e(nextBk.time||'?')+'</span>';
-  }
-  h += '</div>';
-  h += '<div style="padding:14px 16px">';
-  if (nextPat) {
-    var vNr = (nextPat.visits||[]).length+1;
-    var npid = nextPat.id.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    var nbid = (nextBk.id||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    h += '<div style="display:flex;align-items:center;gap:12px">';
-    h += '<div style="flex:1">';
-    h += '<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:3px">';
-    h += '<span style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.01em">'+e(nextPat.name)+'</span>';
-    h += '<span style="font-size:11px;color:var(--text2)">bes\u00f6k '+vNr+'</span>';
-    h += '</div>';
-    h += '<div style="font-size:13px;color:var(--text);margin-bottom:12px">'+e(nextPat.diagnosis||nextBk.serviceName||'')+(nextBk.duration?' \u00b7 '+nextBk.duration+' min':'')+'</div>';
-    var _bs3 = _buildBriefSignals(nextPat, nextBk, brief, briefValid, todayStr);
-    if (_bs3.length) {
-      h += '<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px">';
-      _bs3.slice(0,4).forEach(function(sig){
-        h += '<div style="display:flex;align-items:flex-start;gap:8px">';
-        h += '<span style="width:6px;height:6px;border-radius:50%;background:'+sig.col+';flex-shrink:0;margin-top:5px"></span>';
-        h += '<span style="font-size:13px;color:var(--ink);line-height:1.45;flex:1">'+e(sig.text)+'</span>';
-        if (sig.badge) h += '<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:'+sig.col+'22;color:'+sig.col+';font-weight:700;flex-shrink:0">'+e(sig.badge)+'</span>';
+    var cardAccent = isImminent ? 'var(--orange)' : isUrgent ? 'rgba(224,118,40,.5)' : 'var(--border)';
+    var cardBg     = isImminent ? 'rgba(224,118,40,.03)' : 'var(--surface)';
+    var countdownHtml = '';
+    if (minsToNext !== null && minsToNext >= 0) {
+      if      (minsToNext === 0)   countdownHtml = '<span style="font-size:12px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 10px;border-radius:4px">Nu!</span>';
+      else if (minsToNext <= 10)   countdownHtml = '<span style="font-size:12px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 10px;border-radius:4px">om ' + minsToNext + ' min</span>';
+      else if (minsToNext <= 30)   countdownHtml = '<span style="font-size:12px;color:var(--orange)">om ' + minsToNext + ' min</span>';
+      else                         countdownHtml = '<span style="font-size:12px;color:var(--text2)">kl ' + e(nextBk.time||'?') + '</span>';
+    } else if (minsToNext !== null && minsToNext < 0) {
+      countdownHtml = '<span style="font-size:12px;color:var(--text2)">pågår</span>';
+    } else {
+      countdownHtml = '<span style="font-size:12px;color:var(--text2)">kl ' + e(nextBk.time||'?') + '</span>';
+    }
+    h += '<div style="background:' + cardBg + ';border:1px solid ' + cardAccent + ';border-radius:6px;overflow:hidden">';
+    // Header
+    h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+    h += '<div style="display:flex;align-items:center;gap:7px">';
+    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Nästa patient</span>';
+    h += '</div>' + countdownHtml + '</div>';
+    // Body
+    h += '<div style="padding:14px 16px">';
+    if (nextPat) {
+      var visitNr = (nextPat.visits||[]).length + 1;
+      h += '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px">';
+      h += '<span style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.01em">' + e(nextPat.name) + '</span>';
+      h += '<span style="font-size:12px;color:var(--text2)">· besök ' + visitNr + '</span>';
+      h += '</div>';
+      h += '<div style="font-size:13px;color:var(--text);margin-bottom:12px">' + e(nextPat.diagnosis||nextBk.serviceName||'') + ' · ' + (nextBk.duration||45) + ' min</div>';
+    }
+    var _bs = _buildBriefSignals(nextPat, nextBk, brief, briefValid, todayStr);
+    if (_bs.length) {
+      h += '<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px">';
+      _bs.forEach(function(sig) {
+        h += '<div style="display:flex;align-items:flex-start;gap:7px">';
+        h += '<span style="width:7px;height:7px;border-radius:50%;background:' + sig.col + ';flex-shrink:0;margin-top:5px"></span>';
+        h += '<span style="font-size:14px;color:var(--ink);line-height:1.5;flex:1">' + e(sig.text) + '</span>';
+        if (sig.badge) h += '<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:' + sig.col + '22;color:' + sig.col + ';font-weight:700;flex-shrink:0;margin-top:3px">' + e(sig.badge) + '</span>';
         h += '</div>';
       });
+      if (briefValid && brief.tests && brief.tests.length) {
+        h += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding-top:4px">';
+        h += '<span style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Test</span>';
+        brief.tests.slice(0,4).forEach(function(t){ h += '<span style="font-size:11px;padding:1px 7px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--ink)">' + e(t) + '</span>'; });
+        h += '</div>';
+      }
       h += '</div>';
-    } else if (isUrgent&&!briefValid) {
-      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><div style="width:10px;height:10px;border:2px solid rgba(224,118,40,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div><span style="font-size:12px;color:var(--text2)">Genererar brief\u2026</span></div>';
+    } else if (isUrgent) {
+      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><div style="width:11px;height:11px;border:2px solid rgba(224,118,40,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div><span style="font-size:13px;color:var(--text2)">Genererar brief…</span></div>';
     } else {
-      h += '<div style="margin-bottom:12px"><span style="font-size:12px;color:var(--text2)">Brief genereras av VelaAgent inf\u00f6r bes\u00f6ket.</span></div>';
+      h += '<div style="margin-bottom:14px"><span style="font-size:13px;color:var(--text3)">Brief genereras av VelaAgent inför besöket.</span></div>';
     }
+    if (nextPat) h += '<button onclick="_startSmartVisit(\'' + nextPat.id + '\',\'' + (nextBk.id||'') + '\')" style="width:100%;padding:10px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:7px"><svg width=\'13\' height=\'13\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2.5\' stroke-linecap=\'round\'><polygon points=\'5 3 19 12 5 21 5 3\'/></svg>Starta besök</button>';
+    h += '<div style="display:flex;gap:6px">';
+    if (nextPat) h += '<button onclick="openPat(\'' + nextPat.id + '\')" style="flex:1;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Patientkort</button>';
+    if (briefValid) h += '<button onclick="VelaAgent.showBrief(\'' + nextBk.id + '\')" style="flex:1;padding:6px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.2);border-radius:6px;font-size:12px;font-weight:600;color:var(--orange);cursor:pointer;font-family:var(--font)">Full brief</button>';
+    if (!briefValid && nextPat) h += '<button onclick="VelaAgent.runNow&&VelaAgent.runNow();showAutoSaveToast(\'Genererar brief\u2026\')" style="flex:1;padding:6px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Generera brief</button>';
     h += '</div>';
-    h += '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">';
-    h += '<button onclick="_startSmartVisit(\''+npid+'\',\''+nbid+'\')" style="padding:8px 16px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px;white-space:nowrap">';
-    h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Starta</button>';
-    h += '<button onclick="openPat(\''+npid+'\')" style="padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:500;color:var(--ink);cursor:pointer;font-family:var(--font);white-space:nowrap">Patientkort</button>';
-    if (briefValid) h += '<button onclick="VelaAgent.showBrief(\''+nbid+'\')" style="padding:6px 12px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.2);border-radius:6px;font-size:12px;font-weight:500;color:var(--orange);cursor:pointer;font-family:var(--font);white-space:nowrap">Full brief</button>';
-    else h += '<button onclick="VelaAgent.runNow&&VelaAgent.runNow();showAutoSaveToast(\'Genererar brief\u2026\')" style="padding:6px 12px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font);white-space:nowrap">Generera brief</button>';
     h += '</div></div>';
-  } else {
-    h += '<div style="display:flex;align-items:center;gap:10px;padding:4px 0">';
-    h += '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
-    h += '<div><div style="font-size:14px;font-weight:600;color:var(--text)">Inga fler bokningar idag</div><div style="font-size:12px;color:var(--text2)">Bra jobbat!</div></div>';
+    if (!briefValid && nextPat) h += '<button onclick="VelaAgent.runNow&&VelaAgent.runNow();showAutoSaveToast(\'Genererar brief\u2026\')" style="padding:6px 14px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Generera brief</button>';
     h += '</div>';
+    h += '</div></div>';
   }
-  h += '</div></div>'; // end next patient
 
-  // ── VELA AGENT INTELLIGENCE (HÄR ÄR KÄRNAN) ──────────────────────────────
+  // ── Dagens schema ──────────────────────────────────────────────────────────
   h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
+  var gapInbox = getInbox ? getInbox().filter(function(i){ return i.category==='schedule_gap' && !i.done; }) : [];
   h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
   h += '<div style="display:flex;align-items:center;gap:8px">';
-  h += '<div style="width:7px;height:7px;border-radius:50%;background:var(--orange);animation:vai-pulse 2s infinite"></div>';
-  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">VelaAgent</span>';
-  h += '<span style="font-size:11px;color:var(--text2)">Din AI-kollega rapporterar</span>';
+  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Dagens schema</span>';
+  h += '<span style="font-size:11px;color:var(--text2)">' + todayBks.length + ' bokningar</span>';
+  if (gapInbox.length) h += '<span style="font-size:10px;color:var(--amber);background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:3px;padding:1px 6px">' + gapInbox.length + ' glapp</span>';
   h += '</div>';
-  var warnCount = vaInsights.filter(function(i){ return i.level==='warn'; }).length;
-  if (warnCount) h += '<span style="font-size:10px;font-weight:700;color:var(--amber);background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.2);padding:1px 7px;border-radius:10px">'+warnCount+' varning'+(warnCount>1?'ar':'')+'</span>';
+  h += '<button onclick="go(\'calendar\')" style="font-size:12px;color:var(--text2);background:none;border:none;cursor:pointer;font-family:var(--font);padding:0">Öppna kalender →</button>';
   h += '</div>';
-
-  vaInsights.forEach(function(ins) {
-    var hasAct = ins.action && ins.action.fn;
-    var oc  = hasAct ? ' onclick="'+ins.action.fn+'"' : '';
-    var cur = hasAct ? 'cursor:pointer;' : '';
-    h += '<div'+oc+' style="display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border2);'+cur+'transition:background .1s" '+(hasAct?'onmouseover="this.style.background=\'rgba(177,186,196,.05)\'" onmouseout="this.style.background=\'transparent\'"':'')+'>';
-    h += '<div style="width:28px;height:28px;border-radius:6px;background:'+ins.col+'14;border:1px solid '+ins.col+'28;display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+ins.col+'" stroke-width="1.8" stroke-linecap="round">'+ins.icon+'</svg>';
-    h += '</div>';
-    h += '<div style="flex:1;min-width:0">';
-    h += '<div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:1px">'+e(ins.text)+'</div>';
-    h += '<div style="font-size:11px;color:var(--text2)">'+e(ins.sub||'')+'</div>';
-    h += '</div>';
-    if (hasAct) h += '<button onclick="event.stopPropagation();'+ins.action.fn+'" style="flex-shrink:0;padding:4px 10px;background:none;border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);white-space:nowrap" onmouseover="this.style.borderColor=\''+ins.col+'\';this.style.color=\''+ins.col+'\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--text)\'">'+e(ins.action.label)+'</button>';
-    h += '</div>';
-  });
-
-  // Agent log — senaste händelserna (kompakt, ej schemagläpp)
-  var filteredFeed = agentFeed.filter(function(f){
-    return Date.now()-f.ts < 86400000 && f.type !== 'schedule_gap';
-  });
-  if (filteredFeed.length) {
-    h += '<div style="padding:8px 16px;border-top:1px solid var(--border2)">';
-    h += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:6px">Senaste h\u00e4ndelser</div>';
-    var feedCols3 = {cancel_detected:'var(--red)',booking_cancelled:'var(--green)',reschedule_detected:'var(--amber)',reschedule_sent:'var(--orange)',cancel_handled:'var(--green)',cancel_confirmed:'var(--green)'};
-    filteredFeed.slice(0,3).forEach(function(f){
-      var col3 = feedCols3[f.type]||'var(--text2)';
-      var tAgo3 = Math.round((Date.now()-f.ts)/60000);
-      var tLbl3 = tAgo3<1?'nu':tAgo3<60?tAgo3+' min':Math.round(tAgo3/60)+'h';
-      h += '<div style="display:flex;align-items:center;gap:8px;padding:3px 0">';
-      h += '<div style="width:5px;height:5px;border-radius:50%;background:'+col3+';flex-shrink:0"></div>';
-      h += '<span style="font-size:12px;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e(f.summary)+'</span>';
-      h += '<span style="font-size:10px;color:var(--text2);flex-shrink:0">'+tLbl3+'</span>';
+  if (todayBks.length === 0) {
+    h += '<div style="padding:28px 16px;text-align:center;color:var(--text2);font-size:14px">Inga bokningar idag</div>';
+  } else {
+    todayBks.forEach(function(bk) {
+      var bp      = pats.find(function(p){ return p.id===bk.patientId; });
+      var isDone  = bk.status === 'completed';
+      var isNext2 = bk.id === (nextBk && nextBk.id);
+      var bkBrief2 = null;
+      try { bkBrief2 = JSON.parse(localStorage.getItem('vela:previsit:'+bk.id)||'null'); } catch(e3) {}
+      var hasBrief2 = bkBrief2 && bkBrief2.date === todayStr;
+      h += '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border2);cursor:pointer;transition:background .1s;' + (isNext2?'background:rgba(224,118,40,.03)':'') + (isDone?'opacity:.55':'') + '" onclick="' + (bp?'openPat(\''+bp.id+'\')':'go(\'calendar\')') + '" onmouseover="this.style.background=\'rgba(177,186,196,.04)\'" onmouseout="this.style.background=\'' + (isNext2?'rgba(224,118,40,.03)':'') + '\'">';
+      // Time
+      h += '<span style="font-size:14px;font-weight:600;color:var(--text2);width:40px;flex-shrink:0;font-family:var(--font-mono)">' + e(bk.time||'—') + '</span>';
+      // Status dot
+      if (isDone) h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      else if (isNext2) h += '<div style="width:6px;height:6px;border-radius:50%;background:var(--orange);flex-shrink:0"></div>';
+      else h += '<div style="width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0"></div>';
+      // Name + service
+      h += '<div style="flex:1;min-width:0">';
+      h += '<div style="font-size:14px;font-weight:' + (isNext2?'700':'500') + ';color:' + (isDone?'var(--text)':'var(--ink)') + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + e(bk.patientName||'') + '</div>';
+      h += '<div style="font-size:11px;color:var(--text2)">' + e(bk.serviceName||'') + (bk.duration?' · '+bk.duration+' min':'') + '</div>';
       h += '</div>';
+      // Tags
+      if (isNext2) h += '<span style="font-size:10px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.1);padding:2px 7px;border-radius:4px;flex-shrink:0">Nästa</span>';
+      if (hasBrief2 && !isDone) h += '<span style="font-size:10px;color:var(--green);background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);padding:2px 6px;border-radius:4px;flex-shrink:0">Brief ✓</span>';
+      h += '</div>';
+    });
+  }
+  h += '</div>'; // end schema card
+
+  // ── Åtgärder (if any) ──────────────────────────────────────────────────────
+  var actions = [];
+  if (pending.length)  actions.push({ label: pending.length + ' väntar din signatur', sub: 'AI-genererade förslag', c: 'var(--amber)', bc: 'rgba(210,153,34,.2)', fn: "rSignatureQueue()" });
+  if (missingJ > 0)    actions.push({ label: missingJ + ' journal' + (missingJ>1?'er':'') + ' saknas', sub: 'Senaste 7 dagarna', c: 'var(--red)', bc: 'rgba(248,81,73,.15)', fn: "go('list')" });
+  if (waitlist.length) actions.push({ label: waitlist.length + ' på väntelistan', sub: 'Klicka för att erbjuda tid', c: 'var(--blue)', bc: 'rgba(88,166,255,.12)', fn: "openWaitlistDialog&&openWaitlistDialog()" });
+  if (actions.length) {
+    h += '<div style="display:grid;grid-template-columns:repeat('+Math.min(actions.length,3)+',1fr);gap:8px">';
+    actions.forEach(function(a) {
+      h += '<button onclick="' + a.fn + '" style="background:var(--surface);border:1px solid var(--border);border-top:2px solid ' + a.c + ';border-radius:6px;padding:12px 14px;text-align:left;cursor:pointer;font-family:var(--font);transition:border-color .1s;width:100%">';
+      h += '<div style="font-size:14px;font-weight:700;color:' + a.c + ';margin-bottom:2px">' + a.label + '</div>';
+      h += '<div style="font-size:11px;color:var(--text2)">' + a.sub + '</div>';
+      h += '</button>';
     });
     h += '</div>';
   }
-  h += '<div style="padding:9px 16px">';
-  h += '<button onclick="go(\'activity\')" style="width:100%;padding:7px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Visa aktivitetsfl\u00f6det \u2192</button>';
-  h += '</div>';
-  h += '</div>'; // end VelaAgent
 
   h += '</div>'; // end left column
 
-  // ═══════════════ HÖGER KOLUMN ═════════════════════════════════════════════
-  h += '<div style="display:flex;flex-direction:column;gap:12px">';
+  // ══ RIGHT COLUMN ══════════════════════════════════════════════════════════
+  h += '<div style="display:flex;flex-direction:column;gap:14px">';
 
-  // ── ATT GÖRA ──────────────────────────────────────────────────────────────
+  // ── VelaAgent feed ─────────────────────────────────────────────────────────
   h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
   h += '<div style="display:flex;align-items:center;gap:7px">';
-  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+(actionItems.length?'var(--amber)':'var(--green)')+'" stroke-width="2.2" stroke-linecap="round">';
-  h += actionItems.length ? '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' : '<polyline points="20 6 9 17 4 12"/>';
-  h += '</svg>';
-  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Att g\u00f6ra</span>';
+  h += '<div style="width:7px;height:7px;border-radius:50%;background:var(--orange);animation:vai-pulse 2s infinite"></div>';
+  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">VelaAgent</span>';
   h += '</div>';
-  if (actionItems.length) h += '<span style="font-size:10px;font-weight:700;color:var(--amber);background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.2);padding:1px 6px;border-radius:10px">'+actionItems.length+'</span>';
+  if (agentItems) h += '<span style="font-size:11px;color:var(--orange);font-weight:600">' + agentItems + ' olästa</span>';
   h += '</div>';
-
-  if (!actionItems.length) {
-    h += '<div style="display:flex;align-items:center;gap:10px;padding:16px 14px">';
-    h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
-    h += '<span style="font-size:13px;color:var(--text2)">Inget kr\u00e4ver \u00e5tg\u00e4rd just nu</span>';
+  if (todayFeed.length || cancelPend.length || schedPend.length) {
+    var feedSvg = {
+      cancel_detected:  '<path d="M18 6L6 18M6 6l12 12"/>',
+      booking_cancelled:'<polyline points="20 6 9 17 4 12"/>',
+      reschedule_detected:'<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+      reschedule_sent: '<path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/>',
+      cancel_handled:  '<polyline points="20 6 9 17 4 12"/>',
+      cancel_confirmed:'<polyline points="20 6 9 17 4 12"/>',
+    };
+    var feedCol = {
+      cancel_detected:'var(--red)', booking_cancelled:'var(--green)',
+      reschedule_detected:'var(--amber)', reschedule_sent:'var(--orange)',
+      cancel_handled:'var(--green)', cancel_confirmed:'var(--green)',
+    };
+    todayFeed.slice(0,6).forEach(function(f) {
+      var svg2  = feedSvg[f.type] || '<circle cx="12" cy="12" r="3"/>';
+      var col2  = feedCol[f.type] || 'var(--text2)';
+      var tAgo   = Math.round((Date.now()-f.ts)/60000);
+      var tLabel = tAgo < 1 ? 'nu' : tAgo < 60 ? tAgo + ' min' : Math.round(tAgo/60) + 'h';
+      h += '<div style="display:flex;align-items:flex-start;gap:9px;padding:9px 14px;border-bottom:1px solid var(--border2)">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="'+col2+'" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px">'+svg2+'</svg>';
+      h += '<div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--ink);line-height:1.4">' + e(f.summary) + '</div></div>';
+      h += '<span style="font-size:10px;color:var(--text2);flex-shrink:0;margin-top:1px">' + tLabel + '</span>';
+      h += '</div>';
+    });
+    if (cancelPend.length || schedPend.length) {
+      h += '<div style="padding:8px 14px;display:flex;gap:6px;border-top:1px solid var(--border2)">';
+      if (cancelPend.length) h += '<button onclick="rSignatureQueue()" style="font-size:11px;padding:3px 9px;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:4px;color:var(--red);cursor:pointer;font-family:var(--font)">' + cancelPend.length + ' avbokning' + (cancelPend.length>1?'ar':'') + '</button>';
+      if (schedPend.length)  h += '<button onclick="rSignatureQueue()" style="font-size:11px;padding:3px 9px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:4px;color:var(--amber);cursor:pointer;font-family:var(--font)">' + schedPend.length + ' tidsbyte' + (schedPend.length>1?'n':'') + '</button>';
+      h += '</div>';
+    }
+  } else {
+    h += '<div style="padding:20px 14px;text-align:center">';
+    h += '<div style="font-size:22px;margin-bottom:8px">✓</div>';
+    h += '<div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:3px">Inget att agera på</div>';
+    h += '<div style="font-size:12px;color:var(--text2)">VelaAgent har koll på allt</div>';
     h += '</div>';
-  } else {
-    actionItems.forEach(function(ai) {
-      h += '<div onclick="'+ai.fn+'" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer;transition:background .1s" onmouseover="this.style.background=\'rgba(177,186,196,.06)\'" onmouseout="this.style.background=\'transparent\'">';
-      h += '<div style="width:26px;height:26px;border-radius:5px;background:'+ai.c+'12;border:1px solid '+ai.c+'25;display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="'+ai.c+'" stroke-width="2" stroke-linecap="round">'+ai.icon+'</svg></div>';
-      h += '<div style="flex:1;min-width:0">';
-      h += '<div style="font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e(ai.label)+'</div>';
-      h += '<div style="font-size:11px;color:var(--text2)">'+e(ai.sub)+'</div>';
-      h += '</div>';
-      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" opacity=".3"><polyline points="9 18 15 12 9 6"/></svg>';
-      h += '</div>';
-    });
   }
-  h += '</div>'; // end att göra
-
-  // ── DAGENS SCHEMA ─────────────────────────────────────────────────────────
-  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
-  h += '<div style="display:flex;align-items:center;gap:7px">';
-  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
-  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Dagens schema</span>';
+  h += '<div style="padding:10px 14px;border-top:1px solid var(--border2)">';
+  h += '<button onclick="go(\'activity\')" style="width:100%;padding:7px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Öppna aktivitetsflödet →</button>';
   h += '</div>';
-  h += '<div style="display:flex;align-items:center;gap:8px">';
-  if (todayBks.length) h += '<span style="font-size:11px;color:var(--text2)">'+doneBks+'/'+todayBks.length+'</span>';
-  h += '<button onclick="go(\'calendar\')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer;font-family:var(--font);padding:0">Kalender \u2192</button>';
-  h += '</div></div>';
+  h += '</div>'; // end agent feed card
 
-  if (!todayBks.length) {
-    h += '<div style="padding:20px 14px;text-align:center"><span style="font-size:12px;color:var(--text2)">Inga bokningar idag</span></div>';
-  } else {
-    todayBks.forEach(function(bk) {
-      var bkp  = pats.find(function(p){ return p.id===bk.patientId; });
-      var done = bk.status==='completed';
-      var isNx = nextBk && bk.id===nextBk.id;
-      var hasBrf = false;
-      try { var b2=JSON.parse(localStorage.getItem('vela:previsit:'+bk.id)||'null'); hasBrf=b2&&b2.date===todayStr; } catch(e3){}
-      var bpid = bkp ? bkp.id.replace(/\\/g,'\\\\').replace(/'/g,"\\'") : '';
-      h += '<div onclick="'+(bkp?'openPat(\''+bpid+'\')':'go(\'calendar\')')+'" style="display:flex;align-items:center;gap:9px;padding:8px 14px;border-bottom:1px solid var(--border2);cursor:pointer;transition:background .1s;'+(done?'opacity:.45;':'')+(isNx?'background:rgba(224,118,40,.03);':'')+'" onmouseover="this.style.background=\'rgba(177,186,196,.05)\'" onmouseout="this.style.background=\''+(isNx?'rgba(224,118,40,.03)':'')+'\'">';
-      h += '<span style="font-size:12px;font-weight:500;color:var(--text2);width:36px;flex-shrink:0;font-family:var(--font-mono)">'+e(bk.time||'\u2014')+'</span>';
-      if (done)    h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
-      else if (isNx) h += '<div style="width:5px;height:5px;border-radius:50%;background:var(--orange);flex-shrink:0"></div>';
-      else         h += '<div style="width:5px;height:5px;border-radius:50%;background:var(--border);flex-shrink:0"></div>';
-      h += '<div style="flex:1;min-width:0">';
-      h += '<div style="font-size:13px;font-weight:'+(isNx?'600':'400')+';color:'+(done?'var(--text)':'var(--ink)')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e(bk.patientName||'')+'</div>';
-      if (bk.serviceName) h += '<div style="font-size:11px;color:var(--text2)">'+e(bk.serviceName)+(bk.duration?' \u00b7 '+bk.duration+' min':'')+'</div>';
-      h += '</div>';
-      if (isNx&&!done)  h += '<span style="font-size:9px;font-weight:700;color:var(--orange);letter-spacing:.04em">N\u00c4STA</span>';
-      else if (hasBrf&&!done) h += '<span style="font-size:9px;color:var(--green);font-weight:600;opacity:.8">BRIEF</span>';
-      h += '</div>';
-    });
-  }
-  h += '</div>'; // end schema
-
-  // ── SNABBLÄNKAR (kompakt, som GitHub sidebar) ─────────────────────────────
+  // ── Snabbåtgärder ──────────────────────────────────────────────────────────
   h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
-  h += '<div style="padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
-  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Genenv\u00e4gar</span>';
+  h += '<div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Snabbåtgärder</span>';
   h += '</div>';
-  var quickLinks = [
-    { l:'Alla patienter',  fn:"go('list')",       icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
-    { l:'Signaturk\u00f6', fn:"rSignatureQueue&&rSignatureQueue()", icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>', badge: pending.length||0 },
-    { l:'Ny Hael-plan',    fn:"go('form')",        icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
-    { l:'Kalender',        fn:"go('calendar')",    icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
-    { l:'Ekonomi',         fn:"go('economy')",     icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>' },
-    { l:'Verktyg & analys',fn:"go('tools')",       icon:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>' },
+  var quickActions = [
+    { l:'Alla patienter',  fn:"go('list')",        icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
+    { l:'Kalender',        fn:"go('calendar')",     icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
+    { l:'Signaturkö',      fn:"rSignatureQueue()",  icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',  badge: pending.length||0 },
+    { l:'Ny Hael-plan',    fn:"go('form')",          icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
+    { l:'Ekonomi',         fn:"go('economy')",       icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>' },
+    { l:'Verktyg',         fn:"go('tools')",         icon:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>' },
   ];
-  quickLinks.forEach(function(ql) {
-    h += '<button onclick="'+ql.fn+'" style="display:flex;align-items:center;gap:9px;width:100%;padding:8px 14px;border:none;background:transparent;color:var(--text);font-size:13px;cursor:pointer;font-family:var(--font);border-bottom:1px solid var(--border2);text-align:left;transition:background .1s" onmouseover="this.style.background=\'rgba(177,186,196,.06)\';this.style.color=\'var(--ink)\'" onmouseout="this.style.background=\'transparent\';this.style.color=\'var(--text)\'">';
-    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" style="opacity:.5;flex-shrink:0">'+ql.icon+'</svg>';
-    h += '<span>'+ql.l+'</span>';
-    if (ql.badge) h += '<span style="margin-left:auto;font-size:10px;font-weight:700;background:rgba(210,153,34,.15);color:var(--amber);padding:1px 5px;border-radius:8px">'+ql.badge+'</span>';
+  quickActions.forEach(function(a) {
+    h += '<button onclick="' + a.fn + '" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 14px;border:none;background:transparent;color:var(--text);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font);border-bottom:1px solid var(--border2);text-align:left;transition:background .1s" onmouseover="this.style.background=\'rgba(177,186,196,.06)\';this.style.color=\'var(--ink)\'" onmouseout="this.style.background=\'transparent\';this.style.color=\'var(--text)\'">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="opacity:.6;flex-shrink:0">' + a.icon + '</svg>';
+    h += '<span>' + e(a.l) + '</span>';
+    if (a.badge) h += '<span style="margin-left:auto;font-size:10px;font-weight:700;background:rgba(210,153,34,.15);color:var(--amber);padding:1px 6px;border-radius:8px">' + a.badge + '</span>';
     h += '</button>';
   });
-  h += '</div>'; // end snabblänkar
+  h += '</div>'; // end snabbåtgärder
 
   h += '</div>'; // end right column
-  h += '</div>'; // end main grid
+  h += '</div>'; // end two-column grid
   h += '</div></div>';
   el.innerHTML = h;
 }
@@ -26895,12 +26646,18 @@ function _parseBokadirektEmail(subject, body) {
     if (pr) pnr = pr[0].replace('-', '').replace(' ', '');
   }
   if (!date) {
-    var dt = body.match(/\b(\d{4}-\d{2}-\d{2})\b/);
-    if (dt) date = dt[1];
+    var _dt = body.match(/\b(\d{4}-\d{2}-\d{2})\b/);
+    if (_dt) { date = _dt[1]; }
+    else {
+      var _mn={januari:'01',februari:'02',mars:'03',april:'04',maj:'05',juni:'06',
+               juli:'07',augusti:'08',september:'09',oktober:'10',november:'11',december:'12'};
+      var _r2=body.toLowerCase().match(/(\d{1,2})\s+(januari|februari|mars|april|maj|juni|juli|augusti|september|oktober|november|december)\s+(\d{4})/);
+      if (_r2&&_mn[_r2[2]]) date=_r2[3]+'-'+_mn[_r2[2]]+'-'+_r2[1].padStart(2,'0');
+    }
   }
   if (!time) {
-    var tm = body.match(/\b(\d{2}:\d{2})\b/);
-    if (tm) time = tm[1];
+    var _tm=body.match(/\b(\d{2})[:.](\d{2})\b/);
+    if (_tm) time=_tm[1]+':'+_tm[2];
   }
   if (!service) {
     var sv = body.match(/Tj\u00e4nst[\(s\)]*[:\s]+([^\n<]{3,60})/i);
@@ -27179,7 +26936,7 @@ var _mailTriage = (function() {
 
     // Pre-fetch full body for action intents
     var body = null;
-    if (intent.id === 'cancel' || intent.id === 'scheduling') {
+    if (intent.id === 'cancel' || intent.id === 'late_cancel' || intent.id === 'scheduling' || intent.id === 'new_booking' || intent.id === 'rehab' || intent.id === 'clinical' || intent.id === 'clinic_info') {
       try {
         var ft = await _gmailLoadThread(thread.id);
         var lm = ft && ft.messages && ft.messages[ft.messages.length-1];
@@ -27272,7 +27029,8 @@ var _mailTriage = (function() {
           aiContent: schedReply,
           meta: { channel: 'email', threadId: thread.id, subject: thread.subject, from: thread.from,
                   patEmail: pat ? pat.email : _gmailFromEmail(thread.from),
-                  extractedHint: hint, suggestedSlots: freeSlots, existingBookingId: existingBkId } });
+                  extractedHint: hint, suggestedSlots: freeSlots, existingBookingId: existingBkId,
+                  patId: pat ? pat.id : null, showBookBtn: true } });
         addInboxItem(
           pat ? pat.id : 'mail_' + thread.id,
           pat ? pat.name : _gmailFromName(thread.from) || 'Okänd',
@@ -27285,7 +27043,107 @@ var _mailTriage = (function() {
       _markTriaged(thread.id); return;
     }
 
-    // ── STANDARD DRAFT (klinisk / admin / övrigt) ─────────────────────────
+    // ── AVBOKNING (inkl. sen avbokning) ──────────────────────────────────
+    if ((intent.id === 'cancel' || intent.id === 'late_cancel') && pat) {
+      var _upBk = _agentFindActiveBookingForPatient(pat.id);
+      var _isLate = intent.id === 'late_cancel';
+      if (!_isLate && _upBk && _upBk.date && _upBk.time) {
+        var _bkMs = new Date(_upBk.date+'T'+_upBk.time).getTime();
+        _isLate = (_bkMs - Date.now()) < 24*3600000 && _bkMs > Date.now();
+      }
+      var _bkLbl = _upBk ? _upBk.date+' kl '+(_upBk.time||'?') : null;
+      var _cliN  = cfg.signature||cfg.name||'Kansei';
+      var _pol   = typeof _aktGetCancelPolicy==='function' ? _aktGetCancelPolicy() : {within24h:true,lateFeeAmount:350};
+      var _fee   = _pol.lateFeeAmount||350;
+      var _cReply = 'Hej '+pat.name.split(' ')[0]+'!\n\nTack för att du meddelar oss.'
+        +(_bkLbl?' Din tid '+_bkLbl+' är nu avbokad.':'')
+        +(_isLate&&_pol.within24h?'\n\nEftersom avbokningen sker inom 24 timmar debiteras '+_fee+' kr per policy.':'')
+        +'\n\nDu är välkommen att boka en ny tid.\n\nMed vänliga hälsningar\n'+_cliN;
+      var _cRule = typeof _getCommChannelRule==='function' ? _getCommChannelRule('cancel_inbound') : {};
+      if (_cRule.mail==='auto' && _upBk && pat.email) {
+        _upBk.status='cancelled'; _upBk.cancelledAt=new Date().toISOString(); _upBk.cancelledBy='agent_auto';
+        if (typeof upsertBooking==='function') upsertBooking(_upBk);
+        if (typeof _notifyWaitlistOnCancellation==='function') _notifyWaitlistOnCancellation(_upBk);
+        _agentSendGmailReply(thread.id,pat.email,thread.subject,_cReply).catch(function(){});
+        _logCommSent(pat.id,'cancel:mail:'+thread.id,_cReply);
+        _agentLogAction('booking_cancelled',pat.name+' \u2014 '+(_bkLbl||'?'),{patId:pat.id,bookingId:_upBk.id});
+        addInboxItem(pat.id,pat.name,_isLate?'urgent':'info','cancel_confirmed',
+          (_isLate?'\u26a0 Sen avbokning \u2014 ':'\u2713 Avbokning \u2014 ')+pat.name,
+          (_bkLbl||'')+(_isLate?' \u00b7 Avgift '+_fee+' kr':' \u00b7 Svar skickat'),[]);
+      } else {
+        createAIApproval({type:'cancel_request',patId:pat.id,patName:pat.name,
+          title:(_isLate?'Sen avbokning \u2014 ':'Avbokning \u2014 ')+pat.name,
+          aiContent:_cReply,
+          meta:{channel:'email',threadId:thread.id,subject:thread.subject,from:thread.from,
+                patEmail:pat.email,bookingId:_upBk?_upBk.id:null,bookingLabel:_bkLbl,
+                bookingFound:!!_upBk,isLate:_isLate,lateFee:_isLate&&_pol.within24h?_fee:0}});
+        addInboxItem(pat.id,pat.name,_isLate?'urgent':'warning','cancel_request',
+          (_isLate?'\u26a0 Sen avbokning \u2014 ':'\u2715 Avbokning \u2014 ')+pat.name,
+          (_upBk?'Vill avboka '+_bkLbl:'Ingen bokning hittad')+(_isLate?' \u00b7 SENT':''),
+          [{label:'Hantera',fn:'rSignatureQueue&&rSignatureQueue()'}]);
+      }
+      _agentLogAction('cancel_detected',pat.name+' avbokade'+(_bkLbl?' '+_bkLbl:''),{patId:pat.id});
+      _markTriaged(thread.id); return;
+    }
+
+    // \u2500\u2500 BOKNINGSF\u00d6RF\u00d6RFR\u00c5GAN \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    if (intent.id === 'new_booking') {
+      var _nbN=cfg.signature||cfg.name||'Kansei';
+      var _nbFN=pat?pat.name.split(' ')[0]:(_gmailFromName(thread.from)||'');
+      var _svcs2=typeof getServices==='function'?getServices().filter(function(s){return s.price>0;}).slice(0,3):[];
+      var _svcL=_svcs2.map(function(s){return s.name+(s.price?' \u00b7 '+s.price+' kr':'');}).join('\n');
+      var _nbR='Hej '+_nbFN+'!\n\nVelkommen till Kansei!\n\n'+(_svcL?_svcL+'\n\n':'')
+        +'Svara med \u00f6nskad tid s\u00e5 fixar jag det.\n\nMed v\u00e4nliga h\u00e4lsningar\n'+_nbN;
+      createAIApproval({type:'patient_message',patId:pat?pat.id:'unknown_'+thread.id,
+        patName:pat?pat.name:(_gmailFromName(thread.from)||thread.from),
+        title:'Bokningsf\u00f6rfr\u00e5gan \u2014 '+(pat?pat.name:(_gmailFromName(thread.from)||thread.subject.slice(0,30))),
+        aiContent:_nbR,
+        meta:{channel:'email',threadId:thread.id,subject:thread.subject,from:thread.from,
+              patEmail:pat?pat.email:_gmailFromEmail(thread.from),
+              intent:'new_booking',showBookBtn:true,patId:pat?pat.id:null}});
+      addInboxItem(pat?pat.id:'mail_'+thread.id,pat?pat.name:(_gmailFromName(thread.from)||'Ny patient'),
+        'info','new_booking','Bokningsf\u00f6rfr\u00e5gan \u2014 '+(pat?pat.name:(_gmailFromName(thread.from)||'Ny patient')),
+        'Svar klart',[{label:'Granska & boka',fn:'rSignatureQueue&&rSignatureQueue()'}]);
+      _markTriaged(thread.id); return;
+    }
+
+    // \u2500\u2500 REHABFR\u00c5GA \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    if (intent.id === 'rehab' && pat) {
+      var _haelV=(pat.visits||[]).find(function(v){return v.plan;});
+      var _rhN=cfg.signature||cfg.name||'Kansei';
+      var _rhR='Hej '+pat.name.split(' ')[0]+'!\n\n'+(_haelV?'Se ditt \u00f6vningsprogram i Hael-planen. ':'')
+        +'H\u00f6r av dig om n\u00e5got \u00e4r oklart.\n\nMed v\u00e4nliga h\u00e4lsningar\n'+_rhN;
+      createAIApproval({type:'patient_message',patId:pat.id,patName:pat.name,
+        title:'Rehabfr\u00e5ga \u2014 '+pat.name,aiContent:_rhR,
+        meta:{channel:'email',threadId:thread.id,subject:thread.subject,from:thread.from,
+              patEmail:pat.email,intent:'rehab',haelPlanId:_haelV?(_haelV.id||'yes'):null,patId:pat.id}});
+      addInboxItem(pat.id,pat.name,'info','rehab_question','Rehabfr\u00e5ga \u2014 '+pat.name,
+        (_haelV?'Har Hael-plan':'Ingen Hael-plan')+' \u00b7 Svar klart',
+        [{label:'Granska & svara',fn:'rSignatureQueue&&rSignatureQueue()'},
+         {label:'Hael-plan',fn:"openPat('"+pat.id+"');setTimeout(function(){window._detailTab='hael';rDetail();},300)"}]);
+      _markTriaged(thread.id); return;
+    }
+
+    // \u2500\u2500 KLINIKFR\u00c5GA \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+    if (intent.id === 'clinic_info') {
+      var _ciN=cfg.signature||cfg.name||'Kansei';
+      var _ciR='Hej'+(pat?' '+pat.name.split(' ')[0]:'')+'!\n\nTack f\u00f6r din fr\u00e5ga. '
+        +(cfg.address?'Vi finns p\u00e5 '+cfg.address+'. ':'')
+        +(cfg.phone?'Ring oss p\u00e5 '+cfg.phone+'.':'Vi \u00e5terkommer s\u00e5 snart vi kan.')
+        +'\n\nMed v\u00e4nliga h\u00e4lsningar\n'+_ciN;
+      createAIApproval({type:'patient_message',patId:pat?pat.id:'unknown_'+thread.id,
+        patName:pat?pat.name:(_gmailFromName(thread.from)||thread.from),
+        title:'Klinikfr\u00e5ga \u2014 '+(pat?pat.name:(_gmailFromName(thread.from)||thread.subject.slice(0,30))),
+        aiContent:_ciR,
+        meta:{channel:'email',threadId:thread.id,subject:thread.subject,from:thread.from,
+              patEmail:pat?pat.email:_gmailFromEmail(thread.from),intent:'clinic_info'}});
+      addInboxItem(pat?pat.id:'mail_'+thread.id,pat?pat.name:(_gmailFromName(thread.from)||'Ok\u00e4nd'),
+        'info','clinic_question','Klinikfr\u00e5ga \u2014 '+(pat?pat.name:(_gmailFromName(thread.from)||'Ok\u00e4nd')),
+        'Svar klart',[{label:'Granska & svara',fn:'rSignatureQueue&&rSignatureQueue()'}]);
+      _markTriaged(thread.id); return;
+    }
+
+    // ── STANDARD DRAFT (klinisk / admin / övrigt) ─────────────────
     var draftResult = _quickDraft(thread.subject, thread.snippet, pat, cfg);
     if (!draftResult && key) {
       try {

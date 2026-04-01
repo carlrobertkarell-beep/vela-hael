@@ -23244,13 +23244,13 @@ function _renderPulse() {
   if (!el) return;
   _startPulseTicker();
 
-  var pats    = S.patients || [];
-  var bks     = getBookings ? getBookings() : [];
-  var now     = new Date();
+  var pats     = S.patients || [];
+  var bks      = getBookings ? getBookings() : [];
+  var now      = new Date();
   var todayStr = now.toISOString().slice(0,10);
-  var cfg     = getClinicConfig ? getClinicConfig() : {};
-  var pending = getPendingApprovals ? getPendingApprovals() : [];
-  var retQ    = typeof getRetentionQueue==='function' ? getRetentionQueue() : [];
+  var cfg      = getClinicConfig ? getClinicConfig() : {};
+  var pending  = getPendingApprovals ? getPendingApprovals() : [];
+  var waitlist = getWaitlist ? getWaitlist() : [];
 
   var todayBks = bks.filter(function(b){ return b.date===todayStr && b.status!=='cancelled'; })
     .sort(function(a,b){ return (a.time||'')>(b.time||'')?1:-1; });
@@ -23263,86 +23263,78 @@ function _renderPulse() {
   var isImminent  = minsToNext !== null && minsToNext >= 0 && minsToNext <= 10;
 
   var todayRev = todayBks.filter(function(b){ return b.status==='completed'; })
-    .reduce(function(s,b){ return s + (b.price||b.servicePrice||0); }, 0);
-  var monthBks = bks.filter(function(b){ return b.status==='completed' && b.date && b.date.slice(0,7)===todayStr.slice(0,7); });
-  var monthRev = monthBks.reduce(function(s,b){ return s + (b.price||b.servicePrice||0); }, 0);
+    .reduce(function(s,b){ return s+(b.price||b.servicePrice||0); }, 0);
+  var monthRev = bks.filter(function(b){ return b.status==='completed'&&b.date&&b.date.slice(0,7)===todayStr.slice(0,7); })
+    .reduce(function(s,b){ return s+(b.price||b.servicePrice||0); }, 0);
 
-  var urgentCount = typeof _clinPriority==='function' ? pats.filter(function(p){ return _clinPriority(p).level>=2; }).length : 0;
-  var agentItems  = getInbox().filter(function(i){ return !i.read && !i.done; }).length;
-  var waitlist    = getWaitlist ? getWaitlist() : [];
+  var urgentPats  = typeof _clinPriority==='function' ? pats.filter(function(p){ return _clinPriority(p).level>=2; }) : [];
+  var urgentCount = urgentPats.length;
+  var agentItems  = getInbox().filter(function(i){ return !i.read&&!i.done; }).length;
+  var agentFeed   = typeof _agentGetFeed==='function' ? _agentGetFeed() : [];
+  var todayFeed   = agentFeed.filter(function(f){ return Date.now()-f.ts < 86400000; });
 
-  var weekAgo  = new Date(Date.now()-7*86400000).toISOString().slice(0,10);
-  var missingJ = bks.filter(function(b){ return b.status==='completed' && b.date>=weekAgo && b.date<todayStr && b.patientId; }).filter(function(b){
+  var weekAgo = new Date(Date.now()-7*86400000).toISOString().slice(0,10);
+  var missingJ = bks.filter(function(b){ return b.status==='completed'&&b.date>=weekAgo&&b.date<todayStr&&b.patientId; }).filter(function(b){
     var p = pats.find(function(x){ return x.id===b.patientId; });
-    return p && !(p.visits||[]).some(function(v){ return v.date===b.date && v.soap && (v.soap.A||v.soap.S); });
+    return p && !(p.visits||[]).some(function(v){ return v.date===b.date&&v.soap&&(v.soap.A||v.soap.S); });
   }).length;
+
+  var unreadMsgs = pats.reduce(function(acc,p){
+    return acc + (p.messages||[]).filter(function(m){ return m.from==='patient'&&!m.read; }).length;
+  }, 0);
 
   var brief = null;
   if (nextBk) try { brief = JSON.parse(localStorage.getItem('vela:previsit:'+nextBk.id)||'null'); } catch(e2) {}
   var briefValid = brief && brief.date === todayStr;
 
   if (nextBk && nextPat && isUrgent && !briefValid && typeof VelaAgent !== 'undefined') {
-    var autoGenKey = 'vela:autogen:' + nextBk.id;
+    var autoGenKey = 'vela:autogen:'+nextBk.id;
     if (!localStorage.getItem(autoGenKey)) {
       localStorage.setItem(autoGenKey, '1');
-      setTimeout(function() { VelaAgent.runNow && VelaAgent.runNow(); }, 800);
-      setTimeout(function() { if (S.screen === 'dashboard') _renderPulse(); }, 8000);
+      setTimeout(function(){ VelaAgent.runNow && VelaAgent.runNow(); }, 800);
+      setTimeout(function(){ if (S.screen==='dashboard') _renderPulse(); }, 8000);
     }
   }
+
+  var cancelPend = pending.filter(function(ap){ return ap.type==='cancel_request'; });
+  var schedPend  = pending.filter(function(ap){ return ap.type==='reschedule_request'; });
 
   var greeting = (function(){
     var hr = now.getHours();
     var name = (cfg.signature||'').split(' ')[0] || '';
-    if (hr<10) return 'God morgon' + (name?' '+name:'');
-    if (hr<12) return 'God förmiddag' + (name?' '+name:'');
-    if (hr<17) return 'God eftermiddag' + (name?' '+name:'');
-    return 'God kväll' + (name?' '+name:'');
+    if (hr<10) return 'God morgon'+(name?' '+name:'');
+    if (hr<12) return 'God f\u00f6rmiddag'+(name?' '+name:'');
+    if (hr<17) return 'God eftermiddag'+(name?' '+name:'');
+    return 'God kv\u00e4ll'+(name?' '+name:'');
   })();
-
   var dateLabel = now.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'});
   dateLabel = dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1);
 
-  var agentFeed  = typeof _agentGetFeed==='function' ? _agentGetFeed() : [];
-  var todayFeed  = agentFeed.filter(function(f){ return Date.now()-f.ts < 86400000; });
-  var cancelPend = pending.filter(function(ap){ return ap.type==='cancel_request'; });
-  var schedPend  = pending.filter(function(ap){ return ap.type==='reschedule_request'; });
+  var tier = typeof getClinicTier==='function' ? getClinicTier() : 'pro';
+  var tierName  = tier==='intelligence'?'Intelligence':tier==='pro'?'Pro':'Free';
+  var tierColor = tier==='intelligence'?'#58a6ff':tier==='pro'?'#3fb950':'#8b949e';
 
-  // Tier
-  var tier      = typeof getClinicTier==='function' ? getClinicTier() : 'pro';
-  var tierName  = tier==='intelligence' ? 'Intelligence' : tier==='pro' ? 'Pro' : 'Free';
-  var tierColor = tier==='intelligence' ? '#58a6ff' : tier==='pro' ? '#3fb950' : '#8b949e';
-
-  // Last sync
-  var lastSyncRaw = localStorage.getItem('vela:last-sync') || '';
+  var lastSyncRaw = localStorage.getItem('vela:last-sync')||'';
   var lastSyncLabel = '';
   if (lastSyncRaw) {
     var lsDiff = Math.round((Date.now()-new Date(lastSyncRaw).getTime())/60000);
-    lastSyncLabel = lsDiff < 2 ? 'Nyss synkat' : lsDiff < 60 ? lsDiff+' min sedan' : Math.round(lsDiff/60)+'h sedan';
+    lastSyncLabel = lsDiff<2 ? 'Nyss synkat' : lsDiff<60 ? lsDiff+' min sedan' : Math.round(lsDiff/60)+'h sedan';
   }
-
-  // Stats
-  var monthVisits = bks.filter(function(b){ return b.status==='completed' && b.date && b.date.slice(0,7)===todayStr.slice(0,7); }).length;
-  var agentRuns4 = []; try { agentRuns4 = JSON.parse(localStorage.getItem('vela:agent-runs')||'[]'); } catch(e5){}
-  var lastAgentRun = agentRuns4[0] ? (function(){
-    var diff = Math.round((Date.now()-new Date(agentRuns4[0].logged_at).getTime())/60000);
-    return diff < 2 ? 'Nyss' : diff < 60 ? diff+' min sedan' : Math.round(diff/60)+'h sedan';
-  })() : 'Aldrig';
 
   // ── Shell ──────────────────────────────────────────────────────────────────
   var h = '<div style="min-height:100%;background:var(--bg);font-family:var(--font);overflow-y:auto">';
-  h += '<div style="max-width:1200px;margin:0 auto;padding:24px 32px 80px;width:100%;box-sizing:border-box">';
+  h += '<div style="max-width:1280px;margin:0 auto;padding:20px 28px 80px;width:100%;box-sizing:border-box">';
 
-  // ── Identity header ─────────────────────────────────────────────────────────
-  h += '<div style="margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)">';
-  // Row 1: avatar · owner / clinic · badges · actions
-  h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">';
+  // ── IDENTITY HEADER ────────────────────────────────────────────────────────
+  h += '<div style="margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)">';
+  h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
   h += '<div style="width:28px;height:28px;border-radius:50%;background:rgba(224,118,40,.15);border:1px solid rgba(224,118,40,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
   h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
   h += '</div>';
   h += '<div style="display:flex;align-items:center;gap:6px">';
-  h += '<span style="font-size:14px;color:var(--text);font-weight:400">' + e((cfg.signature||'').split(' ')[0]||'Kliniken') + '</span>';
+  h += '<span style="font-size:14px;color:var(--text);font-weight:400">'+e((cfg.signature||'').split(' ')[0]||'Kliniken')+'</span>';
   h += '<span style="color:var(--border);font-size:18px;line-height:1">/</span>';
-  h += '<span style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.02em">' + e(cfg.name||'Min klinik') + '</span>';
+  h += '<span style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.02em">'+e(cfg.name||'Min klinik')+'</span>';
   h += '</div>';
   h += '<span style="font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;border:1px solid var(--border);color:var(--text2)">Privat</span>';
   h += '<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;border:1px solid '+tierColor+'44;background:'+tierColor+'11;color:'+tierColor+'">'+tierName+'</span>';
@@ -23353,290 +23345,323 @@ function _renderPulse() {
   h += '<button onclick="go(\'activity\')" style="display:flex;align-items:center;gap:5px;padding:5px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">';
   h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>Aktivitet'+(agentItems?'<span style="background:var(--orange);color:#fff;font-size:10px;font-weight:700;padding:0 5px;border-radius:8px;margin-left:3px">'+agentItems+'</span>':'')+'</button>';
   h += '<button onclick="go(\'settings\')" style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text);cursor:pointer;font-family:var(--font)">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Inställningar</button>';
-  h += '</div>';
-  h += '</div>';
-  // Row 2: meta strip
-  h += '<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">';
-  var metaStrip = [
-    { icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>', v: todayBks.length + ' bokningar idag' },
-    { icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>', v: pats.length + ' patienter' },
-    { icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', v: monthVisits + ' besök denna månad' },
-    { icon:'<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>', v: 'Daily Agent: ' + lastAgentRun },
-  ];
-  if (lastSyncLabel) metaStrip.push({ icon:'<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>', v: 'Synkat: ' + lastSyncLabel });
-  metaStrip.forEach(function(m) {
-    h += '<div style="display:flex;align-items:center;gap:5px">';
-    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round">' + m.icon + '</svg>';
-    h += '<span style="font-size:12px;color:var(--text2)">' + m.v + '</span>';
-    h += '</div>';
-  });
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Inst\u00e4llningar</button>';
+  h += '</div></div>';
+  // Greeting + meta strip
+  h += '<div style="display:flex;align-items:center;gap:0;flex-wrap:wrap">';
+  h += '<span style="font-size:13px;font-weight:600;color:var(--ink)">'+e(greeting)+'</span>';
+  h += '<span style="color:var(--border2);margin:0 9px;font-size:16px;line-height:1">\u00b7</span>';
+  h += '<span style="font-size:12px;color:var(--text2)">'+e(dateLabel)+'</span>';
+  if (lastSyncLabel) {
+    h += '<span style="color:var(--border2);margin:0 9px;font-size:16px;line-height:1">\u00b7</span>';
+    h += '<span style="font-size:12px;color:var(--text2)">Synkat: '+e(lastSyncLabel)+'</span>';
+  }
   h += '</div>';
   h += '</div>'; // end identity header
 
-  // ── Greeting ────────────────────────────────────────────────────────────────
-  h += '<div style="margin-bottom:20px">';
-  h += '<div style="font-size:20px;font-weight:700;color:var(--ink);letter-spacing:-.02em;margin-bottom:2px">' + e(greeting) + '</div>';
-  h += '<div style="font-size:12px;color:var(--text2)">' + e(dateLabel) + '</div>';
-  h += '</div>';
+  // ── KPI STRIP (4 tiles) ────────────────────────────────────────────────────
+  var totalActions = pending.length + missingJ + urgentCount + unreadMsgs + (waitlist.length > 0 ? 1 : 0);
+  var bkProgress   = todayBks.length > 0 ? Math.round(doneBks / todayBks.length * 100) : 0;
+  var dayDone      = doneBks === todayBks.length && todayBks.length > 0;
 
-  // ── KPI strip ──────────────────────────────────────────────────────────────
-  var kpis = [
-    { v: todayBks.length, l: 'Besök idag', sub: doneBks + ' klara · ' + upcomingBks.length + ' kvar',
-      c: doneBks===todayBks.length&&todayBks.length>0 ? 'var(--green)' : 'var(--ink)',
-      icon: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
-    { v: todayRev > 0 ? todayRev.toLocaleString('sv-SE') + ' kr' : '—',
-      l: 'Intäkt idag',
-      sub: monthRev > 0 ? monthRev.toLocaleString('sv-SE') + ' kr denna mån' : 'Inga avslutade besök',
-      c: 'var(--ink)',
-      icon: '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>' },
-    { v: pending.length || '✓',
-      l: 'Signaturkö',
-      sub: pending.length ? pending.length + ' AI-förslag väntar' : 'Kön tom',
-      c: pending.length ? 'var(--amber)' : 'var(--green)',
-      icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>' },
-    { v: agentItems || '✓',
-      l: 'Agent-notiser',
-      sub: urgentCount ? urgentCount + ' brådskande patienter' : (agentItems ? agentItems + ' olästa' : 'Inget att agera på'),
-      c: agentItems ? 'var(--orange)' : 'var(--green)',
-      icon: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
-    { v: pats.length,
-      l: 'Aktiva patienter',
-      sub: urgentCount ? urgentCount + ' kräver åtgärd' : 'Inga aktiva varningar',
-      c: urgentCount ? 'var(--red)' : 'var(--ink)',
-      icon: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>' },
-    { v: waitlist.length || '—',
-      l: 'Väntelista',
-      sub: waitlist.length ? 'Klicka för att erbjuda tid' : 'Ingen väntelista',
-      c: waitlist.length ? 'var(--blue)' : 'var(--text2)',
-      icon: '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
-      fn: waitlist.length ? "openWaitlistDialog&&openWaitlistDialog()" : null },
-  ];
-  h += '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:24px">';
-  kpis.forEach(function(k) {
-    var clickable = k.fn ? 'cursor:pointer;' : '';
-    var onclick = k.fn ? ' onclick="' + k.fn + '"' : '';
-    h += '<div' + onclick + ' style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 15px;' + clickable + '">';
-    h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">';
-    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="' + k.c + '" stroke-width="1.8" stroke-linecap="round" opacity=".7">' + k.icon + '</svg>';
-    h += '</div>';
-    h += '<div style="font-size:22px;font-weight:700;color:' + k.c + ';letter-spacing:-.02em;line-height:1;margin-bottom:4px">' + e(String(k.v)) + '</div>';
-    h += '<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text);margin-bottom:2px">' + e(k.l) + '</div>';
-    if (k.sub) h += '<div style="font-size:11px;color:var(--text2);line-height:1.4">' + e(k.sub) + '</div>';
-    h += '</div>';
-  });
-  h += '</div>';
-
-  // ── Two-column layout ──────────────────────────────────────────────────────
-  h += '<div style="display:grid;grid-template-columns:1fr 340px;gap:16px;align-items:start">';
-
-  // ══ LEFT COLUMN ══════════════════════════════════════════════════════════
-  h += '<div style="display:flex;flex-direction:column;gap:14px">';
-
-  // ── Nästa patient ──────────────────────────────────────────────────────────
+  var nextTileLabel = '\u2014';
+  var nextTileSub   = 'Inga fler bokningar';
+  var nextTileColor = 'var(--text2)';
   if (nextBk) {
-    var cardAccent = isImminent ? 'var(--orange)' : isUrgent ? 'rgba(224,118,40,.5)' : 'var(--border)';
-    var cardBg     = isImminent ? 'rgba(224,118,40,.03)' : 'var(--surface)';
-    var countdownHtml = '';
-    if (minsToNext !== null && minsToNext >= 0) {
-      if      (minsToNext === 0)   countdownHtml = '<span style="font-size:12px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 10px;border-radius:4px">Nu!</span>';
-      else if (minsToNext <= 10)   countdownHtml = '<span style="font-size:12px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 10px;border-radius:4px">om ' + minsToNext + ' min</span>';
-      else if (minsToNext <= 30)   countdownHtml = '<span style="font-size:12px;color:var(--orange)">om ' + minsToNext + ' min</span>';
-      else                         countdownHtml = '<span style="font-size:12px;color:var(--text2)">kl ' + e(nextBk.time||'?') + '</span>';
-    } else if (minsToNext !== null && minsToNext < 0) {
-      countdownHtml = '<span style="font-size:12px;color:var(--text2)">pågår</span>';
-    } else {
-      countdownHtml = '<span style="font-size:12px;color:var(--text2)">kl ' + e(nextBk.time||'?') + '</span>';
-    }
-    h += '<div style="background:' + cardBg + ';border:1px solid ' + cardAccent + ';border-radius:6px;overflow:hidden">';
-    // Header
-    h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
-    h += '<div style="display:flex;align-items:center;gap:7px">';
-    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
-    h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Nästa patient</span>';
-    h += '</div>' + countdownHtml + '</div>';
-    // Body
-    h += '<div style="padding:14px 16px">';
-    if (nextPat) {
-      var visitNr = (nextPat.visits||[]).length + 1;
-      h += '<div style="display:flex;align-items:baseline;gap:8px;margin-bottom:2px">';
-      h += '<span style="font-size:18px;font-weight:700;color:var(--ink);letter-spacing:-.01em">' + e(nextPat.name) + '</span>';
-      h += '<span style="font-size:12px;color:var(--text2)">· besök ' + visitNr + '</span>';
-      h += '</div>';
-      h += '<div style="font-size:13px;color:var(--text);margin-bottom:12px">' + e(nextPat.diagnosis||nextBk.serviceName||'') + ' · ' + (nextBk.duration||45) + ' min</div>';
-    }
-    var _bs = _buildBriefSignals(nextPat, nextBk, brief, briefValid, todayStr);
-    if (_bs.length) {
-      h += '<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:14px">';
-      _bs.forEach(function(sig) {
+    if      (minsToNext === 0)             { nextTileLabel = 'Nu!';              nextTileColor = 'var(--orange)'; }
+    else if (minsToNext > 0 && minsToNext <= 10) { nextTileLabel = 'om '+minsToNext+' min'; nextTileColor = 'var(--orange)'; }
+    else if (minsToNext > 0 && minsToNext <= 30) { nextTileLabel = 'om '+minsToNext+' min'; nextTileColor = 'var(--amber)'; }
+    else if (minsToNext > 0)               { nextTileLabel = 'kl '+(nextBk.time||'?');    nextTileColor = 'var(--ink)'; }
+    else                                   { nextTileLabel = 'P\u00e5g\u00e5r';             nextTileColor = 'var(--orange)'; }
+    nextTileSub = nextPat ? e(nextPat.name) : 'Bokning';
+  }
+
+  var actionTileColor = totalActions === 0 ? 'var(--green)' : totalActions >= 3 ? 'var(--red)' : 'var(--amber)';
+
+  h += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px">';
+
+  // Tile 1 — Besök idag
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 15px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h += '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2)">Bes\u00f6k idag</span>';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round" opacity=".45"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  h += '</div>';
+  h += '<div style="font-size:26px;font-weight:700;color:'+(dayDone?'var(--green)':'var(--ink)')+';letter-spacing:-.03em;line-height:1;margin-bottom:7px">'+doneBks+'<span style="font-size:14px;font-weight:400;color:var(--text2);margin-left:3px">/ '+todayBks.length+'</span></div>';
+  h += '<div style="height:3px;background:var(--border2);border-radius:2px;margin-bottom:7px"><div style="height:3px;background:'+(dayDone?'var(--green)':'var(--orange)')+';border-radius:2px;width:'+bkProgress+'%;transition:width .4s"></div></div>';
+  h += '<div style="font-size:11px;color:var(--text2)">'+upcomingBks.length+' kvar idag</div>';
+  h += '</div>';
+
+  // Tile 2 — Intäkt idag
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 15px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h += '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2)">Int\u00e4kt idag</span>';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round" opacity=".45"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>';
+  h += '</div>';
+  h += '<div style="font-size:26px;font-weight:700;color:var(--ink);letter-spacing:-.03em;line-height:1;margin-bottom:7px">';
+  h += todayRev > 0 ? todayRev.toLocaleString('sv-SE')+'<span style="font-size:13px;font-weight:400;color:var(--text2);margin-left:3px">kr</span>' : '<span style="color:var(--text2);font-size:20px">\u2014</span>';
+  h += '</div>';
+  h += '<div style="font-size:11px;color:var(--text2)">'+(monthRev > 0 ? monthRev.toLocaleString('sv-SE')+' kr denna m\u00e5n' : 'Inga int\u00e4kter idag')+'</div>';
+  h += '</div>';
+
+  // Tile 3 — Att göra
+  var atgParts = [];
+  if (pending.length)  atgParts.push(pending.length+' signatur');
+  if (missingJ)        atgParts.push(missingJ+' journal');
+  if (urgentCount)     atgParts.push(urgentCount+' br\u00e5dskande');
+  if (unreadMsgs)      atgParts.push(unreadMsgs+' meddelande');
+  if (waitlist.length) atgParts.push(waitlist.length+' v\u00e4ntelista');
+  h += '<div onclick="'+(totalActions?'rSignatureQueue&&rSignatureQueue()':'')+'" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 15px;'+(totalActions?'cursor:pointer':'')+'">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h += '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2)">Att g\u00f6ra</span>';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round" opacity=".45"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
+  h += '</div>';
+  h += '<div style="font-size:26px;font-weight:700;color:'+actionTileColor+';letter-spacing:-.03em;line-height:1;margin-bottom:7px">';
+  h += totalActions > 0 ? totalActions : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  h += '</div>';
+  h += '<div style="font-size:11px;color:var(--text2)">'+(totalActions ? atgParts.slice(0,2).join(' \u00b7 ') : 'Inget att \u00e5tg\u00e4rda')+'</div>';
+  h += '</div>';
+
+  // Tile 4 — Nästa bokning
+  h += '<div style="background:var(--surface);border:1px solid '+(isImminent?'rgba(224,118,40,.4)':'var(--border)')+';border-radius:6px;padding:14px 15px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">';
+  h += '<span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2)">N\u00e4sta bokning</span>';
+  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round" opacity=".45"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  h += '</div>';
+  h += '<div style="font-size:26px;font-weight:700;color:'+nextTileColor+';letter-spacing:-.03em;line-height:1;margin-bottom:7px">'+nextTileLabel+'</div>';
+  h += '<div style="font-size:11px;color:var(--text2)">'+nextTileSub+'</div>';
+  h += '</div>';
+
+  h += '</div>'; // end KPI grid
+
+  // ── THREE-COLUMN HERO ──────────────────────────────────────────────────────
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;align-items:start">';
+
+  // ═══ PANEL 1 — Nästa patient ══════════════════════════════════════════════
+  var p1Border = isImminent ? 'var(--orange)' : isUrgent ? 'rgba(224,118,40,.45)' : 'var(--border)';
+  h += '<div style="background:var(--surface);border:1px solid '+p1Border+';border-radius:6px;overflow:hidden">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+  h += '<div style="display:flex;align-items:center;gap:7px">';
+  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">N\u00e4sta patient</span>';
+  h += '</div>';
+  if (nextBk) {
+    if (minsToNext === null || minsToNext < 0)  h += '<span style="font-size:11px;color:var(--text2)">p\u00e5g\u00e5r</span>';
+    else if (minsToNext === 0)                  h += '<span style="font-size:11px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.12);padding:2px 8px;border-radius:4px">Nu!</span>';
+    else if (minsToNext <= 10)                  h += '<span style="font-size:11px;font-weight:700;color:var(--orange)">om '+minsToNext+' min</span>';
+    else if (minsToNext <= 30)                  h += '<span style="font-size:11px;color:var(--orange)">om '+minsToNext+' min</span>';
+    else                                        h += '<span style="font-size:11px;color:var(--text2)">kl '+e(nextBk.time||'?')+'</span>';
+  }
+  h += '</div>';
+  h += '<div style="padding:14px">';
+  if (nextPat) {
+    var visitNr2 = (nextPat.visits||[]).length + 1;
+    h += '<div style="display:flex;align-items:baseline;gap:7px;margin-bottom:3px">';
+    h += '<span style="font-size:17px;font-weight:700;color:var(--ink);letter-spacing:-.01em">'+e(nextPat.name)+'</span>';
+    h += '<span style="font-size:11px;color:var(--text2)">bes\u00f6k '+visitNr2+'</span>';
+    h += '</div>';
+    h += '<div style="font-size:12px;color:var(--text);margin-bottom:12px">'+e(nextPat.diagnosis||nextBk.serviceName||'')+(nextBk.duration?' \u00b7 '+nextBk.duration+' min':'')+'</div>';
+    var _bs2 = _buildBriefSignals(nextPat, nextBk, brief, briefValid, todayStr);
+    if (_bs2.length) {
+      h += '<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px">';
+      _bs2.slice(0,3).forEach(function(sig){
         h += '<div style="display:flex;align-items:flex-start;gap:7px">';
-        h += '<span style="width:7px;height:7px;border-radius:50%;background:' + sig.col + ';flex-shrink:0;margin-top:5px"></span>';
-        h += '<span style="font-size:14px;color:var(--ink);line-height:1.5;flex:1">' + e(sig.text) + '</span>';
-        if (sig.badge) h += '<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:' + sig.col + '22;color:' + sig.col + ';font-weight:700;flex-shrink:0;margin-top:3px">' + e(sig.badge) + '</span>';
+        h += '<span style="width:6px;height:6px;border-radius:50%;background:'+sig.col+';flex-shrink:0;margin-top:5px"></span>';
+        h += '<span style="font-size:13px;color:var(--ink);line-height:1.45;flex:1">'+e(sig.text)+'</span>';
+        if (sig.badge) h += '<span style="font-size:10px;padding:1px 5px;border-radius:3px;background:'+sig.col+'22;color:'+sig.col+';font-weight:700;flex-shrink:0;margin-top:3px">'+e(sig.badge)+'</span>';
         h += '</div>';
       });
-      if (briefValid && brief.tests && brief.tests.length) {
-        h += '<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding-top:4px">';
-        h += '<span style="font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.06em">Test</span>';
-        brief.tests.slice(0,4).forEach(function(t){ h += '<span style="font-size:11px;padding:1px 7px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--ink)">' + e(t) + '</span>'; });
-        h += '</div>';
-      }
       h += '</div>';
-    } else if (isUrgent) {
-      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><div style="width:11px;height:11px;border:2px solid rgba(224,118,40,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div><span style="font-size:13px;color:var(--text2)">Genererar brief…</span></div>';
+    } else if (isUrgent && !briefValid) {
+      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px"><div style="width:10px;height:10px;border:2px solid rgba(224,118,40,.2);border-top-color:var(--orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0"></div><span style="font-size:12px;color:var(--text2)">Genererar brief\u2026</span></div>';
     } else {
-      h += '<div style="margin-bottom:14px"><span style="font-size:13px;color:var(--text3)">Brief genereras av VelaAgent inför besöket.</span></div>';
+      h += '<div style="margin-bottom:12px"><span style="font-size:12px;color:var(--text2)">Brief genereras av VelaAgent inf\u00f6r bes\u00f6ket.</span></div>';
     }
-    if (nextPat) h += '<button onclick="_startSmartVisit(\'' + nextPat.id + '\',\'' + (nextBk.id||'') + '\')" style="width:100%;padding:10px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:7px"><svg width=\'13\' height=\'13\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2.5\' stroke-linecap=\'round\'><polygon points=\'5 3 19 12 5 21 5 3\'/></svg>Starta besök</button>';
+    var npid = nextPat.id.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    var nbid = (nextBk.id||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    h += '<button onclick="_startSmartVisit(\''+npid+'\',\''+nbid+'\')" style="width:100%;padding:8px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);margin-bottom:7px;display:flex;align-items:center;justify-content:center;gap:7px">';
+    h += '<svg width=\'12\' height=\'12\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2.5\' stroke-linecap=\'round\'><polygon points=\'5 3 19 12 5 21 5 3\'/></svg>Starta bes\u00f6k</button>';
     h += '<div style="display:flex;gap:6px">';
-    if (nextPat) h += '<button onclick="openPat(\'' + nextPat.id + '\')" style="flex:1;padding:6px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Patientkort</button>';
-    if (briefValid) h += '<button onclick="VelaAgent.showBrief(\'' + nextBk.id + '\')" style="flex:1;padding:6px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.2);border-radius:6px;font-size:12px;font-weight:600;color:var(--orange);cursor:pointer;font-family:var(--font)">Full brief</button>';
-    if (!briefValid && nextPat) h += '<button onclick="VelaAgent.runNow&&VelaAgent.runNow();showAutoSaveToast(\'Genererar brief\u2026\')" style="flex:1;padding:6px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Generera brief</button>';
+    h += '<button onclick="openPat(\''+npid+'\')" style="flex:1;padding:5px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:600;color:var(--ink);cursor:pointer;font-family:var(--font)">Patientkort</button>';
+    if (briefValid) {
+      h += '<button onclick="VelaAgent.showBrief(\''+nbid+'\')" style="flex:1;padding:5px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.2);border-radius:6px;font-size:11px;font-weight:600;color:var(--orange);cursor:pointer;font-family:var(--font)">Full brief</button>';
+    } else {
+      h += '<button onclick="VelaAgent.runNow&&VelaAgent.runNow();showAutoSaveToast(\'Genererar brief\u2026\')" style="flex:1;padding:5px;background:none;border:1px solid var(--border);border-radius:6px;font-size:11px;color:var(--text2);cursor:pointer;font-family:var(--font)">Generera brief</button>';
+    }
     h += '</div>';
-    h += '</div></div>';
-    if (!briefValid && nextPat) h += '<button onclick="VelaAgent.runNow&&VelaAgent.runNow();showAutoSaveToast(\'Genererar brief\u2026\')" style="padding:6px 14px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Generera brief</button>';
+  } else {
+    h += '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 16px;text-align:center">';
+    h += '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:10px"><polyline points="20 6 9 17 4 12"/></svg>';
+    h += '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px">Inga fler bokningar idag</div>';
+    h += '<div style="font-size:11px;color:var(--text2)">Bra jobbat!</div>';
     h += '</div>';
-    h += '</div></div>';
   }
+  h += '</div></div>'; // end panel 1
 
-  // ── Dagens schema ──────────────────────────────────────────────────────────
+  // ═══ PANEL 2 — Kräver åtgärd ════════════════════════════════════════════
+  var actionItems = [];
+  if (pending.length) actionItems.push({
+    label: pending.length+' AI-f\u00f6rslag v\u00e4ntar signatur',
+    sub: cancelPend.length ? cancelPend.length+' avbokning'+(cancelPend.length>1?'ar':'')+(schedPend.length?', '+schedPend.length+' tidsbyte':'') : 'Godk\u00e4nn eller avvisa',
+    c:'var(--amber)', icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    fn:'rSignatureQueue&&rSignatureQueue()'
+  });
+  if (missingJ > 0) actionItems.push({
+    label: missingJ+' journal'+(missingJ>1?'er':'')+' saknas',
+    sub:'Senaste 7 dagarna \u2014 fyll i f\u00f6re de f\u00f6rsvinner',
+    c:'var(--red)', icon:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
+    fn:"go('list')"
+  });
+  if (urgentCount > 0) actionItems.push({
+    label: urgentCount+' patient'+(urgentCount>1?'er':'')+' kr\u00e4ver \u00e5tg\u00e4rd',
+    sub:'Klinisk prioritet h\u00f6g',
+    c:'var(--red)', icon:'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+    fn:"go('list')"
+  });
+  if (unreadMsgs > 0) actionItems.push({
+    label: unreadMsgs+' ol\u00e4st'+(unreadMsgs>1?'a':'')+' meddelande'+(unreadMsgs>1?'n':''),
+    sub:'Fr\u00e5n patienter',
+    c:'var(--blue)', icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
+    fn:"go('activity')"
+  });
+  if (waitlist.length > 0) actionItems.push({
+    label: waitlist.length+' p\u00e5 v\u00e4ntelistan',
+    sub:'Erbjud ledig tid',
+    c:'var(--blue)', icon:'<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+    fn:'openWaitlistDialog&&openWaitlistDialog()'
+  });
+
   h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
-  var gapInbox = getInbox ? getInbox().filter(function(i){ return i.category==='schedule_gap' && !i.done; }) : [];
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
-  h += '<div style="display:flex;align-items:center;gap:8px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+  h += '<div style="display:flex;align-items:center;gap:7px">';
+  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+(actionItems.length?'var(--red)':'var(--green)')+'" stroke-width="2.2" stroke-linecap="round">';
+  h += actionItems.length ? '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>' : '<polyline points="20 6 9 17 4 12"/>';
+  h += '</svg>';
+  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Kr\u00e4ver \u00e5tg\u00e4rd</span>';
+  h += '</div>';
+  if (actionItems.length) h += '<span style="font-size:11px;font-weight:700;color:var(--red);background:rgba(248,81,73,.1);padding:1px 7px;border-radius:10px">'+actionItems.length+'</span>';
+  h += '</div>';
+
+  if (!actionItems.length) {
+    h += '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 16px;text-align:center">';
+    h += '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" style="margin-bottom:10px;opacity:.7"><polyline points="20 6 9 17 4 12"/></svg>';
+    h += '<div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px">Allt klart</div>';
+    h += '<div style="font-size:12px;color:var(--text2)">Inget kr\u00e4ver \u00e5tg\u00e4rd just nu</div>';
+    h += '</div>';
+  } else {
+    actionItems.forEach(function(ai) {
+      h += '<div onclick="'+ai.fn+'" style="display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--border2);cursor:pointer;transition:background .1s" onmouseover="this.style.background=\'rgba(177,186,196,.06)\'" onmouseout="this.style.background=\'transparent\'">';
+      h += '<div style="width:28px;height:28px;border-radius:6px;background:'+ai.c+'14;border:1px solid '+ai.c+'30;display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="'+ai.c+'" stroke-width="2" stroke-linecap="round">'+ai.icon+'</svg></div>';
+      h += '<div style="flex:1;min-width:0">';
+      h += '<div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:1px">'+ai.label+'</div>';
+      h += '<div style="font-size:11px;color:var(--text2)">'+ai.sub+'</div>';
+      h += '</div>';
+      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" opacity=".4"><polyline points="9 18 15 12 9 6"/></svg>';
+      h += '</div>';
+    });
+    h += '<div style="padding:9px 14px;display:flex;gap:6px">';
+    h += '<button onclick="go(\'list\')" style="font-size:11px;padding:3px 9px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--text2);cursor:pointer;font-family:var(--font)">Patientlista</button>';
+    h += '<button onclick="rSignatureQueue&&rSignatureQueue()" style="font-size:11px;padding:3px 9px;background:none;border:1px solid var(--border);border-radius:4px;color:var(--text2);cursor:pointer;font-family:var(--font)">Signaturk\u00f6</button>';
+    h += '</div>';
+  }
+  h += '</div>'; // end panel 2
+
+  // ═══ PANEL 3 — Dagens schema ═════════════════════════════════════════════
+  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+  h += '<div style="display:flex;align-items:center;gap:7px">';
+  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
   h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Dagens schema</span>';
-  h += '<span style="font-size:11px;color:var(--text2)">' + todayBks.length + ' bokningar</span>';
-  if (gapInbox.length) h += '<span style="font-size:10px;color:var(--amber);background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:3px;padding:1px 6px">' + gapInbox.length + ' glapp</span>';
   h += '</div>';
-  h += '<button onclick="go(\'calendar\')" style="font-size:12px;color:var(--text2);background:none;border:none;cursor:pointer;font-family:var(--font);padding:0">Öppna kalender →</button>';
-  h += '</div>';
-  if (todayBks.length === 0) {
-    h += '<div style="padding:28px 16px;text-align:center;color:var(--text2);font-size:14px">Inga bokningar idag</div>';
+  h += '<div style="display:flex;align-items:center;gap:8px">';
+  if (todayBks.length) h += '<span style="font-size:11px;color:var(--text2)">'+doneBks+'/'+todayBks.length+'</span>';
+  h += '<button onclick="go(\'calendar\')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer;font-family:var(--font);padding:0">Kalender \u2192</button>';
+  h += '</div></div>';
+
+  if (!todayBks.length) {
+    h += '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 16px;text-align:center">';
+    h += '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:10px"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+    h += '<div style="font-size:13px;color:var(--text2)">Inga bokningar idag</div>';
+    h += '</div>';
   } else {
     todayBks.forEach(function(bk) {
-      var bp      = pats.find(function(p){ return p.id===bk.patientId; });
-      var isDone  = bk.status === 'completed';
-      var isNext2 = bk.id === (nextBk && nextBk.id);
-      var bkBrief2 = null;
-      try { bkBrief2 = JSON.parse(localStorage.getItem('vela:previsit:'+bk.id)||'null'); } catch(e3) {}
-      var hasBrief2 = bkBrief2 && bkBrief2.date === todayStr;
-      h += '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border2);cursor:pointer;transition:background .1s;' + (isNext2?'background:rgba(224,118,40,.03)':'') + (isDone?'opacity:.55':'') + '" onclick="' + (bp?'openPat(\''+bp.id+'\')':'go(\'calendar\')') + '" onmouseover="this.style.background=\'rgba(177,186,196,.04)\'" onmouseout="this.style.background=\'' + (isNext2?'rgba(224,118,40,.03)':'') + '\'">';
-      // Time
-      h += '<span style="font-size:14px;font-weight:600;color:var(--text2);width:40px;flex-shrink:0;font-family:var(--font-mono)">' + e(bk.time||'—') + '</span>';
-      // Status dot
-      if (isDone) h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
-      else if (isNext2) h += '<div style="width:6px;height:6px;border-radius:50%;background:var(--orange);flex-shrink:0"></div>';
-      else h += '<div style="width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0"></div>';
-      // Name + service
+      var bkp    = pats.find(function(p){ return p.id===bk.patientId; });
+      var isDone2 = bk.status==='completed';
+      var isNxt2  = nextBk && bk.id===nextBk.id;
+      var hasBrf2 = false;
+      try { var bkb=JSON.parse(localStorage.getItem('vela:previsit:'+bk.id)||'null'); hasBrf2=bkb&&bkb.date===todayStr; } catch(e3){}
+      var bkpid = bkp ? bkp.id.replace(/\\/g,'\\\\').replace(/'/g,"\\'") : '';
+      h += '<div onclick="'+(bkp?'openPat(\''+bkpid+'\')':'go(\'calendar\')')+'" style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border2);cursor:pointer;transition:background .1s;'+(isDone2?'opacity:.45;':'')+(isNxt2?'background:rgba(224,118,40,.04);':'')+'" onmouseover="this.style.background=\'rgba(177,186,196,.05)\'" onmouseout="this.style.background=\''+(isNxt2?'rgba(224,118,40,.04)':'')+'\'">';
+      h += '<span style="font-size:13px;font-weight:600;color:var(--text2);width:38px;flex-shrink:0;font-family:var(--font-mono)">'+e(bk.time||'\u2014')+'</span>';
+      if (isDone2)       h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      else if (isNxt2)   h += '<div style="width:6px;height:6px;border-radius:50%;background:var(--orange);flex-shrink:0"></div>';
+      else               h += '<div style="width:6px;height:6px;border-radius:50%;background:var(--border);flex-shrink:0"></div>';
       h += '<div style="flex:1;min-width:0">';
-      h += '<div style="font-size:14px;font-weight:' + (isNext2?'700':'500') + ';color:' + (isDone?'var(--text)':'var(--ink)') + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + e(bk.patientName||'') + '</div>';
-      h += '<div style="font-size:11px;color:var(--text2)">' + e(bk.serviceName||'') + (bk.duration?' · '+bk.duration+' min':'') + '</div>';
+      h += '<div style="font-size:13px;font-weight:'+(isNxt2?'700':'500')+';color:'+(isDone2?'var(--text)':'var(--ink)')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e(bk.patientName||'')+'</div>';
+      if (bk.serviceName||bk.duration) h += '<div style="font-size:11px;color:var(--text2)">'+e(bk.serviceName||'')+(bk.duration?' \u00b7 '+bk.duration+' min':'')+'</div>';
       h += '</div>';
-      // Tags
-      if (isNext2) h += '<span style="font-size:10px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.1);padding:2px 7px;border-radius:4px;flex-shrink:0">Nästa</span>';
-      if (hasBrief2 && !isDone) h += '<span style="font-size:10px;color:var(--green);background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.2);padding:2px 6px;border-radius:4px;flex-shrink:0">Brief ✓</span>';
+      if (isNxt2&&!isDone2)   h += '<span style="font-size:9px;font-weight:700;color:var(--orange);background:rgba(224,118,40,.1);padding:2px 5px;border-radius:3px;flex-shrink:0;letter-spacing:.04em">N\u00c4STA</span>';
+      else if (hasBrf2&&!isDone2) h += '<span style="font-size:9px;font-weight:700;color:var(--green);opacity:.8;flex-shrink:0">BRIEF</span>';
       h += '</div>';
     });
   }
-  h += '</div>'; // end schema card
+  h += '</div>'; // end panel 3
 
-  // ── Åtgärder (if any) ──────────────────────────────────────────────────────
-  var actions = [];
-  if (pending.length)  actions.push({ label: pending.length + ' väntar din signatur', sub: 'AI-genererade förslag', c: 'var(--amber)', bc: 'rgba(210,153,34,.2)', fn: "rSignatureQueue()" });
-  if (missingJ > 0)    actions.push({ label: missingJ + ' journal' + (missingJ>1?'er':'') + ' saknas', sub: 'Senaste 7 dagarna', c: 'var(--red)', bc: 'rgba(248,81,73,.15)', fn: "go('list')" });
-  if (waitlist.length) actions.push({ label: waitlist.length + ' på väntelistan', sub: 'Klicka för att erbjuda tid', c: 'var(--blue)', bc: 'rgba(88,166,255,.12)', fn: "openWaitlistDialog&&openWaitlistDialog()" });
-  if (actions.length) {
-    h += '<div style="display:grid;grid-template-columns:repeat('+Math.min(actions.length,3)+',1fr);gap:8px">';
-    actions.forEach(function(a) {
-      h += '<button onclick="' + a.fn + '" style="background:var(--surface);border:1px solid var(--border);border-top:2px solid ' + a.c + ';border-radius:6px;padding:12px 14px;text-align:left;cursor:pointer;font-family:var(--font);transition:border-color .1s;width:100%">';
-      h += '<div style="font-size:14px;font-weight:700;color:' + a.c + ';margin-bottom:2px">' + a.label + '</div>';
-      h += '<div style="font-size:11px;color:var(--text2)">' + a.sub + '</div>';
-      h += '</button>';
-    });
-    h += '</div>';
-  }
+  h += '</div>'; // end three-column hero
 
-  h += '</div>'; // end left column
-
-  // ══ RIGHT COLUMN ══════════════════════════════════════════════════════════
-  h += '<div style="display:flex;flex-direction:column;gap:14px">';
-
-  // ── VelaAgent feed ─────────────────────────────────────────────────────────
+  // ── AGENT FEED — compact ──────────────────────────────────────────────────
   h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;background:var(--surface2);border-bottom:1px solid '+(todayFeed.length||cancelPend.length||schedPend.length?'var(--border2)':'transparent')+'">';
   h += '<div style="display:flex;align-items:center;gap:7px">';
-  h += '<div style="width:7px;height:7px;border-radius:50%;background:var(--orange);animation:vai-pulse 2s infinite"></div>';
+  h += '<div style="width:6px;height:6px;border-radius:50%;background:var(--orange);animation:vai-pulse 2s infinite"></div>';
   h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">VelaAgent</span>';
+  if (todayFeed.length) h += '<span style="font-size:11px;color:var(--text2)">'+todayFeed.length+' h\u00e4ndels'+(todayFeed.length>1?'er':'e')+' idag</span>';
   h += '</div>';
-  if (agentItems) h += '<span style="font-size:11px;color:var(--orange);font-weight:600">' + agentItems + ' olästa</span>';
-  h += '</div>';
-  if (todayFeed.length || cancelPend.length || schedPend.length) {
-    var feedSvg = {
-      cancel_detected:  '<path d="M18 6L6 18M6 6l12 12"/>',
-      booking_cancelled:'<polyline points="20 6 9 17 4 12"/>',
+  h += '<div style="display:flex;align-items:center;gap:8px">';
+  if (agentItems) h += '<span style="font-size:11px;color:var(--orange);font-weight:600">'+agentItems+' ol\u00e4sta</span>';
+  h += '<button onclick="go(\'activity\')" style="font-size:11px;color:var(--text2);background:none;border:none;cursor:pointer;font-family:var(--font);padding:0">Visa alla \u2192</button>';
+  h += '</div></div>';
+
+  if (!todayFeed.length && !cancelPend.length && !schedPend.length) {
+    h += '<div style="padding:12px 14px">';
+    h += '<span style="font-size:12px;color:var(--text2)">\u2713 VelaAgent har koll p\u00e5 allt \u2014 inga h\u00e4ndelser idag</span>';
+    h += '</div>';
+  } else {
+    var feedSvg2 = {
+      cancel_detected:   '<path d="M18 6L6 18M6 6l12 12"/>',
+      booking_cancelled: '<polyline points="20 6 9 17 4 12"/>',
       reschedule_detected:'<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
-      reschedule_sent: '<path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/>',
-      cancel_handled:  '<polyline points="20 6 9 17 4 12"/>',
-      cancel_confirmed:'<polyline points="20 6 9 17 4 12"/>',
+      reschedule_sent:   '<path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/>',
+      cancel_handled:    '<polyline points="20 6 9 17 4 12"/>',
+      cancel_confirmed:  '<polyline points="20 6 9 17 4 12"/>',
     };
-    var feedCol = {
+    var feedCol2 = {
       cancel_detected:'var(--red)', booking_cancelled:'var(--green)',
       reschedule_detected:'var(--amber)', reschedule_sent:'var(--orange)',
       cancel_handled:'var(--green)', cancel_confirmed:'var(--green)',
     };
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">';
     todayFeed.slice(0,6).forEach(function(f) {
-      var svg2  = feedSvg[f.type] || '<circle cx="12" cy="12" r="3"/>';
-      var col2  = feedCol[f.type] || 'var(--text2)';
-      var tAgo   = Math.round((Date.now()-f.ts)/60000);
-      var tLabel = tAgo < 1 ? 'nu' : tAgo < 60 ? tAgo + ' min' : Math.round(tAgo/60) + 'h';
-      h += '<div style="display:flex;align-items:flex-start;gap:9px;padding:9px 14px;border-bottom:1px solid var(--border2)">';
-      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="'+col2+'" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px">'+svg2+'</svg>';
-      h += '<div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--ink);line-height:1.4">' + e(f.summary) + '</div></div>';
-      h += '<span style="font-size:10px;color:var(--text2);flex-shrink:0;margin-top:1px">' + tLabel + '</span>';
+      var svg3 = feedSvg2[f.type] || '<circle cx="12" cy="12" r="3"/>';
+      var col3 = feedCol2[f.type] || 'var(--text2)';
+      var tAgo3  = Math.round((Date.now()-f.ts)/60000);
+      var tLbl3  = tAgo3<1?'nu':tAgo3<60?tAgo3+' min':Math.round(tAgo3/60)+'h';
+      h += '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border2)">';
+      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+col3+'" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:2px">'+svg3+'</svg>';
+      h += '<div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--ink);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e(f.summary)+'</div></div>';
+      h += '<span style="font-size:10px;color:var(--text2);flex-shrink:0;white-space:nowrap">'+tLbl3+'</span>';
       h += '</div>';
     });
+    h += '</div>';
     if (cancelPend.length || schedPend.length) {
       h += '<div style="padding:8px 14px;display:flex;gap:6px;border-top:1px solid var(--border2)">';
-      if (cancelPend.length) h += '<button onclick="rSignatureQueue()" style="font-size:11px;padding:3px 9px;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:4px;color:var(--red);cursor:pointer;font-family:var(--font)">' + cancelPend.length + ' avbokning' + (cancelPend.length>1?'ar':'') + '</button>';
-      if (schedPend.length)  h += '<button onclick="rSignatureQueue()" style="font-size:11px;padding:3px 9px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:4px;color:var(--amber);cursor:pointer;font-family:var(--font)">' + schedPend.length + ' tidsbyte' + (schedPend.length>1?'n':'') + '</button>';
+      if (cancelPend.length) h += '<button onclick="rSignatureQueue()" style="font-size:11px;padding:3px 9px;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:4px;color:var(--red);cursor:pointer;font-family:var(--font)">'+cancelPend.length+' avbokning'+(cancelPend.length>1?'ar':'')+'</button>';
+      if (schedPend.length)  h += '<button onclick="rSignatureQueue()" style="font-size:11px;padding:3px 9px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);border-radius:4px;color:var(--amber);cursor:pointer;font-family:var(--font)">'+schedPend.length+' tidsbyte'+(schedPend.length>1?'n':'')+'</button>';
       h += '</div>';
     }
-  } else {
-    h += '<div style="padding:20px 14px;text-align:center">';
-    h += '<div style="font-size:22px;margin-bottom:8px">✓</div>';
-    h += '<div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:3px">Inget att agera på</div>';
-    h += '<div style="font-size:12px;color:var(--text2)">VelaAgent har koll på allt</div>';
-    h += '</div>';
   }
-  h += '<div style="padding:10px 14px;border-top:1px solid var(--border2)">';
-  h += '<button onclick="go(\'activity\')" style="width:100%;padding:7px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Öppna aktivitetsflödet →</button>';
-  h += '</div>';
-  h += '</div>'; // end agent feed card
+  h += '</div>'; // end agent feed
 
-  // ── Snabbåtgärder ──────────────────────────────────────────────────────────
-  h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden">';
-  h += '<div style="padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border2)">';
-  h += '<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text)">Snabbåtgärder</span>';
-  h += '</div>';
-  var quickActions = [
-    { l:'Alla patienter',  fn:"go('list')",        icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>' },
-    { l:'Kalender',        fn:"go('calendar')",     icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>' },
-    { l:'Signaturkö',      fn:"rSignatureQueue()",  icon:'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',  badge: pending.length||0 },
-    { l:'Ny Hael-plan',    fn:"go('form')",          icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>' },
-    { l:'Ekonomi',         fn:"go('economy')",       icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>' },
-    { l:'Verktyg',         fn:"go('tools')",         icon:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>' },
-  ];
-  quickActions.forEach(function(a) {
-    h += '<button onclick="' + a.fn + '" style="display:flex;align-items:center;gap:10px;width:100%;padding:9px 14px;border:none;background:transparent;color:var(--text);font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font);border-bottom:1px solid var(--border2);text-align:left;transition:background .1s" onmouseover="this.style.background=\'rgba(177,186,196,.06)\';this.style.color=\'var(--ink)\'" onmouseout="this.style.background=\'transparent\';this.style.color=\'var(--text)\'">';
-    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="opacity:.6;flex-shrink:0">' + a.icon + '</svg>';
-    h += '<span>' + e(a.l) + '</span>';
-    if (a.badge) h += '<span style="margin-left:auto;font-size:10px;font-weight:700;background:rgba(210,153,34,.15);color:var(--amber);padding:1px 6px;border-radius:8px">' + a.badge + '</span>';
-    h += '</button>';
-  });
-  h += '</div>'; // end snabbåtgärder
-
-  h += '</div>'; // end right column
-  h += '</div>'; // end two-column grid
   h += '</div></div>';
   el.innerHTML = h;
 }

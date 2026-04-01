@@ -66,10 +66,10 @@
 
   /* ── Typography ─────────────────────────────────────────── */
   --ink:   #e6edf3;
-  --text:  #8b949e;
-  --text2: #6e7681;
+  --text:  #9198a1;
+  --text2: #848d97;
   --text3: #6e7681;
-  --muted: #8b949e;
+  --muted: #9198a1;
 
   /* ── Borders ────────────────────────────────────────────── */
   --border:  #30363d;
@@ -94,8 +94,8 @@
   /* ── Sidebar ────────────────────────────────────────────── */
   --sb-bg:        #0d1117;
   --sb-border:    #30363d;
-  --sb-text:      #8b949e;
-  --sb-text2:     #e6edf3;
+  --sb-text:      #cdd9e5;
+  --sb-text2:     #ffffff;
   --sb-hover:     rgba(177,186,196,.06);
   --sb-active-bg: rgba(224,118,40,.1);
   --sb-active-col:#e07628;
@@ -264,7 +264,8 @@ a:hover { text-decoration: underline; }
 .nav-section { flex:1; padding:8px 8px 4px; overflow-y:auto; overflow-x:hidden; }
 .nav-section-label {
   font-size:14px; font-weight: 400; letter-spacing: 0;
-  text-transform: none; color: var(--text2);
+  font-size:11px; font-weight: 600; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--text3);
   padding: 18px 10px 5px; display: block;
   white-space: nowrap; overflow: hidden; cursor: default;
 }
@@ -502,32 +503,24 @@ a:hover { text-decoration: underline; }
 .bk2-form-panel { overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:12px; }
 .bk2-label { font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   color:var(--teal);margin-bottom:5px; }
-/* Mini-calendar */
 .bk2-cal-nav { display:flex;align-items:center;justify-content:space-between;margin-bottom:8px; }
-.bk2-cal-month { font-size:12px;font-weight:700;color:#e6edf3;letter-spacing:.02em; }
-.bk2-cal-navbtn { background:none;border:none;color:#8b949e;cursor:pointer;padding:2px 6px;font-size:16px;line-height:1;border-radius:4px;transition:background .1s; }
+.bk2-cal-month { font-size:12px;font-weight:700;color:#e6edf3; }
+.bk2-cal-navbtn { background:none;border:none;color:#8b949e;cursor:pointer;padding:2px 6px;font-size:16px;line-height:1;border-radius:4px; }
 .bk2-cal-navbtn:hover { background:rgba(177,186,196,.08);color:#e6edf3; }
-.bk2-cal-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:1px;font-size:11px; }
-.bk2-cal-dow { text-align:center;color:#6e7681;font-weight:600;padding:2px 0;letter-spacing:.04em;font-size:10px; }
-.bk2-cal-day { text-align:center;padding:4px 2px;border-radius:4px;cursor:pointer;position:relative;
-  font-size:12px;color:#8b949e;transition:background .1s;line-height:1.6; }
+.bk2-cal-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:1px; }
+.bk2-cal-dow { text-align:center;color:#6e7681;font-weight:600;padding:2px 0;font-size:10px; }
+.bk2-cal-day { text-align:center;padding:4px 2px;border-radius:4px;cursor:pointer;position:relative;font-size:12px;color:#8b949e;line-height:1.6; }
 .bk2-cal-day:hover:not(.empty):not(.past) { background:rgba(177,186,196,.1);color:#e6edf3; }
 .bk2-cal-day.today { color:#e07628;font-weight:700; }
 .bk2-cal-day.selected { background:#e07628;color:#fff;font-weight:700; }
-.bk2-cal-day.selected:hover { background:#c96820; }
-.bk2-cal-day.has-bk::after { content:"";position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
-  width:3px;height:3px;border-radius:50%;background:#8b949e; }
+.bk2-cal-day.has-bk::after { content:"";position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:3px;height:3px;border-radius:50%;background:#8b949e; }
 .bk2-cal-day.selected.has-bk::after { background:rgba(255,255,255,.6); }
 .bk2-cal-day.past { opacity:.35;cursor:default; }
 .bk2-cal-day.empty { cursor:default; }
-.bk2-cal-day.conflict-day { background:rgba(248,81,73,.12);color:#f85149; }
-/* Day timeline */
 .bk2-day-bks { display:flex;flex-direction:column;gap:4px; }
-.bk2-day-bk { display:flex;align-items:center;gap:7px;padding:5px 8px;background:#161b22;
-  border:1px solid #21262d;border-radius:4px;font-size:11px;cursor:default; }
+.bk2-day-bk { display:flex;align-items:center;gap:7px;padding:5px 8px;background:#161b22;border:1px solid #21262d;border-radius:4px;font-size:11px; }
 .bk2-day-bk.conflict { border-color:rgba(248,81,73,.4);background:rgba(248,81,73,.06); }
-.bk2-conflict-banner { background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);
-  border-radius:6px;padding:8px 12px;font-size:12px;color:#f85149;display:flex;align-items:center;gap:7px; }
+.bk2-conflict-banner { background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);border-radius:6px;padding:8px 12px;font-size:12px;color:#f85149;display:flex;align-items:center;gap:7px; }
 .bk2-field { background:var(--bg);border:1.5px solid var(--border);border-radius:11px;
   padding:10px 14px;color:#e6edf3;font-size:14px;font-family:var(--font);
   outline:none;width:100%;box-sizing:border-box;transition:border-color .15s; }
@@ -882,14 +875,15 @@ button:not([class]) { border-radius: 6px; }
   white-space: nowrap; font-family: var(--font);
   min-height: 32px; box-sizing: border-box;
 }
-.nav-item:hover { background: rgba(177,186,196,.06); color: #e6edf3; }
+.nav-item { color: var(--sb-text); }
+.nav-item:hover { background: rgba(177,186,196,.07); color: #e6edf3; }
 .nav-item.active {
   color: #e6edf3; font-weight: 600;
-  background: rgba(177,186,196,.04);
+  background: rgba(177,186,196,.05);
   border-left-color: var(--orange);
 }
 .nav-item.active .nav-item-icon { opacity: 1; color: var(--orange); }
-.nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: .55; transition: opacity .1s; }
+.nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: .7; transition: opacity .1s; }
 .nav-badge-count {
   margin-left: auto; font-size: 11px; font-weight: 600;
   background: rgba(177,186,196,.1); border: 1px solid rgba(177,186,196,.15);
@@ -23469,116 +23463,87 @@ function _renderPulse() {
   var cancelPend = pending.filter(function(ap){ return ap.type==='cancel_request'; });
   var schedPend  = pending.filter(function(ap){ return ap.type==='reschedule_request'; });
 
-  // ── VelaAgent Intelligence — beräkna kliniska insikter från data ───────────
+  // VelaAgent Intelligence — klinisk analys med godkännbara åtgärder
   var vaInsights = [];
-
-  // 1. Patienter med stigande smärta (NRS-trend)
-  var risingNRS = pats.filter(function(p){
-    var logs = (p.symptomLogs||[]).filter(function(l){ return l.nrs != null; })
-      .sort(function(a,b){ return (a.date||'')<(b.date||'')?-1:1; });
-    if (logs.length < 3) return false;
-    var trend = logs[logs.length-1].nrs - logs[logs.length-3].nrs;
-    return trend >= 1.5;
-  });
-  if (risingNRS.length) vaInsights.push({
-    level:'warn', icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
-    col:'var(--amber)',
-    text: risingNRS.length+' patient'+(risingNRS.length>1?'er':'')+' visar stigande sm\u00e4rta de senaste loggningarna',
-    sub: risingNRS.slice(0,2).map(function(p){ return p.name.split(' ')[0]; }).join(', ')+(risingNRS.length>2?' +'+( risingNRS.length-2)+' till':''),
-    fn: "go('list')"
-  });
-
-  // 2. Patienter inaktiva >30 dagar utan utskrivning
-  var inactivePats = pats.filter(function(p){
-    if (p.status==='discharged') return false;
-    var lastV = (p.visits||[]).slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; })[0];
-    if (!lastV || !lastV.date) return false;
-    var days = Math.floor((Date.now()-new Date(lastV.date).getTime())/86400000);
-    return days >= 30 && days < 180;
-  });
-  if (inactivePats.length) vaInsights.push({
-    level:'info', icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',
-    col:'var(--blue)',
-    text: inactivePats.length+' patient'+(inactivePats.length>1?'er':'')+' har inte haft bes\u00f6k p\u00e5 \u00f6ver 30 dagar',
-    sub: 'Kan beh\u00f6va p\u00e5minnelse om \u00e5terbesök',
-    fn: "go('list')"
-  });
-
-  // 3. Journaler saknas
-  if (missingJ > 0) vaInsights.push({
-    level:'warn', icon:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',
-    col:'var(--red)',
-    text: missingJ+' journal'+(missingJ>1?'er':'')+' \u00e5terst\u00e5r fr\u00e5n senaste 7 dagarna',
-    sub: 'Dokumentera f\u00f6re de f\u00f6rsvinner ur vyn',
-    fn: "go('list')"
-  });
-
-  // 4. Intäktspacing — är månaden i fas?
-  if (prevMonthRev > 0 && monthRev > 0) {
-    var dayOfMonth = now.getDate();
-    var daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-    var pace = monthRev / dayOfMonth * daysInMonth;
-    var pct  = Math.round(pace / prevMonthRev * 100);
-    if (pct >= 105) vaInsights.push({
-      level:'ok', icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
-      col:'var(--green)',
-      text: 'Intäktspacet ligger '+pct+'% av förra månaden — riktigt bra takt',
-      sub: monthRev.toLocaleString('sv-SE')+' kr hittills vs '+prevMonthRev.toLocaleString('sv-SE')+' kr förra månaden',
-      fn: "go('economy')"
-    });
-    else if (pct < 80) vaInsights.push({
-      level:'info', icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
-      col:'var(--amber)',
-      text: 'Intäktspacet är '+pct+'% av förra månaden — lite lägre takt',
-      sub: monthRev.toLocaleString('sv-SE')+' kr hittills vs '+prevMonthRev.toLocaleString('sv-SE')+' kr förra månaden',
-      fn: "go('economy')"
-    });
+  var _vaDedupPfx = 'vela:va:' + new Date().toISOString().slice(0,10) + ':';
+  function _vaQ(key, title, body, actLabel, actFn) {
+    if (localStorage.getItem(_vaDedupPfx + key)) return;
+    upsertApproval({ id: 'apr_va_'+Date.now()+'_'+Math.random().toString(36).slice(2,5),
+      type:'agent_action', patId:null, patName:'VelaAgent', title:title, aiContent:body,
+      status:'pending', createdAt:new Date().toISOString(),
+      meta:{ actionLabel:actLabel, actionFn:actFn, source:'intelligence' } });
+    localStorage.setItem(_vaDedupPfx + key, '1');
+    updateInboxBadge && updateInboxBadge();
   }
-
-  // 5. Patienter utan Hael-plan (>1 besök)
-  var noHaelPlan = pats.filter(function(p){
-    return (p.visits||[]).length >= 2 && !(p.visits||[]).some(function(v){ return v.plan; });
+  var risingNRS = pats.filter(function(p){
+    var logs=(p.symptomLogs||[]).filter(function(l){return l.nrs!=null;}).sort(function(a,b){return a.date<b.date?-1:1;});
+    return logs.length>=3 && logs[logs.length-1].nrs-logs[logs.length-3].nrs>=1.5;
   });
-  if (noHaelPlan.length) vaInsights.push({
-    level:'info', icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
-    col:'var(--text2)',
-    text: noHaelPlan.length+' patient'+(noHaelPlan.length>1?'er':'')+' har 2+ bes\u00f6k men ingen Hael-plan',
-    sub: 'Rehabplan kan f\u00f6rb\u00e4ttra utfall och n\u00e4rvaro',
-    fn: "go('list')"
+  if (risingNRS.length) {
+    var _rn=risingNRS.slice(0,2).map(function(p){return p.name.split(' ')[0];}).join(', ')+(risingNRS.length>2?' +'+(risingNRS.length-2):'');
+    _vaQ('rising-nrs','Stigande sm\u00e4rta \u2014 '+risingNRS.length+' patienter',
+      risingNRS.map(function(p){var l=(p.symptomLogs||[]).filter(function(x){return x.nrs!=null;}).sort(function(a,b){return a.date<b.date?-1:1;});var tr=l.length>=2?+(l[l.length-1].nrs-l[0].nrs).toFixed(1):0;return p.name+': NRS '+(tr>0?'+':'')+tr;}).join('\n')+'\n\nF\u00f6rslag: Skicka kort uppf\u00f6ljning.',
+      'Skicka uppf\u00f6ljning',"go('list')");
+    vaInsights.push({level:'warn',icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',col:'var(--amber)',
+      text:risingNRS.length+' patient'+(risingNRS.length>1?'er':'')+' visar stigande sm\u00e4rta (NRS-trend)',
+      sub:_rn+' \u00b7 F\u00f6rslag i signaturk\u00f6n',
+      action:{label:'Se signaturk\u00f6',fn:'rSignatureQueue&&rSignatureQueue()'}});
+  }
+  var inactivePats=pats.filter(function(p){
+    if(p.status==='discharged')return false;
+    var lv=(p.visits||[]).slice().sort(function(a,b){return b.date>a.date?1:-1;})[0];
+    if(!lv||!lv.date)return false;
+    var d=Math.floor((Date.now()-new Date(lv.date).getTime())/86400000);
+    return d>=30&&d<180;
   });
-
-  // 6. Väntelista + ledig tid idag
-  if (waitlist.length > 0 && upcomingBks.length === 0 && todayBks.length < 4) vaInsights.push({
-    level:'ok', icon:'<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>',
-    col:'var(--green)',
-    text: 'Du har ledig tid idag och '+waitlist.length+' patient'+(waitlist.length>1?'er':'')+' p\u00e5 v\u00e4ntelistan',
-    sub: 'Erbjud tid nu — de v\u00e4ntar',
-    fn: 'openWaitlistDialog&&openWaitlistDialog()'
-  });
-
-  // 7. Olästa patientmeddelanden
-  if (unreadMsgs > 0) vaInsights.push({
-    level:'warn', icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
-    col:'var(--blue)',
-    text: unreadMsgs+' ol\u00e4st'+(unreadMsgs>1?'a':'')+' meddelande'+(unreadMsgs>1?'n':'')+' fr\u00e5n patient'+(unreadMsgs>1?'er':''),
-    sub: 'Svara f\u00f6r att h\u00e5lla relationen varm',
-    fn: "go('activity')"
-  });
-
-  // 8. Allt bra — ingen worries
-  if (!vaInsights.length) vaInsights.push({
-    level:'ok', icon:'<polyline points="20 6 9 17 4 12"/>',
-    col:'var(--green)',
-    text: 'Allt ser bra ut \u2014 inga kliniska varningar just nu',
-    sub: 'Jag bevakar l\u00f6pande och meddelar om n\u00e5got uppst\u00e5r',
-    fn: null
-  });
-
-  // Sort: warn first, then info, then ok
-  vaInsights.sort(function(a,b){
-    var w = {warn:0,info:1,ok:2};
-    return (w[a.level]||1) - (w[b.level]||1);
-  });
+  if (inactivePats.length) {
+    var _in2=inactivePats.slice(0,2).map(function(p){return p.name.split(' ')[0];}).join(', ')+(inactivePats.length>2?' +'+(inactivePats.length-2):'');
+    _vaQ('inactive-30d','\u00c5terkontakt \u2014 '+inactivePats.length+' inaktiva patienter',
+      inactivePats.slice(0,5).map(function(p){var lv2=(p.visits||[]).slice().sort(function(a,b){return b.date>a.date?1:-1;})[0];var d2=lv2&&lv2.date?Math.floor((Date.now()-new Date(lv2.date).getTime())/86400000):0;return p.name+' ('+d2+' dagar)';}).join('\n')+'\n\nF\u00f6rslag: Skicka ett v\u00e4nligt meddelande.',
+      'Skicka \u00e5terkontakt',"go('list')");
+    vaInsights.push({level:'info',icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',col:'var(--blue)',
+      text:inactivePats.length+' patient'+(inactivePats.length>1?'er':'')+' utan bes\u00f6k p\u00e5 30+ dagar',
+      sub:_in2+' \u00b7 F\u00f6rslag i signaturk\u00f6n',
+      action:{label:'Se signaturk\u00f6',fn:'rSignatureQueue&&rSignatureQueue()'}});
+  }
+  if (missingJ>0) {
+    vaInsights.push({level:'warn',icon:'<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>',col:'var(--red)',
+      text:missingJ+' journal'+(missingJ>1?'er':'')+' saknas fr\u00e5n senaste 7 dagarna',
+      sub:'Dokumentera f\u00f6re de f\u00f6rsvinner ur vyn',
+      action:{label:'Fyll i nu',fn:"go('list')"}});
+  }
+  if (prevMonthRev>0&&monthRev>0) {
+    var _dom2=now.getDate(),_dim2=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+    var _pace2=monthRev/_dom2*_dim2,_pct2=Math.round(_pace2/prevMonthRev*100);
+    if (_pct2>=110) vaInsights.push({level:'ok',icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',col:'var(--green)',
+      text:'Int\u00e4ktspacet \u00e4r '+_pct2+'% av f\u00f6rra m\u00e5naden \u2014 stark takt',
+      sub:monthRev.toLocaleString('sv-SE')+' kr hittills',action:{label:'Se ekonomi',fn:"go('economy')"}});
+    else if (_pct2<75) {
+      _vaQ('rev-pace','Int\u00e4ktspace under f\u00f6rv\u00e4ntan','Pace: '+Math.round(_pace2).toLocaleString('sv-SE')+' kr/m\u00e5n ('+_pct2+'%).\n\nF\u00f6rslag: Kolla v\u00e4ntelistan.','Granska kalender',"go('calendar')");
+      vaInsights.push({level:'warn',icon:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',col:'var(--amber)',
+        text:'Int\u00e4ktspacet \u00e4r '+_pct2+'% av f\u00f6rra m\u00e5naden',
+        sub:monthRev.toLocaleString('sv-SE')+' kr hittills \u00b7 F\u00f6rslag i signaturk\u00f6n',
+        action:{label:'Se signaturk\u00f6',fn:'rSignatureQueue&&rSignatureQueue()'}});
+    }
+  }
+  var noHaelPlan=pats.filter(function(p){return (p.visits||[]).length>=2&&!(p.visits||[]).some(function(v){return v.plan;});});
+  if (noHaelPlan.length) vaInsights.push({level:'info',icon:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',col:'var(--text)',
+    text:noHaelPlan.length+' patient'+(noHaelPlan.length>1?'er':'')+' har 2+ bes\u00f6k utan Hael-plan',
+    sub:noHaelPlan.slice(0,2).map(function(p){return p.name.split(' ')[0];}).join(', ')+(noHaelPlan.length>2?' +'+(noHaelPlan.length-2):''),
+    action:{label:'Skapa plan',fn:"go('list')"}});
+  if (waitlist.length>0&&upcomingBks.length===0) {
+    _vaQ('waitlist-idle','Erbjud ledig tid',waitlist.length+' v\u00e4ntar.\n\nF\u00f6rslag: Kontakta '+(waitlist[0]&&waitlist[0].patName||'f\u00f6rsta patienten')+'.','Erbjud tid','openWaitlistDialog&&openWaitlistDialog()');
+    vaInsights.push({level:'ok',icon:'<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>',col:'var(--green)',
+      text:waitlist.length+' patient'+(waitlist.length>1?'er':'')+' v\u00e4ntar \u2014 du har ledig tid idag',
+      sub:'F\u00f6rslag i signaturk\u00f6n',action:{label:'Se signaturk\u00f6',fn:'rSignatureQueue&&rSignatureQueue()'}});
+  }
+  if (unreadMsgs>0) vaInsights.push({level:'warn',icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',col:'var(--blue)',
+    text:unreadMsgs+' ol\u00e4st'+(unreadMsgs>1?'a':'')+' meddelande'+(unreadMsgs>1?'n':'')+' fr\u00e5n patienter',
+    sub:'Svara f\u00f6r att h\u00e5lla relationen varm',action:{label:'Svara nu',fn:"go('activity')"} });
+  if (!vaInsights.length) vaInsights.push({level:'ok',icon:'<polyline points="20 6 9 17 4 12"/>',col:'var(--green)',
+    text:'Allt ser bra ut \u2014 inga avvikelser just nu',
+    sub:'Jag bevakar l\u00f6pande och l\u00e4gger f\u00f6rslag i signaturk\u00f6n',action:null});
+  vaInsights.sort(function(a,b){return ({warn:0,info:1,ok:2}[a.level]||1)-({warn:0,info:1,ok:2}[b.level]||1);});
 
   // ── Greeting ─────────────────────────────────────────────────────────────
   var greeting = (function(){
@@ -23651,6 +23616,7 @@ function _renderPulse() {
   h += '<span style="font-size:14px;color:var(--text2)">'+e((cfg.signature||'').split(' ')[0]||'Kliniken')+'</span>';
   h += '<span style="color:var(--border);font-size:16px">/</span>';
   h += '<span style="font-size:16px;font-weight:700;color:var(--ink)">'+e(cfg.name||'Min klinik')+'</span>';
+  h += '<span style="font-size:10px;font-weight:500;padding:1px 7px;border-radius:20px;border:1px solid var(--border);color:var(--text2)">Privat</span>';
   h += '<span style="font-size:10px;font-weight:700;padding:1px 8px;border-radius:20px;border:1px solid '+tierColor+'44;background:'+tierColor+'11;color:'+tierColor+'">'+tierName+'</span>';
   h += '<div style="flex:1"></div>';
   // Meta strip
@@ -23805,17 +23771,18 @@ function _renderPulse() {
   h += '</div>';
 
   vaInsights.forEach(function(ins) {
-    var clickable = ins.fn ? 'cursor:pointer;' : '';
-    var oc = ins.fn ? ' onclick="'+ins.fn+'"' : '';
-    h += '<div'+oc+' style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border2);'+clickable+'transition:background .1s" '+(ins.fn?'onmouseover="this.style.background=\'rgba(177,186,196,.05)\'" onmouseout="this.style.background=\'transparent\'"':'')+'>';
-    h += '<div style="width:30px;height:30px;border-radius:6px;background:'+ins.col+'12;border:1px solid '+ins.col+'25;display:flex;align-items:center;justify-content:center;flex-shrink:0">';
-    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="'+ins.col+'" stroke-width="1.8" stroke-linecap="round">'+ins.icon+'</svg>';
+    var hasAct = ins.action && ins.action.fn;
+    var oc  = hasAct ? ' onclick="'+ins.action.fn+'"' : '';
+    var cur = hasAct ? 'cursor:pointer;' : '';
+    h += '<div'+oc+' style="display:flex;align-items:center;gap:12px;padding:11px 16px;border-bottom:1px solid var(--border2);'+cur+'transition:background .1s" '+(hasAct?'onmouseover="this.style.background=\'rgba(177,186,196,.05)\'" onmouseout="this.style.background=\'transparent\'"':'')+'>';
+    h += '<div style="width:28px;height:28px;border-radius:6px;background:'+ins.col+'14;border:1px solid '+ins.col+'28;display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="'+ins.col+'" stroke-width="1.8" stroke-linecap="round">'+ins.icon+'</svg>';
     h += '</div>';
     h += '<div style="flex:1;min-width:0">';
-    h += '<div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:2px;line-height:1.3">'+e(ins.text)+'</div>';
-    h += '<div style="font-size:11px;color:var(--text2)">'+e(ins.sub)+'</div>';
+    h += '<div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:1px">'+e(ins.text)+'</div>';
+    h += '<div style="font-size:11px;color:var(--text2)">'+e(ins.sub||'')+'</div>';
     h += '</div>';
-    if (ins.fn) h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" opacity=".35"><polyline points="9 18 15 12 9 6"/></svg>';
+    if (hasAct) h += '<button onclick="event.stopPropagation();'+ins.action.fn+'" style="flex-shrink:0;padding:4px 10px;background:none;border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);white-space:nowrap" onmouseover="this.style.borderColor=\''+ins.col+'\';this.style.color=\''+ins.col+'\'" onmouseout="this.style.borderColor=\'var(--border)\';this.style.color=\'var(--text)\'">'+e(ins.action.label)+'</button>';
     h += '</div>';
   });
 

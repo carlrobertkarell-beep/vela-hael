@@ -34901,7 +34901,7 @@ function rRetentionPanel() {
   // Queue section
   if (queue.length > 0) {
     h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:14px">';
-    h += '<div style="padding:12px 18px;border-bottom:1px solid #30363d;font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8b949e">Kö ('+queue.length+')</div>';
+    h += '<div style="padding:8px 18px;border-bottom:1px solid #21262d;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#484f58;background:#161b22">Kö ('+queue.length+')</div>';
     queue.forEach(function(item, i) {
       h += '<div style="padding:14px 18px;'+(i>0?'border-top:1px solid var(--border2)':'')+'">';
       h += '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">';
@@ -34963,7 +34963,7 @@ function rRetentionPanel() {
   var recentSent = sent.filter(function(s){return !s.dismissed;}).slice(-5).reverse();
   if (recentSent.length > 0) {
     h += '<div style="margin-top:14px;background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden">';
-    h += '<div style="padding:10px 16px;border-bottom:1px solid #30363d;font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8b949e">Skickade ('+sent.filter(function(s){return !s.dismissed;}).length+')</div>';
+    h += '<div style="padding:8px 16px;border-bottom:1px solid #21262d;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#484f58;background:#161b22">Skickade ('+sent.filter(function(s){return !s.dismissed;}).length+')</div>';
     recentSent.forEach(function(s,i) {
       var pat2 = S.patients.find(function(p){return p.id===s.patId;});
       h += '<div style="padding:9px 16px;font-size:14px;color:#8b949e;'+(i>0?'border-top:1px solid var(--border2)':'')+';display:flex;align-items:center;gap:10px">';
@@ -36698,7 +36698,7 @@ function _stWorkflow() {
 
   function card(title, rows) {
     var h = '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:16px">';
-    h += '<div style="padding:11px 18px;border-bottom:1px solid #30363d;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#8b949e">' + title + '</div>';
+    h += '<div style="padding:8px 18px;border-bottom:1px solid #21262d;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#484f58;background:#161b22">' + title + '</div>';
     h += '<div style="padding:0 18px">' + rows + '</div></div>';
     return h;
   }
@@ -37336,12 +37336,12 @@ function _stComms(cfg) {
     var rules = getFollowupRules();
     var out = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:24px">';
     // Header with column labels
-    out += '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border)">';
-    out += '<div style="flex:1;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text2)">Uppföljning efter besök</div>';
+    out += '<div style="display:flex;align-items:center;gap:12px;padding:8px 16px;background:#161b22;border-bottom:1px solid #21262d">';
+    out += '<div style="flex:1;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#484f58">Uppf\xF6ljning efter bes\xF6k</div>';
     out += '<div style="display:grid;grid-template-columns:40px 40px 72px 14px;gap:8px;align-items:center">';
-    out += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);text-align:center">SMS</div>';
-    out += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);text-align:center">Mail</div>';
-    out += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);text-align:center">Dagar</div>';
+    out += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#484f58;text-align:center">SMS</div>';
+    out += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#484f58;text-align:center">Mail</div>';
+    out += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#484f58;text-align:center">Dagar</div>';
     out += '<div></div>';
     out += '</div></div>';
 
@@ -37399,14 +37399,14 @@ function _stComms(cfg) {
   GROUPS.forEach(function(grp) {
     h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:12px">';
 
-    // Group header
-    h += '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border)">';
-    h += '<div style="flex:1;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text2)">'+grp.label+'</div>';
-    if (grp.desc) h += '<div style="font-size:12px;color:var(--text2);margin-top:1px">'+grp.desc+'</div>';
-    // Column headers aligned with toggles
+    // Group header — GitHub style: surface bg, muted uppercase label
+    h += '<div style="display:flex;align-items:center;gap:10px;padding:8px 16px;background:#161b22;border-bottom:1px solid #21262d">';
+    h += '<div style="flex:1;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#484f58">'+grp.label+'</div>';
+    if (grp.desc) h += '<div style="font-size:11px;color:#484f58">'+grp.desc+'</div>';
+    // Column headers
     h += '<div style="display:grid;grid-template-columns:40px 40px 18px;gap:8px;align-items:center;margin-right:2px">';
-    h += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);text-align:center">SMS</div>';
-    h += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);text-align:center">Mail</div>';
+    h += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#484f58;text-align:center">SMS</div>';
+    h += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#484f58;text-align:center">Mail</div>';
     h += '<div></div>';
     h += '</div>';
     h += '</div>';
@@ -42359,7 +42359,7 @@ function renderGDPRPanel(patId) {
 
   // Consent management
   h += '<div style="background:var(--bg);border:1px solid #30363d;border-radius:6px;overflow:hidden">';
-  h += '<div style="padding:11px 14px;border-bottom:1px solid #30363d;font-size:14px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.08em">Samtycken</div>';
+  h += '<div style="padding:8px 14px;border-bottom:1px solid #21262d;font-size:11px;font-weight:600;color:#484f58;text-transform:uppercase;letter-spacing:.06em;background:#161b22">Samtycken</div>';
   consentTypes.forEach(function(ct) {
     var consent = consents.find(function(c){ return c.type===ct.id; });
     var isGranted = consent ? consent.value : false;

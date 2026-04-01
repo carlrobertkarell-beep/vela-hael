@@ -36791,19 +36791,17 @@ function _stComms(cfg) {
   function svgIcon(path, size, color) {
     return '<svg width="'+(size||13)+'" height="'+(size||13)+'" viewBox="0 0 24 24" fill="none" stroke="'+(color||'currentColor')+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+path+'</svg>';
   }
-  function levelBtn(eventId, channel, level, cur) {
-    var sel = cur === level;
-    var defs = {
-      auto:   { lbl:'Auto',      selBg:'rgba(224,118,40,.2)',  selBorder:'rgba(224,118,40,.6)',  selColor:'#f09242' },
-      notify: { lbl:'Notifiera', selBg:'rgba(210,153,34,.18)', selBorder:'rgba(210,153,34,.5)',  selColor:'#d29922' },
-      off:    { lbl:'Av',        selBg:'rgba(177,186,196,.08)',selBorder:'rgba(177,186,196,.25)', selColor:'#8b949e' }
-    };
-    var d = defs[level] || defs.off;
-    var st = sel
-      ? 'background:'+d.selBg+';border-color:'+d.selBorder+';color:'+d.selColor+';font-weight:700;'
-      : 'background:transparent;border-color:transparent;color:#484f58;font-weight:400;';
-    return '<button onclick="event.stopPropagation();_setCommChannelRule(\''+eventId+'\',\''+channel+'\',\''+level+'\')" '
-      + 'style="padding:3px 10px;border:1px solid;border-radius:4px;font-size:11px;cursor:pointer;font-family:var(--font);white-space:nowrap;transition:all .12s;'+st+'">'+d.lbl+'</button>';
+  // Toggle: on = auto, off = off. Clicking re-renders the settings pane.
+  function commToggle(eventId, channel, cur) {
+    var isOn = (cur !== 'off');
+    var onStyle  = 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#238636;flex-shrink:0;transition:background .15s';
+    var offStyle = 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:rgba(177,186,196,.2);flex-shrink:0;transition:background .15s';
+    var knobOn  = 'position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:17px;transition:left .15s';
+    var knobOff = 'position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left .15s';
+    var newLevel = isOn ? 'off' : 'auto';
+    return '<button onclick="event.stopPropagation();_setCommChannelRule(\''+eventId+'\',\''+channel+'\',\''+newLevel+'\')" '
+      + 'style="'+(isOn?onStyle:offStyle)+'" title="'+(isOn?'Sl\u00e5 av':'Sl\u00e5 p\u00e5')+'">'
+      + '<span style="'+(isOn?knobOn:knobOff)+'"></span></button>';
   }
 
   var GROUPS = [
@@ -36867,7 +36865,7 @@ function _stComms(cfg) {
       out += '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border2)">';
       // Enable toggle
       out += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0">';
-      out += '<input type="checkbox" id="' + rowId + '-on" ' + (r.enabled ? 'checked' : '') + ' onchange="_fuqSave()">';
+      out += '<input type="checkbox" id="' + rowId + '-on" ' + (r.enabled ? 'checked' : '') + ' onchange="_fuqSave()" style="width:15px;height:15px;cursor:pointer;accent-color:#238636">';
       out += '</label>';
       // Label + desc
       out += '<div style="flex:1;min-width:0">';
@@ -36897,28 +36895,19 @@ function _stComms(cfg) {
   h += '<div class="vela-st-title">Mail & SMS</div>';
   h += '<div class="vela-st-desc">VelaAgent hanterar all utg\xE5ende kommunikation. St\xE4ll in kanal och niv\xE5 per h\xE4ndelsekategori. Klicka p\xE5 en rad f\xF6r att redigera mall.</div>';
 
-  // Legend
-  h += '<div style="display:flex;align-items:center;gap:20px;padding:9px 14px;background:var(--surface);border:1px solid var(--border);border-radius:6px;margin:16px 0 20px;flex-wrap:wrap">';
-  h += '<span style="font-size:12px;color:var(--text2);font-weight:600">Niv\xE5:</span>';
-  [['Auto','var(--orange)','VelaAgent agerar direkt'],['Notifiera','var(--amber)','L\xE4ggs i signaturk\xF6n'],['Av','var(--text2)','Inaktivt']].forEach(function(l) {
-    h += '<span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text)">';
-    h += '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:'+l[1]+'18;color:'+l[1]+'">'+l[0]+'</span>'+l[2]+'</span>';
-  });
-  h += '</div>';
+  // Legend removed — toggle UI is self-explanatory
 
   GROUPS.forEach(function(grp) {
-    h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:12px">';
+    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:12px">';
 
     // Group header
-    h += '<div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:#0d1117;border-bottom:1px solid var(--border)">';
-    h += '<div style="width:22px;height:22px;border-radius:5px;background:rgba(224,118,40,.12);border:1px solid rgba(224,118,40,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--orange)">'+svgIcon(grp.icon,12)+'</div>';
-    h += '<div style="flex:1"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#6e7681">'+grp.label+'</div>';
+    h += '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border)">';
+    h += '<div style="flex:1;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--text2)">'+grp.label+'</div>';
     if (grp.desc) h += '<div style="font-size:12px;color:var(--text2);margin-top:1px">'+grp.desc+'</div>';
-    h += '</div>';
-    // Column headers
-    h += '<div style="display:grid;grid-template-columns:60px 60px 16px;gap:4px;align-items:center">';
-    h += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#58a6ff;text-align:center">SMS</div>';
-    h += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--orange);text-align:center">MAIL</div>';
+    // Column headers aligned with toggles
+    h += '<div style="display:grid;grid-template-columns:40px 40px 18px;gap:8px;align-items:center;margin-right:2px">';
+    h += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);text-align:center">SMS</div>';
+    h += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);text-align:center">Mail</div>';
     h += '<div></div>';
     h += '</div>';
     h += '</div>';
@@ -36930,40 +36919,37 @@ function _stComms(cfg) {
       var isAiAnswered = ev.id === 'clinical_question' || ev.id === 'rehab_question' || ev.id === 'booking_question' || ev.id === 'price_question' || ev.id === 'general_question' || ev.id === 'thank_you';
       var border = idx > 0 ? 'border-top:1px solid var(--border2)' : '';
 
+      // Both-off dimming
+      var bothOff = (rule.sms === 'off' && rule.mail === 'off');
+      var rowOpacity = bothOff ? 'opacity:.38;' : '';
       h += '<div>';
-      // Main row
-      h += '<div style="display:flex;align-items:center;gap:12px;padding:9px 16px;cursor:pointer;'+border+'" onclick="_toggleCommChannelRow(\''+ev.id+'\')">';
+      // Main row — click label area to expand, toggles handle their own clicks
+      h += '<div id="cch-row-'+ev.id+'" style="display:flex;align-items:center;gap:12px;padding:10px 16px;'+border+';'+rowOpacity+'transition:opacity .15s">';
 
-      // Icon + label
-      h += '<div style="width:20px;height:20px;border-radius:4px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text2)">'+svgIcon(ev.icon,11)+'</div>';
-      h += '<div style="flex:1;min-width:0">';
-      h += '<div style="font-size:14px;font-weight:600;color:#e6edf3;letter-spacing:-.01em">'+ev.label+'</div>';
-      h += '<div style="font-size:11px;color:#6e7681;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px">'+ev.trigger+'</div>';
+      // Label (clickable for expand)
+      h += '<div style="flex:1;min-width:0;cursor:pointer" onclick="_toggleCommChannelRow(\''+ev.id+'\')">';
+      h += '<div style="font-size:14px;font-weight:500;color:var(--ink)">'+ev.label+'</div>';
+      h += '<div style="font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:1px">'+ev.trigger+'</div>';
       h += '</div>';
 
-      // SMS chips
-      h += '<div style="display:flex;gap:3px;align-items:center;flex-shrink:0">';
-      h += levelBtn(ev.id,'sms','auto',rule.sms);
-      h += levelBtn(ev.id,'sms','notify',rule.sms);
-      h += levelBtn(ev.id,'sms','off',rule.sms);
-      h += '</div>';
-
-      // Mail chips
-      h += '<div style="display:flex;gap:3px;align-items:center;flex-shrink:0">';
+      // SMS toggle
+      h += '<div style="display:flex;align-items:center;justify-content:center;width:40px;flex-shrink:0">';
       if (isAiAnswered) {
-        // AI categories — only auto or off (no templates)
-        h += levelBtn(ev.id,'mail','auto',rule.mail);
-        h += levelBtn(ev.id,'mail','notify',rule.mail);
-        h += levelBtn(ev.id,'mail','off',rule.mail);
+        h += '<span style="font-size:11px;color:var(--teal);font-weight:600">AI</span>';
       } else {
-        h += levelBtn(ev.id,'mail','auto',rule.mail);
-        h += levelBtn(ev.id,'mail','notify',rule.mail);
-        h += levelBtn(ev.id,'mail','off',rule.mail);
+        h += commToggle(ev.id, 'sms', rule.sms);
       }
       h += '</div>';
 
+      // Mail toggle
+      h += '<div style="display:flex;align-items:center;justify-content:center;width:40px;flex-shrink:0">';
+      h += commToggle(ev.id, 'mail', rule.mail);
+      h += '</div>';
+
       // Chevron
-      h += '<div id="cch-chev-'+ev.id+'" style="width:14px;height:14px;flex-shrink:0;color:var(--text2);transition:transform .15s">'+svgIcon('<polyline points="6 9 12 15 18 9"/>',13)+'</div>';
+      h += '<div id="cch-chev-'+ev.id+'" style="width:16px;height:16px;flex-shrink:0;color:var(--text2);transition:transform .15s;cursor:pointer" onclick="_toggleCommChannelRow(\''+ev.id+'\')">';
+      h += svgIcon('<polyline points="6 9 12 15 18 9"/>',14);
+      h += '</div>';
       h += '</div>'; // main row
 
       // Expandable body
@@ -37330,7 +37316,7 @@ async function _stVelaAgent(el) {
   h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">';
   h += '<div><div style="font-size:14px;font-weight:700;color:var(--ink)">AI-autonominiv\xE5</div>';
   h += '<div style="font-size:14px;color:'+(modeColors2[mode]||'var(--text2)')+';margin-top:3px">'+(modeLabels[mode]||mode)+'</div></div>';
-  h += '<button onclick="window._settingsActiveTab=\'ai\';_renderSettingsNav();_renderSettingsContent(\'ai\')" style="padding:7px 14px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Byt niv\xE5 \u2192</button>';
+  h += '<button onclick="window._settingsActiveTab=\'ai\';rSettings&&rSettings()" style="padding:7px 14px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Byt niv\u00e5 \u2192</button>';
   h += '</div>';
 
   h += '</div>';

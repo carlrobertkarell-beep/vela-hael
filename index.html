@@ -490,15 +490,44 @@ a:hover { text-decoration: underline; }
 .bk2-overlay { position:fixed;inset:0;z-index:700;background:rgba(7,16,30,.78);
   backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;
   padding:20px;animation:cmd-fade-in .15s ease; }
-.bk2-box { background:#161b22;border-radius:6px;width:100%;max-width:560px;
+.bk2-box { background:#161b22;border-radius:6px;width:100%;max-width:900px;
   overflow:hidden;display:flex;flex-direction:column;
   max-height:92vh; }
-.bk2-header { background:#0d1117;border-bottom:1px solid #30363d;padding:16px 20px 14px;flex-shrink:0; }
-.bk2-title { font-size:18px;font-weight:800;color:white;letter-spacing:-.02em; }
-.bk2-subtitle { font-size:14px;color:rgba(255,255,255,.35);margin-top:3px; }
-.bk2-body { overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:14px; }
-.bk2-label { font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--teal);margin-bottom:6px; }
+.bk2-header { background:#0d1117;border-bottom:1px solid #30363d;padding:13px 20px 12px;flex-shrink:0; }
+.bk2-title { font-size:16px;font-weight:700;color:white;letter-spacing:-.01em; }
+.bk2-subtitle { font-size:12px;color:rgba(255,255,255,.35);margin-top:2px; }
+.bk2-body { display:grid;grid-template-columns:260px 1fr;flex:1;min-height:0;overflow:hidden; }
+.bk2-cal-panel { border-right:1px solid #30363d;overflow-y:auto;padding:16px 14px;
+  background:#0d1117;display:flex;flex-direction:column;gap:14px; }
+.bk2-form-panel { overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:12px; }
+.bk2-label { font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--teal);margin-bottom:5px; }
+/* Mini-calendar */
+.bk2-cal-nav { display:flex;align-items:center;justify-content:space-between;margin-bottom:8px; }
+.bk2-cal-month { font-size:12px;font-weight:700;color:#e6edf3;letter-spacing:.02em; }
+.bk2-cal-navbtn { background:none;border:none;color:#8b949e;cursor:pointer;padding:2px 6px;font-size:16px;line-height:1;border-radius:4px;transition:background .1s; }
+.bk2-cal-navbtn:hover { background:rgba(177,186,196,.08);color:#e6edf3; }
+.bk2-cal-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:1px;font-size:11px; }
+.bk2-cal-dow { text-align:center;color:#6e7681;font-weight:600;padding:2px 0;letter-spacing:.04em;font-size:10px; }
+.bk2-cal-day { text-align:center;padding:4px 2px;border-radius:4px;cursor:pointer;position:relative;
+  font-size:12px;color:#8b949e;transition:background .1s;line-height:1.6; }
+.bk2-cal-day:hover:not(.empty):not(.past) { background:rgba(177,186,196,.1);color:#e6edf3; }
+.bk2-cal-day.today { color:#e07628;font-weight:700; }
+.bk2-cal-day.selected { background:#e07628;color:#fff;font-weight:700; }
+.bk2-cal-day.selected:hover { background:#c96820; }
+.bk2-cal-day.has-bk::after { content:"";position:absolute;bottom:1px;left:50%;transform:translateX(-50%);
+  width:3px;height:3px;border-radius:50%;background:#8b949e; }
+.bk2-cal-day.selected.has-bk::after { background:rgba(255,255,255,.6); }
+.bk2-cal-day.past { opacity:.35;cursor:default; }
+.bk2-cal-day.empty { cursor:default; }
+.bk2-cal-day.conflict-day { background:rgba(248,81,73,.12);color:#f85149; }
+/* Day timeline */
+.bk2-day-bks { display:flex;flex-direction:column;gap:4px; }
+.bk2-day-bk { display:flex;align-items:center;gap:7px;padding:5px 8px;background:#161b22;
+  border:1px solid #21262d;border-radius:4px;font-size:11px;cursor:default; }
+.bk2-day-bk.conflict { border-color:rgba(248,81,73,.4);background:rgba(248,81,73,.06); }
+.bk2-conflict-banner { background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.3);
+  border-radius:6px;padding:8px 12px;font-size:12px;color:#f85149;display:flex;align-items:center;gap:7px; }
 .bk2-field { background:var(--bg);border:1.5px solid var(--border);border-radius:11px;
   padding:10px 14px;color:#e6edf3;font-size:14px;font-family:var(--font);
   outline:none;width:100%;box-sizing:border-box;transition:border-color .15s; }
@@ -9123,142 +9152,281 @@ function _renderBk2Dialog() {
   var st = _bk2State;
   var pat = st.patId ? (S.patients||[]).find(function(p){ return p.id===st.patId; }) : null;
   var svcs = getServices().filter(function(s){ return s.price > 0; });
+  var allBks = getBookings ? getBookings() : [];
 
   var ov = document.createElement('div');
   ov.id = 'bk2-overlay';
   ov.className = 'bk2-overlay';
   ov.onclick = function(ev){ if(ev.target===ov) ov.remove(); };
 
+  // ── Mini-calendar helpers ────────────────────────────────────────────────
+  var selDate   = st.date || new Date().toISOString().slice(0,10);
+  var calYear   = st._calYear  || parseInt(selDate.slice(0,4));
+  var calMonth  = st._calMonth !== undefined ? st._calMonth : parseInt(selDate.slice(5,7))-1;
+  var todayStr2 = new Date().toISOString().slice(0,10);
+
+  // Dates that have bookings (non-cancelled)
+  var bkDates = {};
+  allBks.filter(function(b){ return b.status!=='cancelled'; }).forEach(function(b){ if(b.date) bkDates[b.date]=true; });
+
+  // Conflict check: does selected date+time overlap an existing booking?
+  var selDateBks = allBks.filter(function(b){ return b.date===selDate && b.status!=='cancelled'; })
+    .sort(function(a,b){ return (a.time||'')>(b.time||'')?1:-1; });
+  var conflictBk = null;
+  if (st.time) {
+    var [sh,sm] = st.time.split(':').map(Number);
+    var selStart = sh*60+sm, selEnd = selStart+(st.dur||45);
+    conflictBk = selDateBks.find(function(b){
+      if (!b.time) return false;
+      var [bh,bm] = b.time.split(':').map(Number);
+      var bStart = bh*60+bm, bEnd = bStart+(b.duration||45);
+      return selStart < bEnd && selEnd > bStart;
+    }) || null;
+  }
+
+  // Build mini-calendar HTML
+  var firstDay = new Date(calYear, calMonth, 1);
+  var daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  var startDow = (firstDay.getDay()+6)%7; // Mon=0
+  var monthNames = ['Januari','Februari','Mars','April','Maj','Juni','Juli','Augusti','September','Oktober','November','December'];
+  var dayNames = ['M','T','O','T','F','L','S'];
+
+  var calH = '<div class="bk2-cal-nav">';
+  calH += '<button class="bk2-cal-navbtn" onclick="_bk2NavCal(-1)">\u2039</button>';
+  calH += '<span class="bk2-cal-month">'+monthNames[calMonth]+' '+calYear+'</span>';
+  calH += '<button class="bk2-cal-navbtn" onclick="_bk2NavCal(1)">\u203a</button>';
+  calH += '</div>';
+  calH += '<div class="bk2-cal-grid">';
+  dayNames.forEach(function(d){ calH += '<div class="bk2-cal-dow">'+d+'</div>'; });
+  for (var i=0; i<startDow; i++) calH += '<div class="bk2-cal-day empty"></div>';
+  for (var d=1; d<=daysInMonth; d++) {
+    var dStr = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var cls = 'bk2-cal-day';
+    if (dStr === todayStr2) cls += ' today';
+    if (dStr === selDate)   cls += ' selected';
+    if (bkDates[dStr])      cls += ' has-bk';
+    if (dStr < todayStr2)   cls += ' past';
+    calH += '<div class="'+cls+'" onclick="_bk2SetDate(\''+dStr+'\')">'+d+'</div>';
+  }
+  calH += '</div>';
+
+  // Day overview below calendar
+  var dayH = '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681;margin-bottom:6px">';
+  var dayLabel = new Date(selDate+'T12:00').toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'short'});
+  dayH += dayLabel.charAt(0).toUpperCase()+dayLabel.slice(1)+'</div>';
+
+  if (!selDateBks.length) {
+    dayH += '<div style="font-size:12px;color:#6e7681;padding:8px 0">Inga bokningar denna dag</div>';
+  } else {
+    dayH += '<div class="bk2-day-bks">';
+    selDateBks.forEach(function(b){
+      var [bh2,bm2] = (b.time||'00:00').split(':').map(Number);
+      var bS = bh2*60+bm2, bE = bS+(b.duration||45);
+      var isConflict = conflictBk && b.id===conflictBk.id;
+      var endH = Math.floor(bE/60), endM = bE%60;
+      dayH += '<div class="bk2-day-bk'+(isConflict?' conflict':'')+'">';
+      dayH += '<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="'+(isConflict?'#f85149':'#8b949e')+'" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+      dayH += '<span style="font-family:var(--font-mono);color:'+(isConflict?'#f85149':'#8b949e');
+      dayH += ';font-weight:600">'+e(b.time||'?')+'\u2013'+String(endH).padStart(2,'0')+':'+String(endM).padStart(2,'0')+'</span>';
+      dayH += '<span style="color:'+(isConflict?'#f85149':'#e6edf3')+';flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e(b.patientName||'')+'</span>';
+      if (isConflict) dayH += '<span style="font-size:10px;font-weight:700;color:#f85149;background:rgba(248,81,73,.12);padding:0 5px;border-radius:3px;flex-shrink:0">KROCK</span>';
+      dayH += '</div>';
+    });
+    dayH += '</div>';
+  }
+
+  // Free slot suggestions
+  var occupiedSlots = new Set();
+  selDateBks.forEach(function(b){
+    var [bh3,bm3] = (b.time||'00:00').split(':').map(Number);
+    var bs = bh3*60+bm3, be3 = bs+(b.duration||45);
+    for (var t=bs; t<be3; t+=15) occupiedSlots.add(t);
+  });
+  var freeSlots = [];
+  for (var t2=480; t2<=1080; t2+=30) {
+    var free2 = true;
+    for (var tt=t2; tt<t2+(st.dur||45); tt+=15) { if (occupiedSlots.has(tt)) { free2=false; break; } }
+    if (free2) freeSlots.push(t2);
+  }
+  if (freeSlots.length && selDateBks.length) {
+    dayH += '<div style="margin-top:8px">';
+    dayH += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#6e7681;margin-bottom:5px">Lediga tider</div>';
+    dayH += '<div style="display:flex;flex-wrap:wrap;gap:4px">';
+    freeSlots.slice(0,8).forEach(function(m){
+      var hh=Math.floor(m/60),mm2=m%60;
+      var tStr=String(hh).padStart(2,'0')+':'+String(mm2).padStart(2,'0');
+      dayH += '<button onclick="_bk2SetTime(\''+tStr+'\')" style="font-size:11px;padding:2px 8px;background:#161b22;border:1px solid #30363d;border-radius:4px;color:#8b949e;cursor:pointer;font-family:var(--font-mono);transition:all .1s" onmouseover="this.style.borderColor=\'#e07628\';this.style.color=\'#e07628\'" onmouseout="this.style.borderColor=\'#30363d\';this.style.color=\'#8b949e\'">'+tStr+'</button>';
+    });
+    dayH += '</div></div>';
+  }
+
+  // ── Build dialog HTML ────────────────────────────────────────────────────
   var h = '<div class="bk2-box" onclick="event.stopPropagation()">';
 
-  // Header
-  h += '<div class="bk2-header">';
-  h += '<div style="display:flex;align-items:center;justify-content:space-between">';
-  h += '<div><div class="bk2-title">Boka patient</div>';
-  h += '<div class="bk2-subtitle">' + _fmtBookingDate(st.date) + (st.time ? ' · ' + st.time : '') + '</div></div>';
-  h += '<button onclick="document.getElementById(\'bk2-overlay\').remove()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:22px;cursor:pointer;line-height:1;padding:0">×</button>';
+  // Header — compact
+  h += '<div class="bk2-header"><div style="display:flex;align-items:center;justify-content:space-between">';
+  h += '<div><div class="bk2-title">Boka tid</div>';
+  if (selDate) {
+    var hdLabel = new Date(selDate+'T12:00').toLocaleDateString('sv-SE',{weekday:'short',day:'numeric',month:'short'});
+    h += '<div class="bk2-subtitle">'+hdLabel.charAt(0).toUpperCase()+hdLabel.slice(1)+(st.time?' \u00b7 kl '+st.time:'')+'</div>';
+  }
+  h += '</div>';
+  h += '<button onclick="document.getElementById(\'bk2-overlay\').remove()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:22px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:4px;transition:color .1s" onmouseover="this.style.color=\'white\'" onmouseout="this.style.color=\'rgba(255,255,255,.35)\'">×</button>';
   h += '</div></div>';
 
+  // 2-col body
   h += '<div class="bk2-body">';
 
-  // ── PATIENT SECTION ──
-  if (pat) {
-    // Existing patient card
-    var visits = pat.visits || [];
-    var lastVisit = visits.slice(-1)[0];
-    var nrsVals = lastVisit ? (lastVisit.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }) : [];
-    var nrsLast = nrsVals.length ? nrsVals[nrsVals.length-1] : (lastVisit?.form?.pain ?? null);
-    var diag = lastVisit?.form?.diagnosis || lastVisit?.plan?.form?.diagnosis || '';
-    var haelActive = visits.some(function(v){
-      if (!v.plan) return false;
-      var tw = v.plan.totalWeeks||4;
-      var sd = v.date ? new Date(v.date) : null;
-      return sd && new Date(sd.getTime()+tw*7*86400000) > new Date();
-    });
-    var initials = pat.name.split(' ').map(function(w){return w[0];}).join('').toUpperCase().slice(0,2);
-    var nrsColor = nrsLast==null?'var(--muted)':nrsLast>=7?'#f85149':nrsLast>=4?'#d29922':'#3fb950';
-    var weeksSince = lastVisit?.date ? Math.round((Date.now()-new Date(lastVisit.date))/604800000) : null;
+  // ── LEFT: Calendar panel ──────────────────────────────────────────────────
+  h += '<div class="bk2-cal-panel">';
+  h += calH;
+  h += '<div style="height:1px;background:#21262d;margin:2px 0"></div>';
+  h += dayH;
+  h += '</div>';
 
-    h += '<div>';
-    h += '<div class="bk2-label">Patient</div>';
-    h += '<div class="bk2-pat-card">';
-    h += '<div class="bk2-pat-avatar">' + initials + '</div>';
-    h += '<div style="flex:1;min-width:0">';
-    h += '<div class="bk2-pat-name">' + e(pat.name) + '</div>';
-    h += '<div class="bk2-pat-meta">';
-    if (diag) h += e(diag.split('(')[0].trim());
-    if (weeksSince !== null) h += (diag?' · ':'') + weeksSince + ' veckor sedan';
+  // ── RIGHT: Form panel ─────────────────────────────────────────────────────
+  h += '<div class="bk2-form-panel">';
+
+  // Conflict banner
+  if (conflictBk) {
+    h += '<div class="bk2-conflict-banner">';
+    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    h += 'Kl '+st.time+' krockar med '+e(conflictBk.patientName||'annan bokning')+' ('+e(conflictBk.time)+' \u2013 '+(function(){ var ee=parseInt(conflictBk.time.split(':')[0])*60+parseInt(conflictBk.time.split(':')[1])+(conflictBk.duration||45); return String(Math.floor(ee/60)).padStart(2,'0')+':'+String(ee%60).padStart(2,'0'); })()+'). V\u00e4lj en ledig tid.';
     h += '</div>';
+  }
+
+  // Patient section
+  if (pat) {
+    var visits2 = pat.visits||[];
+    var lastV2 = visits2.slice(-1)[0];
+    var nrsV2 = lastV2?(lastV2.logs||[]).filter(function(l){return l.nrs!=null;}).map(function(l){return l.nrs;}):[];
+    var nrsL2 = nrsV2.length?nrsV2[nrsV2.length-1]:(lastV2&&lastV2.form?lastV2.form.pain:null);
+    var diag2 = (lastV2&&lastV2.form&&lastV2.form.diagnosis)||'';
+    var initials2 = pat.name.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+    var nrsCol2 = nrsL2==null?'var(--muted)':nrsL2>=7?'#f85149':nrsL2>=4?'#d29922':'#3fb950';
+    var wksSince = lastV2&&lastV2.date?Math.round((Date.now()-new Date(lastV2.date))/604800000):null;
+    h += '<div><div class="bk2-label">Patient</div>';
+    h += '<div class="bk2-pat-card"><div class="bk2-pat-avatar">'+initials2+'</div>';
+    h += '<div style="flex:1;min-width:0"><div class="bk2-pat-name">'+e(pat.name)+'</div>';
+    h += '<div class="bk2-pat-meta">'+(diag2?e(diag2.split('(')[0].trim()):'')+( wksSince!==null?(diag2?' \u00b7 ':'')+wksSince+' v sedan':'')+'</div>';
     h += '<div class="bk2-pat-stats">';
-    if (nrsLast !== null) h += '<span class="bk2-pat-stat" style="background:'+nrsColor+'18;color:'+nrsColor+'">NRS '+nrsLast+'</span>';
-    h += '<span class="bk2-pat-stat" style="background:rgba(255,255,255,.06);color:#8b949e">' + visits.length + ' besök</span>';
-    if (haelActive) h += '<span class="bk2-pat-stat" style="background:rgba(224,118,40,.06);color:var(--teal)">Hael aktiv</span>';
+    if (nrsL2!=null) h += '<span class="bk2-pat-stat" style="background:'+nrsCol2+'18;color:'+nrsCol2+'">NRS '+nrsL2+'</span>';
+    h += '<span class="bk2-pat-stat" style="background:rgba(255,255,255,.06);color:#8b949e">'+visits2.length+' bes\u00f6k</span>';
     h += '</div></div>';
-    h += '<button onclick="_bk2ClearPat()" style="background:none;border:none;color:rgba(255,255,255,.25);font-size:18px;cursor:pointer;line-height:1;flex-shrink:0">×</button>';
+    h += '<button onclick="_bk2ClearPat()" style="background:none;border:none;color:rgba(255,255,255,.25);font-size:20px;cursor:pointer;line-height:1;flex-shrink:0;padding:0 2px">\u00d7</button>';
     h += '</div></div>';
   } else {
-    // Patient search
-    h += '<div>';
-    h += '<div class="bk2-label">Patient *</div>';
+    h += '<div><div class="bk2-label">Patient *</div>';
     h += '<div style="position:relative">';
-    h += '<input id="bk2-pat-search" class="bk2-field" type="text" placeholder="Sök befintlig patient eller ange nytt namn..." value="' + e(st.patName) + '" oninput="_bk2PatSearch(this.value)" autocomplete="off">';
+    h += '<input id="bk2-pat-search" class="bk2-field" type="text" placeholder="S\u00f6k patient eller ange nytt namn..." value="'+e(st.patName)+'" oninput="_bk2PatSearch(this.value)" autocomplete="off">';
     h += '<div id="bk2-suggestions" style="display:none" class="bk2-suggestions"></div>';
     h += '</div>';
-    // New patient indicator
     if (st.patName && !st.patId) {
-      h += '<div style="font-size:14px;color:var(--teal);margin-top:5px;display:flex;align-items:center;gap:5px">';
-      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
-      h += 'Ny patient — profil skapas automatiskt';
+      h += '<div style="font-size:12px;color:#3fb950;margin-top:4px;display:flex;align-items:center;gap:5px">';
+      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+      h += 'Ny patient \u2014 profil skapas vid bokning';
       h += '</div>';
     }
     h += '</div>';
   }
 
-  // ── CONTACT (shown when no existing patient or patient missing contact) ──
+  // Contact row (only if needed)
   var showContact = !pat || !pat.email || !pat.phone;
   if (showContact) {
     h += '<div class="bk2-contact-row">';
-    h += '<div><div class="bk2-label">E-post' + (!pat ? ' *' : '') + '</div>';
-    h += '<input id="bk2-email" class="bk2-field" type="email" placeholder="patient@exempel.se" value="' + e(st.email) + '" oninput="_bk2State.email=this.value;_bk2UpdateChain()"></div>';
+    h += '<div><div class="bk2-label">E-post'+(!pat?' *':'')+'</div>';
+    h += '<input id="bk2-email" class="bk2-field" type="email" placeholder="patient@exempel.se" value="'+e(st.email)+'" oninput="_bk2State.email=this.value;_bk2UpdateChain()"></div>';
     h += '<div><div class="bk2-label">Telefon</div>';
-    h += '<input id="bk2-phone" class="bk2-field" type="tel" placeholder="070-000 00 00" value="' + e(st.phone) + '" oninput="_bk2State.phone=this.value"></div>';
+    h += '<input id="bk2-phone" class="bk2-field" type="tel" placeholder="070-000 00 00" value="'+e(st.phone)+'" oninput="_bk2State.phone=this.value"></div>';
     h += '</div>';
   }
 
-  // ── DATE / TIME / DURATION ──
-  h += '<div class="bk2-time-row">';
-  h += '<div><div class="bk2-label">Datum *</div>';
-  h += '<input id="bk2-date" class="bk2-field" type="date" value="' + st.date + '" oninput="_bk2State.date=this.value;_bk2UpdateChain()"></div>';
+  // Time row — date hidden (handled by calendar), just time + duration
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">';
   h += '<div><div class="bk2-label">Tid *</div>';
-  h += '<input id="bk2-time" class="bk2-field" type="time" value="' + st.time + '" step="900" oninput="_bk2State.time=this.value"></div>';
-  h += '<div><div class="bk2-label">Längd</div>';
-  h += '<select id="bk2-dur" class="bk2-field" onchange="_bk2State.dur=parseInt(this.value)">';
+  h += '<input id="bk2-time" class="bk2-field" type="time" value="'+st.time+'" step="900" oninput="_bk2State.time=this.value;_bk2UpdateConflict()"></div>';
+  h += '<div><div class="bk2-label">L\u00e4ngd</div>';
+  h += '<select id="bk2-dur" class="bk2-field" onchange="_bk2State.dur=parseInt(this.value);_bk2UpdateConflict()">';
   [30,45,60,75,90].forEach(function(d){
     h += '<option value="'+d+'"'+(d===st.dur?' selected':'')+'>'+d+' min</option>';
   });
   h += '</select></div></div>';
 
-  // ── SERVICE ──
+  // Service
   if (svcs.length) {
-    h += '<div><div class="bk2-label">Tjänst</div>';
+    h += '<div><div class="bk2-label">Tj\u00e4nst</div>';
     h += '<select id="bk2-svc" class="bk2-field" onchange="_bk2SvcChange(this)">';
-    h += '<option value="">Välj tjänst...</option>';
+    h += '<option value="">V\u00e4lj tj\u00e4nst...</option>';
     svcs.forEach(function(s){
-      h += '<option value="'+s.id+'" data-price="'+s.price+'" data-dur="'+(s.duration||45)+'" data-name="'+e(s.name)+'"'+(st.svcId===s.id?' selected':'')+'>'+e(s.name)+' · '+s.price+' kr</option>';
+      h += '<option value="'+s.id+'" data-price="'+s.price+'" data-dur="'+(s.duration||45)+'" data-name="'+e(s.name)+'"'+(st.svcId===s.id?' selected':'')+'>'+e(s.name)+' \u00b7 '+s.price+' kr</option>';
     });
     h += '</select></div>';
   }
 
-  // ── VISIT TYPE ──
-  h += '<div><div class="bk2-label">Besökstyp</div>';
+  // Visit type
+  h += '<div><div class="bk2-label">Bes\u00f6kstyp</div>';
   h += '<div class="bk2-type-row">';
-  [{v:'new',l:'Ny patient',icon:'star'},{v:'returning',l:'Återbesök',icon:'refresh'},{v:'followup',l:'Uppföljning',icon:'clipboard'}].forEach(function(t){
-    h += '<div class="bk2-type-pill'+(st.type===t.v?' active':'')+'" onclick="_bk2SetType(\''+t.v+'\')">'+t.icon+' '+t.l+'</div>';
+  [{v:'new',l:'Ny patient'},{v:'returning',l:'\u00c5terbes\u00f6k'},{v:'followup',l:'Uppf\u00f6ljning'}].forEach(function(t){
+    h += '<div class="bk2-type-pill'+(st.type===t.v?' active':'')+'\" onclick="_bk2SetType(\''+t.v+'\')">'+t.l+'</div>';
   });
   h += '</div></div>';
 
-  // ── NOTES ──
+  // Notes
   h += '<div><div class="bk2-label">Anteckning</div>';
-  h += '<textarea id="bk2-notes" class="bk2-field" rows="2" style="resize:none" placeholder="Kort info om besöket (visas ej för patient)..." oninput="_bk2State.notes=this.value">'+e(st.notes)+'</textarea></div>';
+  h += '<textarea id="bk2-notes" class="bk2-field" rows="2" style="resize:none" placeholder="Intern anteckning (visas ej f\u00f6r patient)..." oninput="_bk2State.notes=this.value">'+e(st.notes)+'</textarea></div>';
 
-  // ── COMMUNICATIONS CHAIN PREVIEW ──
-  h += '<div class="bk2-chain" id="bk2-chain">' + _bk2BuildChain() + '</div>';
+  // Comm chain
+  h += '<div class="bk2-chain" id="bk2-chain">'+_bk2BuildChain()+'</div>';
 
-  h += '</div>'; // end body
+  h += '</div>'; // end form panel
+  h += '</div>'; // end 2-col body
 
   // Footer
   h += '<div class="bk2-footer">';
   h += '<button class="bk2-btn-cancel" onclick="document.getElementById(\'bk2-overlay\').remove()">Avbryt</button>';
-  h += '<button class="bk2-btn-primary" onclick="_bk2Save()">';
-  h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
-  h += 'Boka →';
-  h += '</button>';
+  h += '<button class="bk2-btn-primary" onclick="_bk2Save()"'+(conflictBk?' style="opacity:.5" title="L\u00f6s krocken f\u00f6rst"':'')+' >';
+  h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
+  h += 'Boka \u2192</button>';
   h += '</div>';
   h += '</div>'; // end box
 
   ov.innerHTML = h;
   document.body.appendChild(ov);
-  setTimeout(function(){ document.getElementById('bk2-pat-search')?.focus(); }, 80);
+  setTimeout(function(){
+    if (!st.patId) document.getElementById('bk2-pat-search')?.focus();
+  }, 80);
+}
+
+function _bk2NavCal(dir) {
+  var st = _bk2State;
+  var selDate = st.date || new Date().toISOString().slice(0,10);
+  var y = st._calYear  || parseInt(selDate.slice(0,4));
+  var m = st._calMonth !== undefined ? st._calMonth : parseInt(selDate.slice(5,7))-1;
+  m += dir;
+  if (m < 0) { m = 11; y--; }
+  if (m > 11) { m = 0; y++; }
+  st._calYear = y; st._calMonth = m;
+  _renderBk2Dialog();
+}
+
+function _bk2SetDate(dateStr) {
+  _bk2State.date = dateStr;
+  _bk2State._calYear  = parseInt(dateStr.slice(0,4));
+  _bk2State._calMonth = parseInt(dateStr.slice(5,7))-1;
+  // Update header subtitle and re-render
+  _renderBk2Dialog();
+}
+
+function _bk2SetTime(timeStr) {
+  _bk2State.time = timeStr;
+  _renderBk2Dialog();
+}
+
+function _bk2UpdateConflict() {
+  _bk2State.time = document.getElementById('bk2-time')?.value || _bk2State.time;
+  _bk2State.dur  = parseInt(document.getElementById('bk2-dur')?.value || _bk2State.dur);
+  // Re-render fully to update conflict state
+  _renderBk2Dialog();
 }
 
 function _bk2BuildChain() {
@@ -23483,7 +23651,6 @@ function _renderPulse() {
   h += '<span style="font-size:14px;color:var(--text2)">'+e((cfg.signature||'').split(' ')[0]||'Kliniken')+'</span>';
   h += '<span style="color:var(--border);font-size:16px">/</span>';
   h += '<span style="font-size:16px;font-weight:700;color:var(--ink)">'+e(cfg.name||'Min klinik')+'</span>';
-  h += '<span style="font-size:10px;font-weight:500;padding:1px 7px;border-radius:20px;border:1px solid var(--border);color:var(--text2)">Privat</span>';
   h += '<span style="font-size:10px;font-weight:700;padding:1px 8px;border-radius:20px;border:1px solid '+tierColor+'44;background:'+tierColor+'11;color:'+tierColor+'">'+tierName+'</span>';
   h += '<div style="flex:1"></div>';
   // Meta strip

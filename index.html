@@ -490,13 +490,42 @@ a:hover { text-decoration: underline; }
 .bk2-overlay { position:fixed;inset:0;z-index:700;background:rgba(7,16,30,.78);
   backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;
   padding:20px;animation:cmd-fade-in .15s ease; }
-.bk2-box { background:#161b22;border-radius:6px;width:100%;max-width:560px;
+.bk2-box { background:#161b22;border-radius:6px;width:100%;max-width:860px;
   overflow:hidden;display:flex;flex-direction:column;
   max-height:92vh; }
-.bk2-header { background:#0d1117;border-bottom:1px solid #30363d;padding:16px 20px 14px;flex-shrink:0; }
-.bk2-title { font-size:18px;font-weight:800;color:white;letter-spacing:-.02em; }
-.bk2-subtitle { font-size:14px;color:rgba(255,255,255,.35);margin-top:3px; }
-.bk2-body { overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:14px; }
+.bk2-header { background:#0d1117;border-bottom:1px solid #30363d;padding:14px 20px;flex-shrink:0; }
+.bk2-title { font-size:16px;font-weight:800;color:white;letter-spacing:-.02em; }
+.bk2-subtitle { font-size:13px;color:rgba(255,255,255,.35);margin-top:2px; }
+.bk2-cols { display:grid;grid-template-columns:230px 1fr;flex:1;min-height:0;overflow:hidden; }
+.bk2-cal-panel { background:#0d1117;border-right:1px solid #30363d;display:flex;flex-direction:column;overflow-y:auto;flex-shrink:0; }
+.bk2-body { overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px; }
+/* Mini-cal */
+.bk2-mc-nav { display:flex;align-items:center;justify-content:space-between;padding:10px 12px 6px; }
+.bk2-mc-month { font-size:12px;font-weight:700;color:var(--ink);text-transform:capitalize; }
+.bk2-mc-btn { background:none;border:none;color:var(--text);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:4px; }
+.bk2-mc-btn:hover { background:rgba(177,186,196,.1); }
+.bk2-mc-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:1px;padding:0 8px 8px; }
+.bk2-mc-wday { font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text2);text-align:center;padding:3px 0; }
+.bk2-mc-day { position:relative;aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:500;color:var(--text);cursor:pointer;border-radius:4px;transition:all .1s; }
+.bk2-mc-day:hover { background:rgba(177,186,196,.1);color:var(--ink); }
+.bk2-mc-day.bk2-mc-today { font-weight:800;color:var(--ink); }
+.bk2-mc-day.bk2-mc-sel { background:var(--orange);color:#fff!important;font-weight:700;border-radius:50%; }
+.bk2-mc-day.bk2-mc-other { color:var(--text2);opacity:.4; }
+.bk2-mc-day.bk2-mc-off { opacity:.3;cursor:default; }
+.bk2-mc-dot { position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--orange); }
+/* Day slots panel */
+.bk2-day-panel { border-top:1px solid #21262d;padding:8px 12px;flex:1; }
+.bk2-day-hdr { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:6px;padding:4px 0; }
+.bk2-slot { display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:5px;cursor:pointer;margin-bottom:2px;transition:background .1s; }
+.bk2-slot:hover { background:rgba(224,118,40,.07); }
+.bk2-slot-time { font-size:11px;font-weight:700;color:var(--text2);width:34px;flex-shrink:0;font-family:var(--font-mono,'monospace'); }
+.bk2-slot-free { font-size:11px;color:var(--teal);font-weight:600; }
+.bk2-slot-busy { font-size:11px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.bk2-slot-dot { width:5px;height:5px;border-radius:50%;flex-shrink:0; }
+.bk2-block-row { display:flex;align-items:center;gap:7px;padding:4px 6px;border-radius:5px;margin-bottom:2px;opacity:.7; }
+.bk2-block-time { font-size:11px;color:var(--text2);width:34px;font-family:var(--font-mono,'monospace'); }
+.bk2-block-label { font-size:11px;color:#d29922;font-style:italic; }
 .bk2-label { font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
   color:var(--teal);margin-bottom:6px; }
 .bk2-field { background:var(--bg);border:1.5px solid var(--border);border-radius:11px;
@@ -9118,11 +9147,185 @@ function openBookingDialog(date, time, existingPatId) {
   _renderBk2Dialog();
 }
 
+// ── Mini-cal helpers ──────────────────────────────────────────────────────────
+var _bk2CalYear  = 0;
+var _bk2CalMonth = 0;
+
+function _bk2InitCal() {
+  var d = _bk2State.date ? new Date(_bk2State.date + 'T12:00') : new Date();
+  _bk2CalYear  = d.getFullYear();
+  _bk2CalMonth = d.getMonth();
+}
+
+function _bk2NavCal(dir) {
+  _bk2CalMonth += dir;
+  if (_bk2CalMonth > 11) { _bk2CalMonth = 0; _bk2CalYear++; }
+  if (_bk2CalMonth < 0)  { _bk2CalMonth = 11; _bk2CalYear--; }
+  _bk2ReRenderCal();
+}
+
+function _bk2PickDay(dateStr) {
+  _bk2State.date = dateStr;
+  var d = new Date(dateStr + 'T12:00');
+  _bk2CalYear  = d.getFullYear();
+  _bk2CalMonth = d.getMonth();
+  _bk2ReRenderCal();
+  // Sync date input
+  var inp = document.getElementById('bk2-date');
+  if (inp) inp.value = dateStr;
+  _bk2UpdateChain();
+}
+
+function _bk2PickSlot(timeStr) {
+  _bk2State.time = timeStr;
+  var inp = document.getElementById('bk2-time');
+  if (inp) inp.value = timeStr;
+  _bk2ReRenderCal();
+}
+
+function _bk2ReRenderCal() {
+  var panel = document.getElementById('bk2-cal-panel');
+  if (panel) panel.innerHTML = _bk2BuildCalPanel();
+}
+
+function _bk2BuildCalPanel() {
+  var st = _bk2State;
+  var bks = getBookings ? getBookings() : [];
+  var blocks = (function(){
+    try { return JSON.parse(localStorage.getItem('vela:schedule-blocks')||'[]'); } catch(e) { return []; }
+  })();
+  var year  = _bk2CalYear;
+  var month = _bk2CalMonth;
+  var monthNames = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
+  var dayNames   = ['M','T','O','T','F','L','S'];
+
+  var h = '';
+  // Nav row
+  h += '<div class="bk2-mc-nav">';
+  h += '<button class="bk2-mc-btn" onclick="_bk2NavCal(-1)">&#8249;</button>';
+  h += '<span class="bk2-mc-month">' + monthNames[month] + ' ' + year + '</span>';
+  h += '<button class="bk2-mc-btn" onclick="_bk2NavCal(1)">&#8250;</button>';
+  h += '</div>';
+
+  // Weekday headers (Mon first)
+  h += '<div class="bk2-mc-grid">';
+  dayNames.forEach(function(d){ h += '<div class="bk2-mc-wday">'+d+'</div>'; });
+
+  var todayStr2 = new Date().toISOString().slice(0,10);
+  var firstDay  = new Date(year, month, 1);
+  // Monday-first: getDay() 0=Sun → shift
+  var startDow  = (firstDay.getDay() + 6) % 7;
+  var daysInMon = new Date(year, month+1, 0).getDate();
+
+  // Collect days with bookings this month
+  var bookedDays = {};
+  bks.filter(function(b){ return b.status!=='cancelled' && b.date && b.date.slice(0,7)===(year+'-'+String(month+1).padStart(2,'0')); })
+    .forEach(function(b){ bookedDays[b.date] = true; });
+
+  // Prev month filler
+  var prevDays = new Date(year, month, 0).getDate();
+  for (var i = startDow - 1; i >= 0; i--) {
+    var prevDate = new Date(year, month-1, prevDays - i);
+    h += '<div class="bk2-mc-day bk2-mc-other">' + (prevDays-i) + '</div>';
+  }
+  // Current month
+  for (var d2 = 1; d2 <= daysInMon; d2++) {
+    var ds = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d2).padStart(2,'0');
+    var dow = (new Date(ds+'T12:00').getDay() + 6) % 7; // 0=Mon..6=Sun
+    var isWeekend = dow >= 5;
+    var isSel   = ds === st.date;
+    var isToday2 = ds === todayStr2;
+    var hasBk   = bookedDays[ds];
+    var cls = 'bk2-mc-day';
+    if (isSel)   cls += ' bk2-mc-sel';
+    else if (isToday2) cls += ' bk2-mc-today';
+    if (isWeekend) cls += ' bk2-mc-off';
+    h += '<div class="'+cls+'" onclick="_bk2PickDay(\''+ds+'\')">';
+    h += d2;
+    if (hasBk && !isSel) h += '<span class="bk2-mc-dot"></span>';
+    h += '</div>';
+  }
+  // Next month filler
+  var cellsUsed = startDow + daysInMon;
+  var rem = cellsUsed % 7 === 0 ? 0 : 7 - (cellsUsed % 7);
+  for (var n = 1; n <= rem; n++) {
+    h += '<div class="bk2-mc-day bk2-mc-other">'+n+'</div>';
+  }
+  h += '</div>'; // end grid
+
+  // ── Day panel ──────────────────────────────────────────────────────────────
+  h += '<div class="bk2-day-panel">';
+  if (st.date) {
+    var dayBks = bks.filter(function(b){ return b.date===st.date && b.status!=='cancelled'; })
+      .sort(function(a,b){ return (a.time||'').localeCompare(b.time||''); });
+    var dayBlocks = blocks.filter(function(bl){ return bl.date===st.date; });
+
+    var dayLabel2 = _fmtBookingDate(st.date);
+    h += '<div class="bk2-day-hdr">' + dayLabel2 + '</div>';
+
+    if (!dayBks.length && !dayBlocks.length) {
+      h += '<div style="font-size:11px;color:var(--text2);padding:4px 0 6px">Inga bokningar</div>';
+    }
+
+    // Merge bookings + blocks into timeline
+    var timeline = [];
+    dayBks.forEach(function(bk){
+      timeline.push({ time: bk.time||'??:??', label: bk.patientName||'Bokning', dur: bk.duration||45, type:'bk' });
+    });
+    dayBlocks.forEach(function(bl){
+      timeline.push({ time: bl.time, label: bl.label||'Blockerad', dur: bl.duration||60, type:'block' });
+    });
+    timeline.sort(function(a,b){ return (a.time).localeCompare(b.time); });
+
+    timeline.forEach(function(item){
+      if (item.type === 'bk') {
+        h += '<div class="bk2-slot">';
+        h += '<span class="bk2-slot-dot" style="background:var(--orange)"></span>';
+        h += '<span class="bk2-slot-time">'+item.time+'</span>';
+        h += '<span class="bk2-slot-busy">' + e(item.label) + '</span>';
+        if (item.dur) h += '<span style="font-size:10px;color:var(--text2);flex-shrink:0;margin-left:auto">'+item.dur+'m</span>';
+        h += '</div>';
+      } else {
+        h += '<div class="bk2-block-row">';
+        h += '<span style="width:5px;height:5px;border-radius:50%;background:#d29922;flex-shrink:0"></span>';
+        h += '<span class="bk2-block-time">'+item.time+'</span>';
+        h += '<span class="bk2-block-label">' + e(item.label) + '</span>';
+        h += '</div>';
+      }
+    });
+
+    // Free slots
+    var dur2 = st.dur || 45;
+    var freeSlots = typeof getAvailableSlots==='function' ? getAvailableSlots(null, st.date, dur2) : [];
+    // Remove already-booked times
+    var busyTimes = timeline.map(function(t){ return t.time; });
+    freeSlots = freeSlots.filter(function(sl){ return !busyTimes.includes(sl); });
+    if (freeSlots.length) {
+      h += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text2);margin:8px 0 4px">Lediga tider</div>';
+      freeSlots.slice(0,12).forEach(function(sl){
+        var isSel2 = sl === st.time;
+        h += '<div class="bk2-slot" onclick="_bk2PickSlot(\''+sl+'\')" style="'+(isSel2?'background:rgba(224,118,40,.1);':'')+'border:1px solid '+(isSel2?'rgba(224,118,40,.35)':'transparent')+';">';
+        h += '<span class="bk2-slot-dot" style="background:'+(isSel2?'var(--orange)':'#3fb950')+'"></span>';
+        h += '<span class="bk2-slot-time">'+sl+'</span>';
+        h += '<span class="bk2-slot-free">'+(isSel2?'Vald':dur2+' min')+'</span>';
+        h += '</div>';
+      });
+    }
+  } else {
+    h += '<div style="font-size:11px;color:var(--text2);padding:4px 0">V\u00e4lj en dag</div>';
+  }
+  h += '</div>'; // end day-panel
+
+  return h;
+}
+
 function _renderBk2Dialog() {
   document.getElementById('bk2-overlay')?.remove();
   var st = _bk2State;
   var pat = st.patId ? (S.patients||[]).find(function(p){ return p.id===st.patId; }) : null;
   var svcs = getServices().filter(function(s){ return s.price > 0; });
+
+  _bk2InitCal();
 
   var ov = document.createElement('div');
   ov.id = 'bk2-overlay';
@@ -9135,10 +9338,17 @@ function _renderBk2Dialog() {
   h += '<div class="bk2-header">';
   h += '<div style="display:flex;align-items:center;justify-content:space-between">';
   h += '<div><div class="bk2-title">Boka patient</div>';
-  h += '<div class="bk2-subtitle">' + _fmtBookingDate(st.date) + (st.time ? ' · ' + st.time : '') + '</div></div>';
-  h += '<button onclick="document.getElementById(\'bk2-overlay\').remove()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:22px;cursor:pointer;line-height:1;padding:0">×</button>';
+  h += '<div class="bk2-subtitle">' + _fmtBookingDate(st.date) + (st.time ? ' \u00b7 ' + st.time : '') + '</div></div>';
+  h += '<button onclick="document.getElementById(\'bk2-overlay\').remove()" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:22px;cursor:pointer;line-height:1;padding:0">\u00d7</button>';
   h += '</div></div>';
 
+  // Two-column body
+  h += '<div class="bk2-cols">';
+
+  // LEFT: Mini-calendar panel
+  h += '<div class="bk2-cal-panel" id="bk2-cal-panel">' + _bk2BuildCalPanel() + '</div>';
+
+  // RIGHT: Form
   h += '<div class="bk2-body">';
 
   // ── PATIENT SECTION ──
@@ -9208,11 +9418,11 @@ function _renderBk2Dialog() {
   // ── DATE / TIME / DURATION ──
   h += '<div class="bk2-time-row">';
   h += '<div><div class="bk2-label">Datum *</div>';
-  h += '<input id="bk2-date" class="bk2-field" type="date" value="' + st.date + '" oninput="_bk2State.date=this.value;_bk2UpdateChain()"></div>';
+  h += '<input id="bk2-date" class="bk2-field" type="date" value="' + st.date + '" oninput="_bk2State.date=this.value;_bk2PickDay(this.value)"></div>';
   h += '<div><div class="bk2-label">Tid *</div>';
-  h += '<input id="bk2-time" class="bk2-field" type="time" value="' + st.time + '" step="900" oninput="_bk2State.time=this.value"></div>';
+  h += '<input id="bk2-time" class="bk2-field" type="time" value="' + st.time + '" step="900" oninput="_bk2State.time=this.value;_bk2ReRenderCal()"></div>';
   h += '<div><div class="bk2-label">Längd</div>';
-  h += '<select id="bk2-dur" class="bk2-field" onchange="_bk2State.dur=parseInt(this.value)">';
+  h += '<select id="bk2-dur" class="bk2-field" onchange="_bk2State.dur=parseInt(this.value);_bk2ReRenderCal()">';
   [30,45,60,75,90].forEach(function(d){
     h += '<option value="'+d+'"'+(d===st.dur?' selected':'')+'>'+d+' min</option>';
   });
@@ -9232,8 +9442,13 @@ function _renderBk2Dialog() {
   // ── VISIT TYPE ──
   h += '<div><div class="bk2-label">Besökstyp</div>';
   h += '<div class="bk2-type-row">';
-  [{v:'new',l:'Ny patient',icon:'star'},{v:'returning',l:'Återbesök',icon:'refresh'},{v:'followup',l:'Uppföljning',icon:'clipboard'}].forEach(function(t){
-    h += '<div class="bk2-type-pill'+(st.type===t.v?' active':'')+'" onclick="_bk2SetType(\''+t.v+'\')">'+t.icon+' '+t.l+'</div>';
+  var _bk2TypeIcons = {
+    new:       '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="12" y1="3" x2="12" y2="11"/><line x1="8" y1="7" x2="16" y2="7"/></svg>',
+    returning: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>',
+    followup:  '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
+  };
+  [{v:'new',l:'Ny patient'},{v:'returning',l:'\u00c5terbes\u00f6k'},{v:'followup',l:'Uppf\u00f6ljning'}].forEach(function(t){
+    h += '<div class="bk2-type-pill'+(st.type===t.v?' active':'')+'" onclick="_bk2SetType(\''+t.v+'\')" style="display:flex;align-items:center;gap:6px">'+(_bk2TypeIcons[t.v]||'')+t.l+'</div>';
   });
   h += '</div></div>';
 
@@ -9244,14 +9459,15 @@ function _renderBk2Dialog() {
   // ── COMMUNICATIONS CHAIN PREVIEW ──
   h += '<div class="bk2-chain" id="bk2-chain">' + _bk2BuildChain() + '</div>';
 
-  h += '</div>'; // end body
+  h += '</div>'; // end bk2-body (right col)
+  h += '</div>'; // end bk2-cols
 
   // Footer
   h += '<div class="bk2-footer">';
   h += '<button class="bk2-btn-cancel" onclick="document.getElementById(\'bk2-overlay\').remove()">Avbryt</button>';
   h += '<button class="bk2-btn-primary" onclick="_bk2Save()">';
   h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
-  h += 'Boka →';
+  h += 'Boka \u2192';
   h += '</button>';
   h += '</div>';
   h += '</div>'; // end box
@@ -23523,9 +23739,6 @@ function _renderPulse() {
     if (!briefValid && nextPat) h += '<button onclick="VelaAgent.runNow&&VelaAgent.runNow();showAutoSaveToast(\'Genererar brief\u2026\')" style="flex:1;padding:6px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Generera brief</button>';
     h += '</div>';
     h += '</div></div>';
-    if (!briefValid && nextPat) h += '<button onclick="VelaAgent.runNow&&VelaAgent.runNow();showAutoSaveToast(\'Genererar brief\u2026\')" style="padding:6px 14px;background:none;border:1px solid var(--border);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font)">Generera brief</button>';
-    h += '</div>';
-    h += '</div></div>';
   }
 
   // ── Dagens schema ──────────────────────────────────────────────────────────
@@ -26730,11 +26943,19 @@ async function _bokadirektImport(parsed, threadId, subject) {
   var bkResult = { created: false, cancelled: false, bk: null };
 
   if (parsed.bkType === 'cancelled') {
-    // Find matching upcoming booking and cancel it
-    var upBk = (getBookings ? getBookings() : []).find(function(b){
+    // Find matching upcoming booking — match by date if available, else nearest future booking
+    var allBks = getBookings ? getBookings() : [];
+    var todayFb = now.slice(0,10);
+    var upBk = allBks.find(function(b){
       return b.patientId === pat.id && b.status !== 'cancelled'
-        && (!parsed.date || b.date === parsed.date);
+        && (parsed.date ? b.date === parsed.date : b.date >= todayFb);
     });
+    // If no exact date match, take the soonest upcoming booking
+    if (!upBk && parsed.date) {
+      upBk = allBks.filter(function(b){
+        return b.patientId === pat.id && b.status !== 'cancelled' && b.date >= todayFb;
+      }).sort(function(a,b){ return (a.date+a.time).localeCompare(b.date+b.time); })[0] || null;
+    }
     if (upBk) {
       upBk.status      = 'cancelled';
       upBk.cancelledAt = now;
@@ -44139,14 +44360,61 @@ function rAvailability() {
   });
   h += '</div></div>';
 
+  // ── Schema-block (personliga avvikelser) ─────────────────────────────────
+  var blocks = (function(){ try { return JSON.parse(localStorage.getItem('vela:schedule-blocks')||'[]'); } catch(e){ return []; } })();
+  // Only show upcoming/today blocks, sorted
+  var todayStr3 = new Date().toISOString().slice(0,10);
+  var upcomingBlocks = blocks.filter(function(bl){ return bl.date >= todayStr3; })
+    .sort(function(a,b){ return (a.date+a.time).localeCompare(b.date+b.time); });
+
+  h += '<div style="border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-bottom:20px">';
+  h += '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#0d1117;border-bottom:1px solid #21262d">';
+  h += '<div>';
+  h += '<div style="font-size:14px;font-weight:700;color:#e6edf3">Personliga avvikelser</div>';
+  h += '<div style="font-size:12px;color:#8b949e;margin-top:2px">Tr\u00e4ning, m\u00f6ten, ledigt — syns i bokningsdialogen</div>';
+  h += '</div>';
+  h += '<button onclick="_availAddBlock()" style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:#238636;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font)">';
+  h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Ny avvikelse</button>';
+  h += '</div>';
+
+  if (!upcomingBlocks.length) {
+    h += '<div style="padding:20px 18px;font-size:14px;color:#8b949e;text-align:center">Inga avvikelser inlagda</div>';
+  } else {
+    upcomingBlocks.forEach(function(bl, i) {
+      var realIdx = blocks.indexOf(bl);
+      var isToday3 = bl.date === todayStr3;
+      h += '<div style="display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid #21262d" id="avail-block-' + realIdx + '">';
+      // Icon + label input
+      h += '<div style="width:28px;height:28px;border-radius:6px;background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d29922" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+      h += '</div>';
+      h += '<input value="' + e(bl.label||'') + '" placeholder="Tr\u00e4ning, m\u00f6te, lunch\u2026" onchange="_availUpdateBlock(' + realIdx + ',\'label\',this.value)" style="flex:1;background:var(--bg);border:1px solid #30363d;border-radius:6px;padding:5px 10px;font-size:14px;font-weight:600;color:#e6edf3;font-family:var(--font);outline:none;min-width:0">';
+      // Date
+      h += '<input type="date" value="' + bl.date + '" onchange="_availUpdateBlock(' + realIdx + ',\'date\',this.value)" style="background:var(--bg);border:1px solid #30363d;border-radius:6px;padding:5px 8px;font-size:13px;color:#e6edf3;font-family:var(--font);outline:none;cursor:pointer;' + (isToday3?'color:var(--teal);font-weight:700;':'') + '">';
+      // Time
+      h += '<input type="time" value="' + (bl.time||'') + '" onchange="_availUpdateBlock(' + realIdx + ',\'time\',this.value)" style="background:var(--bg);border:1px solid #30363d;border-radius:6px;padding:5px 8px;font-size:13px;color:#e6edf3;font-family:var(--font);outline:none;cursor:pointer;width:80px">';
+      // Duration select
+      h += '<select onchange="_availUpdateBlock(' + realIdx + ',\'duration\',parseInt(this.value))" style="background:var(--bg);border:1px solid #30363d;border-radius:6px;padding:5px 8px;font-size:13px;color:#8b949e;font-family:var(--font);outline:none;cursor:pointer">';
+      [30,45,60,90,120,180,240,480].forEach(function(d){
+        var lbl = d < 60 ? d + ' min' : (d/60) + ' h';
+        h += '<option value="'+d+'"'+(bl.duration===d?' selected':'')+'>'+lbl+'</option>';
+      });
+      h += '</select>';
+      // Delete
+      h += '<button onclick="_availDeleteBlock(' + realIdx + ')" style="background:none;border:none;color:#8b949e;font-size:18px;cursor:pointer;padding:0 4px;line-height:1" title="Ta bort">\u00d7</button>';
+      h += '</div>';
+    });
+  }
+  h += '</div>';
+
   // Booking link section
   h += '<div style="border:1px solid #30363d;border-radius:6px;padding:16px 18px;background:#161b22">';
-  h += '<div style="font-size:14px;font-weight:700;color:#e6edf3;margin-bottom:4px">Din bokningslänk</div>';
-  h += '<div style="font-size:14px;color:#8b949e;margin-bottom:12px">Dela denna länk med patienter för att låta dem boka online.</div>';
+  h += '<div style="font-size:14px;font-weight:700;color:#e6edf3;margin-bottom:4px">Din bokningsl\u00e4nk</div>';
+  h += '<div style="font-size:14px;color:#8b949e;margin-bottom:12px">Dela denna l\u00e4nk med patienter f\u00f6r att l\u00e5ta dem boka online.</div>';
   var bookingUrl = window.location.origin + window.location.pathname + '#boka';
   h += '<div style="display:flex;gap:8px">';
   h += '<input readonly value="' + bookingUrl + '" style="flex:1;padding:8px 12px;background:var(--bg);border:1px solid #30363d;border-radius:7px;font-size:14px;color:#e6edf3;font-family:var(--font-mono);outline:none">';
-  h += '<button onclick="navigator.clipboard?.writeText(\'' + bookingUrl + '\').then(function(){showAutoSaveToast(\'Länk kopierad ✓\')})" style="padding:8px 14px;background:#238636;color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Kopiera</button>';
+  h += '<button onclick="navigator.clipboard?.writeText(\'' + bookingUrl + '\').then(function(){showAutoSaveToast(\'L\u00e4nk kopierad ✓\')})" style="padding:8px 14px;background:#238636;color:#fff;border:none;border-radius:7px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font)">Kopiera</button>';
   h += '</div></div>';
 
   h += '</div>';
@@ -44263,6 +44531,26 @@ async function _availAiSuggest() {
 
   showAutoSaveToast('AI-schema tillämpat baserat på ' + bks.length + ' bokningar');
   rAvailability();
+}
+
+
+// ══ Schema-block CRUD ═════════════════════════════════════════════════════════
+var BLOCKS_KEY = 'vela:schedule-blocks';
+function _getBlocks(){ try{ return JSON.parse(localStorage.getItem(BLOCKS_KEY)||'[]'); }catch(e){ return []; } }
+function _saveBlocks(arr){ try{ localStorage.setItem(BLOCKS_KEY, JSON.stringify(arr)); }catch(e){} }
+function _availAddBlock(){
+  var blocks=_getBlocks();
+  blocks.push({ date: new Date().toISOString().slice(0,10), time:'12:00', duration:60, label:'' });
+  _saveBlocks(blocks); rAvailability();
+}
+function _availUpdateBlock(idx,field,val){
+  var blocks=_getBlocks();
+  if(blocks[idx]){ blocks[idx][field]=val; _saveBlocks(blocks); }
+}
+function _availDeleteBlock(idx){
+  var blocks=_getBlocks();
+  blocks.splice(idx,1);
+  _saveBlocks(blocks); rAvailability();
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

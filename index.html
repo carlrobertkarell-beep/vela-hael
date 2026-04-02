@@ -13434,6 +13434,7 @@ function _gmailAuth(onSuccess, silent) {
 
 // Silent token refresh — called at boot and before polls when token is expired
 function _gmailEnsureToken(cb) {
+  _gmailLoadToken(); // restore from localStorage first
   if (_gmailIsAuthed()) { if (cb) cb(); return; }
   // Try silent re-auth if we have a client ID saved
   if (_gmailClientId()) {
@@ -13464,7 +13465,8 @@ async function _gmailLoadInbox(query, maxResults) {
 
   // Load first message of each thread (for snippet/subject/from)
   var threads = await Promise.all(data.threads.map(async function(t) {
-    var td = await _gmailFetch('/threads/' + t.id, { format:'metadata', metadataHeaders:'Subject,From,Date' });
+    var td = null;
+    try { td = await _gmailFetch('/threads/' + t.id, { format:'metadata', metadataHeaders:'Subject,From,Date' }); } catch(e){}
     if (!td) return null;
     var firstMsg = td.messages[0];
     var lastMsg  = td.messages[td.messages.length-1];
@@ -13570,13 +13572,24 @@ function _gmailDetectIntent(subject, snippet) {
   return { id:'other', label:'', color:'muted', icon:'' };
 }
 function _gmailDateStr(ms) {
-  var d = new Date(parseInt(ms));
+  // Handle Unix ms (number or numeric string), RFC 2822, and ISO date strings
+  var d;
+  if (!ms) return '';
+  if (typeof ms === 'number') {
+    d = new Date(ms);
+  } else if (/^\d+$/.test(String(ms).trim())) {
+    d = new Date(parseInt(ms));
+  } else {
+    d = new Date(ms); // JS Date handles RFC 2822 ("Thu, 02 Apr 2026 09:55:00 +0000") and ISO
+  }
+  if (isNaN(d.getTime()) || d.getFullYear() < 2000) return '';
   var now = new Date();
   var diff = Math.floor((now - d) / 86400000);
   if (diff === 0) return d.toLocaleTimeString('sv-SE',{hour:'2-digit',minute:'2-digit'});
   if (diff === 1) return 'Igår';
   if (diff < 7)  return d.toLocaleDateString('sv-SE',{weekday:'short'});
-  return d.toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
+  if (diff < 365) return d.toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
+  return d.toLocaleDateString('sv-SE',{day:'numeric',month:'short',year:'numeric'});
 }
 
 function _gmailFromName(from) {
@@ -13829,399 +13842,91 @@ function rInbox() {
   el.classList.add('active');
   S.screen = 'activity';
 
-  // Sync system issues into notifications
-  _aktSyncFromIssues();
+  // ── Pending sigqueue count ────────────────────────────────────────────────
+  var pending = [];
+  try { pending = JSON.parse(localStorage.getItem('vela:approvals')||'[]').filter(function(a){ return !a.done; }); } catch(e) {}
+  var pendingCount = pending.length;
 
-  var st = window._aktState;
-  var allNotifs = _aktGetNotifs();
+  // Restore token from localStorage before checking auth state
+  if (typeof _gmailLoadToken === 'function') _gmailLoadToken();
+  var authed = typeof _gmailIsAuthed === 'function' && _gmailIsAuthed();
+  var threads = (_gmailState && _gmailState.threads) || [];
 
-  // View filter
-  var notifs = allNotifs.filter(function(n){
-    if (st.view === 'inbox')  return !n.done;
-    if (st.view === 'saved')  return n.saved && !n.done;
-    if (st.view === 'done')   return n.done;
-    return true;
-  });
+  // ── Shell: no inner sidebar, just mail workspace ──────────────────────────
+  var h = '<div style="display:flex;flex-direction:column;height:calc(100vh - 52px);overflow:hidden;background:var(--bg)">';
 
-  // Type filter
-  if (st.filter === 'agent') {
-    var _agentCats = ['previsit_brief','overdue_return','missing_journal','nrs_spike','no_home_activity','hael_suggested','cancel_request','reschedule_request','schedule_gap','patient_inactive'];
-    notifs = notifs.filter(function(n){ return _agentCats.indexOf(n.category) !== -1; });
-  } else if (st.filter === 'agent_feed' || st.filter === 'agent_preview') {
-    // Handled by special render blocks above, notifs not used
-    notifs = [];
-  } else if (st.filter !== 'all') {
-    notifs = notifs.filter(function(n){ return n.type === st.filter || n.subtype === st.filter; });
+  // ── Top bar ───────────────────────────────────────────────────────────────
+  h += '<div style="display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--border);background:#161b22;flex-shrink:0">';
+  h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.8" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
+  h += '<span style="font-size:14px;font-weight:600;color:var(--ink)">' + (authed ? (localStorage.getItem('vela:gmail-connected-email')||'Mail') : 'Mail') + '</span>';
+  if (authed) {
+    h += '<button onclick="_gmailLoadFolder().then(function(){rInbox()})" style="background:none;border:none;cursor:pointer;color:var(--text2);padding:4px;display:flex;align-items:center" title="Ladda om">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></button>';
   }
-
-  // Search
-  if (st.search) {
-    var q = st.search.toLowerCase();
-    notifs = notifs.filter(function(n){
-      return (n.title||'').toLowerCase().includes(q) || (n.patName||'').toLowerCase().includes(q) || (n.body||'').toLowerCase().includes(q);
-    });
+  h += '<div style="flex:1"></div>';
+  if (pendingCount > 0) {
+    h += '<button onclick="go(\'sigqueue\')" style="display:flex;align-items:center;gap:6px;padding:5px 12px;background:rgba(224,118,40,.08);border:1px solid rgba(224,118,40,.25);border-radius:6px;font-size:12px;font-weight:600;color:var(--orange);cursor:pointer;font-family:var(--font)">';
+    h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    h += pendingCount + '\u00a0\u00e5tg\u00e4rder v\u00e4ntar \u2192 Signaturk\u00f6</button>';
   }
+  h += '</div>'; // top bar
 
-  // Counts for badges
-  var unreadCount   = allNotifs.filter(function(n){ return !n.read && !n.done; }).length;
-  var savedCount    = allNotifs.filter(function(n){ return n.saved && !n.done; }).length;
-  var mailCount     = (window._gmailState && window._gmailState.threads || []).filter(function(t){ return t.unread; }).length;
-  var systemCount   = allNotifs.filter(function(n){ return n.type==='system' && !n.done; }).length;
-  var urgentCount   = allNotifs.filter(function(n){ return n.urgent && !n.done && !n.read; }).length;
-
-  // Type counts
-  var typeCounts = {};
-  allNotifs.filter(function(n){ return !n.done; }).forEach(function(n){
-    typeCounts[n.type] = (typeCounts[n.type]||0) + 1;
-  });
-
-  var h = '<div class="akt-shell">';
-
-  // ── LEFT SIDEBAR ───────────────────────────────────────────────────────────
-  h += '<div class="akt-sidebar">';
-  h += '<div class="akt-sidebar-inner">';
-
-  function sideBtn(view, label, icon, badge, isUrgent) {
-    var active = st.view === view && st.filter === 'all';
-    return '<button class="akt-nav-btn' + (active?' active':'') + '" data-view="' + view + '" data-filter="all">'
-      + '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' + icon + '</svg>'
-      + '<span>' + label + '</span>'
-      + (badge ? '<span class="akt-badge' + (isUrgent?' urgent':'') + '">' + badge + '</span>' : '')
-      + '</button>';
-  }
-
-  h += sideBtn('inbox', 'Inkorg',
-    '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6L18.55 5.11A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/>',
-    unreadCount + mailCount || null, urgentCount > 0);
-  h += sideBtn('saved', 'Sparat',
-    '<path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>',
-    savedCount || null);
-  h += sideBtn('done', 'Klart',
-    '<polyline points="20 6 9 17 4 12"/>');
-
-  // Type filters
-  var typeFilters = [
-    { id:'mail',    label:'Mail',         icon:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',  count: mailCount },
-    { id:'system',  label:'Notiser',      icon:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',              count: systemCount },
-    { id:'journal', label:'Journalflöde', icon:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>',                          count: typeCounts['journal']||0 },
-    { id:'portal',  label:'Portal',       icon:'<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>',                                                         count: typeCounts['portal']||0 },
-  ];
-
-  h += '<div class="akt-sidebar-section-label">Kategorier</div>';
-  typeFilters.forEach(function(f) {
-    var active = st.filter === f.id;
-    h += '<button class="akt-nav-btn' + (active?' active':'') + '" data-view="inbox" data-filter="' + f.id + '">';
-    h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' + f.icon + '</svg>';
-    h += '<span>' + f.label + '</span>';
-    if (f.count) h += '<span class="akt-badge">' + f.count + '</span>';
-    h += '</button>';
-  });
-
-  // Vela Agent section
-  var agentCategories = ['previsit_brief','overdue_return','missing_journal','nrs_spike','no_home_activity','hael_suggested','cancel_request','reschedule_request','schedule_gap','patient_inactive'];
-  var agentCount = allNotifs.filter(function(n){ return agentCategories.indexOf(n.category) !== -1 && !n.done; }).length;
-  var agentFeedCount = typeof _agentGetFeed === 'function' ? _agentGetFeed().filter(function(f){ return Date.now()-f.ts < 86400000; }).length : 0;
-  h += '<div class="akt-sidebar-section-label">VelaAgent</div>';
-  var agentActive = st.filter === 'agent';
-  var agentFeedActive = st.filter === 'agent_feed';
-  var agentPreviewActive = st.filter === 'agent_preview';
-  h += '<button class="akt-nav-btn' + (agentActive?' active':'') + '" data-view="inbox" data-filter="agent">';
-  h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
-  h += '<span>Kräver din åtgärd</span>';
-  if (agentCount) h += '<span class="akt-badge urgent">' + agentCount + '</span>';
-  h += '</button>';
-  h += '<button class="akt-nav-btn' + (agentFeedActive?' active':'') + '" data-view="inbox" data-filter="agent_feed">';
-  h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
-  h += '<span>Agentens logg</span>';
-  if (agentFeedCount) h += '<span class="akt-badge">' + agentFeedCount + '</span>';
-  h += '</button>';
-  h += '<button class="akt-nav-btn' + (agentPreviewActive?' active':'') + '" data-view="inbox" data-filter="agent_preview">';
-  h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
-  h += '<span>Veckans plan</span>';
-  h += '</button>';
-
-  // Gmail
-  h += '<div class="akt-sidebar-section-label">Konton</div>';
-  if (_gmailIsAuthed && _gmailIsAuthed()) {
-    var email = (typeof _authUser !== 'undefined' && _authUser?.email) || 'Gmail';
-    h += '<button class="akt-nav-btn" data-view="inbox" data-filter="mail">';
-    h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
-    h += '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">' + e(email) + '</span>';
-    if (mailCount) h += '<span class="akt-badge">' + mailCount + '</span>';
-    h += '</button>';
-  } else {
-    h += '<button class="akt-nav-btn" onclick="_openUserMenu();setTimeout(function(){_openKopplingar()},100)" style="color:var(--teal)">';
-    h += '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
-    h += '<span>Koppla e-post</span></button>';
-  }
-
-  h += '</div></div>'; // sidebar-inner + sidebar
-
-  // ── MAIN PANEL ─────────────────────────────────────────────────────────────
-  h += '<div class="akt-main">';
-
-  // Filter bar (like GitHub All | Unread + search + Group by)
-  h += '<div class="akt-filterbar">';
-  h += '<div style="display:flex;align-items:center;gap:8px">';
-
-  ['all','unread'].forEach(function(v) {
-    var active = v === 'all' ? (st.view !== 'done') : false;
-    h += '<button class="akt-filterbar-tab' + (v==='all'&&st.view!=='done'?' active':'') + '" data-quickfilter="' + v + '">' + (v==='all'?'Alla':'Olästa') + '</button>';
-  });
-
-  h += '<div class="akt-search-wrap">';
-  h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
-  h += '<input id="akt-search" class="akt-search-inp" placeholder="Sök notiser..." value="' + e(st.search) + '" oninput="_aktSearch(this.value)">';
-  h += '</div>';
-  h += '</div>';
-
-  if (notifs.length > 0 && st.view === 'inbox') {
-    h += '<button onclick="_aktMarkAllDone()" class="akt-done-all-btn">Markera alla som klara</button>';
-  }
-  h += '</div>'; // filterbar
-
-  // Notification list
-  h += '<div class="akt-list" id="akt-list">';
-
-  // ── AGENT FEED VIEW ───────────────────────────────────────────────────────
-  if (st.filter === 'agent_feed') {
-    var feed = typeof _agentGetFeed === 'function' ? _agentGetFeed() : [];
-    var feed24 = feed.filter(function(f){ return Date.now()-f.ts < 86400000; });
-    var feedOlder = feed.filter(function(f){ return Date.now()-f.ts >= 86400000 && Date.now()-f.ts < 7*86400000; });
-    var feedIconMap = {
-      cancel_detected:    { icon:'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',  col:'var(--red)' },
-      booking_cancelled:  { icon:'<polyline points="20 6 9 17 4 12"/>',                                                                             col:'var(--green)' },
-      reschedule_detected:{ icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',  col:'var(--amber)' },
-      reschedule_sent:    { icon:'<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',                            col:'var(--green)' },
-      nudge_queued:       { icon:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',                                     col:'var(--orange)' },
-      gap_detected:       { icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/>',                        col:'var(--amber)' },
-      inactive_flagged:   { icon:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',                            col:'var(--text2)' },
-    };
-    function agentFeedItem(f) {
-      var fi = feedIconMap[f.type] || { icon:'<circle cx="12" cy="12" r="3"/>',  col:'var(--text2)' };
-      var tAgo = Math.round((Date.now()-f.ts)/60000);
-      var tLabel = tAgo < 1 ? 'just nu' : tAgo < 60 ? tAgo+'m sedan' : tAgo < 1440 ? Math.round(tAgo/60)+'h sedan' : Math.round(tAgo/1440)+'d sedan';
-      var canUndo = f.type === 'booking_cancelled' && f.meta && f.meta.bookingId && (Date.now()-f.ts < 30*60000);
-      var row = '<div style="display:flex;align-items:flex-start;gap:12px;padding:11px 20px;border-bottom:1px solid var(--border2);'+(canUndo?'background:rgba(63,185,80,.02)':'')+'">';
-      row += '<div style="width:28px;height:28px;border-radius:7px;background:'+fi.col+'18;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">';
-      row += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="'+fi.col+'" stroke-width="1.8" stroke-linecap="round">'+fi.icon+'</svg></div>';
-      row += '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;color:var(--ink)">'+e(f.summary)+'</div>';
-      if (f.meta && f.meta.patId) {
-        var fp = (S.patients||[]).find(function(p){return p.id===f.meta.patId;});
-        if (fp) row += '<div style="font-size:12px;color:var(--text2)"><button onclick="openPat(\''+fp.id+'\')" style="background:none;border:none;color:var(--orange);cursor:pointer;font-size:12px;font-family:var(--font);padding:0">'+e(fp.name)+'</button></div>';
-      }
-      row += '</div>';
-      row += '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">';
-      row += '<span style="font-size:11px;color:var(--text2)">'+tLabel+'</span>';
-      if (canUndo) {
-        row += '<button onclick="_agentUndoCancel(\''+f.id+'\',\''+f.meta.bookingId+'\')" style="font-size:11px;padding:3px 8px;background:none;border:1px solid rgba(248,81,73,.3);border-radius:4px;color:var(--red);cursor:pointer;font-family:var(--font)">Ångra</button>';
-      }
-      row += '</div>';
-      row += '</div>';
-      return row;
-    }
-    if (!feed24.length && !feedOlder.length) {
-      h += '<div style="padding:60px 24px;text-align:center;color:var(--text2)">';
-      h += '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" style="margin:0 auto 12px;display:block;opacity:.3"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
-      h += '<div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px">Inga agentåtgärder</div>';
-      h += '<div style="font-size:14px">Agenten har inte agerat ännu. Sätt kanaler på Auto för att aktivera.</div>';
-      h += '</div>';
-    } else {
-      if (feed24.length) {
-        h += '<div style="padding:9px 20px;background:var(--surface2);border-bottom:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2)">Idag — '+feed24.length+' åtgärder</div>';
-        feed24.forEach(function(f){ h += agentFeedItem(f); });
-      }
-      if (feedOlder.length) {
-        h += '<div style="padding:9px 20px;background:var(--surface2);border-bottom:1px solid var(--border2);border-top:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text2)">Senaste 7 dagarna</div>';
-        feedOlder.slice(0,20).forEach(function(f){ h += agentFeedItem(f); });
-      }
-    }
-    h += '</div></div></div>';
+  if (!authed) {
+    // ── Not connected ─────────────────────────────────────────────────────
+    h += '<div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;color:var(--text2)">';
+    h += '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="1.2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
+    h += '<div style="text-align:center"><div style="font-size:17px;font-weight:600;color:var(--ink);margin-bottom:6px">Gmail inte ansluten</div>';
+    h += '<div style="font-size:14px;max-width:300px;line-height:1.6;color:var(--text)">Anslut Gmail i Inst\u00e4llningar \u2192 Kopplingar f\u00f6r att hantera patientmail h\u00e4r.</div></div>';
+    h += '<button onclick="_gmailAuth(function(){rInbox()})" style="padding:8px 20px;background:var(--teal);color:#0d1117;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font)">Anslut Gmail</button>';
+    h += '</div>';
+    h += '</div>';
     el.innerHTML = h;
-    _aktWireEvents(el);
     return;
   }
 
-  // ── VECKOPREVIEW VIEW ─────────────────────────────────────────────────────
-  if (st.filter === 'agent_preview') {
-    h += _renderAgentWeekPreview();
-    h += '</div></div></div>';
-    el.innerHTML = h;
-    _aktWireEvents(el);
-    return;
-  }
+  // ── Two-pane mail workspace ───────────────────────────────────────────────
+  h += '<div style="display:flex;flex:1;overflow:hidden;min-height:0">';
 
-  // ── MAIL INLINE VIEW ────────────────────────────────────────────────────────
-  if (st.filter === 'mail') {
-    var _mAuthd  = _gmailIsAuthed && _gmailIsAuthed();
-    var _mAll    = (window._gmailState && window._gmailState.threads || []);
-    var _mSelTid = st.mailThreadId || (_mAll[0] && (_mAll[0].id || _mAll[0].threadId));
+  // Left: thread list
+  h += '<div id="gm-list-panel" style="width:340px;border-right:1px solid var(--border);overflow:hidden;display:flex;flex-direction:column;flex-shrink:0;background:var(--bg)"></div>';
 
-    if (!_mAuthd) {
-      h += '<div style="padding:60px 24px;text-align:center;color:var(--text2)">';
-      h += '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" style="margin:0 auto 16px;display:block;opacity:.3"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
-      h += '<div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:8px">E-post ej kopplad</div>';
-      h += '<button onclick="_gmailAuth(function(){rInbox()})" style="padding:8px 18px;background:var(--teal);color:#0d1117;border:none;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--font)">Koppla Gmail</button>';
-      h += '</div>';
-    } else {
-      h += '<div style="display:flex;height:calc(100vh - 160px);overflow:hidden;min-height:0">';
-
-      // Left: thread list
-      h += '<div id="akt-mail-list" style="width:300px;border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;background:var(--bg)">';
-      if (!_mAll.length) {
-        h += '<div style="padding:40px 16px;text-align:center;color:var(--text2);font-size:14px">Laddar inkorg...</div>';
-      } else {
-        _mAll.slice(0, 40).forEach(function(t) {
-          var _mtid = t.id || t.threadId;
-          var _msel = _mtid === _mSelTid;
-          var _mint = _gmailDetectIntent(t.subject, t.snippet);
-          var _mic  = { scheduling:'#d29922', cancel:'#f85149', clinical:'var(--teal)', admin:'#9198a1' }[_mint.id] || 'var(--text2)';
-          h += '<div class="gm-thread-row' + (t.unread?' unread':'') + (_msel?' selected':'') + '" data-mail-tid="' + _mtid + '" style="padding:10px 14px;border-bottom:1px solid var(--border2);cursor:pointer">';
-          h += '<div style="display:flex;align-items:flex-start;gap:8px">';
-          if (t.unread) h += '<div style="width:7px;height:7px;border-radius:50%;background:var(--teal);flex-shrink:0;margin-top:4px"></div>';
-          else          h += '<div style="width:7px;height:7px;flex-shrink:0"></div>';
-          h += '<div style="flex:1;min-width:0">';
-          h += '<div style="display:flex;align-items:baseline;justify-content:space-between;gap:4px;margin-bottom:2px">';
-          h += '<span class="gm-thread-from" style="font-size:14px;font-weight:' + (t.unread?'700':'500') + ';color:' + (t.unread?'var(--ink)':'var(--text)') + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + e(t.fromName||t.from||'') + '</span>';
-          h += '<span style="font-size:11px;color:var(--text2);flex-shrink:0">' + _gmailDateStr(t.date) + '</span>';
-          h += '</div>';
-          h += '<div style="font-size:12px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:2px">' + e((t.subject||'(Inget ämne)').slice(0,50)) + '</div>';
-          if (_mint.id !== 'other') h += '<span style="font-size:10px;color:' + _mic + ';font-weight:700;text-transform:uppercase;letter-spacing:.05em">' + _mint.label + '</span>';
-          h += '</div></div></div>';
-        });
-      }
-      h += '</div>'; // akt-mail-list
-
-      // Right: thread content — _gmailOpenThread populates this by id
-      h += '<div id="gm-thread-panel" style="flex:1;overflow-y:auto;min-width:0;background:var(--bg)">';
-      if (!_mSelTid) {
-        h += '<div style="display:flex;align-items:center;justify-content:center;height:100%;flex-direction:column;gap:12px;color:var(--text2)">';
-        h += '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" style="opacity:.25"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
-        h += '<span style="font-size:14px">Välj ett mail för att läsa</span>';
-        h += '</div>';
-      } else {
-        h += '<div style="display:flex;align-items:center;justify-content:center;height:100%;gap:10px">';
-        h += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6-8.5"/></svg>';
-        h += '<span style="font-size:14px;color:var(--text2)">Laddar tråd...</span>';
-        h += '</div>';
-      }
-      h += '</div>'; // gm-thread-panel
-
-      h += '</div>'; // two-pane flex
-    }
-    h += '</div></div></div>'; // list, main, shell
-    el.innerHTML = h;
-    _aktWireEvents(el);
-    if (_mAuthd && _mSelTid) {
-      _gmailState.selectedThread = null;
-      _gmailOpenThread(_mSelTid);
-    }
-    if (_mAuthd && !_mAll.length) {
-      _gmailLoadFolder().then(function(){ rInbox(); });
-    }
-    return;
-  }
-
-  // Show unread mail preview in Inkorg (filter=all)
-  if (st.filter === 'all' && st.view === 'inbox') {
-    var gmailThreads = (window._gmailState && window._gmailState.threads || []).filter(function(t){ return t.unread; }).slice(0,5);
-    if (gmailThreads.length) {
-      h += '<div class="akt-group-header">Mail · Olästa</div>';
-      gmailThreads.forEach(function(t) {
-        var intent = _gmailDetectIntent(t.subject, t.snippet);
-        var ic = { scheduling:'#d29922', cancel:'#f85149', clinical:'var(--teal)' }[intent.id];
-        h += '<div class="akt-item unread" data-mail-tid="' + t.id + '">';
-        h += '<div class="akt-item-dot"></div>';
-        h += '<div class="akt-item-icon mail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>';
-        h += '<div class="akt-item-body">';
-        h += '<div class="akt-item-title">' + e(t.fromName||t.from||'') + ' — <span style="font-weight:400">' + e(t.subject||'(Inget ämne)') + '</span></div>';
-        h += '<div class="akt-item-meta">' + e((t.snippet||'').slice(0,80));
-        if (ic && intent.label) h += ' · <span style="color:' + ic + ';font-weight:600">' + intent.label + '</span>';
-        h += '</div></div>';
-        h += '<div class="akt-item-time">' + _gmailDateStr(t.date) + '</div>';
-        h += '</div>';
-      });
-    }
-  }
-
-  // System notifications
-  var systemNotifs = notifs.filter(function(n){ return n.type !== 'mail'; });
-  if (systemNotifs.length) {
-    if (st.filter === 'all') h += '<div class="akt-group-header">Systemnotiser</div>';
-    systemNotifs.forEach(function(n) {
-      var typeColors = {
-        red_flag: '#f85149', late_cancel: '#f85149', cancel: '#d29922',
-        dropout: '#d29922', overdue: '#d29922', no_journal: '#9198a1',
-        unread_msg: 'var(--teal)', system: '#9198a1', journal: '#9198a1', portal: 'var(--teal)',
-      };
-      var typeIcons = {
-        red_flag:    '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
-        late_cancel: '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
-        cancel:      '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',
-        dropout:     '<path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="11" x2="23" y2="11"/>',
-        overdue:     '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-        no_journal:  '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>',
-        unread_msg:  '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>',
-      };
-      var col  = typeColors[n.subtype||n.type] || 'var(--text2)';
-      var icon = typeIcons[n.subtype||n.type]  || '<circle cx="12" cy="12" r="10"/>';
-      var ts   = n.ts ? new Date(n.ts).toLocaleDateString('sv-SE',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '';
-
-      h += '<div class="akt-item' + (!n.read?' unread':'') + (n.urgent?' urgent':'') + '" data-nid="' + n.id + '">';
-      h += '<div class="akt-item-dot' + (n.urgent?' urgent':'') + '"></div>';
-      h += '<div class="akt-item-icon" style="color:' + col + ';background:' + col + '18">';
-      h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' + icon + '</svg>';
-      h += '</div>';
-      h += '<div class="akt-item-body">';
-      h += '<div class="akt-item-title">' + e(n.title||'') + '</div>';
-      if (n.body) h += '<div class="akt-item-meta">' + e(n.body) + '</div>';
-
-      // Late cancel AI draft
-      if (n.aiDraft) {
-        h += '<div class="akt-ai-draft">';
-        h += '<div class="akt-ai-draft-label">AI-svar skickat</div>';
-        h += '<div class="akt-ai-draft-text">' + e(n.aiDraft.slice(0,120)) + '…</div>';
-        h += '</div>';
-      }
-
-      // Aktivitet = historiklogg. Bara "markera klar" för att rensa.
-      h += '<div class="akt-item-actions">';
-      if (!n.done) {
-        h += '<button class="akt-action-btn" data-done-nid="' + n.id + '">Markera klar</button>';
-      }
-      if (n.actionFn && n.patId) {
-        h += '<button class="akt-action-btn" onclick="go(\'actions\')" style="color:var(--teal)">Hantera i Åtgärder →</button>';
-      }
-      h += '</div>';
-
-      h += '</div>'; // body
-      h += '<div class="akt-item-time">' + ts + '</div>';
-      h += '</div>';
-    });
-  }
-
-  if (!systemNotifs.length && !( (window._gmailState&&window._gmailState.threads||[]).filter(function(t){return t.unread;}).length )) {
-    h += '<div class="akt-empty">';
-    h += '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>';
-    h += '<div style="font-size:16px;font-weight:600;color:#f0f6fc;margin:8px 0 4px">Allt klart</div>';
-    h += '<div>Inga ' + (st.view==='done'?'hanterade':'olästa') + ' notiser</div>';
+  // Right: thread detail
+  h += '<div id="gm-thread-panel" style="flex:1;overflow:hidden;min-width:0;display:flex;flex-direction:column;background:var(--bg)">';
+  if (!threads.length) {
+    h += '<div style="flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:var(--text2)">';
+    h += '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" style="opacity:.25"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
+    h += '<span style="font-size:14px">V\u00e4lj ett mail f\u00f6r att l\u00e4sa</span>';
     h += '</div>';
   }
+  h += '</div>';
 
-  h += '</div>'; // list
-  h += '</div>'; // main
+  h += '</div>'; // two-pane
   h += '</div>'; // shell
 
   el.innerHTML = h;
 
-  // ── Wire interactions ─────────────────────────────────────────────────────
-  _aktWireEvents(el);
-
   _aktUpdateBadge();
 
-  // Load Gmail if authed
-  if (_gmailIsAuthed && _gmailIsAuthed() && !(window._gmailState && window._gmailState.threads.length)) {
-    _gmailLoadFolder();
+  // Populate list panel
+  _gmailRenderListPanel();
+
+  // Load threads if empty
+  if (!threads.length) {
+    _gmailLoadFolder().then(function() {
+      _gmailRenderListPanel();
+      // Auto-open first thread
+      var first = (_gmailState.threads||[])[0];
+      if (first && first.id) _gmailOpenThread(first.id);
+    });
+  } else {
+    // Auto-open first unread, or first thread
+    var firstUnread = threads.find(function(t){ return t.unread; });
+    var toOpen = firstUnread || threads[0];
+    if (toOpen && toOpen.id && !(_gmailState.selectedThread && _gmailState.selectedThread.threadId)) {
+      _gmailOpenThread(toOpen.id);
+    } else if (_gmailState.selectedThread && _gmailState.selectedThread.threadId) {
+      _gmailRenderThreadContent();
+    }
   }
 }
 
@@ -14536,7 +14241,7 @@ async function _gmailLoadFolder() {
   _gmailState.loading = true;
   _gmailRenderListPanel();
 
-  var query = 'in:inbox -category:promotions';
+  var query = 'in:inbox';
   if (_gmailState.folder === 'sent')   query = 'in:sent';
   if (_gmailState.folder === 'drafts') query = 'in:drafts';
 
@@ -14622,7 +14327,7 @@ function _gmailRenderThreadContent() {
   var meta   = sel.meta;
   var intent = sel.intent;
   var pat    = sel.pat;
-  var aiOpen = _gmailState.aiOpen;
+  var aiOpen = true; _gmailState.aiOpen = true; // Always show AI panel
   var aiResult = _gmailState.aiResult;
 
   var h = '<div style="display:flex;flex-direction:column;height:100%;overflow:hidden">';
@@ -14645,9 +14350,7 @@ function _gmailRenderThreadContent() {
   h += '</div>';
   // Actions row
   h += '<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">';
-  h += '<button id="gm-ai-toggle" style="display:flex;align-items:center;gap:6px;padding:6px 13px;background:' + (aiOpen?'var(--teal)':'#21262d') + ';color:' + (aiOpen?'#0d1117':'var(--text)') + ';border:1px solid ' + (aiOpen?'var(--teal)':'var(--border)') + ';border-radius:7px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font)">';
-  h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
-  h += (aiOpen ? 'Dölj AI' : 'AI-assistans') + '</button>';
+  // AI is always open — no toggle needed
   if (pat) {
     h += '<button onclick="openPat(\'' + pat.id + '\')" style="display:flex;align-items:center;gap:6px;padding:6px 13px;background:none;border:1px solid #30363d;border-radius:7px;font-size:14px;font-weight:600;color:#f0f6fc;cursor:pointer;font-family:var(--font)">';
     h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
@@ -14709,19 +14412,36 @@ function _gmailRenderThreadContent() {
 
   // Reply box (always visible at bottom)
   h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-top:4px">';
-  h += '<div style="padding:10px 14px 0;display:flex;align-items:center;gap:6px">';
+  // ── Reply box ──────────────────────────────────────────────────────────
+  h += '<div style="background:#161b22;border:1px solid #30363d;border-radius:6px;overflow:hidden;margin-top:4px">';
+
+  // Header row
+  h += '<div style="padding:8px 14px 0;display:flex;align-items:center;gap:6px">';
   h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><path d="M9 17H4a2 2 0 01-2-2V4a2 2 0 012-2h16a2 2 0 012 2v9a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>';
-  h += '<span style="font-size:14px;font-weight:600;color:#9198a1;letter-spacing:.04em;text-transform:uppercase">Svara</span>';
+  h += '<span style="font-size:12px;font-weight:600;color:#9198a1;letter-spacing:.04em;text-transform:uppercase">VelaAgent-f\u00f6rslag</span>';
+  h += '<span style="font-size:11px;color:var(--text2);margin-left:4px">— redigera fritt</span>';
   h += '</div>';
-  h += '<textarea id="gm-reply-ta" placeholder="Skriv ditt svar..." style="width:100%;min-height:80px;border:none;background:none;padding:8px 14px 10px;font-size:14px;font-family:var(--font);color:#f0f6fc;resize:none;outline:none;box-sizing:border-box;line-height:1.65"></textarea>';
+
+  // Textarea — editable AI reply
+  h += '<textarea id="gm-reply-ta" placeholder="VelaAgent genererar ett f\u00f6rslag..." style="width:100%;min-height:100px;border:none;background:none;padding:10px 14px;font-size:14px;font-family:var(--font);color:#f0f6fc;resize:vertical;outline:none;box-sizing:border-box;line-height:1.7"></textarea>';
+
+  // Refinement row — free-text instruction to AI
+  h += '<div style="padding:6px 14px;background:rgba(0,0,0,.2);border-top:1px solid var(--border2);display:flex;align-items:center;gap:8px">';
+  h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+  h += '<input id="gm-ai-instruction" type="text" placeholder="Instruktion till AI: t.ex. \u201dvar varmare\u201d, \u201dfokusera p\u00e5 \u00f6vningarna\u201d..." ';
+  h += 'style="flex:1;background:none;border:none;outline:none;font-size:13px;color:var(--ink);font-family:var(--font);">';
+  h += '<button id="gm-ai-refine" style="background:rgba(224,118,40,.1);border:1px solid rgba(224,118,40,.25);border-radius:5px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--teal);cursor:pointer;font-family:var(--font);white-space:nowrap;display:flex;align-items:center;gap:4px">';
+  h += '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>';
+  h += 'Generera om</button>';
+  h += '</div>';
+
+  // Action row
   h += '<div style="padding:8px 14px 10px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--border2)">';
-  h += '<button id="gm-reply-ai-fill" style="background:none;border:1px solid rgba(224,118,40,.3);border-radius:6px;padding:5px 12px;font-size:14px;color:var(--teal);cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:5px">'
-     + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
-     + 'Fyll med AI</button>';
   if (pat && (intent.id==='scheduling'||intent.id==='cancel')) {
-    h += '<button id="gm-portal-send" style="background:none;border:1px solid #30363d;border-radius:6px;padding:5px 12px;font-size:14px;color:#f0f6fc;cursor:pointer;font-family:var(--font)">Skicka portallänk</button>';
+    h += '<button id="gm-portal-send" style="background:none;border:1px solid #30363d;border-radius:6px;padding:5px 12px;font-size:13px;color:var(--text);cursor:pointer;font-family:var(--font)">Skicka portall\u00e4nk</button>';
   }
   h += '<span style="flex:1"></span>';
+  h += '<button id="gm-reply-copy" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Kopiera</button>';
   h += '<button id="gm-reply-send" class="act-btn act-btn-primary" style="font-size:14px">Skicka svar</button>';
   h += '</div></div>';
 
@@ -14833,6 +14553,36 @@ function _gmailRenderThreadContent() {
     await sendPortalMagicLink(pat);
     this.textContent='Portallänk skickad ✓';
   });
+  // "Generera om" with free-text instruction
+  var refineBtn = panel.querySelector('#gm-ai-refine');
+  var instrInp  = panel.querySelector('#gm-ai-instruction');
+  async function _runRefine() {
+    if (!refineBtn) return;
+    var instr = instrInp ? instrInp.value.trim() : '';
+    refineBtn.disabled = true;
+    refineBtn.textContent = 'Genererar…';
+    _gmailState.aiResult = null;
+    _gmailState._customInstruction = instr || null;
+    await _gmailTriggerAi(true);
+    refineBtn.disabled = false;
+    refineBtn.innerHTML = '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Generera om';
+    if (instrInp) instrInp.value = '';
+  }
+  if (refineBtn) refineBtn.addEventListener('click', _runRefine);
+  if (instrInp) instrInp.addEventListener('keydown', function(e){ if (e.key==='Enter') { e.preventDefault(); _runRefine(); }});
+
+  // Copy button
+  var copyBtn = panel.querySelector('#gm-reply-copy');
+  if (copyBtn) copyBtn.addEventListener('click', function() {
+    var ta = panel.querySelector('#gm-reply-ta');
+    if (!ta || !ta.value.trim()) return;
+    navigator.clipboard.writeText(ta.value).then(function() {
+      copyBtn.textContent = 'Kopierat ✓';
+      setTimeout(function(){ copyBtn.textContent = 'Kopiera'; }, 2000);
+    });
+  });
+
+  // Keep legacy ai-fill for compatibility
   panel.querySelector('#gm-reply-ai-fill')?.addEventListener('click', async function() {
     this.disabled=true; this.textContent='Genererar...';
     if (!_gmailState.aiResult) await _gmailTriggerAi(true);
@@ -14945,21 +14695,38 @@ async function _gmailTriggerAi(silent) {
     + 'Meddelandetyp: ' + (intent.label||'okänd') + '\n'
     + 'Senaste mail (från: ' + _gmailFromName(lastMsg?.payload?.headers?.find?.(function(h){return h.name==='From';})?.value||'') + '):\n'
     + body.slice(0,600) + '\n\n'
-    + (silent && typeof silent === 'object' && silent.tone ? 'Skriv med ' + silent.tone + ' ton. ' : 'Skriv ett kort, professionellt svar på svenska. ')
+    + (_gmailState._customInstruction ? 'Extra instruktion: ' + _gmailState._customInstruction + '. Skriv ett kort, professionellt svar p\u00e5 svenska. ' : silent && typeof silent === 'object' && silent.tone ? 'Skriv med ' + silent.tone + ' ton. ' : 'Skriv ett kort, professionellt svar p\u00e5 svenska. ')
     + (intent.id==='scheduling'&&pat ? 'Hänvisa till patientportalen för ombokning: ' + portalUrl + '. Förklara att de kan boka om där. ' : '')
     + (intent.id==='cancel' ? 'Bekräfta och påminn om 24h-policyn vid sen avbokning. ' : '')
     + 'Signera: Carl-Robert Kärell, Kansei Ortopedi & Rehabcenter.';
 
+  var _aiKey = typeof getKey === 'function' ? getKey() : null;
+  if (!_aiKey) { showAutoSaveToast('API-nyckel saknas — konfigurera i Inställningar'); return; }
   try {
     var resp = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': _aiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})
     });
     var data = await resp.json();
-    _gmailState.aiResult = data.content?.[0]?.text || null;
+    _gmailState.aiResult = (data.content&&data.content[0]&&data.content[0].text) || null;
     _gmailState.aiOpen = true;
     _gmailRenderThreadContent();
-  } catch(ex) {}
+    // Auto-fill the reply textarea with AI result
+    setTimeout(function() {
+      var ta = document.getElementById('gm-reply-ta');
+      if (ta && _gmailState.aiResult && !ta.value.trim()) {
+        ta.value = _gmailState.aiResult;
+        ta.style.borderColor = 'rgba(224,118,40,.4)';
+        setTimeout(function(){ ta.style.borderColor = ''; }, 2000);
+      }
+    }, 100);
+  } catch(ex) { console.error('_gmailTriggerAi error', ex); }
 }
 
 function _gmailNotConnectedHTML() {
@@ -35145,7 +34912,7 @@ function _intelRenderDropout(ctx) {
     dropoutCount>0
       ? dropoutCount+' patienter har h\u00f6g avhoppsrisk. AI kan generera \u00e5teraktiveringsmeddelanden automatiskt.'
       : 'Inga patienter med h\u00f6g avhoppsrisk. Bra jobbat!',
-    dropoutCount>0?'Hantera i \u00c5tg\u00e4rder':null, "window._actionsType='dropout';go('actions')");
+    dropoutCount>0?'Visa avhoppare':null, "go('list')");
   var buckets = ['< 14 d','14\u201321 d','22\u201330 d','31\u201360 d','> 60 d'];
   var bCounts = [0,0,0,0,0];
   pats.forEach(function(p){

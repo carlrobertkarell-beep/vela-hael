@@ -859,7 +859,7 @@ button:not([class]) { border-radius: 6px; }
 }
 .nav-item-icon {
   width: 16px; height: 16px; min-width: 16px; flex-shrink: 0;
-  opacity: .6;
+  opacity: .75;
 }
 .nav-item:hover .nav-item-icon,
 .nav-item.active .nav-item-icon { opacity: 1; }
@@ -3142,28 +3142,7 @@ body, .app-shell, .main-content, .screen, .nav-sidebar {
 }
 .nav-item:hover .nav-item-icon { opacity: .9 !important; }
 .nav-item.active .nav-item-icon { opacity: 1 !important; }
-/* Label: hidden when sidebar collapsed, visible when expanded */
-.nav-item-label {
-  font-size: 13px !important; overflow: hidden !important;
-  max-width: 0 !important; opacity: 0 !important;
-  transition: max-width .15s, opacity .1s !important;
-  white-space: nowrap !important;
-}
-.nav-sidebar:hover .nav-item-label,
-.nav-sidebar.nav-expanded .nav-item-label {
-  max-width: 200px !important; opacity: 1 !important;
-}
-/* Badges */
-.nav-badge-count, .nav-badge-alert {
-  max-width: 0 !important; overflow: hidden !important; opacity: 0 !important;
-  transition: max-width .15s, opacity .1s !important;
-}
-.nav-sidebar:hover .nav-badge-count,
-.nav-sidebar.nav-expanded .nav-badge-count,
-.nav-sidebar:hover .nav-badge-alert,
-.nav-sidebar.nav-expanded .nav-badge-alert {
-  max-width: 40px !important; opacity: 1 !important;
-}
+/* nav label/badge visibility handled by sidebar overflow — see sidebar CSS block above */
 .nav-sb-primary { border-bottom: 1px solid #21262d !important; }
 
 /* Nav badges */

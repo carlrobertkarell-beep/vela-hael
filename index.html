@@ -229,7 +229,7 @@ a:hover { text-decoration: underline; }
 
 /* ── APP SHELL ──────────────────────────────────────────────── */
 .app-shell { display: flex; height: 100vh; overflow: hidden; }
-.main-content { flex: 1; overflow-y: auto; background: var(--bg); min-width: 0; }
+.main-content { flex: 1; overflow-y: auto; background: var(--bg); min-width: 0; padding-top: 0 !important; }
 .screen { display: none; min-height: 100%; }
 .screen.active { display: block; }
 .platform-screen.active { 
@@ -289,7 +289,7 @@ a:hover { text-decoration: underline; }
   .nav-sidebar { position:fixed; top:0; bottom:0; left:0; width:230px !important; z-index:250; transform:translateX(-100%); }
   .nav-collapse-btn { display:none; }
   .nav-sidebar.open { transform: translateX(0); box-shadow: var(--shadow-lg); }
-  .main-content { padding-top: 62px; }
+  /* main-content padding-top removed — no topbar */
   .app-shell { display: block; height: auto; min-height: 100vh; }
   .inbox-btn {
     position: relative; background: none; border: none; cursor: pointer;
@@ -683,8 +683,12 @@ a:hover { text-decoration: underline; }
   position: fixed; top: 0; left: 0; right: 0; z-index: 400;
   background: #000000;
   border-bottom: 1px solid #30363d;
-  display: flex; flex-direction: column;
+  display: none; /* hidden on desktop — navigation is in sidebar */
+  flex-direction: column;
   font-family: var(--font);
+}
+@media (max-width: 768px) {
+  .vela-global-topbar { display: flex; }
 }
 /* Row 1: pure black — no visible separator to row2 */
 .vela-gtb-row1 {
@@ -827,24 +831,25 @@ button:not([class]) { border-radius: 6px; }
   width: 48px; flex-shrink: 0; background: #0d1117;
   display: flex; flex-direction: column;
   border-right: 1px solid #30363d;
-  z-index: 150; overflow: hidden; position: relative;
+  z-index: 150; position: relative;
   transition: width .18s cubic-bezier(.4,0,.2,1);
+  overflow-x: hidden; /* clip overflow but don't hide flex children */
 }
-.nav-sidebar:hover { width: 232px; }
+.nav-sidebar:hover, .nav-sidebar.nav-expanded { width: 232px; }
 .nav-sidebar.vela-sb-hidden { display: none; }
-/* Legacy collapsed class — no longer used but kept for compat */
 .nav-sidebar.collapsed { width: 48px; }
 .nav-sidebar.collapsed:hover { width: 232px; }
 
-/* ── Nav item ─── */
+/* ── Nav item — icon always visible, label fades in on expand ─── */
 .nav-item {
-  display: flex; align-items: center; gap: 10px; width: 100%;
-  padding: 7px 0 7px 14px; border: none; border-left: 3px solid transparent;
+  display: flex; align-items: center; width: 100%;
+  padding: 7px 12px; gap: 10px;
+  border: none; border-left: 3px solid transparent;
   background: transparent; color: #9198a1; font-size: 13px;
   font-weight: 400; cursor: pointer; text-align: left;
   transition: background .1s, color .1s;
   white-space: nowrap; font-family: var(--font);
-  min-height: 34px; box-sizing: border-box; overflow: hidden;
+  min-height: 34px; box-sizing: border-box;
 }
 .nav-item:hover { background: rgba(177,186,196,.06); color: #f0f6fc; }
 .nav-item.active {
@@ -852,64 +857,72 @@ button:not([class]) { border-radius: 6px; }
   background: rgba(177,186,196,.04);
   border-left-color: var(--orange);
 }
-.nav-item.active .nav-item-icon { opacity: 1; }
+/* Icon: always visible */
 .nav-item-icon {
-  width: 16px; height: 16px; flex-shrink: 0;
-  opacity: .55; transition: opacity .1s;
-  min-width: 16px; /* prevent icon from shrinking */
+  width: 16px; height: 16px; min-width: 16px; flex-shrink: 0;
+  opacity: .6; transition: opacity .1s;
 }
-.nav-item.active .nav-item-icon { color: var(--orange); }
+.nav-item:hover .nav-item-icon { opacity: .9; }
+.nav-item.active .nav-item-icon { opacity: 1; color: var(--orange); }
 
-/* Labels and badges — hidden until sidebar expands */
-.nav-item-label { opacity: 0; transition: opacity .1s .05s; overflow: hidden; }
-.nav-sidebar:hover .nav-item-label { opacity: 1; }
+/* Label: hidden (max-width:0) → visible (max-width:160px) on hover */
+.nav-item-label {
+  overflow: hidden; max-width: 0;
+  transition: max-width .15s ease, opacity .12s;
+  opacity: 0;
+}
+.nav-sidebar:hover .nav-item-label,
+.nav-sidebar.nav-expanded .nav-item-label { max-width: 160px; opacity: 1; }
 
+/* Badges */
 .nav-badge-count {
-  margin-left: auto; margin-right: 10px; font-size: 11px; font-weight: 600;
+  margin-left: auto; flex-shrink: 0; font-size: 11px; font-weight: 600;
   background: rgba(177,186,196,.1); border: 1px solid rgba(177,186,196,.15);
   color: #9198a1; padding: 0 6px; border-radius: 20px;
   min-width: 18px; text-align: center; line-height: 18px;
   font-family: var(--font-mono);
-  opacity: 0; transition: opacity .1s .05s;
+  max-width: 0; overflow: hidden; opacity: 0;
+  transition: max-width .15s, opacity .12s;
 }
-.nav-sidebar:hover .nav-badge-count { opacity: 1; }
+.nav-sidebar:hover .nav-badge-count,
+.nav-sidebar.nav-expanded .nav-badge-count { max-width: 50px; opacity: 1; }
 .nav-item.active .nav-badge-count {
-  background: rgba(224,118,40,.12); border-color: rgba(224,118,40,.2);
-  color: var(--orange);
+  background: rgba(224,118,40,.12); border-color: rgba(224,118,40,.2); color: var(--orange);
 }
 .nav-badge-alert {
-  margin-left: auto; margin-right: 10px; font-size: 11px; font-weight: 700;
+  margin-left: auto; flex-shrink: 0; font-size: 11px; font-weight: 700;
   background: rgba(248,81,73,.15); color: #f85149;
   padding: 1px 7px; border-radius: 20px; line-height: 18px;
-  opacity: 0; transition: opacity .1s .05s;
+  max-width: 0; overflow: hidden; opacity: 0;
+  transition: max-width .15s, opacity .12s;
 }
-.nav-sidebar:hover .nav-badge-alert { opacity: 1; }
+.nav-sidebar:hover .nav-badge-alert,
+.nav-sidebar.nav-expanded .nav-badge-alert { max-width: 50px; opacity: 1; }
 
 /* Section labels */
 .nav-section-label {
   font-size: 10px; font-weight: 700; letter-spacing: .1em;
-  color: #848d97; padding: 16px 14px 4px;
+  color: #848d97; padding: 0 12px;
   display: block; text-transform: uppercase;
-  cursor: default; white-space: nowrap; overflow: hidden;
-  opacity: 0; height: 0; padding-top: 0; padding-bottom: 0;
-  transition: opacity .1s .05s, height .15s, padding .15s;
+  cursor: default; white-space: nowrap;
+  max-height: 0; overflow: hidden; opacity: 0;
+  transition: max-height .15s, opacity .12s, padding .15s;
 }
-.nav-sidebar:hover .nav-section-label {
-  opacity: 1; height: auto; padding-top: 16px; padding-bottom: 4px;
+.nav-sidebar:hover .nav-section-label,
+.nav-sidebar.nav-expanded .nav-section-label {
+  max-height: 40px; opacity: 1; padding: 16px 12px 4px;
 }
 
-/* Tooltip on icon-only (collapsed) state */
+/* Tooltip: shows only when NOT hovered (icon-only state) */
 .nav-tooltip {
-  display: none; position: absolute; left: 52px; top: 50%;
-  transform: translateY(-50%);
+  display: none; position: fixed; left: 56px;
   background: #161b22; color: #f0f6fc; font-size: 12px; font-weight: 600;
   white-space: nowrap; padding: 4px 9px; border-radius: 6px;
   pointer-events: none; z-index: 500; border: 1px solid #30363d;
 }
-/* Show tooltip only when sidebar is NOT expanded */
 .nav-sidebar:not(:hover) .nav-item:hover .nav-tooltip { display: block; }
 
-.nav-sb-primary { border-bottom: 1px solid #30363d; padding-bottom: 6px; margin-bottom: 0; }
+.nav-sb-primary { border-bottom: 1px solid #30363d; padding-bottom: 6px; }
 .nav-sb-section { padding-top: 2px; }
 
 /* ── AI PANEL — slide-up from bottom ──────────────────────────── */
@@ -1007,7 +1020,7 @@ button:not([class]) { border-radius: 6px; }
   .nav-sidebar { position: fixed; top: 96px; bottom: 0; left: 0; width: 260px !important; z-index: 350; transform: translateX(-100%); box-shadow: 4px 0 24px rgba(0,0,0,.5); }
   .nav-sidebar.open { transform: translateX(0); }
   .nav-collapse-btn { display: none; }
-  .main-content { padding-top: 0 !important; }
+  /* main-content padding-top removed */
   .app-shell { display: block; height: auto; min-height: 100vh; }
   .vela-global-topbar { height: 97px; }
   .vela-gtb-search { display: none; }
@@ -1372,7 +1385,7 @@ button:not([class]) { border-radius: 6px; }
 
 /* ── SETTINGS LAYOUT ─────────────────────────────────────── */
 .vela-settings-wrap {
-  display: flex; min-height: calc(100vh - 96px);
+  display: flex; min-height: 100vh;
   margin: 0; padding: 0;
 }
 .vela-settings-nav { display: none; }
@@ -2271,7 +2284,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 
 #gm-app {
   display: flex;
-  height: calc(100vh - 96px);
+  height: 100vh;
   overflow: hidden;
   font-family: var(--font);
   background: var(--bg);
@@ -2561,7 +2574,7 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
 
 /* ── Mobile ──────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  #gm-app { height: calc(100vh - 96px); position: relative; overflow: hidden; }
+  #gm-app { height: 100vh; position: relative; overflow: hidden; }
   #gm-sidebar { position: absolute; inset: 0; z-index: 20; width: 100%; border-right: none; transform: translateX(-100%); transition: transform .25s ease; }
   #gm-list-panel { position: absolute; inset: 0; z-index: 10; width: 100%; border-right: none; transform: translateX(0); transition: transform .25s ease; }
   #gm-thread-panel { position: absolute; inset: 0; z-index: 15; width: 100%; transform: translateX(100%); transition: transform .25s ease; }

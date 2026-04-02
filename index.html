@@ -37137,6 +37137,16 @@ function _stComms(cfg) {
     saveFollowupRules(rules);
   }
 
+  // Track which scenarios are expanded (show message template)
+  if (!window._fuqOpen) window._fuqOpen = {};
+
+  function _fuqMsg(scenario, channel, val) {
+    var rules = getFollowupRules();
+    if (!rules[scenario]) return;
+    rules[scenario][channel === 'sms' ? 'smsMsg' : 'mailMsg'] = val;
+    saveFollowupRules(rules);
+  }
+
   function _renderFollowupSettings() {
     var rules = getFollowupRules();
     // Inline inside followup_48h dropdown — no outer card border
@@ -37151,40 +37161,80 @@ function _stComms(cfg) {
     out += '<div></div>';
     out += '</div></div>';
 
-    Object.keys(FOLLOWUP_DEFAULTS).forEach(function(k, idx) {
+    // Default placeholder texts per scenario
+    var defaults = {
+      high_nrs:      { sms: 'H\u00e4r \u00e4r ett varmt SMS till {name} vars sm\u00e4rta var h\u00f6g vid bes\u00f6ket. Fr\u00e5ga hur det k\u00e4nns och p\u00e5minn att viss \u00f6mhet \u00e4r normalt. // {clinician}', mail: 'Hej {name},\n\nHur m\u00e5r du efter bes\u00f6ket? Med sm\u00e4rtniv\u00e5 p\u00e5 {nrs}/10 ville vi bara st\u00e4mma av hur det k\u00e4nns idag.\n\nH\u00f6r g\u00e4rna av dig om n\u00e5got k\u00e4nns konstigt.\n\nMed v\u00e4nliga h\u00e4lsningar,\n{clinician}' },
+      new_patient:   { sms: 'Hej {name}! Hoppas du k\u00e4nner dig n\u00f6jd efter ditt f\u00f6rsta bes\u00f6k. H\u00f6r av dig om du har fr\u00e5gor! // {clinician}', mail: 'Hej {name},\n\nV\u00e4lkommen som patient! Vi hoppas du k\u00e4nner dig n\u00f6jd efter ditt f\u00f6rsta bes\u00f6k.\n\nHar du fr\u00e5gor eller vill \u00e5terrapportera hur det g\u00e5r \u2014 du \u00e4r varmt v\u00e4lkommen att h\u00f6ra av dig.\n\nMed v\u00e4nliga h\u00e4lsningar,\n{clinician}' },
+      return_soon:   { sms: 'Hej {name}! K\u00e4nns bra att du kommer snart. Hur har det g\u00e5tt sedan sist? // {clinician}', mail: 'Hej {name},\n\nInf\u00f6r ditt bes\u00f6k snart ville vi bara st\u00e4mma av \u2014 hur har det g\u00e5tt sedan sist?\n\nMed v\u00e4nliga h\u00e4lsningar,\n{clinician}' },
+      return_later:  { sms: 'Hej {name}! Hur g\u00e5r det med \u00f6vningarna? Vi ses snart! // {clinician}', mail: 'Hej {name},\n\nHur g\u00e5r det med besv\u00e4ren och hem\u00f6vningarna? \u00c4r n\u00e5got oklart, tveka inte att h\u00f6ra av dig.\n\nMed v\u00e4nliga h\u00e4lsningar,\n{clinician}' },
+      no_next_visit: { sms: 'Hej {name}! Hoppas allt k\u00e4nns bra. Vill du boka ett \u00e5terbes\u00f6k? // {clinician}', mail: 'Hej {name},\n\nHur k\u00e4nns det efter bes\u00f6ket? Om du vill f\u00f6lja upp eller boka in ett nytt bes\u00f6k \u00e4r du varmt v\u00e4lkommen.\n\nMed v\u00e4nliga h\u00e4lsningar,\n{clinician}' },
+    };
+
+    Object.keys(FOLLOWUP_DEFAULTS).forEach(function(k) {
       var r = rules[k];
       if (r.smsOn === undefined) r.smsOn = (r.channel === 'sms' && r.enabled);
       if (r.mailOn === undefined) r.mailOn = (r.channel === 'mail' && r.enabled) || (r.channel !== 'sms' && r.enabled);
       var bothOff = (!r.smsOn && !r.mailOn) || k === 'hael_active';
-      var rowStyle = 'display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border2);transition:opacity .15s;background:var(--bg);' + (bothOff ? 'opacity:.35;' : '');
+      var isOpen = !!window._fuqOpen[k];
+      var rowBg = 'background:var(--bg)';
+      var rowStyle = 'display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid ' + (isOpen ? 'transparent' : 'var(--border2)') + ';transition:opacity .15s;' + rowBg + ';' + (bothOff ? 'opacity:.45;' : '');
 
-      out += '<div style="' + rowStyle + '">';
+      out += '<div>';
+      // Main row
+      out += '<div style="' + rowStyle + '" ' + (k !== 'hael_active' ? 'onclick="window._fuqOpen[\''+k+'\'] = !window._fuqOpen[\''+k+'\'];_renderSettingsContent(\'comms\')" style="cursor:pointer"' : '') + '>';
       out += '<div style="flex:1;min-width:0;display:flex;align-items:center;gap:16px">';
       out += '<div style="font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;flex-shrink:0;min-width:200px">' + e(r.label) + '</div>';
       out += '<div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + e(r.desc) + '</div>';
       out += '</div>';
-
       out += '<div style="display:grid;grid-template-columns:40px 40px 72px 14px;gap:8px;align-items:center">';
 
       if (k === 'hael_active') {
         out += '<div></div><div></div>';
         out += '<div style="font-size:12px;color:var(--text2);text-align:center">—</div>';
+        out += '<div></div>';
       } else {
         var smsOn = !!r.smsOn;
-        var smsStyle = smsOn ? 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#238636;flex-shrink:0' : 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#30363d;flex-shrink:0';
+        var smsStyle = (smsOn ? 'background:#238636' : 'background:#30363d') + ';width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;flex-shrink:0';
         var smsKnob = 'position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:' + (smsOn?'17':'3') + 'px';
-        out += '<div style="display:flex;justify-content:center"><button style="' + smsStyle + '" onclick="_fuqToggle(\''+k+'\',\'sms\')"><span style="' + smsKnob + '"></span></button></div>';
+        out += '<div style="display:flex;justify-content:center" onclick="event.stopPropagation()"><button style="' + smsStyle + '" onclick="_fuqToggle(\''+k+'\',\'sms\')"><span style="' + smsKnob + '"></span></button></div>';
 
         var mailOn = !!r.mailOn;
-        var mailStyle = mailOn ? 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#238636;flex-shrink:0' : 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#30363d;flex-shrink:0';
+        var mailStyle = (mailOn ? 'background:#238636' : 'background:#30363d') + ';width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;flex-shrink:0';
         var mailKnob = 'position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:' + (mailOn?'17':'3') + 'px';
-        out += '<div style="display:flex;justify-content:center"><button style="' + mailStyle + '" onclick="_fuqToggle(\''+k+'\',\'mail\')"><span style="' + mailKnob + '"></span></button></div>';
+        out += '<div style="display:flex;justify-content:center" onclick="event.stopPropagation()"><button style="' + mailStyle + '" onclick="_fuqToggle(\''+k+'\',\'mail\')"><span style="' + mailKnob + '"></span></button></div>';
 
-        out += '<input type="number" value="' + r.days + '" min="0" max="30" onchange="_fuqDays(\''+k+'\',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;font-size:13px;color:var(--ink);font-family:var(--font);text-align:center;box-sizing:border-box">';
+        out += '<div onclick="event.stopPropagation()"><input type="number" value="' + r.days + '" min="0" max="30" onchange="_fuqDays(\''+k+'\',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;font-size:13px;color:var(--ink);font-family:var(--font);text-align:center;box-sizing:border-box"></div>';
+
+        // Chevron
+        out += '<div style="display:flex;align-items:center;justify-content:center;color:var(--text2)">';
+        out += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="transition:transform .15s;transform:rotate(' + (isOpen?'180':'0') + 'deg)"><polyline points="6 9 12 15 18 9"/></svg>';
+        out += '</div>';
       }
-      out += '<div></div>';
-      out += '</div>';
-      out += '</div>';
+      out += '</div></div>';
+
+      // Expanded: template textareas
+      if (isOpen && k !== 'hael_active') {
+        out += '<div style="padding:12px 16px 16px;background:#0d1117;border-bottom:1px solid var(--border2)">';
+        out += '<div style="font-size:12px;color:var(--text2);margin-bottom:10px">Variabler: {name} {clinician} {clinic} {date} {nrs}</div>';
+
+        if (r.smsOn) {
+          var smsVal = r.smsMsg || (defaults[k] ? defaults[k].sms : '');
+          out += '<div style="margin-bottom:12px">';
+          out += '<div style="font-size:12px;font-weight:600;color:#9198a1;margin-bottom:5px">SMS-mall</div>';
+          out += '<textarea onchange="_fuqMsg(\''+k+'\',\'sms\',this.value)" rows="3" style="width:100%;background:#161b22;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;color:var(--ink);font-family:var(--font);resize:vertical;box-sizing:border-box;line-height:1.5">' + e(smsVal) + '</textarea>';
+          out += '</div>';
+        }
+        if (r.mailOn) {
+          var mailVal = r.mailMsg || (defaults[k] ? defaults[k].mail : '');
+          out += '<div>';
+          out += '<div style="font-size:12px;font-weight:600;color:#9198a1;margin-bottom:5px">Mail-mall</div>';
+          out += '<textarea onchange="_fuqMsg(\''+k+'\',\'mail\',this.value)" rows="5" style="width:100%;background:#161b22;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;color:var(--ink);font-family:var(--font);resize:vertical;box-sizing:border-box;line-height:1.5">' + e(mailVal) + '</textarea>';
+          out += '</div>';
+        }
+        out += '</div>';
+      }
+
+      out += '</div>'; // scenario wrapper
     });
     out += '</div>';
     return out;
@@ -37322,10 +37372,6 @@ function _stComms(cfg) {
   h += '</div>';
 
   h += '</div>';
-  h += '<div style="font-size:18px;font-weight:700;color:var(--ink);margin:28px 0 4px">Uppföljning efter besök</div>';
-  h += '<div style="font-size:14px;color:var(--text);margin-bottom:16px">VelaAgent draftar ett personligt meddelande och lägger det i signaturkön direkt när du sparar en journal. Justera antal dagar och kanal per scenario.</div>';
-  h += _renderFollowupSettings();
-
   return h;
 }
 

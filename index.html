@@ -13383,9 +13383,11 @@ function _gmailIsAuthed() {
 }
 
 // Initiate Google OAuth flow (implicit grant, no backend)
-function _gmailAuth(onSuccess) {
+// silent=true: no popup — only works if user already granted consent
+function _gmailAuth(onSuccess, silent) {
   var clientId = _gmailClientId();
   if (!clientId) {
+    if (silent) return; // no client ID — nothing to do silently
     window._settingsActiveTab = 'integrations';
     go('settings');
     setTimeout(function() {
@@ -13405,12 +13407,11 @@ function _gmailAuth(onSuccess) {
     return;
   }
 
-  // Use GIS token client
+  // Load GIS script if needed
   if (!window.google?.accounts?.oauth2) {
-    // Load GIS script
     var script = document.createElement('script');
     script.src = 'https://accounts.google.com/gsi/client';
-    script.onload = function() { _gmailAuth(onSuccess); };
+    script.onload = function() { _gmailAuth(onSuccess, silent); };
     document.head.appendChild(script);
     return;
   }
@@ -13418,13 +13419,28 @@ function _gmailAuth(onSuccess) {
   var client = google.accounts.oauth2.initTokenClient({
     client_id: clientId,
     scope: 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.compose',
+    prompt: silent ? '' : undefined,  // '' = silent refresh (no popup)
     callback: function(resp) {
-      if (resp.error) { showAutoSaveToast('Gmail: ' + resp.error); return; }
+      if (resp.error) {
+        if (!silent) showAutoSaveToast('Gmail: ' + resp.error);
+        return;
+      }
       _gmailSaveToken(resp.access_token, resp.expires_in);
       if (onSuccess) onSuccess();
     },
   });
-  client.requestAccessToken();
+  client.requestAccessToken({ prompt: silent ? '' : undefined });
+}
+
+// Silent token refresh — called at boot and before polls when token is expired
+function _gmailEnsureToken(cb) {
+  if (_gmailIsAuthed()) { if (cb) cb(); return; }
+  // Try silent re-auth if we have a client ID saved
+  if (_gmailClientId()) {
+    _gmailAuth(function() {
+      if (cb) cb();
+    }, true /* silent */);
+  }
 }
 
 // Gmail API helper
@@ -45987,8 +46003,12 @@ function getAiProfileContext(userId) {
         setTimeout(() => syncFromCloud(), 800);
         setTimeout(() => _dispatchRetentionQueue(), 3000);
         setInterval(() => _dispatchRetentionQueue(), 15 * 60 * 1000);
-        // Sprint 3: Gmail poll → Åtgärder
-        setTimeout(function(){ if (typeof _gmailPollActionable === 'function') _gmailPollActionable(); }, 5000);
+        // Gmail: silent token refresh at boot, then poll — no manual reconnect needed
+        setTimeout(function(){
+          _gmailEnsureToken(function() {
+            if (typeof _gmailPollActionable === 'function') _gmailPollActionable();
+          });
+        }, 5000);
         // Morning briefing on home after Gmail loaded
         setTimeout(function(){
           if (typeof _renderGmailMorningBriefing === 'function') {
@@ -45996,7 +46016,12 @@ function getAiProfileContext(userId) {
             if (mrel) _renderGmailMorningBriefing(mrel);
           }
         }, 7000);
-        setInterval(function(){ if (typeof _gmailPollActionable === 'function') _gmailPollActionable(); }, 2 * 60 * 1000);
+        // Every 2 min: ensure token is valid (silently refreshes if expired), then poll
+        setInterval(function(){
+          _gmailEnsureToken(function() {
+            if (typeof _gmailPollActionable === 'function') _gmailPollActionable();
+          });
+        }, 2 * 60 * 1000);
         setTimeout(() => sbKeepAlive(), 2000);
         setTimeout(function(){ runNightlyScanIfNeeded().then(function(){ _renderMorningReportCard(); }); }, 3000);
         setTimeout(() => runInboxAgent(S.patients), 3500);

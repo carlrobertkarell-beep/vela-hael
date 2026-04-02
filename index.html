@@ -18673,7 +18673,7 @@ score: 0-100 hälsopoäng. scoreLabel: Kritisk/Svag/Måttlig/God/Utmärkt. score
     const scoreCol = r.scoreColor==='red'?'var(--red)':r.scoreColor==='amber'?'var(--amber)':'var(--green)';
     const scoreBg  = r.scoreColor==='red'?'var(--red-lt)':r.scoreColor==='amber'?'var(--amber-lt)':'var(--green-lt)';
     const riskBadge = r.risk&&r.risk!=='none' ? `<span style="font-size:11px;font-weight:700;padding:1px 7px;border-radius:4px;background:var(--${r.risk==='high'?'red':r.risk==='medium'?'amber':'blue'}-lt);color:var(--${r.risk==='high'?'red':r.risk==='medium'?'amber':'blue'})">Avhoppsrisk: ${r.risk==='high'?'Hög':r.risk==='medium'?'Medel':'Låg'}</span>` : '';
-    slot.innerHTML = `<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:12px">
+    slot.innerHTML = `<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:12px">
       <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border2)">
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:48px;height:48px;border-radius:6px;background:${scoreBg};border:1px solid ${scoreCol}40;flex-shrink:0">
           <span style="font-size:18px;font-weight:800;color:${scoreCol};line-height:1">${r.score}</span>
@@ -37028,57 +37028,52 @@ function _stComms(cfg) {
 
   function _renderFollowupSettings() {
     var rules = getFollowupRules();
-    var out = '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:24px">';
-    // Header with column labels
-    out += '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border)">';
-    out += '<div style="flex:1;font-size:12px;font-weight:600;color:var(--text2)">Uppföljning efter besök</div>';
+    // Inline inside followup_48h dropdown — no outer card border
+    var out = '<div>';
+    // Column header row
+    out += '<div style="display:flex;align-items:center;gap:12px;padding:8px 16px;background:#161b22;border-bottom:1px solid var(--border2)">';
+    out += '<div style="flex:1;font-size:12px;font-weight:600;color:var(--text2)">Scenario</div>';
     out += '<div style="display:grid;grid-template-columns:40px 40px 72px 14px;gap:8px;align-items:center">';
-    out += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);text-align:center">SMS</div>';
-    out += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);text-align:center">Mail</div>';
-    out += '<div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);text-align:center">Dagar</div>';
+    out += '<div style="font-size:12px;font-weight:600;color:var(--text2);text-align:center">SMS</div>';
+    out += '<div style="font-size:12px;font-weight:600;color:var(--text2);text-align:center">Mail</div>';
+    out += '<div style="font-size:12px;font-weight:600;color:var(--text2);text-align:center">Dagar</div>';
     out += '<div></div>';
     out += '</div></div>';
 
     Object.keys(FOLLOWUP_DEFAULTS).forEach(function(k, idx) {
       var r = rules[k];
-      // Migrate old single-channel format to dual-channel
       if (r.smsOn === undefined) r.smsOn = (r.channel === 'sms' && r.enabled);
       if (r.mailOn === undefined) r.mailOn = (r.channel === 'mail' && r.enabled) || (r.channel !== 'sms' && r.enabled);
       var bothOff = (!r.smsOn && !r.mailOn) || k === 'hael_active';
-      var rowStyle = 'display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border2);transition:opacity .15s;' + (bothOff ? 'opacity:.35;' : '');
+      var rowStyle = 'display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border2);transition:opacity .15s;background:var(--bg);' + (bothOff ? 'opacity:.35;' : '');
 
       out += '<div style="' + rowStyle + '">';
-      // Label
-      out += '<div style="flex:1;min-width:0">';
-      out += '<div style="font-size:14px;font-weight:400;color:var(--ink)">' + e(r.label) + '</div>';
-      out += '<div style="font-size:12px;color:var(--text2);margin-top:1px">' + e(r.desc) + '</div>';
+      out += '<div style="flex:1;min-width:0;display:flex;align-items:center;gap:16px">';
+      out += '<div style="font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;flex-shrink:0;min-width:200px">' + e(r.label) + '</div>';
+      out += '<div style="font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + e(r.desc) + '</div>';
       out += '</div>';
 
-      // Toggles + days in aligned grid
       out += '<div style="display:grid;grid-template-columns:40px 40px 72px 14px;gap:8px;align-items:center">';
 
       if (k === 'hael_active') {
         out += '<div></div><div></div>';
         out += '<div style="font-size:12px;color:var(--text2);text-align:center">—</div>';
       } else {
-        // SMS toggle
         var smsOn = !!r.smsOn;
         var smsStyle = smsOn ? 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#238636;flex-shrink:0' : 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#30363d;flex-shrink:0';
         var smsKnob = 'position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:' + (smsOn?'17':'3') + 'px';
         out += '<div style="display:flex;justify-content:center"><button style="' + smsStyle + '" onclick="_fuqToggle(\''+k+'\',\'sms\')"><span style="' + smsKnob + '"></span></button></div>';
 
-        // Mail toggle
         var mailOn = !!r.mailOn;
         var mailStyle = mailOn ? 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#238636;flex-shrink:0' : 'width:32px;height:18px;border-radius:9px;border:none;cursor:pointer;position:relative;background:#30363d;flex-shrink:0';
         var mailKnob = 'position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:' + (mailOn?'17':'3') + 'px';
         out += '<div style="display:flex;justify-content:center"><button style="' + mailStyle + '" onclick="_fuqToggle(\''+k+'\',\'mail\')"><span style="' + mailKnob + '"></span></button></div>';
 
-        // Days input
         out += '<input type="number" value="' + r.days + '" min="0" max="30" onchange="_fuqDays(\''+k+'\',this.value)" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:3px 6px;font-size:13px;color:var(--ink);font-family:var(--font);text-align:center;box-sizing:border-box">';
       }
       out += '<div></div>';
-      out += '</div>'; // grid
-      out += '</div>'; // row
+      out += '</div>';
+      out += '</div>';
     });
     out += '</div>';
     return out;
@@ -37091,10 +37086,10 @@ function _stComms(cfg) {
   // Legend removed — toggle UI is self-explanatory
 
   GROUPS.forEach(function(grp) {
-    h += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:12px">';
+    h += '<div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:12px">';
 
     // Group header
-    h += '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--border)">';
+    h += '<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:#161b22;border-bottom:1px solid var(--border)">';
     h += '<div style="flex:1;font-size:12px;font-weight:600;color:var(--text2)">'+grp.label+'</div>';
     if (grp.desc) h += '<div style="font-size:12px;color:var(--text2);margin-top:1px">'+grp.desc+'</div>';
     // Column headers aligned with toggles
@@ -37148,7 +37143,10 @@ function _stComms(cfg) {
       // Expandable body
       h += '<div id="cch-body-'+ev.id+'" style="display:none;border-top:1px solid var(--border2);background:rgba(255,255,255,.01)">';
 
-      if (isAiAnswered) {
+      if (ev.id === 'followup_48h') {
+        // Inline scenario configurator — replaces the separate section below
+        h += '<div style="padding:0">' + _renderFollowupSettings() + '</div>';
+      } else if (isAiAnswered) {
         h += '<div style="padding:12px 16px;display:flex;align-items:flex-start;gap:10px">';
         h += '<div style="width:24px;height:24px;flex-shrink:0;color:var(--orange);margin-top:1px">'+svgIcon('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',14,'var(--orange)')+'</div>';
         h += '<div style="flex:1"><div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px">VelaAgent svarar med AI</div>';

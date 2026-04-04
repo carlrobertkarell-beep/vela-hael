@@ -3008,7 +3008,7 @@ a { color: var(--link); }
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--white-30)" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
         <button class="nav-collapse-btn" onclick="toggleSidebarCollapse()" title="Fäll in/ut sidebar">
-          <span class="nav-footer-text" class="v-f12">← Fäll in</span>
+          <span class="nav-footer-text v-f12">← Fäll in</span>
           <svg class="nav-collapse-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
       </div>
@@ -3772,7 +3772,7 @@ function _zpRenewalHTML(patId, visitId, patName, visit, achievements, selLen, li
       <div class="zp-tier-top">
         <div>
           <div class="zp-tier-name">${tier.name}</div>
-          <div class="zp-tier-tag" class="v-mb0">${tier.tagline}</div>
+          <div class="zp-tier-tag v-mb0">${tier.tagline}</div>
         </div>
         <div class="zp-tier-pricing">
           <div class="zp-tier-price">${price} kr<span>${len.suffix}</span></div>
@@ -7084,7 +7084,7 @@ function _vcalAgendaView(st, now) {
     h += '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" class="v-mb12"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
     h += '<div class="v-title-15-600">Inga kommande bokningar</div>';
     h += '<div style="margin-top:6px;font-size:14px">Nästa 30 dagarna är tomma</div>';
-    h += '<button onclick="openBookingDialog(null,null)" class="vcal-new-btn" class="v-mt16">+ Ny bokning</button>';
+    h += '<button onclick="openBookingDialog(null,null)" class="vcal-new-btn v-mt16">+ Ny bokning</button>';
     h += '</div>';
   } else {
     var lastDate = '';
@@ -7583,8 +7583,8 @@ function openBookingDetail(bkId) {
   h += '<button onclick="_deleteBk(\'' + bkId + '\')" style="padding:11px 16px;background:none;border:1px solid var(--red-30);border-radius:6px;font-size:14px;color:var(--hael-err);cursor:pointer;font-family:var(--font)">Avboka</button>';
   h += '<button onclick="document.getElementById(\'bk-detail-ov\').remove();_handleNoShow(\''+bkId+'\')" style="padding:11px 14px;background:none;border:1px solid var(--amber-30);border-radius:6px;font-size:14px;color:var(--amber);cursor:pointer;font-family:var(--font)">Uteblev</button>';
   h += '<button onclick="var r=prompt(\'Anledning till klinikens avbokning?\');if(r!==null){document.getElementById(\'bk-detail-ov\').remove();_handleClinicCancellation(\''+bkId+'\',r)}" style="padding:11px 14px;background:none;border:1px solid var(--red-15);border-radius:6px;font-size:12px;color:var(--muted);cursor:pointer;font-family:var(--font)">Avboka kliniken</button>';
-  h += '<button onclick="document.getElementById(\'bk-detail-ov\').remove();openPat(\'' + bk.patientId + '\')" class="btn" class="v-grow-p11">Öppna patient</button>';
-  h += '<button onclick="document.getElementById(\'bk-detail-ov\').remove();_startVisitFromBk(\'' + bkId + '\')" class="btn btn-p" class="v-grow-p11">Ta emot →</button>';
+  h += '<button onclick="document.getElementById(\'bk-detail-ov\').remove();openPat(\'' + bk.patientId + '\')" class="btn v-grow-p11">Öppna patient</button>';
+  h += '<button onclick="document.getElementById(\'bk-detail-ov\').remove();_startVisitFromBk(\'' + bkId + '\')" class="btn btn-p v-grow-p11">Ta emot →</button>';
   h += '</div></div>';
 
   ov.innerHTML = h;
@@ -7775,7 +7775,7 @@ function rHaelPatient(planData, patData) {
     }
 
     // Log session button
-    h += '<div class="hael-section" class="v-mt20">';
+    h += '<div class="hael-section v-mt20">';
     var allDone = exercises.length > 0 && Object.keys(_haelExDone).length >= exercises.length;
     h += '<button class="hael-log-btn" onclick="_haelOpenLogDialog()">';
     h += '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>';
@@ -7793,7 +7793,7 @@ function rHaelPatient(planData, patData) {
     // Stats row
     h += '<div class="hael-stat-row">';
     h += '<div class="hael-stat-card"><div class="hael-stat-val">' + passCount + '</div><div class="hael-stat-lbl">Pass</div></div>';
-    h += '<div class="hael-stat-card"><div class="hael-stat-val" class="v-clr-teal">' + streak + '</div><div class="hael-stat-lbl">Streak</div></div>';
+    h += '<div class="hael-stat-card"><div class="hael-stat-val v-clr-teal">' + streak + '</div><div class="hael-stat-lbl">Streak</div></div>';
     h += '<div class="hael-stat-card"><div class="hael-stat-val">' + pct + '%</div><div class="hael-stat-lbl">Klar</div></div>';
     if (nrsFirst!=null&&nrsLast!=null) {
       var diff = Math.round((nrsFirst-nrsLast)*10)/10;
@@ -10384,7 +10384,7 @@ function rTopbar() {
   if (scr === 'dashboard') {
         nh += '<button class="nav-item" data-action="search" style="background:var(--gray-04);border:1px solid var(--border);border-radius:6px;margin:0 8px 4px;width:calc(100% - 16px);padding:5px 10px">'
       + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="nav-item-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
-      + '<span class="nav-item-label" class="v-muted">Sök patient...</span>'
+      + '<span class="nav-item-label v-muted">Sök patient...</span>'
       + '<span class="nav-item-label" style="margin-left:auto;font-size:11px;color:var(--muted);background:var(--surface3);padding:1px 5px;border-radius:4px;font-family:var(--font-mono)">/ </span>'
       + '</button>';
     nh += '<button class="nav-item" onclick="openBookingDialog&&openBookingDialog()">'
@@ -10395,7 +10395,7 @@ function rTopbar() {
     nh += nsep('Patienter');
     nh += '<button class="nav-item" onclick="openCommandPalette&&openCommandPalette()" style="background:var(--gray-04);border:1px solid var(--border);border-radius:6px;margin:0 8px 4px;width:calc(100% - 16px);padding:5px 10px">'
       + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="nav-item-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>'
-      + '<span class="nav-item-label" class="v-muted">Sök...</span>'
+      + '<span class="nav-item-label v-muted">Sök...</span>'
       + '</button>';
     nh += '<button class="nav-item" onclick="go(\'form\')">'
       + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
@@ -11476,7 +11476,7 @@ function rActions() {
       var aiDraft = (window._raAiDrafts && window._raAiDrafts[iss.id]) || iss.aiSuggestion || '';
       var origThread = (window._raThreadCache && window._raThreadCache[iss.threadId]) || null;
 
-      h += '<div class="ra-detail-body" class="v-p16-20">';
+      h += '<div class="ra-detail-body v-p16-20">';
       h += '<div class="ra-mail-split">';
 
       // Left: original mail
@@ -12093,9 +12093,9 @@ function _launchPortalLogin(patId, errorMsg) {
     + '<div style="font-size:22px;font-weight:700;color:var(--ink);margin-bottom:6px;letter-spacing:-.02em">Patientportal</div>'
     + '<div style="font-size:14px;color:var(--text2);margin-bottom:28px">Ange din e-postadress för att logga in.</div>'
     + (errorMsg ? '<div style="background:var(--red-08);border:1px solid var(--red-20);border-radius:6px;padding:12px 14px;font-size:14px;color:var(--red);margin-bottom:16px">' + errorMsg + '</div>' : '')
-    + '<input id="pp-login-email" type="email" placeholder="din@epost.se" class="pp-input" class="v-mb10" autocomplete="email">'
+    + '<input id="pp-login-email" type="email" placeholder="din@epost.se" class="pp-input v-mb10" autocomplete="email">'
     + '<div id="pp-login-err" style="font-size:14px;color:var(--red);display:none;margin-bottom:8px"></div>'
-    + '<button id="pp-login-btn" class="pp-btn pp-btn-primary" class="v-w100-center">Skicka inloggningslänk</button>'
+    + '<button id="pp-login-btn" class="pp-btn pp-btn-primary v-w100-center">Skicka inloggningslänk</button>'
     + '<div id="pp-login-sent" style="display:none;margin-top:14px;padding:12px 14px;background:var(--green-08);border:1px solid var(--green-20);border-radius:6px;font-size:14px;color:var(--green)">Länk skickad! Kontrollera din e-post.</div>'
     + '<p style="font-size:14px;color:var(--surface3);margin-top:20px;line-height:1.6;text-align:center">Du får en engångslänk som är giltig i 60 minuter.</p>'
     + '</div></div></div>';
@@ -12377,14 +12377,14 @@ function renderPatientPortal(patId, pat) {
         h += '</div></div>';
         h += '<div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;align-items:flex-end">';
         if (canChange) {
-          h += '<button class="pp-btn pp-btn-primary" class="v-f14" onclick="_ppReschedule(\'' + bk.id + '\',\'' + patId + '\')">';
+          h += '<button class="pp-btn pp-btn-primary v-f14" onclick="_ppReschedule(\'' + bk.id + '\',\'' + patId + '\')">';
           h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>';
           h += 'Boka om</button>';
-          h += '<button class="pp-btn" class="v-muted" onclick="_ppCancel(\'' + bk.id + '\',\'' + patId + '\',false)">Avboka</button>';
+          h += '<button class="pp-btn v-muted" onclick="_ppCancel(\'' + bk.id + '\',\'' + patId + '\',false)">Avboka</button>';
         } else if (isLate) {
           h += '<button class="pp-btn" style="font-size:14px;color:var(--red);border-color:var(--red-30)" onclick="_ppCancel(\'' + bk.id + '\',\'' + patId + '\',true)">Avboka (sent)</button>';
         } else {
-          h += '<span class="pp-status-pill pp-status-green" class="v-f14">Pågår snart</span>';
+          h += '<span class="pp-status-pill pp-status-green v-f14">Pågår snart</span>';
         }
         h += '</div></div>';
       });
@@ -12429,8 +12429,8 @@ function renderPatientPortal(patId, pat) {
       h += '</div></div>';
     } else {
       var planLink = window.location.origin + window.location.pathname + '#plan/' + patId + '/' + haelVisit.id;
-      h += '<div class="pp-card pp-card-row" class="v-p16">';
-      h += '<div class="pp-card-icon" class="v-icon-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>';
+      h += '<div class="pp-card pp-card-row v-p16">';
+      h += '<div class="pp-card-icon v-icon-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>';
       h += '<div class="pp-card-body">';
       h += '<div class="pp-card-title">' + e(haelVisit.plan?.form?.diagnosis||'Din Hael-plan') + '</div>';
       h += '<div class="pp-card-meta">Startad ' + haelVisit.date + ' &middot; ' + (haelVisit.plan?.totalWeeks||haelVisit.plan?.form?.followup||4) + ' veckor</div>';
@@ -12476,7 +12476,7 @@ function renderPatientPortal(patId, pat) {
       h += '<div class="v-wrap6">';
       DAYS2.forEach(function(d){
         h += '<label style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:var(--white-04);border:1px solid var(--white-10);border-radius:20px;cursor:pointer;font-size:14px;color:var(--white-70)">'
-          + '<input type="checkbox" value="'+d.k+'" class="pp-wl-day" class="v-accent-check"> '+d.l+'</label>';
+          + '<input type="checkbox" value="'+d.k+'" class="pp-wl-day v-accent-check"> '+d.l+'</label>';
       });
       h += '</div></div>';
       // Times
@@ -12531,8 +12531,8 @@ function renderPatientPortal(patId, pat) {
     }
     // Show intake form link or embedded
     var intakeLink = (pat?.intakeLink) || ('?intake=' + patId);
-    h += '<div class="pp-card pp-card-row" class="v-p16">';
-    h += '<div class="pp-card-icon" class="v-icon-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="' + (intake?'var(--green)':'var(--orange)') + '" stroke-width="1.8" stroke-linecap="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></div>';
+    h += '<div class="pp-card pp-card-row v-p16">';
+    h += '<div class="pp-card-icon v-icon-box"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="' + (intake?'var(--green)':'var(--orange)') + '" stroke-width="1.8" stroke-linecap="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></div>';
     h += '<div class="pp-card-body">';
     h += '<div class="pp-card-title">Hälsodeklaration</div>';
     h += '<div class="pp-card-meta">' + (intake ? 'Inskickat ' + new Date(intake.ts||intake.createdAt).toLocaleDateString('sv-SE',{day:'numeric',month:'short'}) : 'Ej ifyllt — ta 5 minuter innan ditt besök') + '</div>';
@@ -12702,7 +12702,7 @@ function _ppReschedule(bookingId, patId) {
       });
       h += '</div>';
       h += '<div class="v-row8">';
-      h += '<button onclick="window._ppRsBack()" class="pp-btn" class="v-grow-center">← Tillbaka</button>';
+      h += '<button onclick="window._ppRsBack()" class="pp-btn v-grow-center">← Tillbaka</button>';
       h += '<button id="pp-step2-next" class="pp-btn pp-btn-primary" style="flex:2;justify-content:center" ' + (selTime?'':'disabled') + '>Fortsätt</button>';
       h += '</div></div>';
     }
@@ -12729,7 +12729,7 @@ function _ppReschedule(bookingId, patId) {
       h += 'Bekr&auml;ftelse skickas till ' + e(pat && pat.email ? pat.email : 'din e-post') + '</div>';
 
       h += '<div class="v-row8">';
-      h += '<button onclick="window._ppRsBack()" class="pp-btn" class="v-grow-center">← Ändra</button>';
+      h += '<button onclick="window._ppRsBack()" class="pp-btn v-grow-center">← Ändra</button>';
       h += '<button id="pp-confirm-btn" class="pp-btn pp-btn-primary" style="flex:2;justify-content:center;padding:12px">Bekräfta ombokning</button>';
       h += '</div></div>';
     }
@@ -12786,7 +12786,7 @@ function _ppReschedule(bookingId, patId) {
           + '<div class="v-title-20-b6">Ombokning bekräftad</div>'
           + '<div style="font-size:16px;font-weight:600;color:var(--accent);margin-bottom:4px">' + fmtDate(selDate) + ' kl ' + selTime + '</div>'
           + '<div style="font-size:14px;color:var(--text2);margin-bottom:24px">En bekräftelse har skickats till din e-post.</div>'
-          + '<button onclick="document.getElementById(\'pp-reschedule-ov\').remove()" class="pp-btn pp-btn-primary" class="v-w100-center">Klart</button>'
+          + '<button onclick="document.getElementById(\'pp-reschedule-ov\').remove()" class="pp-btn pp-btn-primary v-w100-center">Klart</button>'
           + '</div>';
 
         setTimeout(function(){
@@ -12820,8 +12820,8 @@ function _ppCancel(bookingId, patId, isLate) {
     + (isLate ? '<div style="background:var(--red-08);border:1px solid var(--red-20);border-radius:6px;padding:12px;font-size:14px;color:var(--red);margin-bottom:16px">Din tid är om mindre än ' + (cfg.cancelPolicyHours||24) + ' timmar. Enligt vår policy debiteras fullt pris vid sen avbokning.</div>' : '')
     + '<div style="font-size:14px;color:var(--muted);margin-bottom:20px">Vill du avboka din tid ' + bk.date + ' kl ' + bk.time + '?</div>'
     + '<div class="v-row8">'
-    + '<button onclick="this.closest(\'div[style*=inset]\').remove()" class="pp-btn" class="v-grow">Behåll tid</button>'
-    + '<button id="pp-confirm-cancel" class="pp-btn pp-btn-danger" class="v-grow">Ja, avboka</button>'
+    + '<button onclick="this.closest(\'div[style*=inset]\').remove()" class="pp-btn v-grow">Behåll tid</button>'
+    + '<button id="pp-confirm-cancel" class="pp-btn pp-btn-danger v-grow">Ja, avboka</button>'
     + '</div></div>';
   document.body.appendChild(ov);
   ov.onclick = function(e){ if(e.target===ov) ov.remove(); };
@@ -14088,7 +14088,7 @@ function _gmailRenderThreadContent() {
   }
   h += '<span class="v-grow"></span>';
   h += '<button id="gm-reply-copy" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Kopiera</button>';
-  h += '<button id="gm-reply-send" class="act-btn act-btn-primary" class="v-f14">Skicka svar</button>';
+  h += '<button id="gm-reply-send" class="act-btn act-btn-primary v-f14">Skicka svar</button>';
   h += '</div></div>';
 
   h += '</div>'; // messages column
@@ -14422,7 +14422,7 @@ function _gmailOpenCompose(prefillTo, prefillSubject, prefillBody) {
   + '</div>'
   + '<textarea id="gm-co-body" class="gm-co-body-ta" placeholder="Skriv ditt meddelande..."></textarea>'
   + '<div class="gm-co-footer">'
-  + '<button id="gm-co-send-btn" class="act-btn act-btn-primary" class="v-f14">Skicka</button>'
+  + '<button id="gm-co-send-btn" class="act-btn act-btn-primary v-f14">Skicka</button>'
   + '<button id="gm-co-ai-btn" style="display:flex;align-items:center;gap:5px;padding:5px 12px;background:none;border:1px solid var(--orange-35);border-radius:6px;font-size:14px;color:var(--teal);cursor:pointer;font-family:var(--font)">'
   + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Skriv med AI</button>'
   + '<span class="v-grow"></span>'
@@ -15115,7 +15115,7 @@ function rHome() {
   h += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:24px">';
 
   function mkChip(label, icon, items, color) {
-    var c = '<div class="v-rel" class="hc-w">';
+    var c = '<div class="v-rel hc-w">';
     c += '<button class="hc-b v-hov-border-blue" style="display:flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid var(--border);border-radius:20px;background:var(--surface2);font-size:14px;font-weight:500;color:' + (color||'var(--ink)') + ';cursor:pointer;font-family:var(--font);white-space:nowrap;transition:border-color .12s,background .12s"  >'
        + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' + icon + '</svg>' + label;
     if (items) c += ' <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>';
@@ -15628,7 +15628,7 @@ function rWorkspace() {
   if (savedAv) h += '<img src="'+savedAv+'" class="r4-av20" alt="">';
   else h += '<span class="r4-av20 r4-av20i">'+ownerInit+'</span>';
   h += '<span style="font-size:12px;color:var(--muted);flex-shrink:0">Senaste aktivitet</span>';
-  h += '<span class="r4-commit-msg" class="v-clr-ink">'+e(commitMsg)+'</span>';
+  h += '<span class="r4-commit-msg v-clr-ink">'+e(commitMsg)+'</span>';
   h += '<span class="v-grow"></span>';
   h += '<span class="r4-commit-t">'+commitTime+'</span>';
   h += '<a class="r4-commits-ct" onclick="go(\'calendar\')">';
@@ -15768,7 +15768,7 @@ function rWorkspace() {
   if (svcArr.length) {
     h += '<section class="r4-asec">';
     h += '<div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">';
-    h += '<h2 class="r4-ah2" class="v-m0">Tjänster</h2>';
+    h += '<h2 class="r4-ah2 v-m0">Tjänster</h2>';
     h += '<span class="v-xs">senaste 12 mån &middot; ' + svcTotal + ' besök</span>';
     h += '</div>';
     var svcTotal2 = svcArr.reduce(function(s,v){return s+v.pct;},0) || 1;
@@ -16811,7 +16811,7 @@ function _detJournal(p, visits) {
   var h = '<div style="max-width:800px">';
   h += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">';
   h += '<div class="v-title">'+visits.length+' besök registrerade</div>';
-  h += '<button onclick="newVisit()" class="act-btn act-btn-primary" class="v-f14">+ Nytt besök</button>';
+  h += '<button onclick="newVisit()" class="act-btn act-btn-primary v-f14">+ Nytt besök</button>';
   h += '</div>';
 
   if (!visits.length) {
@@ -17068,20 +17068,20 @@ function openDiagEditor(patId) {
         <div class="v-col10">
           <div>
             <div style="font-size:12px;font-weight:700;color:#8a5aaa;margin-bottom:5px">Systemisk diagnos</div>
-            <input id="diag-systemic" class="field" class="v-m0-f14" placeholder="T.ex. Diabetes typ 2, Hjärt-kärlsjukdom" value="${e(pat?.diagSystemic||'')}">
+            <input id="diag-systemic" class="field v-m0-f14" placeholder="T.ex. Diabetes typ 2, Hjärt-kärlsjukdom" value="${e(pat?.diagSystemic||'')}">
           </div>
           <div>
             <div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:5px">Funktionell diagnos</div>
-            <input id="diag-functional" class="field" class="v-m0-f14" placeholder="T.ex. Rörelseinskränkning, Nedsatt muskelkraft" value="${e(pat?.diagFunctional||'')}">
+            <input id="diag-functional" class="field v-m0-f14" placeholder="T.ex. Rörelseinskränkning, Nedsatt muskelkraft" value="${e(pat?.diagFunctional||'')}">
           </div>
           <div>
             <div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:5px">Strukturell diagnos</div>
-            <input id="diag-structural" class="field" class="v-m0-f14" placeholder="T.ex. L4-L5 diskbråck, Knäartros grad II" value="${e(pat?.diagStructural||'')}">
+            <input id="diag-structural" class="field v-m0-f14" placeholder="T.ex. L4-L5 diskbråck, Knäartros grad II" value="${e(pat?.diagStructural||'')}">
           </div>
         </div>
       </div>
       <div class="v-row8">
-        <button onclick="saveDiagEdit('${patId}')" class="btn btn-p" class="v-grow-p11">Spara</button>
+        <button onclick="saveDiagEdit('${patId}')" class="btn btn-p v-grow-p11">Spara</button>
         <button onclick="document.getElementById('diag-edit-ov').remove()" class="v-tab-btn-11">Avbryt</button>
       </div>
     </div>
@@ -17647,7 +17647,7 @@ function rLoading() {
   document.getElementById('s-loading').innerHTML = h;
 }
 
-function rEditEx(){if(!S.plan){go("doc");return;}const exs=S.plan.exercises||[];let h=`<div class="fwrap"><div class="ftitle">Välj övningar att byta</div><div class="fsub" class="v-mb20">Låsta behålls exakt. Olåsta ersätts med nya.</div><div class="ee-list">`;exs.forEach((ex,i)=>{const lk=!!S.locked[i];h+=`<div class="ee-item ${lk?"lk":"ul"}"><div class="ee-num">${i+1}</div><div class="ee-info"><div class="ee-name">${e(ex.name)}</div><div class="ee-dose">${ex.sets} set · ${ex.reps} · ${ex.rest}</div><div class="ee-st">${lk?"Behålls":"Byts ut"}</div></div><button class="lkbtn ${lk?"on":"off"}" class="v-mr4" onclick="togLock(${i})">${lk?"Lås upp":"Lås"}</button><button class="btn" style="font-size:14px;padding:5px 10px" onclick="showSwapDialog(${i})">Byt</button></div>`;});const nu=exs.length-Object.values(S.locked).filter(Boolean).length;h+=`</div>`;if(nu>0)h+=`<div class="rinfo" class="v-mb12">${nu} övning(ar) byts ut</div>`;h+=`<div class="twocol"><button class="btn" style="padding:12px" onclick="go('doc')">Avbryt</button><button class="btn btn-p" style="padding:12px;border-radius:6px" ${nu===0?"disabled":""} onclick="doRegen()">Regenerera ${nu} övning(ar)</button></div></div>`;document.getElementById("s-editex").innerHTML=h;}
+function rEditEx(){if(!S.plan){go("doc");return;}const exs=S.plan.exercises||[];let h=`<div class="fwrap"><div class="ftitle">Välj övningar att byta</div><div class="fsub v-mb20">Låsta behålls exakt. Olåsta ersätts med nya.</div><div class="ee-list">`;exs.forEach((ex,i)=>{const lk=!!S.locked[i];h+=`<div class="ee-item ${lk?"lk":"ul"}"><div class="ee-num">${i+1}</div><div class="ee-info"><div class="ee-name">${e(ex.name)}</div><div class="ee-dose">${ex.sets} set · ${ex.reps} · ${ex.rest}</div><div class="ee-st">${lk?"Behålls":"Byts ut"}</div></div><button class="lkbtn ${lk?"on":"off"}" class="v-mr4" onclick="togLock(${i})">${lk?"Lås upp":"Lås"}</button><button class="btn" style="font-size:14px;padding:5px 10px" onclick="showSwapDialog(${i})">Byt</button></div>`;});const nu=exs.length-Object.values(S.locked).filter(Boolean).length;h+=`</div>`;if(nu>0)h+=`<div class="rinfo v-mb12">${nu} övning(ar) byts ut</div>`;h+=`<div class="twocol"><button class="btn" style="padding:12px" onclick="go('doc')">Avbryt</button><button class="btn btn-p" style="padding:12px;border-radius:6px" ${nu===0?"disabled":""} onclick="doRegen()">Regenerera ${nu} övning(ar)</button></div></div>`;document.getElementById("s-editex").innerHTML=h;}
 function togLock(i){S.locked[i]=!S.locked[i];rEditEx();}
 function initEditEx(){const exs=S.plan&&S.plan.exercises||[];exs.forEach((_,i)=>{S.locked[i]=true;});go("editex");}
 async function doRegen(){const key=getKey();if(!key){alert("API-nyckel saknas. Gå till Inställningar.");return;}const lk=Object.entries(S.locked).filter(([,v])=>v).map(([k])=>parseInt(k));const lkList=lk.map(i=>({index:i,...S.plan.exercises[i]}));if(S.plan.exercises.length-lk.length===0){go("doc");return;}S.loadMode='plan';S.loadStep=1;go("loading");try{S.loadStep=2;rLoading();const gen=await callAPI(buildPr(S.form,lkList),[],key);S.loadStep=3;rLoading();const merged=[...S.plan.exercises];let ni=0;const nex=gen.exercises.filter((_,i)=>!lk.includes(i));for(let i=0;i<merged.length;i++)if(!S.locked[i])merged[i]=nex[ni++]||merged[i];S.plan={...S.plan,exercises:merged};S.locked={};if(S.pat&&S.visitId){S.pat.visits=S.pat.visits.map(v=>v.id===S.visitId?{...v,plan:S.plan}:v);savePat(S.pat);}go("doc");}catch(err){alert("Fel: "+err.message);go("doc");}}
@@ -18275,7 +18275,7 @@ function newPatientFlow() {
     <div class="npf-body">
       <!-- Required -->
       <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:10px">Obligatoriskt</div>
-      <div class="npf-row" class="v-mb12">
+      <div class="npf-row v-mb12">
         <div>
           <div class="npf-label">Namn *</div>
           <input id="npf-name" class="npf-input" placeholder="Fullständigt namn" oninput="document.getElementById('npf-err').style.display='none'">
@@ -18285,13 +18285,13 @@ function newPatientFlow() {
           <input id="npf-birthdate" class="npf-input" placeholder="890122-1234 eller 19890122">
         </div>
       </div>
-      <div class="npf-full" class="v-mb10">
+      <div class="npf-full v-mb10">
         <div class="npf-label">Huvuddiagnos / besvär *</div>
         <input id="npf-diagnosis" class="npf-input" placeholder="T.ex. Knäartros, diskbråck L4-L5, rotatorcufftendinit...">
       </div>
       <!-- Optional -->
       <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:10px">Valfritt -- kan kompletteras senare</div>
-      <div class="npf-row" class="v-mb10">
+      <div class="npf-row v-mb10">
         <div>
           <div class="npf-label">Telefon</div>
           <input id="npf-phone" class="npf-input" type="tel" placeholder="070-000 00 00">
@@ -18301,11 +18301,11 @@ function newPatientFlow() {
           <input id="npf-email" class="npf-input" type="email" placeholder="patient@mail.se">
         </div>
       </div>
-      <div class="npf-full" class="v-mb10">
+      <div class="npf-full v-mb10">
         <div class="npf-label">Adress</div>
         <input id="npf-address" class="npf-input" placeholder="Gatuadress, postnummer, stad">
       </div>
-      <div class="npf-full" class="v-mb10">
+      <div class="npf-full v-mb10">
         <div class="npf-label">Anteckningar</div>
         <textarea id="npf-notes" class="npf-input" placeholder="Mediciner, kontraindikationer, relevant bakgrund..." style="height:66px;resize:vertical"></textarea>
       </div>
@@ -18416,7 +18416,7 @@ function returningPatientFlow() {
       <div id="rpf-results" style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto"></div>
     </div>
     <div style="padding:0 24px 32px">
-      <button class="npf-btn-ghost" class="v-w100" onclick="document.getElementById('returning-pat-flow').remove()">Avbryt</button>
+      <button class="npf-btn-ghost v-w100" onclick="document.getElementById('returning-pat-flow').remove()">Avbryt</button>
     </div>
   </div>`;
   document.body.appendChild(ov);
@@ -18498,7 +18498,7 @@ function showVisitActionChooser() {
       <!-- Service -->
       <div class="v-mb18">
         <div style="font-size:11px;font-weight:700;color:var(--navy);margin-bottom:8px">Tjänst</div>
-        <select id="visit-service-select" class="npf-input" class="v-m0" onchange="_previewServicePrice(this)">
+        <select id="visit-service-select" class="npf-input v-m0" onchange="_previewServicePrice(this)">
           <option value="" data-price="0">-- Välj tjänst --</option>
           ${svcOptions}
         </select>
@@ -18518,8 +18518,8 @@ function showVisitActionChooser() {
       </div>
     </div>
     <div style="padding:8px 24px 28px;display:flex;gap:8px">
-      <button onclick="document.getElementById(&quot;new-visit-overlay&quot;).remove();go('detail')" class="npf-btn-ghost" class="v-grow">Öppna kundkort</button>
-      <button onclick="document.getElementById(&quot;new-visit-overlay&quot;).remove()" class="npf-btn-ghost" class="v-grow">Stäng</button>
+      <button onclick="document.getElementById(&quot;new-visit-overlay&quot;).remove();go('detail')" class="npf-btn-ghost v-grow">Öppna kundkort</button>
+      <button onclick="document.getElementById(&quot;new-visit-overlay&quot;).remove()" class="npf-btn-ghost v-grow">Stäng</button>
     </div>
   </div>`;
   document.body.appendChild(ov);
@@ -18729,7 +18729,7 @@ function rMeeting() {
         </div>
         <div class="meet-consent-btn">
           <button class="btn btn-p" style="width:100%;padding:13px;font-size:14px" onclick="giveConsent()">Patienten har samtyckt -- Starta</button>
-          <button class="btn" class="v-w100-p10" onclick="go('detail')">Avbryt</button>
+          <button class="btn v-w100-p10" onclick="go('detail')">Avbryt</button>
         </div>
       </div>
     </div>`;
@@ -20707,14 +20707,14 @@ function _toolsRemiss() {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div>
             <label class="v-field-label">Remitteras till</label>
-            <select id="remiss-to" class="field" class="v-w100">
+            <select id="remiss-to" class="field v-w100">
               <option>Röntgen</option><option>Ortoped</option><option>Neurolog</option>
               <option>Fysioterapeut</option><option>Reumatolog</option><option>Annan</option>
             </select>
           </div>
           <div>
             <label class="v-field-label">Brådska</label>
-            <select id="remiss-urgency" class="field" class="v-w100">
+            <select id="remiss-urgency" class="field v-w100">
               <option>Rutinremiss</option><option>Inom 4 veckor</option><option>Inom 1 vecka</option><option>Akut</option>
             </select>
           </div>
@@ -20821,21 +20821,21 @@ function _openRemissModal() {
       <div class="v-grid2">
         <div>
           <label class="v-field-label-b4b">Remitteras till</label>
-          <select id="rm-to" class="field" class="v-w100">
+          <select id="rm-to" class="field v-w100">
             <option>Röntgen</option><option>Ortoped</option><option>Neurolog</option>
             <option>Fysioterapeut</option><option>Reumatolog</option><option>Annan</option>
           </select>
         </div>
         <div>
           <label class="v-field-label-b4b">Brådska</label>
-          <select id="rm-urgency" class="field" class="v-w100">
+          <select id="rm-urgency" class="field v-w100">
             <option>Rutinremiss</option><option>Inom 4 veckor</option><option>Inom 1 vecka</option><option>Akut</option>
           </select>
         </div>
       </div>
       <div>
         <label class="v-field-label-b4b">Undersökning</label>
-        <input id="rm-exam" class="field" class="v-w100" value="${e(diagnosis ? 'Utredning av ' + diagnosis : '')}" placeholder="t.ex. MRT ländrygg, Röntgen höger axel...">
+        <input id="rm-exam" class="field v-w100" value="${e(diagnosis ? 'Utredning av ' + diagnosis : '')}" placeholder="t.ex. MRT ländrygg, Röntgen höger axel...">
       </div>
       <div>
         <label class="v-field-label-b4b">Klinisk frågeställning</label>
@@ -21010,8 +21010,8 @@ function startMeeting() {
       <div style="font-size:17px;font-weight:600;color:var(--navy);margin-bottom:8px">${draft.transcript.length} rader sparade</div>
       <div style="font-size:14px;color:var(--text3);margin-bottom:20px">Från ett möte ${timeAgo}. Vill du fortsätta där du slutade?</div>
       <div class="v-row8">
-        <button class="btn btn-p" class="v-grow-p11" onclick="restoreMeetDraft(${JSON.stringify(draft).replace(/"/g,'&quot;')})">Återuppta</button>
-        <button class="btn" class="v-grow-p11" onclick="clearMeetDraft();document.getElementById('meet-draft-overlay').remove();resetMeeting();go('meeting')">Nytt möte</button>
+        <button class="btn btn-p v-grow-p11" onclick="restoreMeetDraft(${JSON.stringify(draft).replace(/"/g,'&quot;')})">Återuppta</button>
+        <button class="btn v-grow-p11" onclick="clearMeetDraft();document.getElementById('meet-draft-overlay').remove();resetMeeting();go('meeting')">Nytt möte</button>
       </div>
     </div>`;
     document.body.appendChild(ov);
@@ -23816,8 +23816,8 @@ function rEditPat() {
     <textarea class="field" id="ep-notes" placeholder="Relevanta bakgrundsuppgifter, mediciner, kontraindikationer..." style="margin-bottom:11px;height:100px;resize:vertical">${e(p.notes||'')}</textarea>
 
     <div style="display:flex;gap:10px;margin-top:8px">
-      <button class="btn btn-p" class="v-grow-p12" onclick="saveEditPat()">Spara ändringar</button>
-      <button class="btn" class="v-grow-p12" onclick="go('detail')">Avbryt</button>
+      <button class="btn btn-p v-grow-p12" onclick="saveEditPat()">Spara ändringar</button>
+      <button class="btn v-grow-p12" onclick="go('detail')">Avbryt</button>
     </div>
     <div class="v-divider-top">
       <button onclick="confDel('pat','${p.id}','${e(p.name)}')" style="width:100%;padding:10px;background:none;border:1px solid var(--red);border-radius:6px;color:var(--red);font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font)">Radera patient permanent</button>
@@ -24173,7 +24173,7 @@ function renderPaymentBlock(p) {
     </div>`;
   }).join('');
 
-  return `<div class="consent-wrap" class="v-mt12">
+  return `<div class="consent-wrap v-mt12">
     <div class="consent-hdr">
       <div class="consent-hdr-title">Tillgång & betalning</div>
       <button onclick="window._settingsActiveTab='billing';go('settings')" style="font-size:12px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:600;font-family:var(--font);padding:0">Konfigurera Stripe -></button>
@@ -24853,7 +24853,7 @@ function rSBSsoap() {
       <div class="sbs-pain-val" style="color:${parseInt(prevPain)>=7?'#c04040':parseInt(prevPain)>=4?'var(--amber-text-dk)':'var(--green)'}">${prevPain}/10</div>
       <div class="sbs-pain-lbl">NRS Smärta</div>
     </div>
-    <div class="sbs-pain-box" class="v-border-teal">
+    <div class="sbs-pain-box v-border-teal">
       <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);margin-bottom:4px">Nuvarande besök -- ${new Date().toLocaleDateString('sv-SE')}</div>
       <div style="display:flex;align-items:center;gap:10px;justify-content:center">
         <input type="range" min="0" max="10" value="${currPainEl}" style="flex:1;accent-color:var(--teal)" 
@@ -24894,7 +24894,7 @@ function rSBSsoap() {
         <div class="sbs-phdr"><div class="sbs-letter ${letter}">${letter}</div><div class="sbs-pname">${labels[letter]} -- ${descs[letter]}</div></div>
         <div class="sbs-prev-body">${prevText ? e(prevText) : '<span style="color:var(--text3);font-size:14px">Inget dokumenterat</span>'}</div>
       </div>
-      <div class="sbs-panel" class="v-border-teal">
+      <div class="sbs-panel v-border-teal">
         <div class="sbs-phdr" style="background:var(--teal-lt);justify-content:space-between"><div class="v-ai-row6"><div class="sbs-letter ${letter}">${letter}</div><div class="sbs-pname">${labels[letter]} -- skriv nu</div></div>${micBtnHTML('sbs-'+letter, letter)}</div>
         <textarea class="sbs-curr-ta" id="sbs-${letter}" placeholder="${placeholder}"
           oninput="currentSOAP.soap['${letter}']=this.value;triggerClinicalAnalysis(sbsGetText());autoSaveJournalDraft()">${e(currSoap[letter]||'')}</textarea>
@@ -24912,7 +24912,7 @@ function rSBSsoap() {
       h += `<div class="sbs-ex-row"><div class="sbs-ex-n">${i+1}</div><div class="v-grow">${e(ex.name)}</div><div style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace">${ex.sets}×${ex.reps}</div></div>`;
     });
     h += `</div></div>
-      <div class="sbs-panel" class="v-border-teal">
+      <div class="sbs-panel v-border-teal">
         <div class="sbs-phdr" style="background:var(--teal-lt)"><div class="v-semibold-accent">Kliniskt fokus för ny Hael-plan</div></div>
         <textarea class="sbs-curr-ta" id="sbs-focus" placeholder="Vad ska ny plan fokusera på? Vilka övningar fungerade bra/dåligt? Anpassningar..."
           style="min-height:120px" oninput="currentSOAP.clinicalFocus=this.value;autoSaveJournalDraft()">${e(currentSOAP&&currentSOAP.clinicalFocus||'')}</textarea>
@@ -25209,7 +25209,7 @@ ${tipsHtml ? `<div class="card"><div class="sec">Livsstilsråd</div><ul class="t
 
 ${plan.followupNote ? `<div class="card"><div class="fu">${plan.followupNote}</div></div>` : ''}
 
-<div class="card" class="v-tc">
+<div class="card v-tc">
   <div class="sec">Spara denna sida</div>
   <p class="v-muted-b12">Bokmärk sidan i din webbläsare för att komma åt din Hael-plan igen.</p>
 </div>
@@ -30767,7 +30767,7 @@ function renderClinicInsightsHTML(patients) {
   const insights = analyzeClinicInsights(patients);
   if (!insights.length) return '';
   const maxScore = insights[0]?.score || 1;
-  return `<div class="cc-panel" class="v-mt16">
+  return `<div class="cc-panel v-mt16">
     <div class="cc-panel-hdr">
       <div class="cc-panel-title">Mest effektiva övningar</div>
       <div style="font-size:14px;color:var(--muted,var(--slate))">baserat på smärtförbättring</div>
@@ -34349,7 +34349,7 @@ function _intelRenderPulse(ctx) {
   var prev4 = visitsPerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
   var curr4r = revenuePerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
   var prev4r = revenuePerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
-  h += '<div class="gi2-stats" class="v-mb28">';
+  h += '<div class="gi2-stats v-mb28">';
   h += '<div class="gi2-stat"><div class="gi2-stat-val">'+totalVisits+'</div><div class="gi2-stat-label">Genomförda besök</div>'+_intelTrendBadge(curr4,prev4)+'</div>';
   h += '<div class="gi2-stat"><div class="gi2-stat-val">'+(totalRevenue>0?Math.round(totalRevenue/1000)+'k':'–')+' kr</div><div class="gi2-stat-label">Beräknad intäkt</div>'+_intelTrendBadge(curr4r,prev4r)+'</div>';
   h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(avgNRSVal>6?'var(--red)':avgNRSVal>4?'var(--amber)':'var(--green)')+'">'+(avgNRSVal||'–')+'</div><div class="gi2-stat-label">Snitt NRS</div></div>';
@@ -34419,7 +34419,7 @@ function _intelRenderIntakter(ctx) {
   }
   var curr4r = revenuePerWeek.slice(-4).reduce(function(a,b){return a+b;},0);
   var prev4r = revenuePerWeek.slice(-8,-4).reduce(function(a,b){return a+b;},0);
-  h += '<div class="gi2-stats" class="v-mb20">';
+  h += '<div class="gi2-stats v-mb20">';
   h += '<div class="gi2-stat"><div class="gi2-stat-val">'+totalRevenue.toLocaleString('sv-SE')+' kr</div><div class="gi2-stat-label">Total intäkt</div></div>';
   h += '<div class="gi2-stat"><div class="gi2-stat-val">'+(totalVisits>0?Math.round(totalRevenue/totalVisits).toLocaleString('sv-SE')+' kr':'–')+'</div><div class="gi2-stat-label">Snitt per besök</div></div>';
   h += '<div class="gi2-stat"><div class="gi2-stat-val">'+curr4r.toLocaleString('sv-SE')+' kr</div><div class="gi2-stat-label">Senaste 4 veckor</div>'+_intelTrendBadge(curr4r,prev4r)+'</div>';
@@ -34539,7 +34539,7 @@ function _intelRenderDropout(ctx) {
   var pats = ctx.pats, dropoutByWeek = ctx.dropoutByWeek, xShort = ctx.xShort;
 
   h += '<div class="gi2-header"><div><div class="gi2-title">Avhoppsrisk</div><div class="gi2-subtitle">Patienter som riskerar att avsluta behandlingen</div></div></div>';
-  h += '<div class="gi2-stats" class="v-mb20">';
+  h += '<div class="gi2-stats v-mb20">';
   h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(retentionRate>=80?'var(--green)':'var(--red)')+'">'+retentionRate+'%</div><div class="gi2-stat-label">Retention</div></div>';
   h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(dropoutCount>0?'var(--red)':'var(--green)')+'">'+dropoutCount+'</div><div class="gi2-stat-label">Hög risk nu</div></div>';
   h += '<div class="gi2-stat"><div class="gi2-stat-val">'+pats.length+'</div><div class="gi2-stat-label">Totalt patienter</div></div>';
@@ -34627,7 +34627,7 @@ function _intelRenderDatakvalitet(ctx) {
   var qualColor = qualScore >= 75 ? 'var(--green)' : qualScore >= 50 ? 'var(--amber)' : 'var(--red)';
   var qualLabel = qualScore >= 75 ? 'Bra' : qualScore >= 50 ? 'OK' : 'Behöver förbättras';
 
-  h += '<div class="gi2-stats" class="v-mb20">';
+  h += '<div class="gi2-stats v-mb20">';
   h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+qualColor+'">'+qualScore+'</div><div class="gi2-stat-label">Kvalitetspoäng</div><div style="font-size:11px;color:'+qualColor+';margin-top:2px">'+qualLabel+'</div></div>';
   h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(nrsPct>=70?'var(--green)':nrsPct>=40?'var(--amber)':'var(--red)')+'">'+nrsPct+'%</div><div class="gi2-stat-label">NRS-täckning</div><div class="v-xs-muted-t2">Mål: 70%</div></div>';
   h += '<div class="gi2-stat"><div class="gi2-stat-val" style="color:'+(soapPct>=80?'var(--green)':soapPct>=50?'var(--amber)':'var(--red)')+'">'+soapPct+'%</div><div class="gi2-stat-label">SOAP-täckning</div><div class="v-xs-muted-t2">Fullständig: '+fullSoapPct+'%</div></div>';
@@ -34653,7 +34653,7 @@ function _intelRenderDatakvalitet(ctx) {
     var pct = totalV ? Math.round(soapFieldCounts[i]/totalV*100) : 0;
     soapBars += '<div class="gi2-bar-row">'
       + '<span class="gi2-bar-label" style="min-width:110px">'+lbl+'</span>'
-      + '<div class="gi2-bar-track" class="v-grow"><div class="gi2-bar-fill" style="width:'+Math.round(soapFieldCounts[i]/maxSF*100)+'%;background:'+soapFieldColors[i]+';border-radius:4px"></div></div>'
+      + '<div class="gi2-bar-track v-grow"><div class="gi2-bar-fill" style="width:'+Math.round(soapFieldCounts[i]/maxSF*100)+'%;background:'+soapFieldColors[i]+';border-radius:4px"></div></div>'
       + '<span class="gi2-bar-val" style="min-width:48px;text-align:right">'+pct+'%</span>'
       + '</div>';
   });
@@ -35980,7 +35980,7 @@ function _stBilling() {
   var used = parseInt(localStorage.getItem('vela:plan-count:' + monthKey) || '0');
   var limit = tier === 'free' ? 5 : Infinity;
 
-  var h = '<div class="vela-st-section" class="v-max680">';
+  var h = '<div class="vela-st-section v-max680">';
   h += '<div class="vela-st-title">Plan & Faktura</div>';
   h += '<div class="vela-st-desc">Ditt aktiva abonnemang och användning.</div>';
 
@@ -36302,7 +36302,7 @@ function _stPreferences() {
 
 function _stSync() {
   var cfg = getClinicConfig();
-  var h = '<div class="vela-st-section" class="v-max680">';
+  var h = '<div class="vela-st-section v-max680">';
   h += '<div class="vela-st-title">Synk & Data</div>';
   h += '<div class="vela-st-desc">Synkronisering med molnet och hantering av klinikdata.</div>';
 
@@ -36324,14 +36324,14 @@ function _stSync() {
   h += '<div class="v-title">Exportera data</div>';
   h += '</div>';
   h += '<div class="v-footer-row">';
-  h += '<button onclick="_exportPatientData()" class="btn" class="v-f14">Exportera patienter (JSON)</button>';
+  h += '<button onclick="_exportPatientData()" class="btn v-f14">Exportera patienter (JSON)</button>';
   h += '</div></div>';
 
   // Cache clear
   h += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:14px 20px">';
   h += '<div class="v-title-b4">Rensa cache</div>';
   h += '<div class="v-muted-b12">Rensar lokal cache. Dina patienter och inställningar påverkas inte.</div>';
-  h += '<button onclick="caches.keys().then(function(k){k.forEach(function(n){caches.delete(n)})});showAutoSaveToast(\'Cache rensad ✓\')" class="btn" class="v-f14">Rensa webbläsarcache</button>';
+  h += '<button onclick="caches.keys().then(function(k){k.forEach(function(n){caches.delete(n)})});showAutoSaveToast(\'Cache rensad ✓\')" class="btn v-f14">Rensa webbläsarcache</button>';
   h += '</div>';
 
   h += '</div>';
@@ -36375,7 +36375,7 @@ function ccSave() {
 function _stField(id, label, val, placeholder, type) {
   return '<div>'
     + '<div class="v-label-accent-b7">' + label + '</div>'
-    + '<input id="' + id + '" type="' + type + '" value="' + e(val) + '" placeholder="' + placeholder + '" class="field" class="v-mb0">'
+    + '<input id="' + id + '" type="' + type + '" value="' + e(val) + '" placeholder="' + placeholder + '" class="field v-mb0">'
     + '</div>';
 }
 
@@ -36812,7 +36812,7 @@ function _stApiKey(key) {
   var ok = key && key.startsWith('sk-ant');
   var savedAt = localStorage.getItem('vela:apikey-verified-at');
   var savedOk = localStorage.getItem('vela:apikey-status') === 'ok';
-  var h = '<div class="vela-st-section" class="v-max520">';
+  var h = '<div class="vela-st-section v-max520">';
   h += '<div class="vela-st-title">API-nyckel</div>';
   h += '<div class="vela-st-desc">Din Anthropic API-nyckel. Används för alla AI-funktioner i Vela — journalstöd, rehabplaner, retention och Vela Ask.</div>';
 
@@ -37094,7 +37094,7 @@ function _stAISettings() {
   var mem = typeof getClinicMemory === 'function' ? getClinicMemory() : {};
   var voiceInstr = typeof _getVoiceInstruction === 'function' ? _getVoiceInstruction() : '';
 
-  var h = '<div class="vela-st-section" class="v-max680">';
+  var h = '<div class="vela-st-section v-max680">';
   h += '<div class="vela-st-title">AI-profil &amp; minne</div>';
   h += '<div class="vela-st-desc">Här styr du hur VelaAgent låter och vad den vet om dig. Agenten lär sig passivt från dina redigeringar — men du kan också skriva direkt vad du vill och inte vill.</div>';
 
@@ -37877,7 +37877,7 @@ function _stServices() {
     const catSvcs = svcs.filter(s => s.category === cat);
     if (!catSvcs.length) return;
     h += '<div class="v-mb24">';
-    h += '<div class="vela-st-label" class="v-mb10">' + (catLabel[cat] || cat) + '</div>';
+    h += '<div class="vela-st-label v-mb10">' + (catLabel[cat] || cat) + '</div>';
     h += '<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden">';
     catSvcs.forEach((s, i) => {
       const pct = s.marketRef ? Math.round((s.price / s.marketRef - 1) * 100) : null;
@@ -37948,17 +37948,17 @@ function _stOpenServiceDialog(id) {
       <div class="v-title-h2-white">${s ? 'Redigera tjänst' : 'Ny tjänst'}</div>
     </div>
     <div style="padding:20px 22px;display:flex;flex-direction:column;gap:14px">
-      <div><div class="vela-st-label" class="v-mb6">Tjänstnamn</div>
-      <input id="sd-name" class="field" class="v-m0" placeholder="T.ex. Naprapati" value="${e(s?.name||'')}"></div>
+      <div><div class="vela-st-label v-mb6">Tjänstnamn</div>
+      <input id="sd-name" class="field v-m0" placeholder="T.ex. Naprapati" value="${e(s?.name||'')}"></div>
       <div class="v-grid2-12">
-        <div><div class="vela-st-label" class="v-mb6">Pris (kr)</div>
-        <input id="sd-price" class="field" class="v-m0" type="number" placeholder="890" value="${s?.price||''}"></div>
-        <div><div class="vela-st-label" class="v-mb6">Tid (min)</div>
-        <input id="sd-duration" class="field" class="v-m0" type="number" placeholder="45" value="${s?.duration||45}"></div>
+        <div><div class="vela-st-label v-mb6">Pris (kr)</div>
+        <input id="sd-price" class="field v-m0" type="number" placeholder="890" value="${s?.price||''}"></div>
+        <div><div class="vela-st-label v-mb6">Tid (min)</div>
+        <input id="sd-duration" class="field v-m0" type="number" placeholder="45" value="${s?.duration||45}"></div>
       </div>
-      <div><div class="vela-st-label" class="v-mb6">Kategori</div>
-      <select id="sd-cat" class="field" class="v-m0">${cats.map(c2=>`<option value="${c2}" ${s?.category===c2?'selected':''}>${c2.charAt(0).toUpperCase()+c2.slice(1)}</option>`).join('')}</select></div>
-      <div><div class="vela-st-label" class="v-mb8">Behandlare som utför tjänsten</div>
+      <div><div class="vela-st-label v-mb6">Kategori</div>
+      <select id="sd-cat" class="field v-m0">${cats.map(c2=>`<option value="${c2}" ${s?.category===c2?'selected':''}>${c2.charAt(0).toUpperCase()+c2.slice(1)}</option>`).join('')}</select></div>
+      <div><div class="vela-st-label v-mb8">Behandlare som utför tjänsten</div>
       <div class="v-col6">${users.map(u=>`
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;color:var(--ink)">
           <input type="checkbox" id="sd-user-${u.id}" ${(s?.assignedUsers||[]).includes(u.id)?'checked':''} style="width:15px;height:15px;accent-color:var(--teal)">
@@ -37969,7 +37969,7 @@ function _stOpenServiceDialog(id) {
     <div style="padding:0 22px 20px;display:flex;gap:10px">
       <button onclick="document.getElementById('service-dialog-ov').remove()" class="v-tab-btn-11">Avbryt</button>
       ${s ? '<button onclick="_stDeleteService(\''+id+'\')" style="flex:1;padding:11px;background:none;border:1px solid var(--red);border-radius:6px;font-size:14px;color:var(--red);cursor:pointer;font-family:var(--font)">Ta bort</button>' : ''}
-      <button onclick="_stSaveService(${id ? '\'' + id + '\'' : 'null'})" class="btn btn-p" class="v-grow-p11">Spara</button>
+      <button onclick="_stSaveService(${id ? '\'' + id + '\'' : 'null'})" class="btn btn-p v-grow-p11">Spara</button>
     </div>
   </div>`;
   document.body.appendChild(ov);
@@ -38098,7 +38098,7 @@ async function _stPriceIntel(serviceId) {
       ov.innerHTML = '<div style="background:var(--surface2);border-radius:20px;width:100%;max-width:460px;overflow:hidden" onclick="event.stopPropagation()">'
         + '<div class="v-card-navy-head"><div class="v-title-17-white">' + e(svc.name) + '</div></div>'
         + '<div style="padding:18px 22px"><div style="font-size:14px;color:var(--ink);line-height:1.75">' + e(rawText) + '</div></div>'
-        + '<div style="padding:0 22px 18px"><button onclick="document.getElementById(\'price-intel-ov\').remove()" class="btn btn-p" class="v-w100-p10">Stäng</button></div>'
+        + '<div style="padding:0 22px 18px"><button onclick="document.getElementById(\'price-intel-ov\').remove()" class="btn btn-p v-w100-p10">Stäng</button></div>'
         + '</div>';
       ov.onclick = ev => { if(ev.target===ov) ov.remove(); };
     } else {
@@ -38182,7 +38182,7 @@ function _showPriceIntelPopup(svc, result) {
     // Footer buttons
     + '<div style="padding:16px 22px 18px;display:flex;gap:10px">'
     + '<button onclick="document.getElementById(\'price-intel-ov\').remove()" class="v-tab-btn">Stäng</button>'
-    + '<button onclick="_stEditService(\'' + svc.id + '\');document.getElementById(\'price-intel-ov\').remove()" class="btn btn-p" class="v-grow-p10">Uppdatera pris →</button>'
+    + '<button onclick="_stEditService(\'' + svc.id + '\');document.getElementById(\'price-intel-ov\').remove()" class="btn btn-p v-grow-p10">Uppdatera pris →</button>'
     + '</div>'
     + '</div>';
 }
@@ -38263,7 +38263,7 @@ async function _stPriceIntelAll() {
     if (!result) {
       ov.innerHTML = '<div style="background:var(--surface2);border-radius:20px;padding:24px;max-width:460px;width:100%;" onclick="event.stopPropagation()">'
         + '<div style="font-size:14px;color:var(--ink);line-height:1.75;margin-bottom:16px">' + e(rawText) + '</div>'
-        + '<button onclick="document.getElementById(\'price-intel-ov\').remove()" class="btn btn-p" class="v-w100-p10">Stäng</button>'
+        + '<button onclick="document.getElementById(\'price-intel-ov\').remove()" class="btn btn-p v-w100-p10">Stäng</button>'
         + '</div>';
       ov.onclick = ev => { if(ev.target===ov) ov.remove(); };
       return;
@@ -38394,7 +38394,7 @@ function _showImportPreview(file, analysis, content, isPatients) {
         <div class="v-ink">${e(analysis.summary||'')}</div>
       </div>
       ${analysis.detectedFormat ? '<div><div class="vela-st-label" style="margin-bottom:4px">Format</div><div style="font-size:14px;color:var(--ink)">' + e(analysis.detectedFormat) + (analysis.rowCount?' · ~'+analysis.rowCount+' poster':'') + '</div></div>' : ''}
-      ${analysis.columnMapping && Object.keys(analysis.columnMapping).length ? '<div><div class="vela-st-label" class="v-mb6">Kolumnmappning</div><div class="v-col4">' + Object.entries(analysis.columnMapping).slice(0,6).map(([k,v]) => '<div style="display:flex;gap:8px;font-size:14px"><span style="color:var(--muted);flex:1">' + e(k) + '</span><span style="color:var(--teal);font-weight:600">→ ' + e(v) + '</span></div>').join('') + '</div></div>' : ''}
+      ${analysis.columnMapping && Object.keys(analysis.columnMapping).length ? '<div><div class="vela-st-label v-mb6">Kolumnmappning</div><div class="v-col4">' + Object.entries(analysis.columnMapping).slice(0,6).map(([k,v]) => '<div style="display:flex;gap:8px;font-size:14px"><span style="color:var(--muted);flex:1">' + e(k) + '</span><span style="color:var(--teal);font-weight:600">→ ' + e(v) + '</span></div>').join('') + '</div></div>' : ''}
       ${analysis.warnings?.length ? '<div style="background:rgba(192,160,48,.08);border:1px solid rgba(192,160,48,.2);border-radius:6px;padding:10px 12px"><div style="font-size:14px;font-weight:700;color:var(--amber);margin-bottom:4px">Varningar</div>' + analysis.warnings.map(w => '<div style="font-size:14px;color:var(--ink);margin-top:2px">· ' + e(w) + '</div>').join('') + '</div>' : ''}
     </div>
     <div class="v-card-footer">
@@ -38485,7 +38485,7 @@ function _stOpenApiGuide(apiId) {
       </div>
       ${g.keyLabel ? `
       <div class="v-mb12">
-        <div class="vela-st-label" class="v-mb6">${g.keyLabel}</div>
+        <div class="vela-st-label v-mb6">${g.keyLabel}</div>
         <div class="v-row8">
           <input id="api-key-input-${apiId}" class="field" style="margin:0;flex:1" type="password" placeholder="${g.keyPlaceholder||''}">
           <button onclick="_stSaveApiKey('${apiId}')" class="btn btn-p" style="white-space:nowrap">Anslut</button>
@@ -39300,7 +39300,7 @@ function _showDropoutRisks() {
   h += '</div>';
   h += '<div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px">';
   h += '<button onclick="document.getElementById(\'dropout-risk-ov\').remove()" class="v-tab-btn">Stäng</button>';
-  h += '<button onclick="document.getElementById(\'dropout-risk-ov\').remove();go(\'intelligence\')" class="btn btn-p" class="v-grow-p10">Retention →</button>';
+  h += '<button onclick="document.getElementById(\'dropout-risk-ov\').remove();go(\'intelligence\')" class="btn btn-p v-grow-p10">Retention →</button>';
   h += '</div></div>';
   ov.innerHTML = h;
   document.body.appendChild(ov);
@@ -39512,7 +39512,7 @@ function _getIntakeSteps() {
         var h = '';
         h += '<div class="intake-q"><label class="intake-label">Smärta just nu (NRS 0–10) <span class="req">*</span></label>';
         h += '<div class="intake-hint">0 = ingen smärta · 10 = värsta tänkbara</div>';
-        h += '<div class="intake-nrs" class="v-mt12">';
+        h += '<div class="intake-nrs v-mt12">';
         for (var i=0; i<=10; i++) {
           var col = i<=2?'var(--green)':i<=4?'var(--hael-green-lt)':i<=6?'var(--amber)':i<=8?'var(--hael-amber)':'var(--red)';
           var active = st.answers.nrsCurrent===i ? 'background:'+col+';border-color:'+col+';' : '';
@@ -39520,7 +39520,7 @@ function _getIntakeSteps() {
         }
         h += '</div></div>';
         h += '<div class="intake-q"><label class="intake-label">Smärta vid värst (senaste 7 dagarna)</label>';
-        h += '<div class="intake-nrs" class="v-mt12">';
+        h += '<div class="intake-nrs v-mt12">';
         for (var j=0; j<=10; j++) {
           var col2 = j<=2?'var(--green)':j<=4?'var(--hael-green-lt)':j<=6?'var(--amber)':j<=8?'var(--hael-amber)':'var(--red)';
           var active2 = st.answers.nrsWorst===j ? 'background:'+col2+';border-color:'+col2+';' : '';
@@ -40268,7 +40268,7 @@ function _downloadInvoicePDF(invId) {
     + '<div style="background:#f8fafb;border-radius:6px;padding:16px 20px;margin-bottom:24px">'
     + '<div style="font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--gray-99);margin-bottom:12px">TJÄNST</div>'
     + '<div class="row" style="font-weight:600"><span>' + e(inv.serviceName) + '</span><span>' + (inv.amount||0).toLocaleString('sv-SE') + ' kr</span></div>'
-    + '<div class="row" class="v-gray-66"><span>Moms (0%)</span><span>0 kr</span></div>'
+    + '<div class="row v-gray-66"><span>Moms (0%)</span><span>0 kr</span></div>'
     + '<div style="padding:12px 0;display:flex;justify-content:space-between" class="total"><span>Totalt att betala</span><span>' + (inv.amount||0).toLocaleString('sv-SE') + ' kr</span></div>'
     + '</div>'
     + '<div style="font-size:14px;color:var(--gray-66);line-height:1.7">'
@@ -41011,7 +41011,7 @@ function openTherapistScheduleDialog(therapistId) {
   h += '</div>';
   h += '<div class="v-card-footer">';
   h += '<button onclick="document.getElementById(\'therapist-sched-ov\').remove()" class="v-tab-btn">Stäng</button>';
-  h += '<button onclick="_saveTherapistSchedule(\'' + therapistId + '\')" class="btn btn-p" class="v-grow-p10">Spara schema</button>';
+  h += '<button onclick="_saveTherapistSchedule(\'' + therapistId + '\')" class="btn btn-p v-grow-p10">Spara schema</button>';
   h += '</div></div>';
   ov.innerHTML = h;
   document.body.appendChild(ov);
@@ -41050,7 +41050,7 @@ function _saveTherapistSchedule(tid) {
 
 function _stTherapists() {
   var therapists = getTherapists();
-  var h = '<div class="vela-st-section" class="v-max680">';
+  var h = '<div class="vela-st-section v-max680">';
   h += '<div class="vela-st-title">Behandlare</div>';
   h += '<div class="vela-st-desc">Hantera klinikens behandlare, deras färger och veckoschema.</div>';
 
@@ -41210,9 +41210,9 @@ function _renderPROMDialog() {
     h += '<div class="v-card-footer">';
     if (st.step > 0) h += '<button onclick="_promBack()" style="padding:11px 16px;background:none;border:1px solid var(--border);border-radius:6px;font-size:14px;color:var(--muted);cursor:pointer;font-family:var(--font)">← Tillbaka</button>';
     if (st.step < sections.length-1) {
-      h += '<button onclick="_promNext()" class="btn btn-p" class="v-grow-p11">Nästa →</button>';
+      h += '<button onclick="_promNext()" class="btn btn-p v-grow-p11">Nästa →</button>';
     } else {
-      h += '<button onclick="_promSubmit()" class="btn btn-p" class="v-grow-p11">Spara ✓</button>';
+      h += '<button onclick="_promSubmit()" class="btn btn-p v-grow-p11">Spara ✓</button>';
     }
     h += '</div>';
   }
@@ -42758,7 +42758,7 @@ function _openNewPatientDialog() {
     + '</div>'
     + '<div class="v-card-footer">'
     + '<button onclick="document.getElementById(\'new-pat-ov\').remove()" class="v-tab-btn">Avbryt</button>'
-    + '<button onclick="_saveNewPatientAndBook()" class="btn btn-p" class="v-grow-p10" id="np-btn">Skapa patient →</button>'
+    + '<button onclick="_saveNewPatientAndBook()" class="btn btn-p v-grow-p10" id="np-btn">Skapa patient →</button>'
     + '</div></div>';
   document.body.appendChild(ov);
   setTimeout(function(){ document.getElementById('np-name')?.focus(); }, 100);
@@ -43110,9 +43110,9 @@ function openRecurringBookingDialog(patId, startDate, startTime) {
 
   h += '<div class="v-grid2">';
   h += '<div><div class="v-label-accent-b7">Startdatum</div>';
-  h += '<input type="date" id="rec-start" class="field" class="v-mb0" value="' + (startDate||dateStr(new Date())) + '"></div>';
+  h += '<input type="date" id="rec-start" class="field v-mb0" value="' + (startDate||dateStr(new Date())) + '"></div>';
   h += '<div><div class="v-label-accent-b7">Tid</div>';
-  h += '<input type="time" id="rec-time" class="field" class="v-mb0" value="' + (startTime||'09:00') + '" step="900"></div>';
+  h += '<input type="time" id="rec-time" class="field v-mb0" value="' + (startTime||'09:00') + '" step="900"></div>';
   h += '</div>';
 
   h += '<div><div class="v-label-accent-b7">Frekvens</div>';
@@ -43131,7 +43131,7 @@ function openRecurringBookingDialog(patId, startDate, startTime) {
 
   if (svcs.length) {
     h += '<div><div class="v-label-accent-b7">Tjänst</div>';
-    h += '<select id="rec-svc" class="field" class="v-mb0"><option value="">Välj tjänst...</option>';
+    h += '<select id="rec-svc" class="field v-mb0"><option value="">Välj tjänst...</option>';
     svcs.forEach(function(s){ h += '<option value="' + s.id + '">' + e(s.name) + ' · ' + s.price + ' kr</option>'; });
     h += '</select></div>';
   }
@@ -43890,7 +43890,7 @@ function openTreatmentPanel(bkId) {
   h += '</div>'; // header
 
   // ── BODY ─────────────────────────────────────────────────────────────────
-  h += '<div class="tx-panel-body" class="v-grow-scroll">';
+  h += '<div class="tx-panel-body v-grow-scroll">';
 
   // ── TA EMOT — Primary action, two clear options ───────────────────────────
   if (isPending) {
@@ -44211,9 +44211,9 @@ function rHael() {
   h += '<div class="v-muted-t3">'+plans.length+' aktiva program · rehabdata från alla patienter</div>';
   h += '</div>';
   h += '<div style="display:flex;gap:8px;align-items:center">';
-  h += '<button onclick="window._haelFilter=\'all\';rHael()" class="btn'+((!filter||filter==='all')?' btn-p':'')+'" class="v-f14">Alla</button>';
-  h += '<button onclick="window._haelFilter=\'aktiv\';rHael()" class="btn'+(filter==='aktiv'?' btn-p':'')+'" class="v-f14">Aktiva <span style="background:var(--orange-07);color:var(--teal);padding:1px 7px;border-radius:20px;font-size:12px;margin-left:4px">'+active+'</span></button>';
-  h += '<button onclick="window._haelFilter=\'inaktiv\';rHael()" class="btn'+(filter==='inaktiv'?' btn-p':'')+'" class="v-f14">Inaktiva <span style="background:rgba(220,85,85,.12);color:var(--red);padding:1px 7px;border-radius:20px;font-size:12px;margin-left:4px">'+inactive+'</span></button>';
+  h += '<button onclick="window._haelFilter=\'all\';rHael()" class="btn'+((!filter||filter==='all')?' btn-p':'')+' v-f14">Alla</button>';
+  h += '<button onclick="window._haelFilter=\'aktiv\';rHael()" class="btn'+(filter==='aktiv'?' btn-p':'')+' v-f14">Aktiva <span style="background:var(--orange-07);color:var(--teal);padding:1px 7px;border-radius:20px;font-size:12px;margin-left:4px">'+active+'</span></button>';
+  h += '<button onclick="window._haelFilter=\'inaktiv\';rHael()" class="btn'+(filter==='inaktiv'?' btn-p':'')+' v-f14">Inaktiva <span style="background:rgba(220,85,85,.12);color:var(--red);padding:1px 7px;border-radius:20px;font-size:12px;margin-left:4px">'+inactive+'</span></button>';
   h += '</div></div>';
 
   // Analytics row — the AI-powered insight section
@@ -44225,7 +44225,7 @@ function rHael() {
     {v:adherence+'%', l:'Följsamhet', s:'loggat minst ett pass',  c:adherence>=70?'var(--teal)':adherence>=40?'var(--amber)':'var(--red)'},
   ];
   kpis.forEach(function(k){
-    h += '<div class="cc-kpi" class="v-card-padded">';
+    h += '<div class="cc-kpi v-card-padded">';
     h += '<div style="font-size:26px;font-weight:800;color:'+k.c+';letter-spacing:-.02em;margin-bottom:4px">'+k.v+'</div>';
     h += '<div style="font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">'+k.l+'</div>';
     h += '<div class="v-muted-t2">'+k.s+'</div>';
@@ -44671,7 +44671,7 @@ function editClinic(clinicId) {
   function field(id, label, val, placeholder, type) {
     return '<div>'
       + '<div class="v-label-accent-b7">' + label + '</div>'
-      + '<input id="' + id + '" type="' + (type||'text') + '" value="' + (val||'') + '" placeholder="' + placeholder + '" class="field" class="v-mb0">'
+      + '<input id="' + id + '" type="' + (type||'text') + '" value="' + (val||'') + '" placeholder="' + placeholder + '" class="field v-mb0">'
       + '</div>';
   }
 
@@ -44690,7 +44690,7 @@ function editClinic(clinicId) {
     + '<div class="v-card-footer">'
     + '<button onclick="removeClinic(this.dataset.id)" data-id="' + clinicId + '" style="padding:10px 16px;background:none;border:1px solid var(--red,var(--hael-err-mid));border-radius:6px;font-size:14px;color:var(--red,var(--hael-err-mid));cursor:pointer;font-family:var(--font)">Ta bort</button>'
     + '<button onclick="document.getElementById(\"edit-clinic-ov\").remove()" class="v-tab-btn">Avbryt</button>'
-    + '<button onclick="_saveEditClinic(this.dataset.id)" data-id="' + clinicId + '" class="btn btn-p" class="v-grow-p10">Spara →</button>'
+    + '<button onclick="_saveEditClinic(this.dataset.id)" data-id="' + clinicId + '" class="btn btn-p v-grow-p10">Spara →</button>'
     + '</div></div>';
   document.body.appendChild(ov);
 }
@@ -44907,7 +44907,7 @@ function rOrgOverview() {
     h += '<div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">';
     h += '<div><div class="v-title">Global tjänstkatalog</div>';
     h += '<div class="v-muted-t1">Systemägaren sätter tjänsterna — varje klinik kan ha egna priser</div></div>';
-    h += '<button onclick="go(\'settings\');window._settingsActiveTab=\'services\'" class="btn" class="v-f14">Redigera →</button>';
+    h += '<button onclick="go(\'settings\');window._settingsActiveTab=\'services\'" class="btn v-f14">Redigera →</button>';
     h += '</div>';
     h += '<div class="v-ox-auto"><table style="width:100%;border-collapse:collapse;min-width:400px">';
     h += '<thead><tr style="background:var(--bg);border-bottom:1px solid var(--border)">';
@@ -45004,7 +45004,7 @@ function rAddClinicDialog() {
     + '</div>'
     + '<div class="v-card-footer">'
     + '<button onclick="document.getElementById(\"add-clinic-ov\").remove()" class="v-tab-btn">Avbryt</button>'
-    + '<button onclick="_saveNewClinic()" class="btn btn-p" class="v-grow-p10">Lägg till klinik →</button>'
+    + '<button onclick="_saveNewClinic()" class="btn btn-p v-grow-p10">Lägg till klinik →</button>'
     + '</div></div>';
   document.body.appendChild(ov);
 }
@@ -45239,7 +45239,7 @@ function _buildAiProfileWizardHTML(profile, step) {
     // Footer
     + '<div style="padding:0 24px 20px;display:flex;gap:10px">'
     + (step > 0 ? '<button onclick="_aiProfileNav('+(step-1)+')" style="padding:11px 20px;background:none;border:1px solid var(--border);border-radius:6px;font-size:14px;color:var(--muted);cursor:pointer;font-family:var(--font)">← Tillbaka</button>' : '')
-    + '<button onclick="_aiProfileNav('+(step+1)+')" class="btn btn-p" class="v-grow-p12">'+(step < total-1 ? 'Nästa →' : 'Spara min AI-profil ✓')+'</button>'
+    + '<button onclick="_aiProfileNav('+(step+1)+')" class="btn btn-p v-grow-p12">'+(step < total-1 ? 'Nästa →' : 'Spara min AI-profil ✓')+'</button>'
     + '</div></div>';
 }
 

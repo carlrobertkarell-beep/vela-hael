@@ -228,7 +228,7 @@ a { color: #58a6ff; text-decoration: none; }
 a:hover { text-decoration: underline; }
 
 /* ── APP SHELL ──────────────────────────────────────────────── */
-.app-shell { display: flex; height: 100vh; overflow: hidden; }
+.app-shell { display: flex; height: 100vh; overflow: hidden; transition: padding-top .12s ease; }
 .main-content { flex: 1; overflow-y: auto; background: var(--bg); min-width: 0; }
 .screen { display: none; min-height: 100%; }
 .screen.active { display: block; }
@@ -243,22 +243,31 @@ a:hover { text-decoration: underline; }
 
 /* ── SIDEBAR ────────────────────────────────────────────────── */
 /* nav-sidebar: replaced by GitHub CSS block above */
-/* collapsed state handled by hover-expand CSS above */
+.nav-sidebar.collapsed { width: 52px; }
+.nav-sidebar.collapsed .nav-section-label { opacity:0; height:0; padding:0; pointer-events:none; }
+.nav-sidebar.collapsed .nav-item-label,
+.nav-sidebar.collapsed .nav-badge,
+.nav-sidebar.collapsed .nav-logo-wordmark,
+.nav-sidebar.collapsed .nav-footer-text { display:none; }
+.nav-sidebar.collapsed .nav-item { padding: 9px 0; justify-content: center; gap: 0; border-left: 3px solid transparent; }
+.nav-sidebar.collapsed .nav-logo { display: none; }
+.nav-sidebar.collapsed .nav-collapse-arrow { transform:rotate(180deg); }
 
 .nav-tooltip { display:none; position:absolute; left:calc(100% + 10px); top:50%; transform:translateY(-50%); background:rgba(10,20,35,.96); color:rgba(255,255,255,.9); font-size:14px; font-weight:600; white-space:nowrap; padding:5px 10px; border-radius:7px; pointer-events:none; z-index:500; border:1px solid rgba(255,255,255,.08);  }
 .nav-sidebar.collapsed .nav-item:hover .nav-tooltip { display:block; }
 .nav-logo {
-  display: flex; align-items: center; gap: 10px;
-  padding: 14px 14px 12px; border-bottom: 1px solid #30363d;
-  overflow: hidden; flex-shrink: 0; cursor: pointer;
+  display:none; /* logo hidden — topbar has logo */
+  padding:16px 14px; border-bottom:1px solid #30363d;
+  overflow:hidden; flex-shrink:0;
 }
-.nav-logo-wordmark {
-  overflow: hidden; white-space: nowrap;
-  opacity: 0; transition: opacity .1s .05s;
+.nav-logo-wordmark { overflow:hidden; white-space:nowrap; }
+.nav-section { flex:1; padding:8px 8px 4px; overflow-y:auto; overflow-x:hidden; }
+.nav-section-label {
+  font-size:14px; font-weight: 400; letter-spacing: 0;
+  text-transform: none; color: var(--text2);
+  padding: 18px 10px 5px; display: block;
+  white-space: nowrap; overflow: hidden; cursor: default;
 }
-.nav-sidebar:hover .nav-logo-wordmark { opacity: 1; }
-.nav-section { flex:1; padding:6px 0 4px; overflow-y:auto; overflow-x:hidden; }
-/* nav-section-label redefined in hover sidebar block above */
 /* nav-item old rule removed */
 .nav-item:hover { background: rgba(177,186,196,.06); color: #f0f6fc; }
 /* nav-item.active dup removed */
@@ -272,10 +281,12 @@ a:hover { text-decoration: underline; }
   font-weight: 700; padding: 1px 6px; border-radius: 6px;
   margin-left:auto; font-family:var(--font-mono); flex-shrink:0;
 }
-.nav-footer { padding:6px 0 4px; border-top:1px solid #30363d; overflow:hidden; flex-shrink:0; }
-.nav-collapse-btn { display: none; } /* replaced by hover-expand */
-.nav-collapse-arrow { display: none; }
-.nav-footer-text { display: none; }
+.nav-footer { padding:8px 10px 4px; border-top:1px solid #30363d; overflow:hidden; flex-shrink:0; }
+.nav-collapse-btn { width:100%; padding:7px 8px 10px; background:none; border:none; display:flex; align-items:center; justify-content:flex-end; gap:6px; cursor:pointer; color:rgba(255,255,255,.2); font-family:var(--font); transition:color .15s; margin-top:4px; }
+.nav-collapse-btn:hover { color:rgba(255,255,255,.55); }
+.nav-collapse-arrow { transition:transform .22s; flex-shrink:0; }
+.nav-sidebar.collapsed .nav-collapse-btn { justify-content:center; }
+.nav-footer-text { font-size:14px; }
 
 /* ── TOPBAR (mobile) ────────────────────────────────────────── */
 .topbar {
@@ -822,29 +833,23 @@ button:not([class]) { border-radius: 6px; }
 .gh-link:hover { text-decoration: underline; }
 
 /* ── SIDEBAR — GITHUB EXACT ─────────────────────────────────── */
-/* ── SIDEBAR — Supabase-style icon rail, expands on hover ──────────── */
 .nav-sidebar {
-  width: 48px; flex-shrink: 0; background: #0d1117;
+  width: 256px; flex-shrink: 0; background: #0d1117;
   display: flex; flex-direction: column;
   border-right: 1px solid #30363d;
   z-index: 150; overflow: hidden; position: relative;
-  transition: width .18s cubic-bezier(.4,0,.2,1);
+  transition: width .2s cubic-bezier(.4,0,.2,1), transform .25s ease;
 }
-.nav-sidebar:hover { width: 232px; }
 .nav-sidebar.vela-sb-hidden { display: none; }
-/* Legacy collapsed class — no longer used but kept for compat */
 .nav-sidebar.collapsed { width: 48px; }
-.nav-sidebar.collapsed:hover { width: 232px; }
-
-/* ── Nav item ─── */
 .nav-item {
-  display: flex; align-items: center; gap: 10px; width: 100%;
-  padding: 7px 0 7px 14px; border: none; border-left: 3px solid transparent;
-  background: transparent; color: #9198a1; font-size: 13px;
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 6px 16px; border: none; border-left: 3px solid transparent;
+  background: transparent; color: #9198a1; font-size: 14px;
   font-weight: 400; cursor: pointer; text-align: left;
   transition: background .1s, color .1s;
   white-space: nowrap; font-family: var(--font);
-  min-height: 34px; box-sizing: border-box; overflow: hidden;
+  min-height: 32px; box-sizing: border-box;
 }
 .nav-item:hover { background: rgba(177,186,196,.06); color: #f0f6fc; }
 .nav-item.active {
@@ -852,65 +857,33 @@ button:not([class]) { border-radius: 6px; }
   background: rgba(177,186,196,.04);
   border-left-color: var(--orange);
 }
-.nav-item.active .nav-item-icon { opacity: 1; }
-.nav-item-icon {
-  width: 16px; height: 16px; flex-shrink: 0;
-  opacity: .55; transition: opacity .1s;
-  min-width: 16px; /* prevent icon from shrinking */
-}
-.nav-item.active .nav-item-icon { color: var(--orange); }
-
-/* Labels and badges — hidden until sidebar expands */
-.nav-item-label { opacity: 0; transition: opacity .1s .05s; overflow: hidden; }
-.nav-sidebar:hover .nav-item-label { opacity: 1; }
-
+.nav-item.active .nav-item-icon { opacity: 1; color: var(--orange); }
+.nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: .55; transition: opacity .1s; }
 .nav-badge-count {
-  margin-left: auto; margin-right: 10px; font-size: 11px; font-weight: 600;
+  margin-left: auto; font-size: 11px; font-weight: 600;
   background: rgba(177,186,196,.1); border: 1px solid rgba(177,186,196,.15);
   color: #9198a1; padding: 0 6px; border-radius: 20px;
   min-width: 18px; text-align: center; line-height: 18px;
   font-family: var(--font-mono);
-  opacity: 0; transition: opacity .1s .05s;
 }
-.nav-sidebar:hover .nav-badge-count { opacity: 1; }
 .nav-item.active .nav-badge-count {
   background: rgba(224,118,40,.12); border-color: rgba(224,118,40,.2);
   color: var(--orange);
 }
 .nav-badge-alert {
-  margin-left: auto; margin-right: 10px; font-size: 11px; font-weight: 700;
+  margin-left: auto; font-size: 11px; font-weight: 700;
   background: rgba(248,81,73,.15); color: #f85149;
   padding: 1px 7px; border-radius: 20px; line-height: 18px;
-  opacity: 0; transition: opacity .1s .05s;
 }
-.nav-sidebar:hover .nav-badge-alert { opacity: 1; }
-
-/* Section labels */
 .nav-section-label {
   font-size: 10px; font-weight: 700; letter-spacing: .1em;
-  color: #848d97; padding: 16px 14px 4px;
+  color: #848d97; padding: 20px 16px 5px;
   display: block; text-transform: uppercase;
   cursor: default; white-space: nowrap; overflow: hidden;
-  opacity: 0; height: 0; padding-top: 0; padding-bottom: 0;
-  transition: opacity .1s .05s, height .15s, padding .15s;
 }
-.nav-sidebar:hover .nav-section-label {
-  opacity: 1; height: auto; padding-top: 16px; padding-bottom: 4px;
-}
-
-/* Tooltip on icon-only (collapsed) state */
-.nav-tooltip {
-  display: none; position: absolute; left: 52px; top: 50%;
-  transform: translateY(-50%);
-  background: #161b22; color: #f0f6fc; font-size: 12px; font-weight: 600;
-  white-space: nowrap; padding: 4px 9px; border-radius: 6px;
-  pointer-events: none; z-index: 500; border: 1px solid #30363d;
-}
-/* Show tooltip only when sidebar is NOT expanded */
-.nav-sidebar:not(:hover) .nav-item:hover .nav-tooltip { display: block; }
-
-.nav-sb-primary { border-bottom: 1px solid #30363d; padding-bottom: 6px; margin-bottom: 0; }
-.nav-sb-section { padding-top: 2px; }
+/* Sidebar primary nav separator */
+.nav-sb-primary { border-bottom: 1px solid #30363d; padding-bottom: 8px; margin-bottom: 0; }
+.nav-sb-section { padding-top: 4px; }
 
 /* ── AI PANEL — slide-up from bottom ──────────────────────────── */
 #vela-ai-panel {
@@ -3116,7 +3089,7 @@ body, .app-shell, .main-content, .screen, .nav-sidebar {
 }
 
 /* 3. Nav sidebar — 256px, exact GitHub sizing */
-.nav-sidebar { border-right: 1px solid #30363d !important; }
+.nav-sidebar { width: 256px !important; border-right: 1px solid #30363d !important; }
 .nav-section { padding: 8px !important; overflow-y: auto; }
 .nav-section-label {
   font-size: 12px !important; font-weight: 600 !important;
@@ -3149,7 +3122,7 @@ body, .app-shell, .main-content, .screen, .nav-sidebar {
 .nav-item-icon { width: 16px !important; height: 16px !important; opacity: .72 !important; }
 .nav-item.active .nav-item-icon { opacity: 1 !important; }
 .nav-item-label { font-size: 14px !important; }
-.nav-sb-primary { border-bottom: 1px solid #21262d !important; }
+.nav-sb-primary { border-bottom: 1px solid #21262d !important; padding-bottom: 8px !important; }
 
 /* Nav badges */
 .nav-badge-count {
@@ -3297,20 +3270,21 @@ a:hover { text-decoration: underline !important; }
 
 <div class="app-shell" id="app-shell" style="display:none">
   <nav class="nav-sidebar" id="nav-sidebar">
-    <div class="nav-logo" id="nav-logo-wrap" onclick="go('dashboard')">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.2" stroke-linecap="round" flex-shrink="0" style="flex-shrink:0"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      <span class="nav-logo-wordmark" style="font-size:15px;font-weight:700;color:#f0f6fc;letter-spacing:-.01em">Vela</span>
-    </div>
-    <div id="nav-logo-inner"></div>
+    <div class="nav-logo" id="nav-logo-wrap">
+    <div id="nav-logo-inner"><!-- rendered by rNavLogo() --></div>
+  </div>
     <div class="nav-section" id="nav-links"></div>
     <div class="nav-footer" id="nav-footer">
-      <div id="nav-user-row" style="padding:6px 0;display:flex;align-items:center;gap:8px;padding-left:11px">
-        <div style="width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:rgba(255,255,255,.5);min-width:26px" id="nav-user-av">?</div>
-        <div class="nav-item-label" style="flex:1;min-width:0"><div style="font-size:12px;color:rgba(255,255,255,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="nav-user-email"></div></div>
-        <button onclick="sbSignOut()" class="nav-item-label" style="background:none;border:none;cursor:pointer;padding:4px;margin-right:6px" title="Logga ut">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <div id="nav-user-row" style="padding:8px 10px;border-top:1px solid rgba(255,255,255,.06);margin-top:4px;display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:12px;font-weight:700;color:rgba(255,255,255,.5)" id="nav-user-av">?</div>
+        <div style="flex:1;min-width:0"><div style="font-size:14px;color:rgba(255,255,255,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="nav-user-email"></div></div>
+        <button onclick="sbSignOut()" style="background:none;border:none;cursor:pointer;padding:4px" title="Logga ut">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         </button>
-        <!-- collapse button removed — sidebar expands on hover -->
+        <button class="nav-collapse-btn" onclick="toggleSidebarCollapse()" title="Fäll in/ut sidebar">
+          <span class="nav-footer-text" style="font-size:12px">← Fäll in</span>
+          <svg class="nav-collapse-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
       </div>
     </div>
   </nav>
@@ -6156,7 +6130,7 @@ function go(scr){
 
   if (!_isPlatformScreen) rTopbar();
   if (!_isPlatformScreen && typeof _generateAIBriefings === 'function') setTimeout(_generateAIBriefings, 300);
-  const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,availability:rAvailability,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rInbox,activity:rInbox,profile:rProfile,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){},retention:rActions,'patient-portal':function(){},'intake':function(){},tools:rTools,sigqueue:rSignatureQueue,economy:rEkonomi};
+  const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,availability:rAvailability,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,profile:rProfile,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){},retention:rActions,'patient-portal':function(){},'intake':function(){},tools:rTools,sigqueue:rSignatureQueue,economy:rEkonomi};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
 }
@@ -10253,7 +10227,7 @@ function _renderGlobalTopbar() {
     meeting:'journal', soap:'journal', manualsoap:'journal', 'sbs-soap':'journal', editex:'journal',
     hael:'hael', form:'hael', doc:'hael', journaldoc:'hael',
     intelligence:'intelligence', retention:'intelligence',
-    actions:'activity', 'patjournal':'activity',
+    actions:'actions', 'patjournal':'actions',
     activity:'actions', sigqueue:'actions',
     settings:'settings', profile:'settings', availability:'settings',
   };
@@ -10658,9 +10632,10 @@ function rTopbar() {
   nh += nb('list', 'Patienter', '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
     (S.patients||[]).length || null, 'count');
   nh += nb('calendar', 'Kalender', '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
-  // Åtgärder = mail inbox (rInbox) — combined badge: sigqueue + unread mail
-  nh += nb('activity', '\u00c5tg\u00e4rder', '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
-    ((alertCount+pendingAppr+unreadMsgs) || null), 'alert');
+  nh += nb('actions', '\u00c5tg\u00e4rder', '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+    (alertCount+pendingAppr) || null, 'alert');
+  nh += nb('activity', 'Aktivitet', '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+    unreadMsgs || null, 'count');
   nh += nb('tools', 'Verktyg', '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>');
   nh += nb('economy', 'Ekonomi', '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>');
   nh += '</div>';
@@ -10788,8 +10763,18 @@ function rTopbar() {
     nh += stab('billing', 'Konto & data', '<path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>');
     nh += nsep('Profil');
     nh += stab('profile', 'Min profil', '<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>');
+  } else if (scr === 'activity') {
+    nh += nsep('Aktivitet');
+    nh += '<button class="nav-item active" data-screen="activity"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span class="nav-item-label">Inkorg</span></button>';
+    if (unreadMsgs) {
+      nh += '<button class="nav-item" onclick="window._activityFilter=\'unread\';rInbox&&rInbox()">'
+        + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
+        + '<span class="nav-item-label">Ol\u00e4sta</span><span class="nav-badge-alert">'+unreadMsgs+'</span></button>';
+    }
+  }
 
-  } // end settings
+  nh += '</div>';
+  nav.innerHTML = nh;
 
   // Wire nav-item clicks
   nav.querySelectorAll('.nav-item[data-screen]').forEach(function(btn) {

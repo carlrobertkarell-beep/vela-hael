@@ -252,15 +252,7 @@ a:hover { text-decoration: underline; }
 
 /* ── SIDEBAR ────────────────────────────────────────────────── */
 /* nav-sidebar: replaced by GitHub CSS block above */
-.nav-sidebar.collapsed { width: 52px; }
-.nav-sidebar.collapsed .nav-section-label { opacity:0; height:0; padding:0; pointer-events:none; }
-.nav-sidebar.collapsed .nav-item-label,
-.nav-sidebar.collapsed .nav-badge,
-.nav-sidebar.collapsed .nav-logo-wordmark,
-.nav-sidebar.collapsed .nav-footer-text { display:none; }
-.nav-sidebar.collapsed .nav-item { padding: 9px 0; justify-content: center; gap: 0; border-left: 3px solid transparent; }
-.nav-sidebar.collapsed .nav-logo { display: none; }
-.nav-sidebar.collapsed .nav-collapse-arrow { transform:rotate(180deg); }
+/* nav-sidebar.collapsed rules consolidated at line ~839 */
 
 .nav-tooltip { display:none; position:absolute; left:calc(100% + 10px); top:50%; transform:translateY(-50%); background:rgba(10,20,35,.96); color:rgba(255,255,255,.9); font-size:14px; font-weight:600; white-space:nowrap; padding:5px 10px; border-radius:7px; pointer-events:none; z-index:500; border:1px solid rgba(255,255,255,.08);  }
 .nav-sidebar.collapsed .nav-item:hover .nav-tooltip { display:block; }
@@ -6195,7 +6187,7 @@ async function _sbSyncBookings(bks) {
       headers: { ...sbHeaders(), 'Prefer': 'resolution=merge-duplicates,return=minimal', 'on_conflict': 'id' },
       body: JSON.stringify(rows)
     });
-  } catch(e) { console.warn('sbSaveBookings batch:', e); }
+  } catch(e) { velaWarn('sbSaveBookings batch:', e); }
 }
 function getBooking(id) {
   return getBookings().find(function(b){ return b.id === id; }) || null;
@@ -6618,7 +6610,7 @@ async function _sickExecute() {
       try {
         var result = await _velaSendMail(email, subject, body, cfg.name);
         if (result && result.ok !== false) sent++;
-        else { failed++; console.warn('Mail failed:', bk.patientName); }
+        else { failed++; velaWarn('Mail failed:', bk.patientName); }
       } catch(e) {
         failed++;
       }
@@ -6682,7 +6674,7 @@ function _addIssue(issue) {
     var issues = JSON.parse(localStorage.getItem('vela:manual-issues') || '[]');
     issues.push(Object.assign({ id: 'issue_' + Date.now(), createdAt: new Date().toISOString(), open: true }, issue));
     localStorage.setItem('vela:manual-issues', JSON.stringify(issues));
-  } catch(e) { console.warn('_addIssue error:', e); }
+  } catch(e) { velaWarn('_addIssue error:', e); }
 }
 
 
@@ -8929,7 +8921,7 @@ async function _ambientEndSession() {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,
                'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:MODEL_SONNET||'claude-sonnet-4-20250514', max_tokens:2000,
+      body:JSON.stringify({model:MODEL_SONNET, max_tokens:2000,
         messages:[{role:'user',content:prompt}]})
     });
     var data = await res.json();
@@ -11077,44 +11069,8 @@ function updateClinicMemoryApproval(approved) {
 }
 
 // Build rich memory context string for injection into any AI prompt
-function getClinicMemoryContext() {
-  var mem = getClinicMemory();
-  var edits = getAIEdits().filter(function(e){ return e.docType === 'soap'; }).slice(-20);
-  if (edits.length < 3 && !mem.totalEdits) return '';
-
-  var ctx = '\n\n── KLINIKER-PROFIL (lär dig av detta) ──────────────────────────────\n';
-
-  // Acceptance signal
-  if (mem.totalApprovals + mem.totalRejections > 0) {
-    ctx += 'Godkännandegrad: ' + mem.acceptanceRate + '% (' + mem.totalApprovals + ' av ' + (mem.totalApprovals+mem.totalRejections) + ' AI-förslag)\n';
-  }
-
-  // Edit habits
-  if (mem.totalEdits > 2) {
-    ctx += 'Redigeringsintensitet: ' + (mem.avgEditRatio < 10 ? 'minimal (AI-utkast accepteras nästan alltid)' : mem.avgEditRatio < 25 ? 'måttlig (smärre justeringar)' : 'hög (kliniker omformulerar ofta)') + '\n';
-    if (mem.oFieldEditRate > 0.5) ctx += 'O-fältet redigeras i ' + Math.round(mem.oFieldEditRate*100) + '% av fallen — skriv alltid specifika fynd\n';
-    if (mem.aFieldEditRate > 0.5) ctx += 'A-fältet redigeras i ' + Math.round(mem.aFieldEditRate*100) + '% av fallen — var specifik i diagnos och resonemang\n';
-  }
-
-  // Common phrases the clinician uses
-  var topPhrases = mem.commonPhrases.filter(function(p){ return p.count >= 2; }).slice(0,8);
-  if (topPhrases.length >= 3) {
-    ctx += 'Klinikerns vanliga termer: ' + topPhrases.map(function(p){ return p.word; }).join(', ') + '\n';
-  }
-
-  // Style notes
-  if (mem.styleNotes && mem.styleNotes.length) {
-    ctx += mem.styleNotes.map(function(n){ return '→ ' + n; }).join('\n') + '\n';
-  }
-
-  ctx += '────────────────────────────────────────────────────────────────\n';
-  return ctx;
-}
-
-// Build feedback context to re-inject into AI prompts (legacy alias, kept for compatibility)
-
-// getClinicMemoryContext — the canonical function injected into all AI prompts
-// Combines: (1) learned style from edits, (2) explicit voice instruction, (3) AI profile
+// getClinicMemoryContext — canonical function injected into all AI prompts
+// Combines: (1) explicit voice instruction, (2) AI profile, (3) learned style from edits
 function getClinicMemoryContext() {
   var parts = [];
 
@@ -12082,7 +12038,7 @@ function rActions() {
       var res = await fetch('https://api.anthropic.com/v1/messages', {
         method:'POST',
         headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:prompt}]})
+        body:JSON.stringify({model:MODEL_HAIKU,max_tokens:400,messages:[{role:'user',content:prompt}]})
       });
       var data = await res.json();
       var text = data.content?.[0]?.text || '';
@@ -13241,7 +13197,7 @@ function sendBookingConfirmationWithPortal(bk, pat) {
       html: htmlBody,
       text: textBody,
     })
-  }).then(function(r){ if (r.ok) console.log('Vela: booking confirm sent'); });
+  }).then(function(r){ if (r.ok) velaLog('Vela: booking confirm sent'); });
 }
 
 
@@ -13277,7 +13233,7 @@ async function _aiHandlePatientEmail(fromEmail, subject, body) {
     var res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
-      body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:500, messages:[{role:'user',content:prompt}] })
+      body:JSON.stringify({ model:MODEL_SONNET, max_tokens:500, messages:[{role:'user',content:prompt}] })
     });
     var data = await res.json();
     var text = data.content?.[0]?.text || '{}';
@@ -13768,7 +13724,7 @@ async function _aktAiCancelResponse(bk, pat, isLate, policy, reason) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': key,
                  'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 300,
+      body: JSON.stringify({ model: MODEL_HAIKU, max_tokens: 300,
         messages: [{ role: 'user', content: prompt }] })
     });
     var data = await res.json();
@@ -13792,7 +13748,7 @@ async function _aktAiCancelResponse(bk, pat, isLate, policy, reason) {
       text.slice(0,80),
       [{ label: 'Granska & skicka', fn: "rSignatureQueue&&rSignatureQueue()" }]
     );
-  } catch(e) { console.warn('AI cancel response error', e); }
+  } catch(e) { velaWarn('AI cancel response error', e); }
 }
 
 // ── MAIN RENDER ───────────────────────────────────────────────────────────────
@@ -14615,7 +14571,7 @@ async function _gmailSendReply(threadId, body) {
         showAutoSaveToast('Skickat via Gmail ✓');
         return { ok: true };
       }
-    } catch(ex) { console.warn('Gmail send failed, trying Resend:', ex); }
+    } catch(ex) { velaWarn('Gmail send failed, trying Resend:', ex); }
   }
 
   // Fallback: Resend
@@ -14673,7 +14629,7 @@ async function _gmailTriggerAi(silent) {
         'anthropic-version':'2023-06-01',
         'anthropic-dangerous-direct-browser-access':'true'
       },
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({model:MODEL_SONNET,max_tokens:400,messages:[{role:'user',content:prompt}]})
     });
     var data = await resp.json();
     _gmailState.aiResult = (data.content&&data.content[0]&&data.content[0].text) || null;
@@ -14688,7 +14644,7 @@ async function _gmailTriggerAi(silent) {
         setTimeout(function(){ ta.style.borderColor = ''; }, 2000);
       }
     }, 100);
-  } catch(ex) { console.error('_gmailTriggerAi error', ex); }
+  } catch(ex) { velaErr('_gmailTriggerAi error', ex); }
 }
 
 function _gmailNotConnectedHTML() {
@@ -14831,7 +14787,7 @@ function _gmailOpenCompose(prefillTo, prefillSubject, prefillBody) {
         method: 'POST',
         headers: headers,
         body: JSON.stringify({
-          model: (typeof MODEL_SONNET !== 'undefined') ? MODEL_SONNET : 'claude-sonnet-4-20250514',
+          model: MODEL_SONNET,
           max_tokens: 700,
           system: (ctx || 'Du \u00e4r en professionell assistent f\u00f6r en naprapatmottagning i Stockholm.') + '\nSvara p\u00e5 svenska.',
           messages: [{ role: 'user', content: prompt }]
@@ -14971,7 +14927,7 @@ function rAskFull(prompt) {
     + '<button style="padding:5px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface3);font-size:14px;color:var(--ink);cursor:pointer;font-family:var(--font)">'
     + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>'
     + '<div style="margin-left:auto;display:flex;align-items:center;gap:6px">'
-    + '<span style="font-size:14px;color:var(--muted)">claude-sonnet-4</span>'
+    + '<span style="font-size:14px;color:var(--muted)">' + MODEL_SONNET + '</span>'
     + '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>'
     + '</div></div>'
     // Messages
@@ -14982,7 +14938,7 @@ function rAskFull(prompt) {
     + '<div style="border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--surface2);max-width:760px;margin:0 auto">'
     + '<textarea id="ask-full-ta" placeholder="Skriv din fråga..." style="width:100%;min-height:56px;max-height:200px;border:none;background:none;padding:14px 16px 6px;font-size:14px;font-family:var(--font);color:var(--ink);resize:none;outline:none;box-sizing:border-box;line-height:1.6"></textarea>'
     + '<div style="display:flex;align-items:center;padding:6px 12px 10px;gap:8px">'
-    + '<span style="font-size:14px;color:var(--muted)">claude-sonnet-4-20250514</span>'
+    + '<span style="font-size:14px;color:var(--muted)">' + MODEL_SONNET + '</span>'
     + '<span style="flex:1"></span>'
     + '<button id="ask-full-send" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;background:var(--teal);border:none;border-radius:7px;cursor:pointer;flex-shrink:0">'
     + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d1117" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>'
@@ -15069,7 +15025,7 @@ function rAskFull(prompt) {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
-          model:'claude-sonnet-4-20250514',
+          model:MODEL_SONNET,
           max_tokens:1500,
           system: systemPrompt,
           messages: messages,
@@ -17898,6 +17854,22 @@ JSON:{"greeting":"2-3 meningar personlig hälsning -- referera specifikt till pa
 // -- API MODELS ----------------------------------------------------------------
 const MODEL_SONNET = 'claude-sonnet-4-20250514'; // Komplex planering, SOAP-analys
 const MODEL_HAIKU  = 'claude-haiku-4-5-20251001'; // Snabba enkla anrop -- 80% billigare
+// ── velaLog — produktionssäkert loggande ────────────────────────────────────
+// Sätt localStorage.setItem('vela:debug','1') för att aktivera i produktion
+var _velaDebug = (function(){
+  try { return localStorage.getItem('vela:debug') === '1'; } catch(e) { return false; }
+})();
+function velaLog() {
+  if (_velaDebug) Function.prototype.apply.call(velaLog, console, arguments);
+}
+function velaWarn() {
+  if (_velaDebug) Function.prototype.apply.call(velaWarn, console, arguments);
+}
+function velaErr() {
+  Function.prototype.apply.call(velaErr, console, arguments); // error alltid synligt
+}
+// ── END velaLog ──────────────────────────────────────────────────────────────
+
 
 async function callAPI(prompt,locked,key){
   // Split prompt: cache the static schema part, dynamic patient data stays live
@@ -24050,7 +24022,7 @@ async function _runRedFlagScan(soapText, patName) {
   if (!key) return;
   try {
     const prompt = `Analysera denna journaltext och identifiera röda flaggor som kräver klinisk uppmärksamhet.\n\nJournaltext:\n${soapText.slice(0,2000)}\n\nSvara ENBART med JSON:\n{"hasFlags":true/false,"urgent":true/false,"flags":"kommaseparerad lista med flaggor eller tom sträng","context":"meningen i journaltexten som triggar"}\n\nRöda flaggor = nattsmärta + viktminskning, neurologiska bortfall, cauda equina-symtom, trauma + svår smärta, infektionstecken, malignitetssignaler, oförklarad feber. Inga backticks.`;
-    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,system:'Svara ALLTID med giltig JSON.',messages:[{role:'user',content:prompt}]})});
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:MODEL_HAIKU,max_tokens:400,system:'Svara ALLTID med giltig JSON.',messages:[{role:'user',content:prompt}]})});
     const data = await res.json();
     const txt = (data.content||[]).map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
     const result = JSON.parse(txt);
@@ -24062,7 +24034,7 @@ async function _runRedFlagScan(soapText, patName) {
       // Show banner
       _showRedFlagBanner(result);
     }
-  } catch(err) { console.warn('Red flag scan:', err); }
+  } catch(err) { velaWarn('Red flag scan:', err); }
 }
 
 function _showRedFlagBanner(result) {
@@ -25329,7 +25301,7 @@ function sharePlan(vid) {
 
   // Force-sync this patient to Supabase immediately so the link works
   sbUpsertPat(p).then(ok => {
-    if (!ok) console.warn('sharePlan: Supabase sync failed -- link may show stale data');
+    if (!ok) velaWarn('sharePlan: Supabase sync failed -- link may show stale data');
   });
 
   // Generate live link
@@ -26719,7 +26691,7 @@ var _mailTriage = (function() {
           if (typeof updateInboxBadge === 'function') updateInboxBadge();
           if (S.screen === 'dashboard' && typeof _renderPulse === 'function') _renderPulse();
         }
-      } catch(bdErr) { console.warn('Bokadirekt parse error:', bdErr); }
+      } catch(bdErr) { velaWarn('Bokadirekt parse error:', bdErr); }
       _markTriaged(thread.id); return;
     }
 
@@ -26972,7 +26944,7 @@ var _mailTriage = (function() {
       }
       var processed = needsReply.filter(function(t){ return _getTriaged()[t.id]; }).length;
       if (processed > 0) { showAutoSaveToast(processed + ' patientmail triagerade → signaturkön'); updateInboxBadge(); if (S.screen === 'dashboard') _renderPulse(); }
-    } catch(ex) { console.warn('Mail triage error:', ex); }
+    } catch(ex) { velaWarn('Mail triage error:', ex); }
     finally { _running = false; }
   }
   function start() { run(true); if (_timer) clearInterval(_timer); _timer = setInterval(function(){ run(false); }, INTERVAL); }
@@ -27261,7 +27233,7 @@ async function _agentSendGmailReply(threadId, toEmail, subject, bodyText) {
         body: JSON.stringify({ raw: encoded, threadId: threadId })
       });
       if (res.ok) { showAutoSaveToast('Svar skickat via Gmail ✓'); return true; }
-    } catch(ex) { console.warn('_agentSendGmailReply Gmail failed:', ex); }
+    } catch(ex) { velaWarn('_agentSendGmailReply Gmail failed:', ex); }
   }
   // Fallback: Resend
   if (toEmail && typeof _velaSendMail === 'function') {
@@ -27377,7 +27349,7 @@ async function sbDeletePat(id) {
       SB_URL + '/rest/v1/patients?id=eq.' + encodeURIComponent(id),
       { method: 'DELETE', headers: sbHeaders() }
     );
-  } catch(e) { console.warn('Vela: sbDeletePat failed', e); }
+  } catch(e) { velaWarn('Vela: sbDeletePat failed', e); }
 }
 
 async function sbLoadAll() {
@@ -29240,7 +29212,7 @@ async function loadPublicPlan(patId, visitId) {
         return;
       }
     }
-  } catch(e) { console.warn('localStorage fallback failed:', e); }
+  } catch(e) { velaWarn('localStorage fallback failed:', e); }
 
   // 3. Nothing worked — dark themed error
   var _patIdRetry = (patId||'').replace(/'/g, "\\'");
@@ -33033,7 +33005,7 @@ async function _gmailGenerateSummary(thread, pat, intent) {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,
                'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:60,
+      body:JSON.stringify({ model:MODEL_HAIKU, max_tokens:60,
         messages:[{role:'user',content:prompt}] })
     });
     var data = await res.json();
@@ -33136,7 +33108,7 @@ async function _generateGmailMorningBriefing() {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,
                'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({ model:'claude-haiku-4-5-20251001', max_tokens:150,
+      body:JSON.stringify({ model:MODEL_HAIKU, max_tokens:150,
         messages:[{role:'user',content:prompt}] })
     });
     var data = await res.json();
@@ -33464,7 +33436,7 @@ async function _aiAutoReplyGeneral(pat, thread) {
     var res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 200,
+      body: JSON.stringify({ model: MODEL_HAIKU, max_tokens: 200,
         system: (ctx || 'Du är klinikassistent.') + ' Svara på svenska.',
         messages: [{ role: 'user', content: prompt }] })
     });
@@ -33480,7 +33452,7 @@ async function _aiAutoReplyGeneral(pat, thread) {
         'AI-utkast klart — ' + pat.name, draft.slice(0,80),
         [{ label: 'Signera', fn: 'rSignatureQueue&&rSignatureQueue()' }]);
     }
-  } catch(e) { console.warn('_aiAutoReplyGeneral error', e); }
+  } catch(e) { velaWarn('_aiAutoReplyGeneral error', e); }
 }
 
 async function _aiSendSlotSuggestions(pat, thread, targetBookingId, pref) {
@@ -33521,7 +33493,7 @@ async function _aiSendSlotSuggestions(pat, thread, targetBookingId, pref) {
       var aiRes = await fetch('https://api.anthropic.com/v1/messages',{
         method:'POST',
         headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,messages:[{role:'user',content:aiPrompt}]})
+        body:JSON.stringify({model:MODEL_HAIKU,max_tokens:200,messages:[{role:'user',content:aiPrompt}]})
       });
       var aiData = await aiRes.json();
       mailBody = (aiData.content&&aiData.content[0]&&aiData.content[0].text)||null;
@@ -33618,7 +33590,7 @@ function openQuickSmsDialog(patId) {
       try{
         var r=await fetch('https://api.anthropic.com/v1/messages',{
           method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-          body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:100,
+          body:JSON.stringify({model:MODEL_HAIKU,max_tokens:100,
             messages:[{role:'user',content:'Kort SMS till '+pat.name+', svenska, max 160 tecken. Från Carl-Robert, naprapat.'}]})});
         var d=await r.json();var t=d.content?.[0]?.text||'';if(t)ta.value=t.trim();
       }catch(ex){}
@@ -33752,7 +33724,7 @@ function _velaDeleteApiKey(id) {
 // ── MAIL via Resend ───────────────────────────────────────────────────────────
 async function _velaSendMail(to, subject, body, fromName) {
   var key = _velaGetApiKey('resend');
-  if (!key) { console.warn('Vela: Resend API-nyckel saknas'); return { ok:false, err:'no_key' }; }
+  if (!key) { velaWarn('Vela: Resend API-nyckel saknas'); return { ok:false, err:'no_key' }; }
 
   var cfg = getClinicConfig();
   fromName = fromName || cfg.name || 'Kliniken';
@@ -33889,7 +33861,7 @@ function _mailDetailRow(label, value) {
 // ── SMS via 46elks ────────────────────────────────────────────────────────────
 async function _velaSendSMS(to, body) {
   var key = _velaGetApiKey('46elks');
-  if (!key) { console.warn('Vela: 46elks API-nyckel saknas'); return { ok:false, err:'no_key' }; }
+  if (!key) { velaWarn('Vela: 46elks API-nyckel saknas'); return { ok:false, err:'no_key' }; }
   if (key.indexOf(':') === -1) { return { ok:false, err:'invalid_key_format' }; }
 
   var cfg = getClinicConfig();
@@ -34015,7 +33987,7 @@ async function _velaAiRetentionMsg(pat, trigger, channel) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: MODEL_SONNET,
         max_tokens: 300,
         messages: [{ role:'user', content: systemPrompt + '\n\n' + userPrompt }]
       })
@@ -34202,14 +34174,7 @@ function _saveSmsText(smsId, text) {
 }
 
 // Remove user from team
-function _velaRemoveUser(email) {
-  if (!confirm('Ta bort ' + email + ' från teamet?')) return;
-  var cfg = getClinicConfig();
-  cfg.teamMembers = (cfg.teamMembers || []).filter(function(u) { return u.email !== email; });
-  saveClinicConfig(cfg);
-  showAutoSaveToast(email + ' borttagen ✓');
-  _renderSettingsContent && _renderSettingsContent('users');
-}
+// _velaRemoveUser: se RBAC-implementationen nedan (använder _getVelaUsers/_saveVelaUsers)
 
 // Select role for a user
 function _velaRoleSelect(email, role) {
@@ -34308,7 +34273,7 @@ async function _queueIntakeSend(patId, patName, intakeLink, bkDate, bkTime) {
 
   if (pat && pat.email) {
     var result = await _velaSendMail(pat.email, subject, body);
-    if (!result.ok) console.warn('Vela: intake mail failed', result.err);
+    if (!result.ok) velaWarn('Vela: intake mail failed', result.err);
   } else if (pat && pat.phone && localStorage.getItem('vela:sms-enabled') !== 'off') {
     var smsBody = 'Fyll i formuläret inför ditt besök: ' + intakeLink;
     var result2 = await _velaSendSMS(pat.phone, smsBody);
@@ -35214,7 +35179,7 @@ async function _analyzeDataQuality(autoTriggered) {
     var res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 500, messages: [{ role:'user', content: prompt }] })
+      body: JSON.stringify({ model: MODEL_HAIKU, max_tokens: 500, messages: [{ role:'user', content: prompt }] })
     });
     var data = await res.json();
     var raw = (data.content||[]).map(function(b){ return b.text||''; }).join('').replace(/```json|```/g,'').trim();
@@ -35249,7 +35214,7 @@ async function _generateIntelligenceReport() {
   var rev=bks.reduce(function(s,b){return s+(b.status!=='cancelled'?b.servicePrice||0:0);},0);
   var prompt='Du är klinisk AI-analytiker. Analysera denna naprapatsklinik:\nPatienter: '+pats.length+'\nGenomförda besök: '+done+'\nTotal intäkt: '+rev+' kr\nGenomsnittlig NRS: '+(avgN||'saknas')+'\n\nGe 3 insikter (klinisk/verksamhet/beteende) + 1 prioriterad åtgärd. Tydliga rubriker. Svenska.';
   try {
-    var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:600,messages:[{role:'user',content:prompt}]})});
+    var res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:MODEL_HAIKU,max_tokens:600,messages:[{role:'user',content:prompt}]})});
     var data=await res.json();
     var txt=(data.content||[]).map(function(b){return b.text||'';}).join('').trim();
     if(panel) panel.innerHTML='<div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:10px">AI-analys</div><div style="font-size:14px;color:var(--ink);line-height:1.8;white-space:pre-wrap">'+e(txt)+'</div>';
@@ -37179,7 +37144,7 @@ async function _saveAndVerifyKey() {
     var res = await fetch('https://api.anthropic.com/v1/messages', {
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:10,messages:[{role:'user',content:'ping'}]})
+      body:JSON.stringify({model:MODEL_HAIKU,max_tokens:10,messages:[{role:'user',content:'ping'}]})
     });
     var data = await res.json();
     var ok = res.ok && data.content;
@@ -39648,7 +39613,7 @@ function saveIntakeForm(form) {
   }
   // Sync to Supabase
   if (typeof sbSaveIntakeForm === 'function' && sbGetClinicId && sbGetClinicId())
-    sbSaveIntakeForm(form).catch(function(e){ console.warn(e); });
+    sbSaveIntakeForm(form).catch(function(e){ velaWarn(e); });
 }
 
 function getLatestIntakeForPatient(patId) {
@@ -40831,7 +40796,7 @@ function saveHaelMessage(patId, msg) {
     localStorage.setItem(HAEL_MESSAGES_KEY, JSON.stringify(all));
   } catch {}
   if (typeof sbSaveHaelMessage === 'function' && sbGetClinicId && sbGetClinicId())
-    sbSaveHaelMessage(patId, msg).catch(function(e){ console.warn(e); });
+    sbSaveHaelMessage(patId, msg).catch(function(e){ velaWarn(e); });
 }
 
 function sendClinicMessage(patId, text) {
@@ -42531,21 +42496,21 @@ function _initSupabaseHooks() {
   window.upsertBooking = function(bk) {
     _origUpsertBk(bk);
     // Async sync to Supabase (non-blocking)
-    if (sbGetClinicId()) sbSaveBooking(bk).catch(function(e){ console.error(e); });
+    if (sbGetClinicId()) sbSaveBooking(bk).catch(function(e){ velaErr(e); });
     return bk;
   };
   // Wrap createInvoice to auto-sync
   var _origCreateInv = createInvoice;
   window.createInvoice = function(patId, visitId, amount, serviceName) {
     var inv = _origCreateInv(patId, visitId, amount, serviceName);
-    if (inv && sbGetClinicId()) sbSaveInvoice(inv).catch(function(e){ console.error(e); });
+    if (inv && sbGetClinicId()) sbSaveInvoice(inv).catch(function(e){ velaErr(e); });
     return inv;
   };
   // Hook savePatient to also sync to Supabase
   var _origSavePat2 = window.savePatient || savePat;
   window._savePat_withCloud = function(p) {
     var result = _origSavePat2(p);
-    if (sbGetClinicId()) sbSavePatient(p).catch(function(e){ console.error('sbSavePatient:', e); });
+    if (sbGetClinicId()) sbSavePatient(p).catch(function(e){ velaErr('sbSavePatient:', e); });
     return result;
   };
 }
@@ -42575,7 +42540,7 @@ async function sbSaveIntakeForm(form) {
       5000
     );
     return res.ok;
-  } catch(e) { console.warn('sbSaveIntakeForm:', e.message); return false; }
+  } catch(e) { velaWarn('sbSaveIntakeForm:', e.message); return false; }
 }
 
 async function sbSavePassLog(log, patId, visitId) {
@@ -42603,7 +42568,7 @@ async function sbSavePassLog(log, patId, visitId) {
       5000
     );
     return res.ok;
-  } catch(e) { console.warn('sbSavePassLog:', e.message); return false; }
+  } catch(e) { velaWarn('sbSavePassLog:', e.message); return false; }
 }
 
 async function sbSaveHaelMessage(patId, msg) {
@@ -42625,7 +42590,7 @@ async function sbSaveHaelMessage(patId, msg) {
       5000
     );
     return res.ok;
-  } catch(e) { console.warn('sbSaveHaelMessage:', e.message); return false; }
+  } catch(e) { velaWarn('sbSaveHaelMessage:', e.message); return false; }
 }
 
 async function sbSaveMorningReport(report) {
@@ -42650,7 +42615,7 @@ async function sbSaveMorningReport(report) {
       5000
     );
     return res.ok;
-  } catch(e) { console.warn('sbSaveMorningReport:', e.message); return false; }
+  } catch(e) { velaWarn('sbSaveMorningReport:', e.message); return false; }
 }
 
 function toggleCommandPalette() {
@@ -45388,7 +45353,7 @@ function _toggleMailTemplate(id, currentActive) {
     }
     localStorage.setItem('vela:mail-tmpl:'+id, JSON.stringify(stored));
     _renderSettingsContent('comms');
-  } catch(ex) { console.error(ex); }
+  } catch(ex) { velaErr(ex); }
 }
 
 function _openMailEditor(id) {
@@ -45853,8 +45818,8 @@ if ('serviceWorker' in navigator && _blobProtoOk) {
         // Check for updates periodically
         setInterval(function(){ reg.update(); }, 60*60*1000);
       })
-      .catch(function(err) { console.warn('[Vela SW] registration failed:', err.message); });
-  } catch(e) { console.warn('[Vela SW] not supported:', e); }
+      .catch(function(err) { velaWarn('[Vela SW] registration failed:', err.message); });
+  } catch(e) { velaWarn('[Vela SW] not supported:', e); }
 }
 
 // Show offline banner when connection drops

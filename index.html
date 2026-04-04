@@ -13413,7 +13413,15 @@ function _gmailEnsureToken(cb) {
 async function _gmailFetch(path, params) {
   if (!_gmailIsAuthed()) return null;
   var url = 'https://gmail.googleapis.com/gmail/v1/users/me' + path;
-  if (params) url += '?' + new URLSearchParams(params).toString();
+  if (params) {
+    // Use URLSearchParams entries to support repeated keys (e.g. metadataHeaders)
+    var qp = new URLSearchParams();
+    Object.entries(params).forEach(function([k, v]) {
+      if (Array.isArray(v)) { v.forEach(function(vi){ qp.append(k, vi); }); }
+      else { qp.append(k, v); }
+    });
+    url += '?' + qp.toString();
+  }
   try {
     var r = await fetch(url, { headers: { 'Authorization': 'Bearer ' + _gmailToken } });
     if (r.status === 401) { _gmailToken = null; return null; }
@@ -13428,15 +13436,14 @@ async function _gmailLoadInbox(query, maxResults) {
   var data = await _gmailFetch('/threads', { q: query, maxResults: maxResults });
   if (!data || !data.threads) return [];
 
-  // Fetch thread metadata in batches of 5 to avoid Gmail API rate limiting
-  var allThreadIds = data.threads;
+  // Fetch metadata in batches of 5 to avoid Gmail API rate limiting
   var results = [];
   var BATCH = 5;
-  for (var i = 0; i < allThreadIds.length; i += BATCH) {
-    var batch = allThreadIds.slice(i, i + BATCH);
+  for (var i = 0; i < data.threads.length; i += BATCH) {
+    var batch = data.threads.slice(i, i + BATCH);
     var batchResults = await Promise.all(batch.map(async function(t) {
       var td = null;
-      try { td = await _gmailFetch('/threads/' + t.id, { format:'metadata', metadataHeaders:'Subject,From,Date' }); } catch(e){}
+      try { td = await _gmailFetch('/threads/' + t.id, { format:'metadata', metadataHeaders:['Subject','From','Date'] }); } catch(e){}
       if (!td) return null;
       var firstMsg = td.messages[0];
       var lastMsg  = td.messages[td.messages.length-1];
@@ -13446,8 +13453,7 @@ async function _gmailLoadInbox(query, maxResults) {
       (lastMsg.payload?.headers||[]).forEach(function(h){ lastHeaders[h.name.toLowerCase()] = h.value; });
       var unread = (lastMsg.labelIds||[]).includes('UNREAD');
       return {
-        id: t.id,
-        threadId: t.id,
+        id: t.id, threadId: t.id,
         msgId: lastMsg.id,
         from: headers['from'] || '',
         lastFrom: lastHeaders['from'] || headers['from'] || '',
@@ -13460,8 +13466,7 @@ async function _gmailLoadInbox(query, maxResults) {
       };
     }));
     results = results.concat(batchResults);
-    // Small pause between batches to respect rate limits
-    if (i + BATCH < allThreadIds.length) await new Promise(function(r){ setTimeout(r, 200); });
+    if (i + BATCH < data.threads.length) await new Promise(function(r){ setTimeout(r, 200); });
   }
   return results.filter(Boolean);
 }
@@ -14217,7 +14222,7 @@ async function _gmailLoadFolder() {
   if (_gmailState.folder === 'sent')   query = 'in:sent';
   if (_gmailState.folder === 'drafts') query = 'in:drafts';
 
-  var msgs = await _gmailLoadInbox(query, 40);
+  var msgs = await _gmailLoadInbox(query, 50);
 
   // Deduplicate by threadId — keep only latest message per thread
   var seen = {};
@@ -33553,7 +33558,7 @@ async function _gmailPollActionable() {
   if (_gmailPollRunning || !_gmailIsAuthed()) return;
   _gmailPollRunning = true;
   try {
-    var threads = await _gmailLoadInbox('in:inbox newer_than:14d -from:me', 30);
+    var threads = await _gmailLoadInbox('in:inbox -from:me', 50);
     var closed = new Set([]);
     try { JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').forEach(function(c){ closed.add(c.id); }); } catch(ep) {}
 
@@ -36699,10 +36704,7 @@ function _showGmailGuide() {
 }
 
 function _gmailDisconnect() {
-  // Clear in-memory token — without this _gmailIsAuthed() stays true after re-render
-  _gmailToken    = null;
-  _gmailTokenExp = 0;
-  _gmailPollRunning = false;
+  _gmailToken = null; _gmailTokenExp = 0; _gmailPollRunning = false;
   try { localStorage.removeItem('vela:gmail-token'); } catch(e) {}
   try { localStorage.removeItem('vela:gmail-connected-email'); } catch(e) {}
   if (window._gmailState) { window._gmailState.threads = []; }

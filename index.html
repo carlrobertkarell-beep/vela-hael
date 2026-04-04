@@ -690,6 +690,18 @@ a:hover { text-decoration: underline; }
 /* nav-sidebar.collapsed rules consolidated at line ~839 */
 
 .nav-tooltip { display:none; position:absolute; left:calc(100% + 10px); top:50%; transform:translateY(-50%); background:rgba(10,20,35,.96); color:rgba(255,255,255,.9); font-size:14px; font-weight:600; white-space:nowrap; padding:5px 10px; border-radius:7px; pointer-events:none; z-index:500; border:1px solid rgba(255,255,255,.08);  }
+
+/* ── nav-sidebar collapsed state (restored) ─────────────────────────────── */
+.app-shell-with-topbar { padding-top: 96px; }
+.nav-sidebar.collapsed .nav-section-label { opacity:0; height:0; padding:0; pointer-events:none; }
+.nav-sidebar.collapsed .nav-item-label,
+.nav-sidebar.collapsed .nav-badge,
+.nav-sidebar.collapsed .nav-logo-wordmark,
+.nav-sidebar.collapsed .nav-footer-text { display:none; }
+.nav-sidebar.collapsed .nav-item { padding: 9px 0; justify-content: center; gap: 0; border-left: 3px solid transparent; }
+.nav-sidebar.collapsed .nav-logo { display: none; }
+.nav-sidebar.collapsed .nav-collapse-arrow { transform:rotate(180deg); }
+/* ── end restored ─────────────────────────────────────────────────────────── */
 .nav-sidebar.collapsed .nav-item:hover .nav-tooltip { display:block; }
 .nav-logo {
   display:none; /* logo hidden — topbar has logo */
@@ -2980,6 +2992,69 @@ a { color: var(--link); }
 .v-hov-bg { transition: background .1s; }
 .v-hov-bg:hover { background: var(--bg) !important; }
 /* ── END CSS hover-klasser ──────────────────────────────────────────────── */
+
+/* ── Restored component CSS ──────────────────────────────────────────────── */
+.nav-tooltip{ display:none; position:absolute; left:calc(100% + 10px); top:50%; transform:translateY(-50%); background:rgba(10,20,35,.96); color:rgba(255,255,255,.9); font-size:14px; font-weight:600; white-space:nowrap; padding:5px 10px; border-radius:7px; pointer-events:none; z-index:500; border:1px solid rgba(255,255,255,.08);  }
+.akt-shell{
+  display: flex;
+  height: calc(100vh - 107px);
+  overflow: hidden;
+  font-family: var(--font);
+  background: var(--bg);
+}
+.akt-nav-btn{
+  display: flex; align-items: center; gap: 9px;
+  width: 100%; padding: 7px 10px;
+  background: none; border: none; border-radius: 7px;
+  font-size: 14px; font-weight: 400; color: var(--text);
+  cursor: pointer; font-family: var(--font); text-align: left;
+  transition: background .08s;
+}
+.akt-nav-btn:hover{ background: var(--surface3); color: var(--ink); }
+.akt-nav-btn.active{
+  background: var(--surface3); color: var(--ink); font-weight: 600;
+  
+}
+.akt-nav-btn svg{ flex-shrink: 0; opacity: .6; }
+.akt-nav-btn.active svg{ opacity: 1; }
+.akt-nav-btn span:nth-child(2){ flex: 1; }
+.akt-badge.urgent{ background: rgba(248,81,73,.15); color: var(--red); }
+.akt-filterbar-tab.active{ background: var(--surface3); color: var(--ink); font-weight: 600; }
+.akt-item{ padding: 12px 14px; }
+.akt-item:hover{ background: var(--surface3); }
+.akt-item.unread{ background: var(--surface2); }
+.akt-item.urgent{ border-left: 3px solid var(--red); }
+.akt-item-dot{
+  width: 8px; height: 8px; border-radius: 50%;
+  background: transparent; flex-shrink: 0; margin-top: 6px;
+}
+.akt-item.unread .akt-item-dot{ background: var(--teal); }
+.akt-item-dot.urgent{ background: var(--red) !important; }
+.akt-item-icon.mail{ background: rgba(88,166,255,.1); color: var(--blue); }
+.akt-item.unread .akt-item-title{ font-weight: 600; }
+.akt-action-btn.primary{ background: var(--teal); color: var(--bg); border-color: var(--teal); font-weight: 700; }
+.akt-action-btn.primary:hover{ filter: brightness(1.08); }
+.akt-action-btn.ai{ background: rgba(224,118,40,.08); color: var(--teal); border-color: rgba(224,118,40,.25); }
+.gh-card, .briefing-wrap, .briefing-panel,
+.ra-shell, .ra-list, .ra-detail, .ra-detail-empty,
+#gm-app, #gm-sidebar, #gm-list-panel, #gm-thread-panel, #gm-ai-side,
+.akt-shell, .akt-list, .akt-detail,
+.cal-shell, .cal-left, .cal-main, .cal-toolbar, .cal-header-row, .cal-scroll-area,
+.smart-soap-wrap, .soap-tools-sidebar,
+.intel-grid, .intel-card,
+.settings-content, .vela-settings-page{
+  background: var(--bg);
+}
+.gm-list-header, .gm-th-header, .gm-ai-hdr, .gm-ai-card-hdr,
+.ra-list-header, .ra-detail-header, .ra-action-bar,
+.briefing-hdr, .gh-card > :first-child,
+.akt-list-header,
+.soap-tools-sidebar > div:first-child,
+[id$="-header"][style*="background:var(--surface2)"],
+[style*="background:var(--surface2)"][style*="border-bottom"]{
+  background: var(--surface2);
+}
+/* ── End restored ─────────────────────────────────────────────────────────── */
 
 </style>
 

@@ -12141,7 +12141,14 @@ function rActions() {
           var msgs = thread.messages || [];
           var lastMsg = msgs[msgs.length-1];
           var body = _gmailGetBody(lastMsg.payload);
-          window._raThreadCache[iss.threadId] = body || '(tomt)';
+          // Strip HTML tags to get readable plain text
+          var stripped = (body || '').replace(/<style[^>]*>[\s\S]*?<\/style>/gi,'')
+            .replace(/<script[^>]*>[\s\S]*?<\/script>/gi,'')
+            .replace(/<br\s*\/?>/gi,'\n').replace(/<\/p>/gi,'\n\n')
+            .replace(/<\/div>/gi,'\n').replace(/<[^>]+>/g,'')
+            .replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"')
+            .replace(/\n{3,}/g,'\n\n').trim();
+          window._raThreadCache[iss.threadId] = stripped || '(tomt)';
           var el2 = document.querySelector('#ra-orig-body');
           if (el2) el2.textContent = window._raThreadCache[iss.threadId];
         });
@@ -12154,6 +12161,9 @@ function rActions() {
       var key = _raGetKey();
       if (key) {
         setTimeout(function(){ _raAiRewrite('kortfattat och professionellt på svenska', false); }, 300);
+      } else {
+        ta.placeholder = 'Ingen Anthropic API-nyckel konfigurerad. Gå till Inställningar → API-nycklar för att aktivera AI-svar.';
+        ta.style.color = 'var(--muted)';
       }
     }
   }
@@ -13414,11 +13424,11 @@ async function _gmailFetch(path, params) {
   if (!_gmailIsAuthed()) return null;
   var url = 'https://gmail.googleapis.com/gmail/v1/users/me' + path;
   if (params) {
-    // Use URLSearchParams entries to support repeated keys (e.g. metadataHeaders)
     var qp = new URLSearchParams();
-    Object.entries(params).forEach(function([k, v]) {
+    Object.entries(params).forEach(function(kv) {
+      var k = kv[0], v = kv[1];
       if (Array.isArray(v)) { v.forEach(function(vi){ qp.append(k, vi); }); }
-      else { qp.append(k, v); }
+      else { qp.append(k, String(v)); }
     });
     url += '?' + qp.toString();
   }

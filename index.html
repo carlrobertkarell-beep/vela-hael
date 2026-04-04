@@ -14244,6 +14244,22 @@ async function _gmailOpenThread(threadId, autoAi) {
   var msgs   = thread.messages || [];
   var meta   = _gmailState.threads.find(function(t){return t.threadId===threadId;}) || {};
   var intent = _gmailDetectIntent(meta.subject||'', meta.snippet||'');
+
+  // Mark unread messages as read
+  if (_gmailIsAuthed() && msgs.length) {
+    var unreadMsgs = msgs.filter(function(m){ return (m.labelIds||[]).includes('UNREAD'); });
+    unreadMsgs.forEach(function(m) {
+      fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/' + m.id + '/modify', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + _gmailToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ removeLabelIds: ['UNREAD'] })
+      }).catch(function(){});
+    });
+    if (unreadMsgs.length) {
+      if (meta) meta.unread = false;
+      updateInboxBadge();
+    }
+  }
   var pat    = (S.patients||[]).find(function(p){ return p.email && meta.fromEmail && meta.fromEmail.toLowerCase().includes(p.email.toLowerCase()); });
 
   _gmailState.selectedThread = { threadId:threadId, thread:thread, meta:meta, intent:intent, pat:pat };
@@ -14404,6 +14420,7 @@ function _gmailRenderThreadContent() {
   }
   h += '<span style="flex:1"></span>';
   h += '<button id="gm-reply-copy" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">Kopiera</button>';
+  h += '<button id="gm-reply-draft" style="background:none;border:1px solid var(--border);border-radius:6px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;font-family:var(--font)">Spara utkast</button>';
   h += '<button id="gm-reply-send" class="act-btn act-btn-primary" style="font-size:14px">Skicka svar</button>';
   h += '</div></div>';
 
@@ -14555,15 +14572,33 @@ function _gmailRenderThreadContent() {
   panel.querySelector('#gm-reply-send')?.addEventListener('click', async function() {
     var ta = panel.querySelector('#gm-reply-ta');
     var body = ta ? ta.value.trim() : '';
-    if (!body) return;
-    this.disabled=true; this.textContent='Skickar...';
+    if (!body) { if (typeof showAutoSaveToast === 'function') showAutoSaveToast('Skriv ett svar f\u00f6rst'); return; }
+    this.disabled=true; this.textContent='Skickar\u2026';
     try {
-      await Gmail_create_draft_stub(sel.meta.threadId, body);
-      this.textContent='Sparat ✓'; this.style.background='var(--green-lt)'; this.style.color='var(--green)';
-      if (ta) ta.value = '';
+      var result = await _gmailSendReply(sel.meta.threadId, body);
+      if (result && result.ok) {
+        this.textContent='Skickat \u2713';
+        this.style.background='var(--green-lt)'; this.style.color='var(--green)';
+        if (ta) ta.value = '';
+      } else {
+        this.disabled=false; this.textContent='Skicka svar';
+      }
     } catch(ex) {
+      this.disabled=false; this.textContent='Skicka svar';
+      if (typeof showAutoSaveToast === 'function') showAutoSaveToast('Kunde inte skicka');
+    }
+  });
+  panel.querySelector('#gm-reply-draft')?.addEventListener('click', async function() {
+    var ta = panel.querySelector('#gm-reply-ta');
+    var body = ta ? ta.value.trim() : '';
+    if (!body) { if (typeof showAutoSaveToast === 'function') showAutoSaveToast('Inget att spara'); return; }
+    this.disabled=true; this.textContent='Sparar\u2026';
+    var result = await _gmailSaveDraft(sel.meta.threadId, body);
+    if (result && result.ok) {
+      this.textContent='Sparat \u2713'; this.style.color='var(--green)';
+      setTimeout(function(){ var b=document.getElementById('gm-reply-draft'); if(b){b.textContent='Spara utkast';b.style.color='';b.disabled=false;} }, 2500);
+    } else {
       this.disabled=false; this.textContent='Spara utkast';
-      showAutoSaveToast('Kunde inte spara utkast');
     }
   });
   // Wire history load
@@ -14577,6 +14612,61 @@ function _gmailRenderThreadContent() {
 
 async function Gmail_create_draft_stub(threadId, body) {
   return await _gmailSendReply(threadId, body);
+}
+
+// ── Save as real Gmail draft (keeps draft in Gmail account) ────────────────
+async function _gmailSaveDraft(threadId, body) {
+  var sel  = _gmailState.selectedThread;
+  var meta = sel ? sel.meta : {};
+  var cfg  = (typeof getClinicConfig === 'function') ? getClinicConfig() : {};
+
+  if (!_gmailIsAuthed() || !threadId) {
+    if (typeof showAutoSaveToast === 'function') showAutoSaveToast('Gmail ej ansluten \u2014 kan inte spara utkast');
+    return { ok: false };
+  }
+
+  try {
+    var fromHdrs = meta.from || '';
+    var toAddr   = (fromHdrs.match(/<([^>]+)>/) || [])[1] || fromHdrs;
+    var subj     = (meta.subject && !meta.subject.startsWith('Re:')) ? 'Re: ' + meta.subject : (meta.subject || 'Svar');
+    var msgRaw   = [
+      'To: ' + toAddr,
+      'Subject: ' + subj,
+      'MIME-Version: 1.0',
+      'Content-Type: text/plain; charset=utf-8',
+      'In-Reply-To: ' + (meta.msgId || ''),
+      'References: ' + (meta.msgId || ''),
+      '',
+      body,
+      '',
+      '-- ',
+      cfg.name || 'Kansei'
+    ].join('\r\n');
+    var encoded = btoa(unescape(encodeURIComponent(msgRaw)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+    var res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/drafts', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + _gmailToken,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ message: { raw: encoded, threadId: threadId } })
+    });
+    if (res.ok) {
+      if (typeof showAutoSaveToast === 'function') showAutoSaveToast('Utkast sparat i Gmail \u2713');
+      return { ok: true };
+    } else {
+      var errData = await res.json().catch(function(){ return {}; });
+      console.warn('Draft save failed:', errData);
+      if (typeof showAutoSaveToast === 'function') showAutoSaveToast('Kunde inte spara utkast');
+      return { ok: false };
+    }
+  } catch(ex) {
+    console.error('_gmailSaveDraft error', ex);
+    if (typeof showAutoSaveToast === 'function') showAutoSaveToast('Kunde inte spara utkast');
+    return { ok: false };
+  }
 }
 
 async function _gmailSendReply(threadId, body) {
@@ -14638,57 +14728,135 @@ async function _gmailSendReply(threadId, body) {
 async function _gmailTriggerAi(silent) {
   var sel = _gmailState.selectedThread;
   if (!sel || !sel.thread) return;
-  var msgs = sel.thread.messages || [];
-  var lastMsg = msgs[msgs.length-1];
-  var body = _gmailGetBody(lastMsg?.payload) || '';
-  var pat = sel.pat;
-  var intent = sel.intent;
+  var msgs   = sel.thread.messages || [];
+  var pat    = sel.pat;
+  var intent = sel.intent || {};
 
   if (!silent || (typeof silent === 'object')) {
     _gmailState.aiOpen = true;
     _gmailRenderThreadContent();
   }
 
-  var patCtx = pat ? 'Patient: ' + pat.name + '. Besök: ' + (pat.visits||[]).length + '. E-post: ' + pat.email + '.' : '';
-  var portalUrl = pat ? getPortalEntryUrl(pat.id) : '';
+  // ── Show loading placeholder in textarea ───────────────────────────────────
+  var ta0 = document.getElementById('gm-reply-ta');
+  if (ta0 && !ta0.value.trim()) {
+    ta0.placeholder = 'VelaAgent analyserar tr\u00e5den\u2026';
+  }
 
-  var prompt = 'Du är assistent åt Carl-Robert Kärell, naprapat, Kansei Ortopedi & Rehabcenter.\n\n'
-    + (patCtx?patCtx+'\n':'')
-    + 'Meddelandetyp: ' + (intent.label||'okänd') + '\n'
-    + 'Senaste mail (från: ' + _gmailFromName(lastMsg?.payload?.headers?.find?.(function(h){return h.name==='From';})?.value||'') + '):\n'
-    + body.slice(0,600) + '\n\n'
-    + (_gmailState._customInstruction ? 'Extra instruktion: ' + _gmailState._customInstruction + '. Skriv ett kort, professionellt svar p\u00e5 svenska. ' : silent && typeof silent === 'object' && silent.tone ? 'Skriv med ' + silent.tone + ' ton. ' : 'Skriv ett kort, professionellt svar p\u00e5 svenska. ')
-    + (intent.id==='scheduling'&&pat ? 'Hänvisa till patientportalen för ombokning: ' + portalUrl + '. Förklara att de kan boka om där. ' : '')
-    + (intent.id==='cancel' ? 'Bekräfta och påminn om 24h-policyn vid sen avbokning. ' : '')
-    + 'Signera: Carl-Robert Kärell, Kansei Ortopedi & Rehabcenter.';
+  // ── Build full thread transcript ───────────────────────────────────────────
+  var threadLines = [];
+  msgs.forEach(function(m, idx) {
+    var hdrs = {};
+    ((m.payload && m.payload.headers) || []).forEach(function(h){ hdrs[h.name.toLowerCase()] = h.value; });
+    var fromName = _gmailFromName(hdrs['from'] || '') || 'Ok\u00e4nd';
+    var dateStr  = hdrs['date'] ? hdrs['date'].slice(0, 22) : '';
+    var body     = _gmailGetBody(m.payload) || '';
+    // Strip quoted blocks in older messages to reduce tokens
+    if (idx < msgs.length - 1) {
+      var qi = body.indexOf('\n\n> ');
+      if (qi === -1) qi = body.indexOf('\n\nDen ');
+      if (qi === -1) qi = body.indexOf('\n\n-----');
+      if (qi > 80) body = body.slice(0, qi).trim();
+      body = body.slice(0, 400);
+    } else {
+      body = body.slice(0, 900); // Newest message gets more space
+    }
+    threadLines.push('=== ' + fromName + (dateStr ? ' (' + dateStr + ')' : '') + ' ===\n' + body.trim());
+  });
+  var threadTranscript = threadLines.join('\n\n');
 
-  var _aiKey = typeof getKey === 'function' ? getKey() : null;
-  if (!_aiKey) { showAutoSaveToast('API-nyckel saknas — konfigurera i Inställningar'); return; }
+  // ── Patient context — recent visits with assessment ────────────────────────
+  var patCtx = '';
+  if (pat) {
+    var visits = (pat.visits || []).slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; }).slice(0, 3);
+    var visitLines = visits.map(function(v) {
+      var diag = (v.soap && v.soap.A) ? String(v.soap.A).slice(0, 90) : '';
+      return v.date + (diag ? ': ' + diag : '');
+    }).filter(Boolean);
+    patCtx = 'PATIENT: ' + pat.name + ' | E-post: ' + pat.email + ' | Totalt ' + (pat.visits||[]).length + ' bes\u00f6k.'
+      + (visitLines.length ? '\nSenaste bes\u00f6k: ' + visitLines.join(' | ') : '');
+  }
+
+  // ── Clinic context ─────────────────────────────────────────────────────────
+  var cfg      = (typeof getClinicConfig === 'function') ? getClinicConfig() : {};
+  var sig      = cfg.signature || 'Carl-Robert K\u00e4rell';
+  var clinic   = cfg.name || 'Kansei Ortopedi & Rehabcenter';
+  var portalUrl = (pat && typeof getPortalEntryUrl === 'function') ? getPortalEntryUrl(pat.id) : '';
+
+  // ── Intent-specific instructions ──────────────────────────────────────────
+  var intentInstr = '';
+  if (intent.id === 'scheduling' && pat) {
+    intentInstr = 'Patienten vill boka om eller fr\u00e5gar om tider. H\u00e4nvisa till patientportalen: ' + portalUrl + ' d\u00e4r de kan boka sj\u00e4lva dygnet runt. H\u00e5ll svaret kort och v\u00e4nligt.';
+  } else if (intent.id === 'cancel') {
+    intentInstr = 'Patienten vill avboka. Bekr\u00e4fta avbokningen v\u00e4nligt. P\u00e5minn kort om 24h-policyn om avbokning sker sent, utan att vara f\u00f6rebr\u00e5ende.';
+  } else if (intent.id === 'clinical') {
+    intentInstr = 'Klinisk fr\u00e5ga fr\u00e5n patienten. Svara professionellt, informativt och tryggt. Rekommendera inte specifik behandling via mail — h\u00e4nvisa till bes\u00f6k f\u00f6r bed\u00f6mning om fr\u00e5gan kr\u00e4ver det.';
+  } else if (intent.id === 'rehab') {
+    intentInstr = 'Fr\u00e5ga om rehabilitering eller \u00f6vningar. Svara konkret och uppmuntrande. Anpassa r\u00e5den till patientens k\u00e4nda historik om den finns.';
+  } else if (intent.id === 'billing') {
+    intentInstr = 'Fr\u00e5ga om faktura, betalning eller priser. Svara sakligt och h\u00e4nvisa till kliniken f\u00f6r specifika \u00e4renden om n\u00f6dv\u00e4ndigt.';
+  } else {
+    intentInstr = 'Svara kortfattat och professionellt p\u00e5 fr\u00e5gan.';
+  }
+
+  // ── Tone / custom instruction override ────────────────────────────────────
+  var toneInstr = '';
+  if (_gmailState._customInstruction) {
+    toneInstr = '\nExtra instruktion fr\u00e5n naprapaten: ' + _gmailState._customInstruction;
+  } else if (typeof silent === 'object' && silent && silent.tone) {
+    toneInstr = '\nAnv\u00e4nd ton: ' + silent.tone + '.';
+  }
+
+  var systemPrompt = 'Du \u00e4r VelaAgent \u2014 en professionell, varm och kliniskt kunnig assistent f\u00f6r leg. naprapat '
+    + sig + ' p\u00e5 ' + clinic + ' i Stockholm. '
+    + 'Du skriver alltid p\u00e5 svenska. Du \u00e4r kortfattad, tydlig och human. '
+    + 'Du signerar alltid med naprapatens namn och klinikens namn.';
+
+  var userPrompt = (patCtx ? patCtx + '\n\n' : '')
+    + 'MAILTR\u00c5D (klassificerad som: ' + (intent.label || 'ok\u00e4nd') + '):\n'
+    + threadTranscript
+    + '\n\n' + intentInstr + toneInstr
+    + '\n\nSkriv ett svar. Max 120 ord. Avsluta med h\u00e4lsning fr\u00e5n ' + sig + ', ' + clinic + '.'
+    + '\nSvara ENBART med mailtext \u2014 ingen \u00e4mnesrad, ingen kommentar utanf\u00f6r mailkroppen.';
+
+  var _aiKey = (typeof _velaGetApiKey === 'function') ? _velaGetApiKey('anthropic') : ((typeof getKey === 'function') ? getKey() : null);
+  if (!_aiKey) { if (typeof showAutoSaveToast === 'function') showAutoSaveToast('API-nyckel saknas \u2014 konfigurera i Inst\u00e4llningar'); return; }
+
   try {
-    var resp = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
         'x-api-key': _aiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
       },
-      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})
+      body: JSON.stringify({
+        model: (typeof MODEL_SONNET !== 'undefined') ? MODEL_SONNET : 'claude-sonnet-4-20250514',
+        max_tokens: 500,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
     });
     var data = await resp.json();
-    _gmailState.aiResult = (data.content&&data.content[0]&&data.content[0].text) || null;
+    _gmailState.aiResult = (data.content && data.content[0] && data.content[0].text) || null;
     _gmailState.aiOpen = true;
+    _gmailState._customInstruction = null; // Reset after use
     _gmailRenderThreadContent();
-    // Auto-fill the reply textarea with AI result
+    // Auto-fill textarea
     setTimeout(function() {
       var ta = document.getElementById('gm-reply-ta');
       if (ta && _gmailState.aiResult && !ta.value.trim()) {
         ta.value = _gmailState.aiResult;
+        ta.placeholder = 'VelaAgent genererar ett f\u00f6rslag...';
         ta.style.borderColor = 'rgba(224,118,40,.4)';
         setTimeout(function(){ ta.style.borderColor = ''; }, 2000);
       }
-    }, 100);
-  } catch(ex) { console.error('_gmailTriggerAi error', ex); }
+    }, 80);
+  } catch(ex) {
+    console.error('_gmailTriggerAi error', ex);
+    if (typeof showAutoSaveToast === 'function') showAutoSaveToast('AI-analys misslyckades \u2014 f\u00f6rs\u00f6k igen');
+  }
 }
 
 function _gmailNotConnectedHTML() {
@@ -22105,6 +22273,11 @@ const VelaAgent = (function() {
     // Waitlist check — surface long-waiting patients
     _checkWaitlistAndNotify();
 
+    // Mail — poll Gmail for actionable threads (VelaAgent-driven)
+    if (typeof _gmailPollActionable === 'function' && typeof _gmailIsAuthed === 'function' && _gmailIsAuthed()) {
+      await _gmailPollActionable();
+    }
+
     // AI scan — pre-visit briefs for today's bookings
     var key = getKey();
     if (key) {
@@ -23378,18 +23551,23 @@ function _renderPulse() {
       reschedule_sent: '<path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/>',
       cancel_handled:  '<polyline points="20 6 9 17 4 12"/>',
       cancel_confirmed:'<polyline points="20 6 9 17 4 12"/>',
+      mail_received:   '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
     };
     var feedCol = {
       cancel_detected:'var(--red)', booking_cancelled:'var(--green)',
       reschedule_detected:'var(--amber)', reschedule_sent:'var(--orange)',
       cancel_handled:'var(--green)', cancel_confirmed:'var(--green)',
+      mail_received: 'var(--blue)',
     };
     todayFeed.slice(0,6).forEach(function(f) {
       var svg2  = feedSvg[f.type] || '<circle cx="12" cy="12" r="3"/>';
       var col2  = feedCol[f.type] || 'var(--text2)';
       var tAgo   = Math.round((Date.now()-f.ts)/60000);
       var tLabel = tAgo < 1 ? 'nu' : tAgo < 60 ? tAgo + ' min' : Math.round(tAgo/60) + 'h';
-      h += '<div style="display:flex;align-items:flex-start;gap:9px;padding:9px 14px;border-bottom:1px solid var(--border2)">';
+      var clickFn = (f.type === 'mail_received' && f.meta && f.meta.threadId)
+        ? 'onclick="go(\'comms\');setTimeout(function(){_gmailOpenThread&&_gmailOpenThread(\'' + (f.meta.threadId||'') + '\');},600)"'
+        : '';
+      h += '<div style="display:flex;align-items:flex-start;gap:9px;padding:9px 14px;border-bottom:1px solid var(--border2)' + (clickFn ? ';cursor:pointer' : '') + '" ' + clickFn + '>';
       h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="'+col2+'" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px">'+svg2+'</svg>';
       h += '<div style="flex:1;min-width:0"><div style="font-size:12px;color:var(--ink);line-height:1.4">' + e(f.summary) + '</div></div>';
       h += '<span style="font-size:10px;color:var(--text2);flex-shrink:0;margin-top:1px">' + tLabel + '</span>';
@@ -33429,6 +33607,7 @@ async function _gmailPollActionable() {
 
       // ── Add to issues list (unless fully auto-handled and closed) ─────────
       if (!autoHandled || !closed.has(issueId)) {
+        var isNew = !(function(){ try{ var all=JSON.parse(localStorage.getItem('vela:mail-issues')||'[]'); return all.some(function(m){return m.id===issueId;}); }catch(e){return false;} })();
         var mailIssue = {
           id:issueId, type:'mail', threadId:t.id,
           patId:pat?pat.id:null, patName:pat?pat.name:_gmailFromName(t.from||''),
@@ -33443,6 +33622,11 @@ async function _gmailPollActionable() {
           snippet:t.snippet,
         };
         _addMailIssue(mailIssue);
+        // Log new mail to VelaAgent feed (once per thread)
+        if (isNew && typeof _agentLogAction === 'function') {
+          var senderLabel = pat ? pat.name : _gmailFromName(t.from || 'ok\u00e4nd');
+          _agentLogAction('mail_received', intent.label + ' fr\u00e5n ' + senderLabel + ': \u201d' + (t.subject||'').slice(0,50) + '\u201d', { threadId:t.id, patId: pat?pat.id:null, intentId:intent.id });
+        }
       }
     }
     if (typeof _aktUpdateBadge==='function') _aktUpdateBadge();

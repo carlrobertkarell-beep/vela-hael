@@ -6090,13 +6090,13 @@ function go(scr){
   // Show/hide global topbar + mobile topbar based on screen
   var _gtbWrap = document.getElementById('vela-global-topbar-wrap');
   var _appShell = document.getElementById('app-shell');
+  var _isPlatformScreen = ['home','workspace-new','ask-full'].indexOf(scr) !== -1;
   if (scr === 'login') {
     if (_gtbWrap) _gtbWrap.style.display = 'none';
     if (_appShell) _appShell.style.paddingTop = '0';
     var tb = document.querySelector('.topbar');
     if (tb) tb.style.display = 'none';
   } else {
-    var _isPlatformScreen = ['home','workspace-new','ask-full'].indexOf(scr) !== -1;
     var _navSidebar  = document.getElementById('nav-sidebar');
     var _mainContent = document.querySelector('.main-content');
     var _tb2         = document.querySelector('.topbar');
@@ -6130,7 +6130,7 @@ function go(scr){
 
   if (!_isPlatformScreen) rTopbar();
   if (!_isPlatformScreen && typeof _generateAIBriefings === 'function') setTimeout(_generateAIBriefings, 300);
-  const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,availability:rAvailability,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,profile:rProfile,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){},retention:rActions,'patient-portal':function(){},'intake':function(){},tools:rTools,sigqueue:rSignatureQueue,economy:rEkonomi};
+  const fn={home:rHome,'workspace-new':rNewWorkspace,'ask-full':rAskFull,dashboard:rDashboard,availability:rAvailability,list:rList,detail:rDetail,form:rForm,editex:rEditEx,loading:rLoading,doc:rDoc,meeting:function(){ S.pat ? openAmbientSession(S.pat.id) : rMeeting(); },soap:rSOAP,editpat:rEditPat,journaldoc:rJournalDoc,manualsoap:rManualSOAP,'sbs-soap':rSBSsoap,patjournal:rPatJournal,intelligence:rIntelligence,actions:rActions,activity:rInbox,profile:rProfile,settings:rSettings,hael:rHael,calendar:rCalendar,'public-plan':function(){},retention:rActions,'patient-portal':function(){},'intake':function(){},tools:rTools,sigqueue:rSignatureQueue,economy:rEkonomi,invoices:rInvoices};
   if(fn[scr])fn[scr]();
   window.scrollTo(0,0);
 }
@@ -10586,7 +10586,7 @@ function rTopbar() {
   // ── Show / hide sidebar based on current screen ───────────────
   var sb = document.getElementById('nav-sidebar');
   // Screens that get sidebar
-  var SB_SCREENS = ['settings', 'availability', 'activity', 'actions', 'sigqueue'];
+  var SB_SCREENS = ['settings', 'availability', 'activity', 'actions', 'sigqueue', 'economy', 'invoices', 'tools', 'intelligence', 'hael', 'retention'];
   var NO_SB = [];
   if (sb) {
     var wantSidebar = SB_SCREENS.indexOf(scr) !== -1;
@@ -10727,8 +10727,24 @@ function rTopbar() {
       + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
       + '<span class="nav-item-label">Flagghistorik</span></button>';
 
+  } else if (scr === 'economy') {
+    nh += nsep('Ekonomi');
+    nh += nb('economy', 'Översikt', '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>');
+    nh += '<button class="nav-item" onclick="go(\'invoices\')">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
+      + '<span class="nav-item-label">Fakturor</span></button>';
+    nh += '<button class="nav-item" onclick="_exportEconomyCSV&&_exportEconomyCSV()">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>'
+      + '<span class="nav-item-label">Exportera CSV</span></button>';
+
+  } else if (scr === 'invoices') {
+    nh += nsep('Fakturor');
+    nh += nb('invoices', 'Alla fakturor', '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>');
+    nh += '<button class="nav-item" onclick="go(\'economy\')">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>'
+      + '<span class="nav-item-label">← Ekonomi</span></button>';
+
   } else if (scr === 'hael') {
-    nh += nsep('Rehabplaner');
     nh += nb('hael', 'Alla planer', '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>');
     nh += '<button class="nav-item" onclick="go(\'form\')">'
       + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
@@ -40432,7 +40448,7 @@ function rEconomy() {
   h += '<div style="font-size:26px;font-weight:800;color:#f0f6fc;letter-spacing:-.03em">' + now.toLocaleDateString('sv-SE',{month:'long',year:'numeric'}) + '</div>';
   h += '</div>';
   h += '<div style="display:flex;gap:8px">';
-  h += '<button onclick="rInvoices()" style="padding:9px 16px;border:1px solid #30363d;border-radius:6px;font-size:14px;font-weight:700;color:#f0f6fc;cursor:pointer;font-family:var(--font);background:#161b22">Fakturor</button>';
+  h += '<button onclick="go(\'invoices\')" style="padding:9px 16px;border:1px solid #30363d;border-radius:6px;font-size:14px;font-weight:700;color:#f0f6fc;cursor:pointer;font-family:var(--font);background:#161b22">Fakturor</button>';
   h += '<button onclick="_exportEconomyCSV()" style="padding:9px 16px;border:1px solid #30363d;border-radius:6px;font-size:14px;font-weight:700;color:#f0f6fc;cursor:pointer;font-family:var(--font);background:#161b22">Exportera CSV</button>';
   h += '</div></div>';
 
@@ -40530,7 +40546,7 @@ function rEconomy() {
   h += '<div style="font-size:14px;font-weight:700;color:#f0f6fc">Fakturor</div>';
   if (outstandingAmt > 0) h += '<div style="font-size:14px;color:#d29922">' + outstandingAmt.toLocaleString('sv-SE') + ' kr utestående</div>';
   h += '</div>';
-  h += '<button onclick="rInvoices()" style="padding:6px 14px;background:rgba(224,118,40,.06);border:1px solid rgba(224,118,40,.1);border-radius:6px;font-size:14px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)">Se alla →</button>';
+  h += '<button onclick="go(\'invoices\')" style="padding:6px 14px;background:rgba(224,118,40,.06);border:1px solid rgba(224,118,40,.1);border-radius:6px;font-size:14px;font-weight:700;color:var(--teal);cursor:pointer;font-family:var(--font)">Se alla →</button>';
   h += '</div>';
   if (!invs.length) {
     h += '<div style="padding:20px;text-align:center;font-size:14px;color:#9198a1">Inga fakturor ännu. Fakturor skapas automatiskt vid besöksavslut.</div>';
@@ -40557,9 +40573,6 @@ function rEconomy() {
 function rInvoices() {
   var el = document.getElementById('s-invoices');
   if (!el) return;
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-  el.classList.add('active');
-  S.screen = 'invoices';
 
   var invs = getInvoices().sort(function(a,b){ return new Date(b.createdAt)-new Date(a.createdAt); });
   var statusCol = {draft:'var(--muted)',sent:'#d29922',paid:'#3fb950',overdue:'#f85149'};

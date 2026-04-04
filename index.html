@@ -36527,8 +36527,10 @@ function _e(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 
 // ── SYNK & DATA TAB ───────────────────────────────────────────
 function _stIntegrations() {
-  var gmailAuthed = typeof _gmailIsAuthed === 'function' && _gmailIsAuthed();
-  var gmailEmail  = gmailAuthed ? (localStorage.getItem('vela:gmail-connected-email') || (typeof _authUser !== 'undefined' && _authUser && _authUser.email) || 'Gmail kopplat') : null;
+  var gmailAuthed     = typeof _gmailIsAuthed === 'function' && _gmailIsAuthed();
+  var gmailSavedEmail = localStorage.getItem('vela:gmail-connected-email') || null;
+  var gmailStale      = !gmailAuthed && !!gmailSavedEmail; // email cached but token dead/missing
+  var gmailEmail      = (gmailAuthed || gmailStale) ? (gmailSavedEmail || (typeof _authUser !== 'undefined' && _authUser && _authUser.email) || 'Gmail kopplat') : null;
   var hasResend   = typeof _velaGetApiKey === 'function' && !!_velaGetApiKey('resend');
 
   function card(iconPath, name, desc, connected, actionHtml, extraInfo) {
@@ -36574,15 +36576,28 @@ function _stIntegrations() {
   h += '<div>';
   h += '<div style="font-size:14px;font-weight:600;color:var(--ink);margin-bottom:3px">Gmail</div>';
   h += '<div style="font-size:13px;color:var(--muted);margin-bottom:6px">Hantera patientmail direkt i Vela med AI-assistans.</div>';
-  h += '<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:20px;background:' + (gmailAuthed ? 'rgba(63,185,80,.1)' : '#21262d') + ';color:' + (gmailAuthed ? '#3fb950' : 'var(--text2)') + '">';
-  h += '<span style="width:6px;height:6px;border-radius:50%;background:' + (gmailAuthed ? '#3fb950' : 'var(--text2)') + '"></span>';
-  h += (gmailAuthed ? 'Ansluten' + (gmailEmail ? ' — ' + e(gmailEmail) : '') : 'Ej ansluten') + '</span>';
+  if (gmailAuthed) {
+    h += '<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:20px;background:rgba(63,185,80,.1);color:#3fb950">';
+    h += '<span style="width:6px;height:6px;border-radius:50%;background:#3fb950"></span>';
+    h += 'Ansluten' + (gmailEmail ? ' — ' + e(gmailEmail) : '') + '</span>';
+  } else if (gmailStale) {
+    h += '<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:20px;background:rgba(224,118,40,.1);color:var(--orange)">';
+    h += '<span style="width:6px;height:6px;border-radius:50%;background:var(--orange)"></span>';
+    h += 'Token utgången — ' + e(gmailEmail) + '</span>';
+  } else {
+    h += '<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:20px;background:#21262d;color:var(--text2)">';
+    h += '<span style="width:6px;height:6px;border-radius:50%;background:var(--text2)"></span>';
+    h += 'Ej ansluten</span>';
+  }
   h += '</div></div>';
-  h += '<div style="flex-shrink:0;margin-top:2px">';
+  h += '<div style="flex-shrink:0;margin-top:2px;display:flex;flex-direction:column;gap:6px;align-items:flex-end">';
   if (gmailAuthed) {
     h += btn('Koppla från', '_gmailDisconnect()');
+  } else if (gmailStale) {
+    h += btn('Återanslut Gmail', '_gmailAuth(function(){ _renderSettingsContent(\'integrations\'); showAutoSaveToast(\'Gmail anslutet — hämtar mail…\'); setTimeout(function(){ if(typeof _gmailPollActionable===\'function\') _gmailPollActionable(); if(typeof _mailTriage!==\'undefined\') _mailTriage.start(); },1500); })', true);
+    h += '<button onclick="_gmailDisconnect()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--muted);font-family:var(--font);padding:0;text-decoration:underline">Koppla från</button>';
   } else {
-    h += btn('Anslut Gmail', '_gmailAuth(function(){ _renderSettingsContent(\'integrations\'); showAutoSaveToast(\'Gmail anslutet \u2014 h\u00e4mtar mail\u2026\'); setTimeout(function(){ if(typeof _gmailPollActionable===\'function\') _gmailPollActionable(); if(typeof _mailTriage!==\'undefined\') _mailTriage.start(); },1500); })', true);
+    h += btn('Anslut Gmail', '_gmailAuth(function(){ _renderSettingsContent(\'integrations\'); showAutoSaveToast(\'Gmail anslutet — hämtar mail…\'); setTimeout(function(){ if(typeof _gmailPollActionable===\'function\') _gmailPollActionable(); if(typeof _mailTriage!==\'undefined\') _mailTriage.start(); },1500); })', true);
   }
   h += '</div></div>';
 
@@ -36687,8 +36702,13 @@ function _showGmailGuide() {
 }
 
 function _gmailDisconnect() {
+  // Clear in-memory token (critical — without this _gmailIsAuthed() stays true after re-render)
+  _gmailToken    = null;
+  _gmailTokenExp = 0;
   try { localStorage.removeItem('vela:gmail-token'); } catch(e) {}
+  try { localStorage.removeItem('vela:gmail-connected-email'); } catch(e) {}
   if (window._gmailState) { window._gmailState.threads = []; }
+  _gmailPollRunning = false; // reset in case a poll was stuck
   showAutoSaveToast('Gmail frånkopplad');
   if (typeof _renderSettingsContent === 'function') _renderSettingsContent('integrations');
 }

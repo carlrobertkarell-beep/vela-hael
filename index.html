@@ -12187,6 +12187,62 @@ function _snoozeIssue(id, until) {
 }
 
 // ── Gmail send from Åtgärder ───────────────────────────────────────────────
+// ── Email→patient global link helpers (called from onclick in mail UI) ────
+function _gmailLinkAndReopen(email, patId) {
+  // Persist the link
+  try {
+    var map = JSON.parse(localStorage.getItem('vela:email-pat-map') || '{}');
+    map[email.toLowerCase().trim()] = patId;
+    localStorage.setItem('vela:email-pat-map', JSON.stringify(map));
+  } catch(e) {}
+  // Re-open the current thread so VelaAgent gets full patient context
+  var sel = _gmailState && _gmailState.selectedThread;
+  if (sel && sel.threadId) {
+    _gmailState.aiResult = null; // force re-analysis with new patient context
+    _gmailOpenThread(sel.threadId, true);
+  }
+}
+function _gmailSearchPatsForLink(q, fromEmail) {
+  var all = (S && S.patients) || [];
+  var terms = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
+  if (!terms.length) {
+    // show nothing when empty
+    var d = document.getElementById('gm-link-results');
+    if (d) d.innerHTML = '';
+    return;
+  }
+  var hits = all.filter(function(p) {
+    var hay = (p.name + ' ' + (p.birthdate||p.birthYear||'') + ' ' + (p.email||'') + ' ' + (p.phone||'')).toLowerCase();
+    return terms.every(function(t){ return hay.includes(t); });
+  }).slice(0, 6);
+  var d = document.getElementById('gm-link-results');
+  if (!d) return;
+  if (!hits.length) {
+    d.innerHTML = '<div style="padding:8px 10px;font-size:13px;color:var(--muted)">Ingen patient hittad</div>';
+    return;
+  }
+  d.innerHTML = hits.map(function(p) {
+    var sub = [p.birthdate || (p.birthYear ? 'f. '+p.birthYear : ''), p.diagnosis, (p.visits||[]).length + ' bes\u00f6k'].filter(Boolean).join(' \u00b7 ');
+    return '<div onclick="_gmailLinkAndReopen(\'' + fromEmail.replace(/'/g,"\\'") + '\',\'' + p.id + '\')" '
+      + 'style="padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border2);display:flex;flex-direction:column;gap:2px" '
+      + 'onmouseenter="this.style.background=\'var(--surface3)\'" onmouseleave="this.style.background=\'\'">'
+      + '<span style="font-size:14px;font-weight:600;color:var(--ink)">' + p.name + '</span>'
+      + '<span style="font-size:12px;color:var(--muted)">' + sub + '</span>'
+      + '</div>';
+  }).join('');
+}
+function _gmailUnlinkPat(fromEmail) {
+  try {
+    var map = JSON.parse(localStorage.getItem('vela:email-pat-map') || '{}');
+    delete map[fromEmail.toLowerCase().trim()];
+    localStorage.setItem('vela:email-pat-map', JSON.stringify(map));
+  } catch(e) {}
+  var sel = _gmailState && _gmailState.selectedThread;
+  if (sel && sel.threadId) {
+    _gmailState.aiResult = null;
+    _gmailOpenThread(sel.threadId, true);
+  }
+}
 async function _gmailSendReplyFromIssue(issue, body) {
   var meta = { subject: issue.title, from: issue.fromEmail||'', msgId:'', id: issue.threadId };
   var fakeState = { selectedThread:{ meta: meta, pat: null, threadId: issue.threadId }, aiResult: null };
@@ -13261,8 +13317,18 @@ async function _aiHandlePatientEmail(fromEmail, subject, body) {
   var apiKey = _velaGetApiKey ? _velaGetApiKey('anthropic') : null;
   if (!apiKey) return null;
 
-  // Find patient from email
-  var pat = (S.patients||[]).find(function(p){ return (p.email||'').toLowerCase() === fromEmail.toLowerCase(); });
+  // Find patient from email — check persistent link map first
+  var pat = (function() {
+    try {
+      var map = JSON.parse(localStorage.getItem('vela:email-pat-map') || '{}');
+      var fe  = fromEmail.toLowerCase().trim();
+      if (map[fe]) {
+        var linked = (S.patients||[]).find(function(p){ return p.id === map[fe]; });
+        if (linked) return linked;
+      }
+    } catch(e) {}
+    return (S.patients||[]).find(function(p){ return (p.email||'').toLowerCase() === fromEmail.toLowerCase(); });
+  })();
   var patContext = pat
     ? 'Patient: ' + pat.name + '. Kommande bokningar: ' + JSON.stringify((getBookings()||[]).filter(function(b){return b.patientId===pat.id&&b.date>=new Date().toISOString().slice(0,10)&&b.status!=='cancelled';}).map(function(b){return b.date+' kl '+b.time;}))
     : 'Ok\u00e4nd pats\u00e4ndare (ej registrerad patient).';
@@ -14285,7 +14351,9 @@ async function _gmailOpenThread(threadId, autoAi) {
       updateInboxBadge();
     }
   }
-  var pat    = (S.patients||[]).find(function(p){ return p.email && meta.fromEmail && meta.fromEmail.toLowerCase().includes(p.email.toLowerCase()); });
+  var pat    = (typeof _matchPatient === 'function' && meta.fromEmail)
+    ? _matchPatient(meta.fromEmail)
+    : (S.patients||[]).find(function(p){ return p.email && meta.fromEmail && meta.fromEmail.toLowerCase().includes(p.email.toLowerCase()); });
 
   _gmailState.selectedThread = { threadId:threadId, thread:thread, meta:meta, intent:intent, pat:pat };
 
@@ -14348,10 +14416,45 @@ function _gmailRenderThreadContent() {
   // Pills row
   h += '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">';
   if (intent.id!=='other'&&intent.id!=='system') h += '<span class="status-pill ' + intent.color + '" style="font-size:11px">' + intent.label + '</span>';
-  if (pat) h += '<span class="status-pill teal" style="font-size:11px">■ ' + e(pat.name.split(' ')[0]) + '</span>';
+  if (pat) h += '<span class="status-pill teal" style="font-size:11px">\u25a0 ' + e(pat.name.split(' ')[0]) + '</span>';
   h += '<span style="font-size:12px;color:var(--muted)">' + msgs.length + ' meddelanden</span>';
   h += '</div>';
-  // Actions row
+
+  // ── Unknown sender banner ─────────────────────────────────────────────
+  var _fromEmailRaw = (meta.fromEmail || meta.from || '');
+  var _fromEmailClean = (_fromEmailRaw.match(/<([^>]+)>/) || [])[1] || _fromEmailRaw;
+  _fromEmailClean = _fromEmailClean.toLowerCase().trim();
+  // Check if this is a manually linked patient
+  var _emailMap = {};
+  try { _emailMap = JSON.parse(localStorage.getItem('vela:email-pat-map') || '{}'); } catch(e) {}
+  var _isLinked = pat && _emailMap[_fromEmailClean] === pat.id;
+
+  if (!pat && _fromEmailClean && intent.id !== 'system' && intent.id !== 'bokadirekt') {
+    var _safeEmail = _fromEmailClean.replace(/'/g, "\\'");
+    h += '<div style="margin-bottom:10px;padding:10px 12px;background:rgba(248,81,73,.06);border:1px solid rgba(248,81,73,.18);border-radius:6px">';
+    h += '<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">';
+    h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f85149" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    h += '<span style="font-size:13px;font-weight:600;color:#f85149">Ok\u00e4nd avsändare</span>';
+    h += '<span style="font-size:12px;color:var(--muted);margin-left:2px">' + e(_fromEmailClean) + '</span>';
+    h += '</div>';
+    h += '<div style="font-size:13px;color:var(--text2);margin-bottom:8px">Länka till en befintlig patient för att VelaAgent ska kunna använda patientens historik, SOAP-noteringar och behandlingsstatus.</div>';
+    h += '<div style="position:relative">';
+    h += '<input id="gm-link-search" type="text" placeholder="Sök namn, personnummer eller diagnos\u2026" autocomplete="off" '
+      + 'oninput="_gmailSearchPatsForLink(this.value,\'' + _safeEmail + '\')" '
+      + 'style="width:100%;box-sizing:border-box;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;font-size:13px;color:var(--ink);font-family:var(--font);outline:none">';
+    h += '<div id="gm-link-results" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;margin-top:4px;overflow:hidden;max-height:200px;overflow-y:auto"></div>';
+    h += '</div>';
+    h += '</div>';
+  } else if (_isLinked && pat) {
+    // Show "manually linked" indicator with unlink option
+    var _safeEmail2 = _fromEmailClean.replace(/'/g, "\\'");
+    h += '<div style="margin-bottom:8px;padding:6px 10px;background:rgba(63,185,80,.06);border:1px solid rgba(63,185,80,.15);border-radius:6px;display:flex;align-items:center;gap:7px">';
+    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    h += '<span style="font-size:12px;color:var(--green);font-weight:600">L\u00e4nkad till ' + e(pat.name) + '</span>';
+    h += '<span style="font-size:12px;color:var(--muted)">(' + e(_fromEmailClean) + ')</span>';
+    h += '<button onclick="_gmailUnlinkPat(\'' + _safeEmail2 + '\')" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:12px;color:var(--muted);font-family:var(--font);padding:0">Ta bort l\u00e4nk</button>';
+    h += '</div>';
+  }
   h += '<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">';
   // AI is always open — no toggle needed
   if (pat) {
@@ -26837,19 +26940,65 @@ var _mailTriage = (function() {
       draft: function(pat, cfg) { return 'Hej ' + (pat ? pat.name.split(' ')[0] : '') + '!\n\nTack för dina varma ord — det gläder mig verkligen! Hör av dig om du behöver något mer framöver.\n\nMed vänliga hälsningar\n' + (cfg.signature || cfg.name || 'Kansei'); }
     },
   ];
+  // ── Email → patient persistent map ───────────────────────────────────────
+  var _EMAIL_PAT_KEY = 'vela:email-pat-map';
+  function _getEmailPatMap() {
+    try { return JSON.parse(localStorage.getItem(_EMAIL_PAT_KEY) || '{}'); } catch(e) { return {}; }
+  }
+  function _saveEmailPatMap(map) {
+    try { localStorage.setItem(_EMAIL_PAT_KEY, JSON.stringify(map)); } catch(e) {}
+  }
+  function _linkEmailToPat(email, patId) {
+    var map = _getEmailPatMap();
+    map[email.toLowerCase().trim()] = patId;
+    _saveEmailPatMap(map);
+  }
+  function _unlinkEmailPat(email) {
+    var map = _getEmailPatMap();
+    delete map[email.toLowerCase().trim()];
+    _saveEmailPatMap(map);
+  }
   function _matchPatient(fromHeader) {
     var email = (fromHeader.match(/<([^>]+)>/) || [])[1] || fromHeader;
     email = email.toLowerCase().trim();
+    // Level 1: check persistent email→patId map (manually linked)
+    var map = _getEmailPatMap();
+    if (map[email]) {
+      var linked = (S && S.patients || []).find(function(p){ return p.id === map[email]; });
+      if (linked) return linked;
+      // stale link — patient deleted, clean up
+      _unlinkEmailPat(email);
+    }
+    // Level 2: direct email field match
     return (S && S.patients || []).find(function(p){ return (p.email || '').toLowerCase() === email; }) || null;
   }
   function _buildPatContext(pat) {
-    if (!pat) return 'Okänd avsändare.';
+    if (!pat) return 'Ok\u00e4nd avs\u00e4ndare \u2014 ingen patientmatchning hittades. Svara v\u00e4nligt utan att referera till specifik historik.';
     var visits = (pat.visits || []).slice().sort(function(a,b){ return (b.date||'') > (a.date||'') ? 1 : -1; });
-    var lastVisit = visits[0], lastSoap = lastVisit && lastVisit.soap ? lastVisit.soap : {};
+    var lastVisit = visits[0];
+    var lastSoap  = lastVisit && lastVisit.soap ? lastVisit.soap : {};
     var allNrs = visits.flatMap(function(v){ return (v.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }); });
-    return ['Patient: ' + pat.name, 'Diagnos: ' + (pat.diagnosis||'okänd'), 'Antal besök: ' + visits.length,
-      lastVisit ? 'Senaste besök: ' + lastVisit.date : '', lastSoap.A ? 'Senaste bedömning: ' + lastSoap.A.slice(0,120) : '',
-      allNrs.length ? 'NRS-trend: ' + allNrs[allNrs.length-1] + ' till ' + allNrs[0] : ''].filter(Boolean).join('\n');
+    var upcoming = typeof getBookings==='function' ? (getBookings()||[]).filter(function(b){
+      return b.patientId===pat.id && b.date >= new Date().toISOString().slice(0,10) && b.status!=='cancelled';
+    }).map(function(b){ return b.date + ' kl ' + (b.time||''); }) : [];
+    var haelPlan = lastVisit && lastVisit.plan;
+    var planPhase = haelPlan ? ('Fas ' + (lastVisit.plan.currentPhase||1) + ' av ' + ((lastVisit.plan.phases||[]).length||'?')) : null;
+    var lines = [
+      'Patient: ' + pat.name,
+      pat.birthdate ? 'F\u00f6dd: ' + pat.birthdate : (pat.birthYear ? 'F\u00f6dd: ' + pat.birthYear : ''),
+      'Diagnos: ' + (pat.diagnosis||'ej angiven'),
+      'Antal bes\u00f6k: ' + visits.length,
+      lastVisit ? 'Senaste bes\u00f6k: ' + lastVisit.date + (lastVisit.serviceName ? ' (' + lastVisit.serviceName + ')' : '') : '',
+      lastSoap.S ? 'S (subjektivt): ' + lastSoap.S.slice(0,150) : '',
+      lastSoap.O ? 'O (objektivt): ' + lastSoap.O.slice(0,120) : '',
+      lastSoap.A ? 'A (bed\u00f6mning): ' + lastSoap.A.slice(0,150) : '',
+      lastSoap.P ? 'P (plan): ' + lastSoap.P.slice(0,120) : '',
+      allNrs.length > 1 ? 'NRS-trend: ' + allNrs[allNrs.length-1] + ' \u2192 ' + allNrs[0] + ' (senast)' : (allNrs.length===1 ? 'NRS: ' + allNrs[0] : ''),
+      planPhase ? 'Rehabfas: ' + planPhase : '',
+      upcoming.length ? 'Kommande tider: ' + upcoming.join(', ') : 'Inga kommande bokningar',
+      pat.notes ? 'Noteringar: ' + pat.notes.slice(0,120) : '',
+    ];
+    return lines.filter(Boolean).join('\n');
   }
   function _quickDraft(subject, snippet, pat, cfg) {
     var text = (subject + ' ' + snippet).toLowerCase();
@@ -33580,7 +33729,15 @@ async function _gmailPollActionable() {
       if (intent.id === 'system') continue;
 
       var fromEmail = _gmailFromEmail(t.from || '');
-      var pat = (S.patients||[]).find(function(p){ return p.email && fromEmail && p.email.toLowerCase()===fromEmail.toLowerCase(); });
+      var pat = (function() {
+        if (!fromEmail) return null;
+        try {
+          var _m = JSON.parse(localStorage.getItem('vela:email-pat-map') || '{}');
+          var _fe = fromEmail.toLowerCase().trim();
+          if (_m[_fe]) { var _lp = (S.patients||[]).find(function(p){ return p.id === _m[_fe]; }); if (_lp) return _lp; }
+        } catch(e) {}
+        return (S.patients||[]).find(function(p){ return p.email && p.email.toLowerCase()===fromEmail.toLowerCase(); });
+      })();
 
       // ── Check if this is a reply in an existing rebook conversation ──────────
       var convState = _mailConvState[t.id];

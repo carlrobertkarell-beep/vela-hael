@@ -14355,6 +14355,15 @@ async function _gmailOpenThread(threadId, autoAi) {
     ? _matchPatient(meta.fromEmail)
     : (S.patients||[]).find(function(p){ return p.email && meta.fromEmail && meta.fromEmail.toLowerCase().includes(p.email.toLowerCase()); });
 
+  // Bokadirekt fallback: fromEmail is noreply@bokadirekt.se — parse customer email from body instead
+  if (!pat && intent.id === 'bokadirekt' && typeof _parseBokadirektEmail === 'function') {
+    var _bdBody = msgs.map(function(m){ return m.body || m.snippet || ''; }).join('\n');
+    var _bdParsed = _parseBokadirektEmail(meta.subject || '', _bdBody);
+    if (_bdParsed && _bdParsed.email) {
+      pat = (S.patients||[]).find(function(p){ return (p.email||'').toLowerCase() === _bdParsed.email; });
+    }
+  }
+
   _gmailState.selectedThread = { threadId:threadId, thread:thread, meta:meta, intent:intent, pat:pat };
 
   _gmailRenderThreadContent();
@@ -26940,6 +26949,16 @@ async function _bokadirektImport(parsed, threadId, subject) {
     if (!pat.phone    && parsed.phone) { pat.phone = parsed.phone; updated = true; }
     if (!pat.pnr      && parsed.pnr)   { pat.pnr   = parsed.pnr;  pat.birthdate = _pnrToBirthdate(parsed.pnr); updated = true; }
     if (updated) savePat(pat);
+  }
+
+  // ── Write customer email → patId to email-pat-map ─────────────────────
+  // Enables thread-to-patient linking even when fromEmail is noreply@bokadirekt.se
+  if (parsed.email) {
+    try {
+      var _epMap = JSON.parse(localStorage.getItem('vela:email-pat-map') || '{}');
+      _epMap[parsed.email.toLowerCase().trim()] = pat.id;
+      localStorage.setItem('vela:email-pat-map', JSON.stringify(_epMap));
+    } catch(e) {}
   }
 
   // ── Find or create booking ─────────────────────────────────────────────

@@ -14475,6 +14475,81 @@ function _gmailRenderThreadContent() {
 
   // Messages column
   h += '<div style="flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:14px;min-width:0">';
+
+  // ── Patient context strip ────────────────────────────────────────────────
+  if (pat) {
+    var _pv = (pat.visits||[]).slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; });
+    var _lv = _pv[0];
+    var _ls = _lv && _lv.soap ? _lv.soap : {};
+    var _nrs = _pv.flatMap(function(v){ return (v.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }); });
+    var _upBks = typeof getBookings==='function' ? (getBookings()||[]).filter(function(b){
+      return b.patientId===pat.id && b.date>=new Date().toISOString().slice(0,10) && b.status!=='cancelled';
+    }).sort(function(a,b){ return a.date>b.date?1:-1; }) : [];
+    var _nextBk = _upBks[0];
+    var _phase = _lv && _lv.plan ? ('Fas '+(_lv.plan.currentPhase||1)+'/'+(_lv.plan.phases||[]).length) : null;
+
+    h += '<details id="gm-pat-strip" open style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;overflow:hidden;flex-shrink:0">';
+    h += '<summary style="list-style:none;padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none" onclick="var d=this.parentElement;d.open=!d.hasAttribute(\'open\')||d.open===false;event.preventDefault()">';
+    h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+    h += '<span style="font-size:12px;font-weight:700;color:var(--teal);letter-spacing:.04em">' + e(pat.name) + '</span>';
+    if (pat.diagnosis) h += '<span style="font-size:12px;color:var(--text2)">\u00b7 ' + e(pat.diagnosis) + '</span>';
+    h += '<span style="font-size:12px;color:var(--muted);margin-left:auto">' + _pv.length + ' bes\u00f6k</span>';
+    h += '<svg id="gm-strip-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5" stroke-linecap="round" style="transition:transform .15s;margin-left:4px"><polyline points="6 9 12 15 18 9"/></svg>';
+    h += '</summary>';
+
+    h += '<div style="padding:10px 14px 12px;display:flex;flex-wrap:wrap;gap:12px 24px;border-top:1px solid var(--border2)">';
+
+    // Last visit
+    if (_lv) {
+      h += '<div style="min-width:140px">';
+      h += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Senaste bes\u00f6k</div>';
+      h += '<div style="font-size:13px;color:var(--ink)">' + _lv.date + (_lv.serviceName?' \u00b7 '+e(_lv.serviceName):'') + '</div>';
+      h += '</div>';
+    }
+
+    // NRS
+    if (_nrs.length) {
+      var _nrsFirst = _nrs[_nrs.length-1], _nrsLast = _nrs[0];
+      var _nrsTrend = _nrsLast < _nrsFirst ? '\u2193' : (_nrsLast > _nrsFirst ? '\u2191' : '\u2192');
+      var _nrsCol = _nrsLast < _nrsFirst ? 'var(--green)' : (_nrsLast > _nrsFirst ? 'var(--red)' : 'var(--muted)');
+      h += '<div style="min-width:80px">';
+      h += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">NRS</div>';
+      h += '<div style="font-size:13px;color:var(--ink)">' + _nrsFirst + ' ' + _nrsTrend + ' <span style="color:' + _nrsCol + ';font-weight:700">' + _nrsLast + '</span></div>';
+      h += '</div>';
+    }
+
+    // Phase
+    if (_phase) {
+      h += '<div style="min-width:80px">';
+      h += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Rehabfas</div>';
+      h += '<div style="font-size:13px;color:var(--ink)">' + _phase + '</div>';
+      h += '</div>';
+    }
+
+    // Next booking
+    h += '<div style="min-width:140px">';
+    h += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">N\u00e4sta tid</div>';
+    h += '<div style="font-size:13px;color:' + (_nextBk?'var(--ink)':'var(--muted)') + '">' + (_nextBk ? _nextBk.date+' kl '+(_nextBk.time||'') : 'Ingen bokad') + '</div>';
+    h += '</div>';
+
+    // Last SOAP A-block
+    if (_ls.A) {
+      h += '<div style="width:100%;padding-top:8px;border-top:1px solid var(--border2)">';
+      h += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Senaste bed\u00f6mning</div>';
+      h += '<div style="font-size:13px;color:var(--text2);line-height:1.5">' + e(_ls.A.slice(0,200)) + (_ls.A.length>200?'\u2026':'') + '</div>';
+      h += '</div>';
+    }
+    if (_ls.P) {
+      h += '<div style="width:100%">';
+      h += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Plan</div>';
+      h += '<div style="font-size:13px;color:var(--text2);line-height:1.5">' + e(_ls.P.slice(0,160)) + (_ls.P.length>160?'\u2026':'') + '</div>';
+      h += '</div>';
+    }
+
+    h += '</div>'; // strip body
+    h += '</details>';
+  }
+
   msgs.forEach(function(msg, i) {
     var hdrs = {};
     (msg.payload?.headers||[]).forEach(function(hh){ hdrs[hh.name.toLowerCase()] = hh.value; });
@@ -14996,6 +15071,72 @@ function _gmailNotConnectedHTML() {
     + '</div>';
 }
 
+function _gmailOpenComposeForPat(patId) {
+  var pat = (S && S.patients || []).find(function(p){ return p.id === patId; });
+  if (!pat) { _gmailOpenCompose(); return; }
+  if (!pat.email) {
+    showAutoSaveToast('Patienten saknar e-postadress');
+    return;
+  }
+  // Open compose pre-filled
+  _gmailOpenCompose(pat.email, '', '');
+  // Auto-trigger AI with full patient context after mount
+  setTimeout(async function() {
+    var apiKey = typeof _velaGetApiKey === 'function' ? _velaGetApiKey('anthropic') : null;
+    if (!apiKey) return;
+    var aiBtn = document.getElementById('gm-co-ai-btn');
+    var bodyTa = document.getElementById('gm-co-body');
+    if (!bodyTa) return;
+    if (aiBtn) {
+      aiBtn.disabled = true;
+      aiBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="animation:spin .8s linear infinite"><path d="M21 12a9 9 0 11-6-8.5"/></svg>&nbsp;VelaAgent skriver\u2026';
+    }
+    // Build rich patient context
+    var visits = (pat.visits||[]).slice().sort(function(a,b){ return (b.date||'')>(a.date||'')?1:-1; });
+    var lv = visits[0], ls = lv && lv.soap ? lv.soap : {};
+    var nrs = visits.flatMap(function(v){ return (v.logs||[]).filter(function(l){ return l.nrs!=null; }).map(function(l){ return l.nrs; }); });
+    var upBks = typeof getBookings==='function' ? (getBookings()||[]).filter(function(b){
+      return b.patientId===pat.id && b.date>=new Date().toISOString().slice(0,10) && b.status!=='cancelled';
+    }).sort(function(a,b){ return a.date>b.date?1:-1; }) : [];
+    var cfg = typeof getClinicConfig==='function' ? getClinicConfig() : {};
+    var clinicianName = cfg.signature || cfg.name || 'Behandlaren';
+    var patCtxLines = [
+      'Patient: ' + pat.name + (pat.birthdate?' (f. '+pat.birthdate+')':''),
+      'Diagnos: ' + (pat.diagnosis||'ej angiven'),
+      'Antal bes\u00f6k: ' + visits.length,
+      lv ? 'Senaste bes\u00f6k: ' + lv.date : '',
+      ls.A ? 'Senaste bed\u00f6mning: ' + ls.A.slice(0,150) : '',
+      ls.P ? 'Plan: ' + ls.P.slice(0,100) : '',
+      nrs.length>1 ? 'NRS: ' + nrs[nrs.length-1] + ' \u2192 ' + nrs[0] : '',
+      upBks[0] ? 'N\u00e4sta tid: ' + upBks[0].date + ' kl ' + (upBks[0].time||'') : 'Inga kommande tider',
+      pat.notes ? 'Noteringar: ' + pat.notes.slice(0,100) : '',
+    ].filter(Boolean).join('\n');
+    var voiceInstr = typeof _getVoiceInstruction==='function' ? _getVoiceInstruction() : '';
+    var instr = bodyTa.value.trim(); // anything typed = instruction to AI
+    var prompt = 'Du \u00e4r ' + clinicianName + ', naprapat. Skriv ett v\u00e4nligt och professionellt initiativmail p\u00e5 svenska till patienten nedan.'
+      + ' Anpassa inneh\u00e5llet efter patientens aktuella situation och historik.'
+      + (instr ? ' Instruktion fr\u00e5n behandlaren: ' + instr : ' Skriv ett kort uppf\u00f6ljningsmail som passar patientens nuvarande fas.')
+      + '\n\nPATIENTKONTEXT:\n' + patCtxLines
+      + (voiceInstr ? '\n\nDIN R\u00d6ST:\n' + voiceInstr : '')
+      + '\n\nSvara med ENBART mailkroppen. Avsluta med "Med v\u00e4nliga h\u00e4lsningar\n' + clinicianName + '"';
+    try {
+      var resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true' },
+        body: JSON.stringify({ model: typeof MODEL_SONNET!=='undefined'?MODEL_SONNET:'claude-sonnet-4-20250514', max_tokens:600, messages:[{role:'user',content:prompt}] })
+      });
+      var data = await resp.json();
+      var draft = (data.content&&data.content[0]&&data.content[0].text)||'';
+      if (bodyTa && draft) { bodyTa.value = draft; bodyTa.focus(); }
+    } catch(err) {
+      if (typeof showAutoSaveToast==='function') showAutoSaveToast('AI-skrivning misslyckades');
+    }
+    if (aiBtn) {
+      aiBtn.disabled = false;
+      aiBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Skriv med AI';
+    }
+  }, 350);
+}
 function _gmailOpenCompose(prefillTo, prefillSubject, prefillBody) {
   // Toggle: close if already open
   var existing = document.getElementById('gm-compose-overlay');
@@ -17247,9 +17388,10 @@ function _detOverview(p, visits, lastVisit, nrs, nrsFirst, nrsColor, intakeData)
 
   // ── ÅTGÄRDER ────────────────────────────────────────────────────
   h += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:16px">';
-  h += '<div style="padding:8px 14px;border-bottom:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2)">Snabbåtgärder</div>';
+  h += '<div style="padding:8px 14px;border-bottom:1px solid var(--border2);font-size:11px;font-weight:700;color:var(--text2)">Snabb\u00e5tg\u00e4rder</div>';
   var actions = [
-    { svg:'<path d="M5 3l14 9-14 9V3z"/>', col:'var(--teal)', label:'Ta emot nu', desc:'Starta besök', fn:'newVisit()' },
+    { svg:'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', col:'#58a6ff', label:'Skriv mail', desc:'VelaAgent genererar utkast', fn:'_gmailOpenComposeForPat(\''+p.id+'\')' },
+    { svg:'<path d="M5 3l14 9-14 9V3z"/>', col:'var(--teal)', label:'Ta emot nu', desc:'Starta bes\u00f6k', fn:'newVisit()' },
     { svg:'<path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>', col:'#58a6ff', label:'Dokumentera', desc:'SOAP-anteckning', fn:'newVisit()' },
     { svg:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>', col:'#a371f7', label:'Ny Hael-plan', desc:'Rehabiliteringsplan med AI', fn:'prepVisitForm(\''+p.id+'\');go(\'form\')' },
     { svg:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>', col:'#d29922', label:'Skicka intake', desc:'Anamnesformulär', fn:'sendIntakeLink(\''+p.id+'\')' },

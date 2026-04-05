@@ -11928,6 +11928,7 @@ function rActions() {
         var smsDraft2 = (window._raAiDrafts && window._raAiDrafts[iss.id]) || '';
         h += '<div><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px;margin-top:12px">Meddelande</div>';
         h += '<textarea id="ra-draft-ta" class="ra-draft-ta" style="background:var(--surface2);border:1px solid var(--border2);border-radius:6px;min-height:100px;resize:vertical" placeholder="AI genererar förslag...">' + e(smsDraft2) + '</textarea></div>';
+        h += '<div class="ra-ai-chips"><div class="ra-ai-chip" id="ra-chip-generate">Generera SMS-text</div></div>';
       }
       if (pat && pat.id) {
         h += '<div style="margin-top:16px"><button class="ra-btn-secondary" onclick="openPat(\'' + pat.id + '\')">Öppna patientkort →</button></div>';
@@ -14357,8 +14358,9 @@ async function _gmailOpenThread(threadId, autoAi) {
 
   // Bokadirekt fallback: fromEmail is noreply@bokadirekt.se — parse customer email from body instead
   if (!pat && intent.id === 'bokadirekt' && typeof _parseBokadirektEmail === 'function') {
-    var _bdBody = msgs.map(function(m){ return m.body || m.snippet || ''; }).join('\n');
-    var _bdParsed = _parseBokadirektEmail(meta.subject || '', _bdBody);
+    var _bdLastMsg = msgs[msgs.length - 1];
+    var _bdBody    = _bdLastMsg ? _gmailGetBody(_bdLastMsg.payload) : (meta.snippet || '');
+    var _bdParsed  = _parseBokadirektEmail(meta.subject || '', _bdBody);
     if (_bdParsed && _bdParsed.email) {
       pat = (S.patients||[]).find(function(p){ return (p.email||'').toLowerCase() === _bdParsed.email; });
     }
@@ -26993,6 +26995,21 @@ async function _bokadirektImport(parsed, threadId, subject) {
     }
   } else {
     // New or rescheduled — create booking
+    // For rescheduled: cancel the nearest existing upcoming booking first
+    if (parsed.bkType === 'rescheduled') {
+      var _rToday = new Date().toISOString().slice(0, 10);
+      var _rCandidates = (getBookings ? getBookings() : []).filter(function(b) {
+        return b.patientId === pat.id && b.status !== 'cancelled' && b.date >= _rToday;
+      });
+      _rCandidates.sort(function(a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+      var _rOldBk = _rCandidates[0] || null;
+      if (_rOldBk) {
+        _rOldBk.status      = 'cancelled';
+        _rOldBk.cancelledAt = now;
+        _rOldBk.cancelledBy = 'bokadirekt_rescheduled';
+        upsertBooking(_rOldBk);
+      }
+    }
     if (parsed.date) {
       // Check for duplicate
       var dupBk = (getBookings ? getBookings() : []).find(function(b){
@@ -27009,7 +27026,7 @@ async function _bokadirektImport(parsed, threadId, subject) {
           time:        parsed.time || '',
           service:     parsed.service || '',
           therapist:   parsed.person || cfg.name || '',
-          status:      parsed.bkType === 'rescheduled' ? 'rescheduled' : 'confirmed',
+          status:      'confirmed',
           source:      'bokadirekt',
           threadId:    threadId,
           createdAt:   now,

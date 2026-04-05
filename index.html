@@ -2534,6 +2534,8 @@ details[open] .det-collapsible-chevron { transform:rotate(180deg); }
   transition: height .15s ease;
 }
 @keyframes compose-in { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes _shimmer { 0%,100%{opacity:.35} 50%{opacity:.7} }
+@keyframes _pulse   { 0%,100%{opacity:.5}  50%{opacity:1}  }
 #gm-compose-overlay.minimized { height: 44px; overflow: hidden; }
 #gm-compose-overlay.expanded { width: min(760px, calc(100vw - 40px)); }
 #gm-compose-overlay.fullscreen { position: fixed; inset: 60px 20px 20px 20px; width: auto; max-width: none; border-radius: 6px; }
@@ -13585,7 +13587,9 @@ var _gmailState = {
   threads: [],            // deduped thread list for current folder
   selectedThread: null,   // opened thread
   aiOpen: false,          // AI panel visible
-  aiResult: null,         // AI analysis result
+  aiResult: null,         // AI analysis result for current thread
+  aiLoading: false,       // AI is currently generating
+  aiCache: {},            // cache: threadId → { result, patId }
   search: '',
   filter: 'all',          // all | patient | scheduling | clinical | admin
   loading: false,
@@ -14368,16 +14372,25 @@ async function _gmailOpenThread(threadId, autoAi) {
 
   _gmailState.selectedThread = { threadId:threadId, thread:thread, meta:meta, intent:intent, pat:pat };
 
+  // Fix 1+6: Always clear stale result from previous thread, then check per-thread cache
+  _gmailState.aiResult  = null;
+  _gmailState.aiLoading = false;
+  var _cached = _gmailState.aiCache[threadId];
+  if (_cached) {
+    _gmailState.aiResult = _cached.result; // serve from cache instantly
+  } else {
+    _gmailState.aiLoading = true; // show skeleton in panel immediately
+  }
+
   _gmailRenderThreadContent();
-  // Auto-analyse every time a thread opens (not just when autoAi=true)
-  if (!_gmailState.aiResult) {
+
+  if (!_cached) {
+    // Always trigger AI for every thread — never show a stale result
     setTimeout(function(){
       if (_gmailState.selectedThread && _gmailState.selectedThread.threadId === threadId) {
-        _gmailTriggerAi(true); // silent=true keeps panel closed until result ready
+        _gmailTriggerAi(true);
       }
-    }, 400);
-  } else if (autoAi) {
-    setTimeout(_gmailTriggerAi, 300);
+    }, 350);
   }
 
   // Auto-show rebook CTA for scheduling intent
@@ -14642,43 +14655,74 @@ function _gmailRenderThreadContent() {
 
   // AI panel
   if (aiOpen) {
+    var _aiLoading = _gmailState.aiLoading;
     h += '<div id="gm-ai-panel" style="width:300px;flex-shrink:0;border-left:1px solid var(--border);overflow-y:auto;background:var(--bg)">';
     h += '<div style="padding:14px 16px;border-bottom:1px solid var(--border)">';
     h += '<div style="display:flex;align-items:center;gap:7px;margin-bottom:8px">';
     h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
     h += '<span style="font-size:14px;font-weight:700;color:var(--teal);letter-spacing:.06em">VELA AI</span>';
+    if (_aiLoading) h += '<span id="gm-ai-loading-dot" style="margin-left:auto;font-size:11px;color:var(--muted);animation:_pulse 1.2s ease infinite">genererar\u2026</span>';
     h += '</div>';
 
-    // Intent + recommendation
+    // Intent description
     if (intent.id === 'scheduling') {
-      h += '<div style="font-size:14px;color:var(--ink);line-height:1.6;margin-bottom:12px">Tidsbyte-förfrågan. ' + (pat?'Skicka portallänken så kan ' + pat.name.split(' ')[0] + ' boka om själv — du slipper mer mail.':'Patienten är inte matchad i systemet.') + '</div>';
-      if (pat) h += '<button id="gm-ai-portal-btn" class="act-btn act-btn-primary" style="width:100%;justify-content:center;font-size:14px;margin-bottom:8px">Skicka portallänk till ' + pat.name.split(' ')[0] + '</button>';
+      h += '<div style="font-size:14px;color:var(--ink);line-height:1.6;margin-bottom:10px">Tidsbyte-f\u00f6rfr\u00e5gan. ' + (pat?'Skicka portall\u00e4nken s\u00e5 kan ' + pat.name.split(' ')[0] + ' boka om sj\u00e4lv.':'Avsändaren är inte matchad — se nedan.') + '</div>';
+      if (pat) h += '<button id="gm-ai-portal-btn" class="act-btn act-btn-primary" style="width:100%;justify-content:center;font-size:14px;margin-bottom:8px">Skicka portall\u00e4nk till ' + pat.name.split(' ')[0] + '</button>';
     } else if (intent.id === 'cancel') {
-      h += '<div style="font-size:14px;color:var(--ink);line-height:1.6;margin-bottom:12px">Avbokningsförfrågan.' + (pat?' Kontrollera 24h-policyn.':'') + '</div>';
+      h += '<div style="font-size:14px;color:var(--ink);line-height:1.6;margin-bottom:10px">Avbokningsf\u00f6rfr\u00e5gan.' + (pat?' Kontrollera 24h-policyn.':'') + '</div>';
     } else if (intent.id === 'clinical') {
-      h += '<div style="font-size:14px;color:var(--ink);line-height:1.6;margin-bottom:12px">Klinisk uppföljning. AI kan föreslå ett svar baserat på patientens historik.</div>';
+      h += '<div style="font-size:14px;color:var(--ink);line-height:1.6;margin-bottom:10px">Klinisk uppf\u00f6ljning. AI f\u00f6rslag baserat p\u00e5 patientens historik.</div>';
     }
 
-    h += '<button id="gm-ai-analyze-btn" class="act-btn" style="width:100%;justify-content:center;font-size:14px">' + (aiResult?'Uppdatera analys':'Analysera &amp; föreslå svar') + '</button>';
+    h += '<button id="gm-ai-analyze-btn" class="act-btn" style="width:100%;justify-content:center;font-size:14px">' + (aiResult?'Uppdatera analys':'Analysera &amp; f\u00f6resl\u00e5 svar') + '</button>';
     h += '</div>';
 
-    if (aiResult) {
+    // Fix 2: Loading skeleton
+    if (_aiLoading) {
       h += '<div style="padding:14px 16px">';
-      var toneUsed = _gmailState._lastTone;
-      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
-      h += '<div style="font-size:12px;font-weight:700;color:var(--muted)">Föreslagen text</div>';
-      if (toneUsed) h += '<span style="font-size:11px;background:var(--teal-lt);color:var(--teal);padding:1px 8px;border-radius:20px;font-weight:600">' + e(toneUsed) + '</span>';
-      h += '</div>';
-      h += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:14px;color:var(--ink);line-height:1.7;white-space:pre-wrap;margin-bottom:8px">' + e(aiResult) + '</div>';
-      h += '<div style="display:flex;gap:8px;margin-top:4px">';
-      h += '<button id="gm-ai-use-btn" class="act-btn" style="flex:1;justify-content:center;font-size:14px">Kopiera till svar</button>';
-      h += '<button id="gm-ai-other-angle" class="act-btn" style="flex:1;justify-content:center;font-size:14px" title="Annan ton/vinkel">';
-      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Annan vinkel';
-      h += '</button>';
+      h += '<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">F\u00f6reslagen text</div>';
+      var _sk = 'background:var(--surface2);border-radius:4px;animation:_shimmer 1.4s ease infinite;';
+      h += '<div style="display:flex;flex-direction:column;gap:8px">';
+      h += '<div style="' + _sk + 'height:14px;width:92%"></div>';
+      h += '<div style="' + _sk + 'height:14px;width:78%"></div>';
+      h += '<div style="' + _sk + 'height:14px;width:88%"></div>';
+      h += '<div style="' + _sk + 'height:14px;width:60%"></div>';
       h += '</div>';
       h += '</div>';
     }
-    h += '</div>';
+
+    // Result + Fix 3 (no Kopiera btn) + Fix 4 (tone chips instead of Annan vinkel)
+    if (aiResult) {
+      var toneUsed = _gmailState._lastTone;
+      h += '<div style="padding:14px 16px">';
+      h += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+      h += '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">F\u00f6reslagen text</div>';
+      if (toneUsed) h += '<span style="font-size:11px;background:var(--teal-lt);color:var(--teal);padding:1px 8px;border-radius:20px;font-weight:600">' + e(toneUsed) + '</span>';
+      h += '<span style="font-size:11px;color:var(--green);margin-left:auto">\u2713 ifyllt</span>';
+      h += '</div>';
+      h += '<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px;font-size:13px;color:var(--ink);line-height:1.7;white-space:pre-wrap;max-height:220px;overflow-y:auto">' + e(aiResult) + '</div>';
+      // Fix 4: Tone chips — replaces "Annan vinkel" button
+      h += '<div style="margin-top:10px;margin-bottom:2px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Justera ton</div>';
+      h += '<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px">';
+      var _toneChips = ['Kortare', 'Varmare', 'Formell', 'Mer direkt'];
+      _toneChips.forEach(function(chip){
+        h += '<button class="gm-tone-chip" data-tone="' + chip.toLowerCase() + '" style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font)">' + chip + '</button>';
+      });
+      h += '</div>';
+      h += '</div>';
+    }
+
+    // Fix 5: Unknown sender — patient matching UI
+    if (!pat && intent.id !== 'system' && intent.id !== 'bokadirekt') {
+      h += '<div style="padding:12px 16px;border-top:1px solid var(--border)">';
+      h += '<div style="font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">\u26a0 Ok\u00e4nd avs\u00e4ndare</div>';
+      h += '<div style="font-size:13px;color:var(--text2);margin-bottom:8px">Koppla till patient f\u00f6r b\u00e4ttre AI-svar och journalf\u00f6ring.</div>';
+      h += '<input id="gm-pat-search" type="text" placeholder="S\u00f6k patient\u2026" style="width:100%;box-sizing:border-box;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px;color:var(--ink);font-family:var(--font);outline:none;margin-bottom:6px">';
+      h += '<div id="gm-pat-results" style="display:flex;flex-direction:column;gap:4px"></div>';
+      h += '</div>';
+    }
+
+    h += '</div>'; // gm-ai-panel
   }
 
   h += '</div>'; // body row
@@ -14717,36 +14761,80 @@ function _gmailRenderThreadContent() {
     _gmailState.aiOpen = !_gmailState.aiOpen;
     _gmailRenderThreadContent();
   });
-  panel.querySelector('#gm-ai-analyze-btn')?.addEventListener('click', _gmailTriggerAi);
+  panel.querySelector('#gm-ai-analyze-btn')?.addEventListener('click', function() {
+    // Invalidate cache for this thread so we force a fresh draft
+    if (sel && sel.threadId) delete _gmailState.aiCache[sel.threadId];
+    _gmailState.aiResult  = null;
+    _gmailState.aiLoading = true;
+    _gmailRenderThreadContent();
+    _gmailTriggerAi();
+  });
   panel.querySelector('#gm-ai-portal-btn')?.addEventListener('click', async function() {
     if (!pat) return;
     this.disabled=true; this.textContent='Skickar...';
     await sendPortalMagicLink(pat);
-    this.textContent='Skickat ✓';
+    this.textContent='Skickat \u2713';
     this.style.background='var(--green-lt)'; this.style.color='var(--green)';
   });
-  panel.querySelector('#gm-ai-use-btn')?.addEventListener('click', function() {
-    var ta = panel.querySelector('#gm-reply-ta');
-    if (ta && _gmailState.aiResult) { ta.value = _gmailState.aiResult; ta.focus(); }
+
+  // Fix 4: Tone chip buttons
+  panel.querySelectorAll('.gm-tone-chip').forEach(function(chip) {
+    chip.addEventListener('click', async function() {
+      var tone = chip.dataset.tone;
+      panel.querySelectorAll('.gm-tone-chip').forEach(function(c){ c.style.opacity='0.5'; c.disabled=true; });
+      chip.textContent = 'Genererar\u2026';
+      _gmailState._lastTone = tone;
+      _gmailState.aiResult  = null;
+      _gmailState.aiLoading = true;
+      if (sel && sel.threadId) delete _gmailState.aiCache[sel.threadId];
+      _gmailRenderThreadContent();
+      await _gmailTriggerAi({ tone: tone });
+    });
   });
-  panel.querySelector('#gm-ai-other-angle')?.addEventListener('click', async function() {
-    var btn = this; btn.disabled = true; btn.textContent = 'Genererar...';
-    var tones = ['mer empatisk och varm', 'kortare och mer rakt på sak', 'mer formell', 'personligare och mer engagerad'];
-    var lastTone = _gmailState._lastTone || '';
-    var tone = tones.find(function(t){ return t !== lastTone; }) || tones[0];
-    _gmailState._lastTone = tone;
-    _gmailState.aiResult = null;
-    await _gmailTriggerAi({ tone: tone });
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:4px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>Annan vinkel';
-  });
+
+  // Fix 5: Patient search for unknown senders
+  var patSearchEl = panel.querySelector('#gm-pat-search');
+  var patResultsEl = panel.querySelector('#gm-pat-results');
+  if (patSearchEl && patResultsEl) {
+    patSearchEl.addEventListener('input', function() {
+      var q = patSearchEl.value.trim().toLowerCase();
+      patResultsEl.innerHTML = '';
+      if (q.length < 2) return;
+      var S2 = typeof loadState === 'function' ? loadState() : (window._velaState || {});
+      var hits = (S2.patients||[]).filter(function(p){
+        return (p.name||'').toLowerCase().includes(q) || (p.email||'').toLowerCase().includes(q);
+      }).slice(0,5);
+      hits.forEach(function(p){
+        var row = document.createElement('button');
+        row.style.cssText = 'display:flex;align-items:center;gap:8px;width:100%;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:13px;color:var(--ink);cursor:pointer;font-family:var(--font);text-align:left';
+        row.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>'
+          + '<span style="flex:1"><strong>' + e(p.name) + '</strong></span>'
+          + '<span style="color:var(--muted);font-size:11px">' + e(p.email||'') + '</span>';
+        row.onclick = function() {
+          // Patch selected thread with matched patient and re-generate
+          if (_gmailState.selectedThread) {
+            _gmailState.selectedThread.pat = p;
+            if (sel && sel.threadId) delete _gmailState.aiCache[sel.threadId];
+            _gmailState.aiResult  = null;
+            _gmailState.aiLoading = true;
+            _gmailRenderThreadContent();
+            _gmailTriggerAi(true);
+          }
+        };
+        patResultsEl.appendChild(row);
+      });
+      if (!hits.length) {
+        patResultsEl.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:4px 2px">Inga patienter hittades</div>';
+      }
+    });
+  }
   panel.querySelector('#gm-portal-send')?.addEventListener('click', async function() {
     if (!pat) return;
     this.disabled=true; this.textContent='Skickar...';
     await sendPortalMagicLink(pat);
     this.textContent='Portallänk skickad ✓';
   });
-  // "Generera om" with free-text instruction
+  // "Generera om" with free-text instruction (also clears cache + shows skeleton)
   var refineBtn = panel.querySelector('#gm-ai-refine');
   var instrInp  = panel.querySelector('#gm-ai-instruction');
   async function _runRefine() {
@@ -14754,8 +14842,11 @@ function _gmailRenderThreadContent() {
     var instr = instrInp ? instrInp.value.trim() : '';
     refineBtn.disabled = true;
     refineBtn.textContent = 'Genererar…';
-    _gmailState.aiResult = null;
+    _gmailState.aiResult  = null;
+    _gmailState.aiLoading = true;
     _gmailState._customInstruction = instr || null;
+    if (sel && sel.threadId) delete _gmailState.aiCache[sel.threadId];
+    _gmailRenderThreadContent();
     await _gmailTriggerAi(true);
     refineBtn.disabled = false;
     refineBtn.innerHTML = '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg> Generera om';
@@ -14943,11 +15034,14 @@ async function _gmailTriggerAi(silent) {
   var sel = _gmailState.selectedThread;
   if (!sel || !sel.thread) return;
   var msgs   = sel.thread.messages || [];
-  var pat    = sel.pat;
+  var pat    = sel.pat; // may have been patched by Fix 5 patient-match
   var intent = sel.intent || {};
 
+  // Always mark loading so skeleton renders
+  _gmailState.aiLoading = true;
+  _gmailState.aiOpen    = true;
+
   if (!silent || (typeof silent === 'object')) {
-    _gmailState.aiOpen = true;
     _gmailRenderThreadContent();
   }
 
@@ -15053,21 +15147,35 @@ async function _gmailTriggerAi(silent) {
       })
     });
     var data = await resp.json();
-    _gmailState.aiResult = (data.content && data.content[0] && data.content[0].text) || null;
-    _gmailState.aiOpen = true;
+    var _aiText = (data.content && data.content[0] && data.content[0].text) || null;
+    _gmailState.aiResult  = _aiText;
+    _gmailState.aiLoading = false;
+    _gmailState.aiOpen    = true;
     _gmailState._customInstruction = null; // Reset after use
+    // Fix 6: Cache the result for this thread so navigating back is instant
+    if (_aiText && sel && sel.threadId) {
+      _gmailState.aiCache[sel.threadId] = { result: _aiText, ts: Date.now() };
+      // Prune cache entries older than 30 min to avoid stale data
+      var _now = Date.now();
+      Object.keys(_gmailState.aiCache).forEach(function(k){
+        if (_now - (_gmailState.aiCache[k].ts||0) > 1800000) delete _gmailState.aiCache[k];
+      });
+    }
     _gmailRenderThreadContent();
-    // Auto-fill textarea
+    // Fix 3: Auto-fill textarea immediately and highlight clearly — no "Kopiera" click needed
     setTimeout(function() {
       var ta = document.getElementById('gm-reply-ta');
       if (ta && _gmailState.aiResult && !ta.value.trim()) {
         ta.value = _gmailState.aiResult;
-        ta.placeholder = 'VelaAgent genererar ett f\u00f6rslag...';
-        ta.style.borderColor = 'rgba(224,118,40,.4)';
-        setTimeout(function(){ ta.style.borderColor = ''; }, 2000);
+        ta.focus();
+        // Brief green flash to signal "textarea is ready"
+        ta.style.outline = '2px solid rgba(35,134,54,.6)';
+        ta.style.transition = 'outline .3s ease';
+        setTimeout(function(){ ta.style.outline = ''; }, 1800);
       }
     }, 80);
   } catch(ex) {
+    _gmailState.aiLoading = false;
     console.error('_gmailTriggerAi error', ex);
     if (typeof showAutoSaveToast === 'function') showAutoSaveToast('AI-analys misslyckades \u2014 f\u00f6rs\u00f6k igen');
   }

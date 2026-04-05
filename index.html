@@ -10267,7 +10267,7 @@ function _renderGlobalTopbar() {
     { id:'calendar',     label:'Kalender',       dest:'calendar',     icon:'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z' },
     // Besök removed — accessed via patient card
     { id:'hael',         label:'Hael',           dest:'hael',         icon:'M22 12h-4l-3 9L9 3l-3 9H2' },
-    { id:'actions',      label:'Åtgärder',       dest:'activity',     icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z', badge:(alerts2+pending2+gmailUnread2+unread2)||null, badgeColor:'red' },
+    { id:'actions',      label:'Åtgärder',       dest:'actions',      icon:'M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z', badge:(alerts2+pending2+unread2)||null, badgeColor:'red' },
     { id:'intelligence', label:'Insikter',       dest:'intelligence', icon:'M18 20V10M12 20V4M6 20v-6' },
     { id:'settings',     label:'Inställningar',  dest:'settings',     icon:'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z' },
   ];
@@ -10653,9 +10653,7 @@ function rTopbar() {
     (S.patients||[]).length || null, 'count');
   nh += nb('calendar', 'Kalender', '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>');
   nh += nb('actions', '\u00c5tg\u00e4rder', '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
-    (alertCount+pendingAppr) || null, 'alert');
-  nh += nb('activity', 'Aktivitet', '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
-    unreadMsgs || null, 'count');
+    (alertCount+pendingAppr+unreadMsgs) || null, 'alert');
   nh += nb('tools', 'Verktyg', '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>');
   nh += nb('economy', 'Ekonomi', '<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>');
   nh += '</div>';
@@ -10707,22 +10705,58 @@ function rTopbar() {
     }
 
   } else if (scr === 'actions' || scr === 'retention') {
-    nh += nsep('Filter');
-    nh += nb('actions', 'Alla \u00e4renden', '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>');
-    if (pendingAppr) {
-      nh += '<button class="nav-item" onclick="window._actionsType=\'ai_pending\';rActions()">'
-        + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>'
-        + '<span class="nav-item-label">AI v\u00e4ntar signering</span>'
-        + '<span class="nav-badge-alert">'+pendingAppr+'</span></button>';
+    // ── Compute category counts ──────────────────────────────────────────────
+    var _allIss    = typeof _gatherIssues === 'function' ? _gatherIssues() : [];
+    var _closedIds = (function(){ try { return JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').map(function(c){return c.id;}); } catch(e){ return []; } })();
+    var _closedSet = new Set(_closedIds);
+    var _openIss   = _allIss.filter(function(i){ return !_closedSet.has(i.id); });
+    var _cntSvar      = _openIss.filter(function(i){ return i.type==='mail'||i.type==='unread_msg'; }).length;
+    var _cntProaktiv  = _openIss.filter(function(i){ return i.type==='dropout'||i.type==='overdue'; }).length;
+    var _cntGranska   = _openIss.filter(function(i){ return ['red_flag','compliance','no_journal','rebook','ai_pending','no_show'].indexOf(i.type)!==-1; }).length;
+    var _cntVela      = _closedIds.filter(function(id){ try { var cl=JSON.parse(localStorage.getItem('vela:closed-issues')||'[]'); return cl.some(function(c){return c.id===id&&c.resolution==='vela_auto';}); } catch(e){return false;} }).length;
+    var _activeCat    = window._actionsCategory || '';
+
+    function _catBtn(catId, label, iconPath, cnt, color) {
+      var isActive = _activeCat === catId;
+      var badgeColor = color || 'var(--muted)';
+      var b = '<button class="nav-item' + (isActive?' active':'') + '" onclick="window._actionsCategory=\'' + catId + '\';window._actionsType=\'\';window._actionsTab=\'open\';rActions&&rActions()">'
+        + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + (isActive?'currentColor':badgeColor) + '" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon">' + iconPath + '</svg>'
+        + '<span class="nav-item-label">' + label + '</span>';
+      if (cnt) b += '<span class="nav-badge-' + (color==='var(--orange)'?'alert':'count') + '">' + cnt + '</span>';
+      b += '</button>';
+      return b;
     }
-    if (dropoutCount) {
-      nh += '<button class="nav-item" onclick="window._actionsType=\'dropout\';rActions()">'
-        + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 4.69 13"/></svg>'
-        + '<span class="nav-item-label">Avhoppsrisk</span>'
-        + '<span class="nav-badge-count">'+dropoutCount+'</span></button>';
-    }
-    nh += nb('retention', 'Meddelandek\u00f6', '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
-      alertCount||null, 'alert');
+
+    // Alla — resets category filter
+    var _isAllActive = !_activeCat;
+    nh += '<button class="nav-item' + (_isAllActive?' active':'') + '" onclick="window._actionsCategory=\'\';window._actionsType=\'\';window._actionsTab=\'open\';rActions&&rActions()">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
+      + '<span class="nav-item-label">Alla \u00e4renden</span>'
+      + (_openIss.length ? '<span class="nav-badge-count">' + _openIss.length + '</span>' : '')
+      + '</button>';
+
+    nh += nsep('Kommunikation');
+    nh += _catBtn('svar',     'Svar att skicka',    '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', _cntSvar, _cntSvar?'var(--orange)':'');
+    nh += _catBtn('proaktiv', 'Proaktiva utskick',  '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>', _cntProaktiv, _cntProaktiv?'var(--orange)':'');
+
+    nh += nsep('Kliniskt');
+    nh += _catBtn('granska',  'Att granska',        '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>', _cntGranska, '');
+
+    // Hanterat av Vela — autonomous audit trail
+    nh += '<div style="margin:12px 8px 4px;border-top:1px solid var(--border);padding-top:10px">'
+      + '<button class="nav-item' + (_activeCat==='vela_auto'?' active':'') + '" onclick="window._actionsCategory=\'vela_auto\';window._actionsType=\'\';window._actionsTab=\'closed\';rActions&&rActions()">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>'
+      + '<span class="nav-item-label" style="color:var(--text2)">Hanterat av Vela</span>'
+      + (_cntVela ? '<span class="nav-badge-count">' + _cntVela + '</span>' : '')
+      + '</button>'
+      + '</div>';
+
+    // Råinkorg — secondary access to raw Gmail, visually de-emphasized
+    nh += '<button class="nav-item" onclick="go(\'activity\')" style="margin-top:2px;opacity:.55">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>'
+      + '<span class="nav-item-label">R\u00e5inkorg</span>'
+      + (unreadMsgs ? '<span class="nav-badge-count">' + unreadMsgs + '</span>' : '')
+      + '</button>';
 
   } else if (scr === 'intelligence') {
     nh += nsep('Vela AI');
@@ -10800,13 +10834,18 @@ function rTopbar() {
     nh += nsep('Profil');
     nh += stab('profile', 'Min profil', '<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>');
   } else if (scr === 'activity') {
-    nh += nsep('Aktivitet');
-    nh += '<button class="nav-item active" data-screen="activity"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span class="nav-item-label">Inkorg</span></button>';
+    // Raw inbox — treated as a sub-view of Åtgärder, not a primary destination
+    nh += '<button class="nav-item" onclick="go(\'actions\')" style="margin-bottom:6px">'
+      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>'
+      + '<span class="nav-item-label">\u2190 \u00c5tg\u00e4rder</span></button>';
+    nh += nsep('R\u00e5inkorg');
+    nh += '<button class="nav-item active" data-screen="activity"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span class="nav-item-label">Alla inkommande</span></button>';
     if (unreadMsgs) {
       nh += '<button class="nav-item" onclick="window._activityFilter=\'unread\';rInbox&&rInbox()">'
         + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>'
         + '<span class="nav-item-label">Ol\u00e4sta</span><span class="nav-badge-alert">'+unreadMsgs+'</span></button>';
     }
+    nh += '<div style="margin:10px 10px 4px;font-size:11px;color:var(--muted);line-height:1.4">Vela hanterar inkorgen automatiskt. Du beh\u00f6ver normalt inte besöka den h\u00e4r.</div>';
   }
 
   nh += '</div>';
@@ -11676,8 +11715,29 @@ function rActions() {
   var searchQ      = window._actionsSearch || '';
   var selectedId   = window._actionsSelected || null;
 
+  // ── Category → type mapping ──────────────────────────────────────────────
+  var _CAT_TYPES = {
+    svar:     ['mail','unread_msg'],
+    proaktiv: ['dropout','overdue'],
+    granska:  ['red_flag','compliance','no_journal','rebook','ai_pending','no_show'],
+    vela_auto: [] // handled separately via resolution filter
+  };
+  var activeCategory = window._actionsCategory || '';
+
   var displayed = activeTab === 'open' ? openIssues : closedIssues;
-  if (activeType) displayed = displayed.filter(function(i){return i.type===activeType;});
+
+  // vela_auto tab: show closed issues where resolution === 'vela_auto'
+  if (activeCategory === 'vela_auto') {
+    var _closedFull = [];
+    try { _closedFull = JSON.parse(localStorage.getItem('vela:closed-issues')||'[]'); } catch(e) {}
+    var _velaAutoIds = new Set(_closedFull.filter(function(c){ return c.resolution==='vela_auto'; }).map(function(c){ return c.id; }));
+    displayed = allIssues.filter(function(i){ return _velaAutoIds.has(i.id); });
+  } else if (activeCategory && _CAT_TYPES[activeCategory]) {
+    displayed = displayed.filter(function(i){ return _CAT_TYPES[activeCategory].indexOf(i.type) !== -1; });
+  } else if (activeType) {
+    displayed = displayed.filter(function(i){ return i.type === activeType; });
+  }
+
   if (searchQ)    displayed = displayed.filter(function(i){
     return (i.patName||'').toLowerCase().includes(searchQ.toLowerCase())
         || (i.title||'').toLowerCase().includes(searchQ.toLowerCase());
@@ -11718,9 +11778,15 @@ function rActions() {
   h += '</div>';
 
   // Tabs
+  // ── Compute vela_auto count for tab badge ─────────────────────────────
+  var _closedFullList = [];
+  try { _closedFullList = JSON.parse(localStorage.getItem('vela:closed-issues')||'[]'); } catch(e) {}
+  var _velaAutoCount = _closedFullList.filter(function(c){ return c.resolution==='vela_auto'; }).length;
+
   h += '<div class="ra-tabs">';
-  h += '<button class="ra-tab' + (activeTab==='open'?' active':'') + '" onclick="window._actionsTab=\'open\';rActions()">Öppna<span class="ra-tab-count">' + openIssues.length + '</span></button>';
-  h += '<button class="ra-tab' + (activeTab==='closed'?' active':'') + '" onclick="window._actionsTab=\'closed\';rActions()">Hanterade<span class="ra-tab-count">' + closedIssues.length + '</span></button>';
+  h += '<button class="ra-tab' + (activeTab==='open'?' active':'') + '" onclick="window._actionsTab=\'open\';window._actionsCategory=window._actionsCategory===\'vela_auto\'?\'\':window._actionsCategory;rActions()">Att godk\u00e4nna<span class="ra-tab-count">' + openIssues.length + '</span></button>';
+  h += '<button class="ra-tab' + (activeCategory==='vela_auto'?' active':'') + '" onclick="window._actionsCategory=\'vela_auto\';window._actionsTab=\'closed\';rActions()" style="' + (activeCategory==='vela_auto'?'':'') + '">Hanterat av Vela' + (_velaAutoCount?'<span class="ra-tab-count" style="background:rgba(31,111,235,.15);color:var(--teal)">'+_velaAutoCount+'</span>':'') + '</button>';
+  h += '<button class="ra-tab' + (activeTab==='closed'&&activeCategory!=='vela_auto'?' active':'') + '" onclick="window._actionsTab=\'closed\';window._actionsCategory=\'\';rActions()">Hanterade<span class="ra-tab-count">' + closedIssues.length + '</span></button>';
   h += '</div>';
 
   h += '<div class="ra-items">';
@@ -11750,9 +11816,14 @@ function rActions() {
       h += '<div class="ra-item-title">' + e((issue.title||'').slice(0,55)) + '</div>';
       h += '<div class="ra-item-foot">';
       h += '<span class="ra-item-pill" style="background:' + col.replace(')',',0.12)').replace('#','rgba(').replace('rgba(var(--teal)','rgba(224,118,40') + ';color:' + col + '">' + (itype.label||issue.type) + '</span>';
+      // Show "Vela Auto" badge if autonomously handled
+      var _issResolution = (function(){ try { var cl=JSON.parse(localStorage.getItem('vela:closed-issues')||'[]'); var entry=cl.find(function(c){return c.id===issue.id;}); return entry?entry.resolution:''; } catch(e){ return ''; } })();
+      if (_issResolution === 'vela_auto') {
+        h += '<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;background:rgba(31,111,235,.12);color:var(--teal);letter-spacing:.02em">VELA AUTO</span>';
+      }
       var ageStr = _relativeDate ? _relativeDate(new Date(Date.now()-(issue.age||0)).toISOString().slice(0,10)) : '';
       if (ageStr) h += '<span class="ra-item-age">' + ageStr + '</span>';
-      if (isClosed) h += '<button class="ra-reopen-btn" onclick="event.stopPropagation();_reopenIssue(\'' + issue.id + '\')">Återöppna</button>';
+      if (isClosed && _issResolution !== 'vela_auto') h += '<button class="ra-reopen-btn" onclick="event.stopPropagation();_reopenIssue(\'' + issue.id + '\')">Återöppna</button>';
       h += '</div>';
       h += '</div></div>';
     });
@@ -33918,11 +33989,11 @@ function _addMailIssue(issue) {
   if (typeof _aktUpdateBadge === 'function') _aktUpdateBadge();
 }
 
-function _closeMailIssue(issueId) {
+function _closeMailIssue(issueId, resolution) {
   var closed = [];
   try { closed = JSON.parse(localStorage.getItem('vela:closed-issues')||'[]'); } catch {}
   if (!closed.find(function(c){ return c.id===issueId; }))
-    closed.push({ id:issueId, at:new Date().toISOString() });
+    closed.push({ id:issueId, at:new Date().toISOString(), resolution: resolution||'manual' });
   try { localStorage.setItem('vela:closed-issues', JSON.stringify(closed)); } catch {}
 }
 
@@ -34100,8 +34171,31 @@ async function _gmailPollActionable() {
       // ── Generate AI summary (always, for list display) ────────────────────
       _gmailGenerateSummary(t, pat, intent);
 
-      // ── Add to issues list (unless fully auto-handled and closed) ─────────
-      if (!autoHandled || !closed.has(issueId)) {
+      // ── Add to issues list & mark resolution ─────────────────────────────
+      if (autoHandled) {
+        // Always add the issue so it appears in "Hanterat av Vela" audit view,
+        // then immediately close it with resolution 'vela_auto'
+        var isNew2 = !(function(){ try{ var all=JSON.parse(localStorage.getItem('vela:mail-issues')||'[]'); return all.some(function(m){return m.id===issueId;}); }catch(e){return false;} })();
+        var autoIssue = {
+          id:issueId, type:'mail', threadId:t.id,
+          patId:pat?pat.id:null, patName:pat?pat.name:_gmailFromName(t.from||''),
+          fromEmail:t.from,
+          title:t.subject||'(Inget ämne)',
+          meta:intent.id!=='other' ? intent.label : _gmailFromName(t.from||''),
+          intentId:intent.id, intentLabel:intent.label,
+          age:0, ts:t.date||new Date().toISOString(),
+          aiSuggestion:null,
+          aiCanAutoHandle:true,
+          closeFn:'_closeMailIssue', closeLabel:'Markera hanterad',
+          snippet:t.snippet,
+        };
+        _addMailIssue(autoIssue);
+        _closeMailIssue(issueId, 'vela_auto');
+        if (isNew2 && typeof _agentLogAction === 'function') {
+          var senderLabel2 = pat ? pat.name : _gmailFromName(t.from || 'ok\u00e4nd');
+          _agentLogAction('mail_auto_handled', intent.label + ' fr\u00e5n ' + senderLabel2 + ' \u2014 hanterat autonomt', { threadId:t.id, patId: pat?pat.id:null, intentId:intent.id });
+        }
+      } else {
         var isNew = !(function(){ try{ var all=JSON.parse(localStorage.getItem('vela:mail-issues')||'[]'); return all.some(function(m){return m.id===issueId;}); }catch(e){return false;} })();
         var mailIssue = {
           id:issueId, type:'mail', threadId:t.id,
@@ -34117,7 +34211,6 @@ async function _gmailPollActionable() {
           snippet:t.snippet,
         };
         _addMailIssue(mailIssue);
-        // Log new mail to VelaAgent feed (once per thread)
         if (isNew && typeof _agentLogAction === 'function') {
           var senderLabel = pat ? pat.name : _gmailFromName(t.from || 'ok\u00e4nd');
           _agentLogAction('mail_received', intent.label + ' fr\u00e5n ' + senderLabel + ': \u201d' + (t.subject||'').slice(0,50) + '\u201d', { threadId:t.id, patId: pat?pat.id:null, intentId:intent.id });

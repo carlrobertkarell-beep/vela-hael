@@ -26992,6 +26992,10 @@ async function _bokadirektImport(parsed, threadId, subject) {
       bkResult.cancelled = true;
       bkResult.bk = upBk;
       if (typeof _notifyWaitlistOnCancellation === 'function') _notifyWaitlistOnCancellation(upBk);
+      // ── Send cancellation acknowledgement per comm channel rules ────────
+      if (typeof _velaSendWithRules === 'function') {
+        _velaSendWithRules(pat, 'cancel_inbound', { date: upBk.date, time: upBk.time || '' }, upBk.id).catch(function(){});
+      }
     }
   } else {
     // New or rescheduled — create booking
@@ -27017,6 +27021,22 @@ async function _bokadirektImport(parsed, threadId, subject) {
           && (!parsed.time || b.time === parsed.time) && b.status !== 'cancelled';
       });
       if (!dupBk) {
+        // ── Look up service in clinic catalog for duration + price ──────
+        var _bdSvcMatch = null;
+        if (parsed.service) {
+          var _bdSvcs = typeof getServices === 'function' ? getServices() : [];
+          var _bdSvcQ = (parsed.service || '').toLowerCase().trim();
+          // Exact name match first, then partial
+          _bdSvcMatch = _bdSvcs.find(function(s) {
+            return (s.name || '').toLowerCase().trim() === _bdSvcQ;
+          }) || _bdSvcs.find(function(s) {
+            var sn = (s.name || '').toLowerCase().trim();
+            return _bdSvcQ.indexOf(sn) !== -1 || sn.indexOf(_bdSvcQ) !== -1;
+          }) || null;
+        }
+        var _bdDuration = (_bdSvcMatch && _bdSvcMatch.duration) || 45;
+        var _bdPrice    = (_bdSvcMatch && _bdSvcMatch.price)    || 0;
+
         var bkId = 'bk_bd_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
         var newBk = {
           id:          bkId,
@@ -27025,6 +27045,9 @@ async function _bokadirektImport(parsed, threadId, subject) {
           date:        parsed.date,
           time:        parsed.time || '',
           service:     parsed.service || '',
+          serviceName: (_bdSvcMatch && _bdSvcMatch.name) || parsed.service || '',
+          duration:    _bdDuration,
+          price:       _bdPrice,
           therapist:   parsed.person || cfg.name || '',
           status:      'confirmed',
           source:      'bokadirekt',
@@ -27035,6 +27058,10 @@ async function _bokadirektImport(parsed, threadId, subject) {
         upsertBooking(newBk);
         bkResult.created = true;
         bkResult.bk = newBk;
+        // ── Send booking confirmation per comm channel rules ─────────────
+        if (typeof _velaSendWithRules === 'function') {
+          _velaSendWithRules(pat, 'booking_confirm', { date: parsed.date, time: parsed.time || '' }, bkId).catch(function(){});
+        }
       } else {
         bkResult.bk = dupBk;
       }

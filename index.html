@@ -3027,7 +3027,9 @@ body, .app-shell, .main-content, .screen, .nav-sidebar {
   background: var(--topbar-bg);
 }
 
-/* Cards: border only, transparent bg */
+/* Åtgärder screen — full bleed, no padding, no gap above ra-shell */
+#s-actions { display:none; flex-direction:column; padding:0; margin:0; overflow:hidden; }
+#s-actions.active { display:flex; }
 .gh-card, .briefing-wrap, .briefing-panel,
 .ra-shell, .ra-list, .ra-detail, .ra-detail-empty,
 #gm-app, #gm-sidebar, #gm-list-panel, #gm-thread-panel, #gm-ai-side,
@@ -3226,11 +3228,13 @@ a:hover { text-decoration: underline; }
 .ra-rail-count { margin-left:auto; font-size:11px; font-weight:700; background:var(--border); color:var(--muted); padding:1px 6px; border-radius:6px; min-width:18px; text-align:center; }
 .ra-rail-count.has-items { background:var(--teal-lt); color:var(--teal); }
 .ra-rail-divider { height:1px; background:var(--surface3); margin:8px 4px; }
-.ra-list { width:320px; flex-shrink:0; border-right:1px solid var(--surface3); overflow-y:auto; background:var(--bg); display:flex; flex-direction:column; }
-.ra-list-header { padding:14px 16px 0; border-bottom:1px solid var(--surface3); flex-shrink:0; }
+.ra-list { width:300px; flex-shrink:0; border-right:1px solid var(--surface3); overflow-y:auto; background:var(--bg); display:flex; flex-direction:column; }
+.ra-list-header { padding:12px 14px 0; border-bottom:1px solid var(--surface3); flex-shrink:0; background:var(--bg); }
 .ra-list-search { display:flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--surface3); border-radius:7px; padding:7px 11px; }
 .ra-list-search input { border:none; background:none; font-size:14px; color:var(--ink); font-family:var(--font); outline:none; width:100%; }
-.ra-cat-pills { display:flex; gap:5px; margin-top:10px; overflow-x:auto; padding-bottom:11px; scrollbar-width:none; }
+.ra-cat-pills-wrap { position:relative; margin-top:10px; }
+.ra-cat-pills-wrap::after { content:''; position:absolute; right:0; top:0; bottom:10px; width:20px; background:linear-gradient(to right,transparent,var(--bg)); pointer-events:none; }
+.ra-cat-pills { display:flex; gap:5px; overflow-x:auto; padding-bottom:10px; scrollbar-width:none; }
 .ra-cat-pills::-webkit-scrollbar { display:none; }
 .ra-cat-pill { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; border:1px solid var(--surface3); background:none; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; font-family:var(--font); white-space:nowrap; transition:background .1s, border-color .1s, color .1s; }
 .ra-cat-pill:hover { background:var(--surface2); color:var(--ink); border-color:var(--border); }
@@ -10644,7 +10648,7 @@ function rTopbar() {
   // ── Show / hide sidebar based on current screen ───────────────
   var sb = document.getElementById('nav-sidebar');
   // Screens that get sidebar
-  var SB_SCREENS = ['settings', 'availability', 'activity', 'actions', 'sigqueue', 'economy', 'invoices', 'tools', 'intelligence', 'hael', 'retention'];
+  var SB_SCREENS = ['settings', 'availability', 'activity', 'sigqueue', 'economy', 'invoices', 'tools', 'intelligence', 'hael'];
   var NO_SB = [];
   if (sb) {
     var wantSidebar = SB_SCREENS.indexOf(scr) !== -1;
@@ -11779,12 +11783,12 @@ function rActions() {
     return b;
   }
   var _isAllPill = !activeCategory || activeTab === 'closed';
-  h += '<div class="ra-cat-pills">';
+  h += '<div class="ra-cat-pills-wrap"><div class="ra-cat-pills">';
   h += '<button class="ra-cat-pill' + (_isAllPill && activeTab==='open'?' active':'') + '" onclick="window._actionsCategory=\'\';window._actionsType=\'\';window._actionsTab=\'open\';rActions()">Alla<span class="pill-cnt">' + openIssues.length + '</span></button>';
-  h += _pill('svar',     'Mail',      _cntSvar,     'pill-svar' + (_cntSvar?' pill-alert':''));
-  h += _pill('proaktiv', 'Proaktiv',  _cntProaktiv, _cntProaktiv?'pill-alert':'');
-  h += _pill('granska',  'Granska',   _cntGranska,  'pill-granska' );
-  h += '</div>';
+  h += _pill('svar',     'Mail',     _cntSvar,     'pill-svar' + (_cntSvar?' pill-alert':''));
+  h += _pill('proaktiv', 'Proaktiv', _cntProaktiv, _cntProaktiv?'pill-alert':'');
+  h += _pill('granska',  'Granska',  _cntGranska,  'pill-granska');
+  h += '</div></div>';
 
   h += '</div>'; // ra-list-header
 
@@ -12228,46 +12232,66 @@ function rActions() {
     var ta = el.querySelector('#ra-draft-ta');
     var statusEl = el.querySelector('#ra-draft-status');
     var current = ta ? ta.value.trim() : '';
-    if (statusEl) statusEl.textContent = 'Genererar...';
+    if (statusEl) statusEl.textContent = 'Genererar\u2026';
 
-    var context = '';
-    if (iss.type === 'mail' || iss.type === 'rebook') {
-      var origEl = el.querySelector('#ra-orig-body');
-      context = origEl ? origEl.textContent.slice(0,400) : (iss.snippet||'');
-    } else if (iss.type === 'no_journal') {
-      context = pat ? 'Patient: ' + pat.name + '. Besök: ' + (pat.visits||[]).length + '. Diagnos: ' + (pat.diagnosis||'-') : '';
-    } else {
-      context = pat ? 'Patient: ' + pat.name + ', ' + (pat.visits||[]).length + ' besök.' : '';
+    // For mail rewrites: use the richer _velaGenerateMailDraft if we have no current text
+    if ((iss.type === 'mail' || iss.type === 'rebook') && isGenerate && typeof window._velaGenerateMailDraft === 'function') {
+      var cachedBody = (window._raThreadCache && window._raThreadCache[iss.threadId]) || iss.snippet || '';
+      await window._velaGenerateMailDraft(iss.id, pat, iss.title, cachedBody, iss.threadId);
+      if (statusEl) setTimeout(function(){ if (statusEl) statusEl.textContent = ''; }, 2000);
+      return;
     }
 
-    var prompt = 'Du är assistent åt Carl-Robert Kärell, naprapat, Kansei Ortopedi & Rehabcenter.\n\n';
+    // Original mail body for context
+    var origEl = el.querySelector('#ra-orig-body');
+    var mailContext = '';
+    if (iss.type === 'mail' || iss.type === 'rebook') {
+      mailContext = (window._raThreadCache && window._raThreadCache[iss.threadId])
+        || (origEl ? origEl.textContent : '') || iss.snippet || '';
+      mailContext = mailContext.slice(0, 500);
+    } else if (iss.type === 'no_journal') {
+      mailContext = pat ? 'Patient: ' + pat.name + '. Besök: ' + (pat.visits||[]).length + '. Diagnos: ' + (pat.diagnosis||'-') : '';
+    } else {
+      mailContext = pat ? 'Patient: ' + pat.name + ', ' + (pat.visits||[]).length + ' besök.' : '';
+    }
+
+    var cfg = typeof getClinicConfig === 'function' ? getClinicConfig() : {};
+    var clinicianName = cfg.signature || cfg.name || 'Carl-Robert Kärell';
+
+    var prompt;
     if (isGenerate) {
       if (iss.type === 'no_journal') {
-        prompt += 'Skriv ett SOAP-journalutkast på svenska baserat på:\n' + context + '\nHåll det kliniskt och strukturerat. Format: S: / O: / A: / P:';
+        prompt = 'Du är ' + clinicianName + ', naprapat. Skriv ett SOAP-journalutkast på svenska.\nKontext: ' + mailContext + '\nFormat: S: ...\nO: ...\nA: ...\nP: ...';
       } else {
-        prompt += 'Skriv ett kort, professionellt SMS på svenska till patienten.\nKontext: ' + context + '\nÅtgärd: ' + (iss.aiSuggestion||iss.title) + '\nMax 160 tecken.';
+        prompt = 'Du är ' + clinicianName + ', naprapat. Skriv ett kort SMS på svenska till patienten. Max 160 tecken.\nKontext: ' + mailContext + '\nÄrende: ' + (iss.aiSuggestion||iss.title);
       }
     } else {
-      prompt += 'Skriv om följande text ' + instruction + '. Behåll budskapet, ändra bara formen.\n\nOriginalmail:\n' + context.slice(0,300) + '\n\nNuvarande text:\n' + (current||'(tom)') + '\n\nSignera: Carl-Robert Kärell, Kansei Ortopedi & Rehabcenter.';
+      prompt = 'Du är assistent åt ' + clinicianName + ', naprapat på Kansei Ortopedi & Rehabcenter.\n'
+        + 'Skriv om följande text ' + instruction + '. Behåll budskapet exakt, ändra bara formen.\n\n'
+        + 'Originalmail från patienten:\n' + mailContext + '\n\n'
+        + 'Text att skriva om:\n' + (current || '(tom — skriv ett nytt svar)')
+        + '\n\nSignera: Med vänliga hälsningar\n' + clinicianName;
     }
 
     try {
       var res = await fetch('https://api.anthropic.com/v1/messages', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:400,messages:[{role:'user',content:prompt}]})
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 500, messages: [{ role: 'user', content: prompt }] })
       });
       var data = await res.json();
-      var text = data.content?.[0]?.text || '';
+      var text = (data.content || []).map(function(b){ return b.text || ''; }).join('').trim();
       if (text && ta) {
         ta.value = text;
+        ta.style.color = '';
         if (!window._raAiDrafts) window._raAiDrafts = {};
         window._raAiDrafts[iss.id] = text;
       }
-      if (statusEl) statusEl.textContent = 'Uppdaterad';
-      setTimeout(function(){ if(statusEl) statusEl.textContent=''; }, 2000);
+      if (statusEl) statusEl.textContent = 'Klar';
+      setTimeout(function(){ if (statusEl) statusEl.textContent = ''; }, 2000);
     } catch(ex) {
       if (statusEl) statusEl.textContent = 'Fel';
+      showAutoSaveToast('AI-anrop misslyckades');
     }
   }
 
@@ -12305,38 +12329,57 @@ function rActions() {
 
   // Auto-load original mail thread
   if ((iss.type === 'mail' || iss.type === 'rebook') && iss.threadId) {
-    var origBody = el.querySelector('#ra-orig-body');
-    if (origBody && !origBody.textContent.replace(/\s/g,'').length || origBody && origBody.querySelector('div[style*="italic"]')) {
+      if (origBody && (!origBody.textContent.replace(/\s/g,'').length || origBody.querySelector('.ra-mail-loading'))) {
       if (!window._raThreadCache) window._raThreadCache = {};
       if (!window._raThreadCache[iss.threadId]) {
+        var _threadIss = iss;
+        var _threadPat = pat;
         _gmailLoadThread(iss.threadId).then(function(thread){
           if (!thread) return;
           var msgs = thread.messages || [];
           var lastMsg = msgs[msgs.length-1];
           var body = _gmailGetBody(lastMsg.payload);
-          // Strip HTML tags to get readable plain text
           var stripped = (body || '').replace(/<style[^>]*>[\s\S]*?<\/style>/gi,'')
             .replace(/<script[^>]*>[\s\S]*?<\/script>/gi,'')
             .replace(/<br\s*\/?>/gi,'\n').replace(/<\/p>/gi,'\n\n')
             .replace(/<\/div>/gi,'\n').replace(/<[^>]+>/g,'')
             .replace(/&nbsp;/g,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"')
             .replace(/\n{3,}/g,'\n\n').trim();
-          window._raThreadCache[iss.threadId] = stripped || '(tomt)';
+          window._raThreadCache[_threadIss.threadId] = stripped || '(tomt)';
           var el2 = document.querySelector('#ra-orig-body');
-          if (el2) el2.textContent = window._raThreadCache[iss.threadId];
+          if (el2) el2.textContent = window._raThreadCache[_threadIss.threadId];
+
+          // Now that thread is loaded, trigger AI draft if textarea still empty
+          var ta2 = document.querySelector('#ra-draft-ta');
+          if (ta2 && !ta2.value.trim() && typeof window._velaGenerateMailDraft === 'function') {
+            var key2 = typeof _velaGetApiKey === 'function' ? _velaGetApiKey('anthropic') : null;
+            if (key2) window._velaGenerateMailDraft(_threadIss.id, _threadPat, _threadIss.title, stripped, _threadIss.threadId);
+          }
         });
       }
     }
 
-    // Auto-generate AI draft if none
+    // Auto-generate AI draft if none exists
     var ta = el.querySelector('#ra-draft-ta');
     if (ta && !ta.value.trim() && _gmailIsAuthed()) {
       var key = _raGetKey();
-      if (key) {
-        setTimeout(function(){ _raAiRewrite('kortfattat och professionellt på svenska', false); }, 300);
-      } else {
+      if (!key) {
         ta.placeholder = 'Ingen Anthropic API-nyckel konfigurerad. Gå till Inställningar → API-nycklar för att aktivera AI-svar.';
         ta.style.color = 'var(--muted)';
+      } else if (typeof window._velaGenerateMailDraft === 'function') {
+        // Wait for thread to load first if it's still being fetched, then generate
+        var _draftIss = iss;
+        var _draftPat = pat;
+        var _generateDraft = function() {
+          var cachedBody = (window._raThreadCache && window._raThreadCache[_draftIss.threadId]) || _draftIss.snippet || '';
+          window._velaGenerateMailDraft(_draftIss.id, _draftPat, _draftIss.title, cachedBody, _draftIss.threadId);
+        };
+        // If thread already cached, generate immediately; else wait 1.4s for fetch to complete
+        if (window._raThreadCache && window._raThreadCache[iss.threadId]) {
+          setTimeout(_generateDraft, 150);
+        } else {
+          setTimeout(_generateDraft, 1400);
+        }
       }
     }
   }
@@ -27923,6 +27966,52 @@ var _mailTriage = (function() {
   }
   function start() { run(true); if (_timer) clearInterval(_timer); _timer = setInterval(function(){ run(false); }, INTERVAL); }
   function stop() { if (_timer) { clearInterval(_timer); _timer = null; } }
+
+  // ── Global bridge: called from rActions to generate a context-rich mail draft ──
+  window._velaGenerateMailDraft = async function(issueId, pat, subject, mailBody, threadId) {
+    var key = typeof _velaGetApiKey === 'function' ? _velaGetApiKey('anthropic') : null;
+    if (!key) return null;
+    var cfg = typeof getClinicConfig === 'function' ? getClinicConfig() : {};
+
+    // Fetch full thread messages for conversation history
+    var threadMessages = null;
+    if (threadId && typeof _gmailLoadThread === 'function') {
+      try {
+        var fullThread = await _gmailLoadThread(threadId);
+        threadMessages = fullThread ? fullThread.messages : null;
+      } catch(ex) { /* fallback gracefully */ }
+    }
+
+    // Use mailBody from cache if passed empty
+    var bodyToUse = mailBody || '';
+    if (!bodyToUse && threadMessages && threadMessages.length) {
+      var lastMsg = threadMessages[threadMessages.length - 1];
+      if (typeof _gmailGetBody === 'function') {
+        bodyToUse = _gmailGetBody(lastMsg.payload)
+          .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 600);
+      }
+    }
+
+    var draft = await _aiDraft(subject, bodyToUse, pat, cfg, key, threadMessages);
+
+    if (draft) {
+      if (!window._raAiDrafts) window._raAiDrafts = {};
+      window._raAiDrafts[issueId] = draft;
+      // Patch live textarea if Åtgärder is still open
+      var ta = document.querySelector('#ra-draft-ta');
+      if (ta && !ta.value.trim()) {
+        ta.value = draft;
+        ta.style.color = '';
+      }
+      var statusEl = document.querySelector('#ra-draft-status');
+      if (statusEl) {
+        statusEl.textContent = 'AI-svar klart';
+        setTimeout(function(){ if (statusEl) statusEl.textContent = ''; }, 3000);
+      }
+    }
+    return draft;
+  };
+
   return { start: start, stop: stop, runNow: function(){ run(true); } };
 })();
 

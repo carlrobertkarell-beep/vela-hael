@@ -3227,9 +3227,19 @@ a:hover { text-decoration: underline; }
 .ra-rail-count.has-items { background:var(--teal-lt); color:var(--teal); }
 .ra-rail-divider { height:1px; background:var(--surface3); margin:8px 4px; }
 .ra-list { width:320px; flex-shrink:0; border-right:1px solid var(--surface3); overflow-y:auto; background:var(--bg); display:flex; flex-direction:column; }
-.ra-list-header { padding:14px 16px 10px; border-bottom:1px solid var(--surface3); flex-shrink:0; }
+.ra-list-header { padding:14px 16px 0; border-bottom:1px solid var(--surface3); flex-shrink:0; }
 .ra-list-search { display:flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--surface3); border-radius:7px; padding:7px 11px; }
 .ra-list-search input { border:none; background:none; font-size:14px; color:var(--ink); font-family:var(--font); outline:none; width:100%; }
+.ra-cat-pills { display:flex; gap:5px; margin-top:10px; overflow-x:auto; padding-bottom:11px; scrollbar-width:none; }
+.ra-cat-pills::-webkit-scrollbar { display:none; }
+.ra-cat-pill { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; border-radius:20px; border:1px solid var(--surface3); background:none; font-size:12px; font-weight:600; color:var(--muted); cursor:pointer; font-family:var(--font); white-space:nowrap; transition:background .1s, border-color .1s, color .1s; }
+.ra-cat-pill:hover { background:var(--surface2); color:var(--ink); border-color:var(--border); }
+.ra-cat-pill.active { color:var(--ink); border-color:var(--border); background:var(--surface2); }
+.ra-cat-pill.active.pill-alert { color:var(--orange); border-color:rgba(224,118,40,.4); background:rgba(224,118,40,.07); }
+.ra-cat-pill .pill-cnt { font-size:10px; font-weight:700; background:var(--surface3); padding:1px 5px; border-radius:8px; color:var(--muted); transition:background .1s, color .1s; }
+.ra-cat-pill.active .pill-cnt { background:rgba(224,118,40,.18); color:var(--orange); }
+.ra-cat-pill.active.pill-svar .pill-cnt { background:rgba(88,166,255,.18); color:#58a6ff; }
+.ra-cat-pill.active.pill-granska .pill-cnt { background:rgba(210,153,34,.18); color:#d29922; }
 .ra-list-search input::placeholder { color:#484f58; }
 .ra-tabs { display:flex; gap:0; padding:10px 16px 0; flex-shrink:0; border-bottom:1px solid var(--surface3); }
 .ra-tab { padding:8px 14px; font-size:14px; font-weight:600; color:var(--muted); background:none; border:none; cursor:pointer; font-family:var(--font); border-bottom:2px solid transparent; margin-bottom:-1px; transition:all .12s; }
@@ -3251,14 +3261,43 @@ a:hover { text-decoration: underline; }
 .ra-item-urgent { position:absolute; top:10px; right:12px; width:7px; height:7px; border-radius:50%; background:var(--red); }
 .ra-detail { flex:1; overflow:hidden; display:flex; flex-direction:column; background:var(--bg); }
 .ra-detail-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; color:#484f58; font-size:14px; }
-.ra-detail-header { padding:16px 24px 14px; border-bottom:1px solid var(--surface3); flex-shrink:0; }
-.ra-detail-title { font-size:16px; font-weight:700; color:var(--ink); margin-bottom:4px; }
-.ra-detail-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.ra-detail-header { padding:14px 20px 0; border-bottom:1px solid var(--surface3); flex-shrink:0; }
+.ra-dh-top { display:flex; align-items:center; gap:10px; padding-bottom:12px; flex-wrap:wrap; }
+.ra-dh-avatar { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; letter-spacing:.02em; }
+.ra-dh-info { flex:1; min-width:0; }
+.ra-detail-title { font-size:15px; font-weight:700; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.3; }
+.ra-dh-email { font-size:11px; color:var(--muted); margin-top:1px; font-family:var(--mono); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ra-dh-badge { font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px; white-space:nowrap; flex-shrink:0; }
+.ra-dh-phone { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--blue); text-decoration:none; white-space:nowrap; flex-shrink:0; }
+.ra-dh-link-btn { background:none; border:none; cursor:pointer; color:var(--muted); padding:4px; border-radius:4px; display:flex; align-items:center; flex-shrink:0; }
+.ra-dh-link-btn:hover { color:var(--ink); background:var(--surface2); }
+.ra-dh-unknown { display:flex; align-items:center; gap:8px; padding:8px 0 12px; font-size:12px; color:var(--amber); }
+.ra-dh-unknown span { flex:1; }
+.ra-dh-link-pat-btn { display:flex; align-items:center; gap:5px; padding:4px 10px; border:1px solid rgba(210,153,34,.3); border-radius:14px; background:rgba(210,153,34,.06); color:var(--amber); font-size:11px; font-weight:600; cursor:pointer; font-family:var(--font); white-space:nowrap; transition:all .12s; }
+.ra-dh-link-pat-btn:hover { background:rgba(210,153,34,.12); border-color:rgba(210,153,34,.5); }
+.ra-dh-link-search { display:flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:7px 11px; margin-bottom:6px; }
+.ra-link-inp { flex:1; border:none; background:none; font-size:14px; color:var(--ink); font-family:var(--font); outline:none; }
+.ra-link-opts { max-height:160px; overflow-y:auto; border:1px solid var(--border); border-radius:6px; background:var(--surface2); margin-bottom:12px; }
+.ra-link-opt { display:flex; align-items:center; gap:10px; padding:8px 12px; cursor:pointer; transition:background .1s; }
+.ra-link-opt:hover { background:var(--surface3); }
+.ra-link-opt-name { font-size:13px; font-weight:600; color:var(--ink); }
+.ra-link-opt-sub { font-size:11px; color:var(--muted); margin-left:auto; }
 .ra-detail-body { flex:1; overflow-y:auto; padding:20px 24px; display:flex; flex-direction:column; gap:16px; }
-.ra-mail-split { display:grid; grid-template-columns:1fr 1fr; gap:16px; flex:1; min-height:0; }
-.ra-mail-pane { display:flex; flex-direction:column; background:var(--surface2); border:1px solid var(--surface3); border-radius:6px; overflow:hidden; min-height:0; }
-.ra-mail-pane-header { padding:10px 16px; border-bottom:1px solid var(--surface3); font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); flex-shrink:0; }
-.ra-mail-pane-body { flex:1; overflow-y:auto; padding:16px; font-size:14px; color:#c9d1d9; line-height:1.7; white-space:pre-wrap; word-break:break-word; }
+.ra-mail-split { display:grid; grid-template-columns:1fr 1fr; gap:12px; flex:1; min-height:0; }
+.ra-mail-pane { display:flex; flex-direction:column; background:var(--surface2); border:1px solid var(--surface3); border-radius:8px; overflow:hidden; min-height:0; }
+.ra-mail-pane-draft { border-color:rgba(224,118,40,.2); background:rgba(224,118,40,.02); }
+.ra-mail-pane-header { padding:9px 14px; border-bottom:1px solid var(--surface3); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); flex-shrink:0; display:flex; align-items:center; gap:7px; }
+.ra-pane-subject { font-weight:400; text-transform:none; letter-spacing:0; font-size:11px; color:var(--text2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-left:4px; flex:1; }
+.ra-pane-status { margin-left:auto; font-size:11px; font-weight:400; color:#484f58; text-transform:none; letter-spacing:0; }
+.ra-mail-pane-body { flex:1; overflow-y:auto; padding:14px 16px; font-size:13.5px; color:#c9d1d9; line-height:1.75; white-space:pre-wrap; word-break:break-word; }
+.ra-mail-loading { display:flex; gap:5px; align-items:center; padding:8px 0; }
+.ra-mail-loading-dot { width:6px; height:6px; border-radius:50%; background:var(--surface3); animation:ra-pulse 1.2s ease-in-out infinite; }
+.ra-mail-loading-dot:nth-child(2) { animation-delay:.2s; }
+.ra-mail-loading-dot:nth-child(3) { animation-delay:.4s; }
+@keyframes ra-pulse { 0%,80%,100%{opacity:.3;transform:scale(.9)} 40%{opacity:1;transform:scale(1)} }
+.ra-btn-kbd { font-size:10px; font-family:var(--mono); background:rgba(255,255,255,.12); padding:1px 5px; border-radius:4px; margin-left:6px; letter-spacing:0; font-weight:400; opacity:.8; }
+.ra-btn-dismiss { padding:7px 9px; background:none; border:1px solid var(--surface3); border-radius:6px; color:var(--muted); cursor:pointer; font-family:var(--font); display:flex; align-items:center; transition:all .12s; margin-left:auto; }
+.ra-btn-dismiss:hover { border-color:var(--red); color:var(--red); background:rgba(248,81,73,.06); }
 .ra-draft-ta { flex:1; background:none; border:none; font-size:14px; color:var(--ink); font-family:var(--font); line-height:1.7; resize:none; outline:none; padding:16px; width:100%; box-sizing:border-box; }
 .ra-action-bar { padding:14px 24px; border-top:1px solid var(--surface3); display:flex; align-items:center; gap:8px; flex-wrap:wrap; flex-shrink:0; background:var(--bg); }
 .ra-btn-primary { padding:8px 20px; background:var(--teal); color:var(--bg); border:none; border-radius:6px; font-size:14px; font-weight:700; cursor:pointer; font-family:var(--font); transition:background .12s; display:flex; align-items:center; gap:6px; }
@@ -10704,58 +10743,7 @@ function rTopbar() {
     }
 
   } else if (scr === 'actions' || scr === 'retention') {
-    // ── Compute category counts ──────────────────────────────────────────────
-    var _allIss    = typeof _gatherIssues === 'function' ? _gatherIssues() : [];
-    var _closedIds = (function(){ try { return JSON.parse(localStorage.getItem('vela:closed-issues')||'[]').map(function(c){return c.id;}); } catch(e){ return []; } })();
-    var _closedSet = new Set(_closedIds);
-    var _openIss   = _allIss.filter(function(i){ return !_closedSet.has(i.id); });
-    var _cntSvar      = _openIss.filter(function(i){ return i.type==='mail'||i.type==='unread_msg'; }).length;
-    var _cntProaktiv  = _openIss.filter(function(i){ return i.type==='dropout'||i.type==='overdue'; }).length;
-    var _cntGranska   = _openIss.filter(function(i){ return ['red_flag','compliance','no_journal','rebook','ai_pending','no_show'].indexOf(i.type)!==-1; }).length;
-    var _cntVela      = _closedIds.filter(function(id){ try { var cl=JSON.parse(localStorage.getItem('vela:closed-issues')||'[]'); return cl.some(function(c){return c.id===id&&c.resolution==='vela_auto';}); } catch(e){return false;} }).length;
-    var _activeCat    = window._actionsCategory || '';
-
-    function _catBtn(catId, label, iconPath, cnt, color) {
-      var isActive = _activeCat === catId;
-      var badgeColor = color || 'var(--muted)';
-      var b = '<button class="nav-item' + (isActive?' active':'') + '" onclick="window._actionsCategory=\'' + catId + '\';window._actionsType=\'\';window._actionsTab=\'open\';rActions&&rActions()">'
-        + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="' + (isActive?'currentColor':badgeColor) + '" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon">' + iconPath + '</svg>'
-        + '<span class="nav-item-label">' + label + '</span>';
-      if (cnt) b += '<span class="nav-badge-' + (color==='var(--orange)'?'alert':'count') + '">' + cnt + '</span>';
-      b += '</button>';
-      return b;
-    }
-
-    // Alla — resets category filter
-    var _isAllActive = !_activeCat;
-    nh += '<button class="nav-item' + (_isAllActive?' active':'') + '" onclick="window._actionsCategory=\'\';window._actionsType=\'\';window._actionsTab=\'open\';rActions&&rActions()">'
-      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>'
-      + '<span class="nav-item-label">Alla \u00e4renden</span>'
-      + (_openIss.length ? '<span class="nav-badge-count">' + _openIss.length + '</span>' : '')
-      + '</button>';
-
-    nh += nsep('Kommunikation');
-    nh += _catBtn('svar',     'Svar att skicka',    '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>', _cntSvar, _cntSvar?'var(--orange)':'');
-    nh += _catBtn('proaktiv', 'Proaktiva utskick',  '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>', _cntProaktiv, _cntProaktiv?'var(--orange)':'');
-
-    nh += nsep('Kliniskt');
-    nh += _catBtn('granska',  'Att granska',        '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>', _cntGranska, '');
-
-    // Hanterat av Vela — autonomous audit trail
-    nh += '<div style="margin:12px 8px 4px;border-top:1px solid var(--border);padding-top:10px">'
-      + '<button class="nav-item' + (_activeCat==='vela_auto'?' active':'') + '" onclick="window._actionsCategory=\'vela_auto\';window._actionsType=\'\';window._actionsTab=\'closed\';rActions&&rActions()">'
-      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>'
-      + '<span class="nav-item-label" style="color:var(--text2)">Hanterat av Vela</span>'
-      + (_cntVela ? '<span class="nav-badge-count">' + _cntVela + '</span>' : '')
-      + '</button>'
-      + '</div>';
-
-    // Råinkorg — secondary access to raw Gmail, visually de-emphasized
-    nh += '<button class="nav-item" onclick="go(\'activity\')" style="margin-top:2px;opacity:.55">'
-      + '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="nav-item-icon"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>'
-      + '<span class="nav-item-label">R\u00e5inkorg</span>'
-      + (unreadMsgs ? '<span class="nav-badge-count">' + unreadMsgs + '</span>' : '')
-      + '</button>';
+    // Categories moved to inline filter bar inside rActions() — sidebar intentionally empty on this screen
 
   } else if (scr === 'intelligence') {
     nh += nsep('Vela AI');
@@ -11761,6 +11749,11 @@ function rActions() {
   // ── Inject CSS ────────────────────────────────────────────────────────
   // ractions CSS moved to main stylesheet
 
+  // ── Category counts for pills ──────────────────────────────────────────
+  var _cntSvar     = openIssues.filter(function(i){ return i.type==='mail'||i.type==='unread_msg'; }).length;
+  var _cntProaktiv = openIssues.filter(function(i){ return i.type==='dropout'||i.type==='overdue'; }).length;
+  var _cntGranska  = openIssues.filter(function(i){ return ['red_flag','compliance','no_journal','rebook','ai_pending','no_show'].indexOf(i.type)!==-1; }).length;
+
   // ── Build HTML ────────────────────────────────────────────────────────
   var h = '';
   h += '<div class="ra-shell">';
@@ -11774,7 +11767,26 @@ function rActions() {
   h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--border)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
   h += '<input id="ra-search" type="text" placeholder="Sök patient..." value="' + e(searchQ) + '" oninput="window._actionsSearch=this.value;window._actionsSelected=null;rActions()">';
   h += '</div>';
+
+  // ── Category pills ─────────────────────────────────────────────────
+  function _pill(catId, label, cnt, extraClass) {
+    var isA = activeCategory === catId && activeTab !== 'closed';
+    var onclick = 'window._actionsCategory=\'' + catId + '\';window._actionsType=\'\';window._actionsTab=\'open\';rActions()';
+    var cls = 'ra-cat-pill' + (isA?' active':'') + (extraClass?' '+extraClass:'');
+    var b = '<button class="' + cls + '" onclick="' + onclick + '">' + label;
+    if (cnt) b += '<span class="pill-cnt">' + cnt + '</span>';
+    b += '</button>';
+    return b;
+  }
+  var _isAllPill = !activeCategory || activeTab === 'closed';
+  h += '<div class="ra-cat-pills">';
+  h += '<button class="ra-cat-pill' + (_isAllPill && activeTab==='open'?' active':'') + '" onclick="window._actionsCategory=\'\';window._actionsType=\'\';window._actionsTab=\'open\';rActions()">Alla<span class="pill-cnt">' + openIssues.length + '</span></button>';
+  h += _pill('svar',     'Mail',      _cntSvar,     'pill-svar' + (_cntSvar?' pill-alert':''));
+  h += _pill('proaktiv', 'Proaktiv',  _cntProaktiv, _cntProaktiv?'pill-alert':'');
+  h += _pill('granska',  'Granska',   _cntGranska,  'pill-granska' );
   h += '</div>';
+
+  h += '</div>'; // ra-list-header
 
   // Tabs
   // ── Compute vela_auto count for tab badge ─────────────────────────────
@@ -11783,9 +11795,10 @@ function rActions() {
   var _velaAutoCount = _closedFullList.filter(function(c){ return c.resolution==='vela_auto'; }).length;
 
   h += '<div class="ra-tabs">';
-  h += '<button class="ra-tab' + (activeTab==='open'?' active':'') + '" onclick="window._actionsTab=\'open\';window._actionsCategory=window._actionsCategory===\'vela_auto\'?\'\':window._actionsCategory;rActions()">Att godk\u00e4nna<span class="ra-tab-count">' + openIssues.length + '</span></button>';
-  h += '<button class="ra-tab' + (activeCategory==='vela_auto'?' active':'') + '" onclick="window._actionsCategory=\'vela_auto\';window._actionsTab=\'closed\';rActions()" style="' + (activeCategory==='vela_auto'?'':'') + '">Hanterat av Vela' + (_velaAutoCount?'<span class="ra-tab-count" style="background:rgba(31,111,235,.15);color:var(--teal)">'+_velaAutoCount+'</span>':'') + '</button>';
+  h += '<button class="ra-tab' + (activeTab==='open'&&activeCategory!=='vela_auto'?' active':'') + '" onclick="window._actionsTab=\'open\';window._actionsCategory=window._actionsCategory===\'vela_auto\'?\'\':window._actionsCategory;rActions()">Att godk\u00e4nna<span class="ra-tab-count">' + openIssues.length + '</span></button>';
+  h += '<button class="ra-tab' + (activeCategory==='vela_auto'?' active':'') + '" onclick="window._actionsCategory=\'vela_auto\';window._actionsTab=\'closed\';rActions()">Vela Auto' + (_velaAutoCount?'<span class="ra-tab-count" style="background:rgba(31,111,235,.15);color:var(--teal)">'+_velaAutoCount+'</span>':'') + '</button>';
   h += '<button class="ra-tab' + (activeTab==='closed'&&activeCategory!=='vela_auto'?' active':'') + '" onclick="window._actionsTab=\'closed\';window._actionsCategory=\'\';rActions()">Hanterade<span class="ra-tab-count">' + closedIssues.length + '</span></button>';
+  h += '<button class="ra-tab" onclick="go(\'activity\')" style="margin-left:auto;opacity:.6" title="Råinkorg — alla Gmail-trådar">R\u00e5inkorg</button>';
   h += '</div>';
 
   h += '<div class="ra-items">';
@@ -11846,18 +11859,72 @@ function rActions() {
     var col    = colMap[itype.color] || '#9198a1';
     var pat    = iss.patId ? (S.patients||[]).find(function(p){return p.id===iss.patId;}) : null;
 
-    // Detail header
-    h += '<div class="ra-detail-header">';
-    h += '<div class="ra-detail-title">' + e(iss.patName||'') + '</div>';
-    h += '<div class="ra-detail-meta">';
-    h += '<span style="font-size:12px;font-weight:700;padding:2px 9px;border-radius:6px;background:' + col.replace(')',',0.12)').replace('#','rgba(').replace('rgba(var(--teal)','rgba(224,118,40') + ';color:' + col + '">' + (itype.label||iss.type) + '</span>';
-    if (iss.meta) h += '<span style="font-size:12px;color:var(--text2)">' + e(iss.meta.slice(0,80)) + '</span>';
-    if (pat && pat.phone) {
-      h += '<a href="tel:' + e(pat.phone) + '" style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--blue);text-decoration:none;margin-left:auto">';
-      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 13a19.79 19.79 0 01-3.07-8.67A2 2 0 013.34 2.2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l.91-.91a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>';
-      h += 'Ring ' + e(pat.phone) + '</a>';
+    // ── Detail header — avatar + meta + patient link ───────────────────
+    var _fromEmail = '';
+    if (iss.fromEmail) {
+      _fromEmail = ((iss.fromEmail.match(/<([^>]+)>/) || [])[1] || iss.fromEmail).toLowerCase().trim();
     }
-    h += '</div></div>';
+    var _avatarName = pat ? pat.name : (iss.patName || '?');
+    var _initials = _avatarName.split(/\s+/).filter(Boolean).slice(0,2).map(function(w){ return w[0].toUpperCase(); }).join('');
+    var _avatarHue = _avatarName.split('').reduce(function(acc,c){ return acc + c.charCodeAt(0); }, 0) % 360;
+    var _isUnknown = !pat && (iss.type === 'mail' || iss.type === 'rebook');
+
+    h += '<div class="ra-detail-header">';
+    // Top row: avatar + name + type badge + phone
+    h += '<div class="ra-dh-top">';
+    h += '<div class="ra-dh-avatar" style="background:hsl(' + _avatarHue + ',35%,28%);color:hsl(' + _avatarHue + ',60%,72%)">' + _initials + '</div>';
+    h += '<div class="ra-dh-info">';
+    h += '<div class="ra-detail-title">' + e(iss.patName || 'Okänd avsändare') + '</div>';
+    if (_fromEmail) h += '<div class="ra-dh-email">' + e(_fromEmail) + '</div>';
+    h += '</div>';
+    var colMap2 = { red:'#f85149', amber:'#d29922', teal:'var(--teal)', blue:'#58a6ff', muted:'#9198a1', green:'#3fb950' };
+    var col2 = colMap2[itype.color] || '#9198a1';
+    h += '<span class="ra-dh-badge" style="background:' + col2.replace(')',',0.12)').replace('#','rgba(').replace('rgba(var(--teal)','rgba(224,118,40') + ';color:' + col2 + '">' + (itype.label||iss.type) + '</span>';
+    if (iss.meta) h += '<span style="font-size:12px;color:var(--text2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + e(iss.meta.slice(0,60)) + '</span>';
+    if (pat && pat.phone) {
+      h += '<a href="tel:' + e(pat.phone) + '" class="ra-dh-phone">';
+      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.69 13a19.79 19.79 0 01-3.07-8.67A2 2 0 013.34 2.2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l.91-.91a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>';
+      h += e(pat.phone) + '</a>';
+    }
+    if (pat) {
+      h += '<button class="ra-dh-link-btn" onclick="openPat(\'' + pat.id + '\')" title="Öppna patientkort">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+      h += '</button>';
+    }
+    h += '</div>'; // ra-dh-top
+
+    // Unknown sender warning + link UI
+    if (_isUnknown && _fromEmail) {
+      h += '<div class="ra-dh-unknown" id="ra-dh-unknown-bar">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      h += '<span>Okänd avsändare — matcha inte mot patient i systemet</span>';
+      h += '<button class="ra-dh-link-pat-btn" onclick="window._raShowLinkPat=\'' + e(_fromEmail) + '\';rActions()">';
+      h += '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>';
+      h += 'Länka patient</button>';
+      h += '</div>';
+
+      // Inline patient search (shown when button clicked)
+      if (window._raShowLinkPat === _fromEmail) {
+        var _linkPats = (S && S.patients || []).filter(function(p){ return p.name; }).sort(function(a,b){ return (a.name||'').localeCompare(b.name||''); });
+        h += '<div class="ra-dh-link-search" id="ra-dh-link-search">';
+        h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>';
+        h += '<input id="ra-link-inp" type="text" class="ra-link-inp" placeholder="Sök patientnamn..." oninput="document.querySelectorAll(\'.ra-link-opt\').forEach(function(o){ o.style.display=this.value&&o.textContent.toLowerCase().indexOf(this.value.toLowerCase())===-1?\'none\':\'flex\'; }.bind(this))" autocomplete="off">';
+        h += '<button onclick="window._raShowLinkPat=null;rActions()" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:2px 4px;font-size:16px;line-height:1">×</button>';
+        h += '</div>';
+        h += '<div class="ra-link-opts" id="ra-link-opts">';
+        _linkPats.slice(0, 60).forEach(function(p) {
+          var _em = _fromEmail;
+          var _pid = p.id;
+          h += '<div class="ra-link-opt" onclick="(function(){ var _lef=\'' + e(_em) + '\';var _lpid=\'' + e(_pid) + '\';if(typeof _linkEmailToPat===\'function\') _linkEmailToPat(_lef,_lpid);window._raShowLinkPat=null;rActions(); })()">';
+          h += '<div class="ra-link-opt-name">' + e(p.name) + '</div>';
+          if (p.birthdate||p.birthYear) h += '<div class="ra-link-opt-sub">' + e(p.birthdate||p.birthYear||'') + '</div>';
+          h += '</div>';
+        });
+        h += '</div>';
+      }
+    }
+
+    h += '</div>'; // ra-detail-header
 
     // ── MAIL ISSUE — split view ─────────────────────────────────────────
     if (iss.type === 'mail' || iss.type === 'rebook') {
@@ -11869,22 +11936,27 @@ function rActions() {
 
       // Left: original mail
       h += '<div class="ra-mail-pane">';
-      h += '<div class="ra-mail-pane-header">Originalmail</div>';
+      h += '<div class="ra-mail-pane-header">';
+      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>';
+      h += 'Inkommande';
+      if (iss.meta) h += '<span class="ra-pane-subject">' + e(iss.meta.slice(0,50)) + '</span>';
+      h += '</div>';
       h += '<div class="ra-mail-pane-body" id="ra-orig-body">';
       if (origThread) {
         h += e(origThread);
       } else {
-        h += '<div style="color:#484f58;font-style:italic;font-size:14px">Laddar...</div>';
+        h += '<div class="ra-mail-loading"><div class="ra-mail-loading-dot"></div><div class="ra-mail-loading-dot"></div><div class="ra-mail-loading-dot"></div></div>';
       }
       h += '</div></div>';
 
       // Right: AI draft (editable)
-      h += '<div class="ra-mail-pane">';
-      h += '<div class="ra-mail-pane-header" style="display:flex;align-items:center">';
-      h += 'AI-förslag';
-      h += '<span id="ra-draft-status" style="margin-left:auto;font-size:11px;font-weight:400;color:#484f58;text-transform:none;letter-spacing:0"></span>';
+      h += '<div class="ra-mail-pane ra-mail-pane-draft">';
+      h += '<div class="ra-mail-pane-header">';
+      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>';
+      h += 'Svarsutkast';
+      h += '<span id="ra-draft-status" class="ra-pane-status"></span>';
       h += '</div>';
-      h += '<textarea id="ra-draft-ta" class="ra-draft-ta" placeholder="Genererar AI-förslag...">' + e(aiDraft) + '</textarea>';
+      h += '<textarea id="ra-draft-ta" class="ra-draft-ta" placeholder="Genererar AI-svar\u2026" spellcheck="true" lang="sv">' + e(aiDraft) + '</textarea>';
       h += '</div>';
 
       h += '</div>'; // ra-mail-split
@@ -11919,20 +11991,27 @@ function rActions() {
       if (iss.type !== 'rebook') {
         h += '<button class="ra-btn-primary" id="ra-send-btn">';
         h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
-        h += 'Skicka</button>';
+        h += 'Skicka<span class="ra-btn-kbd">\u2318\u23CE</span></button>';
       } else {
         h += '<button class="ra-btn-primary" id="ra-rebook-send-btn">';
         h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
         h += 'Skicka tider</button>';
       }
+      h += '<button class="ra-btn-secondary" id="ra-save-draft-btn" title="Spara som Gmail-utkast">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+      h += 'Spara</button>';
       h += '<div class="ra-snooze-dd" id="ra-snooze-dd">';
-      h += '<button class="ra-btn-snooze" id="ra-snooze-btn">⏱ Snooze</button>';
+      h += '<button class="ra-btn-snooze" id="ra-snooze-btn">';
+      h += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+      h += 'Snooze</button>';
       h += '<div class="ra-snooze-menu" id="ra-snooze-menu" style="display:none">';
-      [['1d','Imorgon'],['3d','Om 3 dagar'],['7d','Om 1 vecka']].forEach(function(s){
+      [['1d','Imorgon'],['3d','Om 3 dagar'],['7d','Om en vecka']].forEach(function(s){
         h += '<div class="ra-snooze-opt" data-snooze="' + s[0] + '">' + s[1] + '</div>';
       });
       h += '</div></div>';
-      h += '<button class="ra-btn-secondary" id="ra-dismiss-btn">Avfärda</button>';
+      h += '<button class="ra-btn-dismiss" id="ra-dismiss-btn" title="Avfärda ärende">';
+      h += '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+      h += '</button>';
       h += '</div>'; // action-bar
 
     // ── NO_JOURNAL — AI SOAP draft ──────────────────────────────────────
@@ -12060,16 +12139,37 @@ function rActions() {
     var ta = el.querySelector('#ra-draft-ta');
     var body = ta ? ta.value.trim() : '';
     if (!body) { showAutoSaveToast('Inga text att skicka'); return; }
-    sendBtn.disabled = true; sendBtn.textContent = 'Skickar...';
+    sendBtn.disabled = true; sendBtn.textContent = 'Skickar\u2026';
     var result = await _gmailSendReplyFromIssue(iss, body);
     if (result && result.ok) {
       _closeIssue(iss.id, 'sent');
       window._actionsSelected = null;
       showAutoSaveToast('Skickat \u2713');
     } else {
-      sendBtn.disabled = false; sendBtn.textContent = 'Skicka';
+      sendBtn.disabled = false;
+      sendBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Skicka<span class="ra-btn-kbd">\u2318\u23CE</span>';
       showAutoSaveToast('Kunde inte skicka');
     }
+  };
+
+  // Cmd+Enter shortcut
+  var draftTa = el.querySelector('#ra-draft-ta');
+  if (draftTa && sendBtn) {
+    draftTa.addEventListener('keydown', function(ev) {
+      if ((ev.metaKey || ev.ctrlKey) && ev.key === 'Enter') { ev.preventDefault(); sendBtn.click(); }
+    });
+  }
+
+  // Save draft
+  var saveDraftBtn = el.querySelector('#ra-save-draft-btn');
+  if (saveDraftBtn) saveDraftBtn.onclick = async function(){
+    var ta = el.querySelector('#ra-draft-ta');
+    var body = ta ? ta.value.trim() : '';
+    if (!body || !iss.threadId) { showAutoSaveToast('Inget att spara'); return; }
+    saveDraftBtn.disabled = true;
+    var result = await _gmailSaveDraft(iss.threadId, body);
+    saveDraftBtn.disabled = false;
+    showAutoSaveToast(result && result.ok ? 'Utkast sparat i Gmail \u2713' : 'Kunde inte spara utkast');
   };
 
   // Send rebook slots
@@ -27419,16 +27519,52 @@ var _mailTriage = (function() {
   function _matchPatient(fromHeader) {
     var email = (fromHeader.match(/<([^>]+)>/) || [])[1] || fromHeader;
     email = email.toLowerCase().trim();
-    // Level 1: check persistent email→patId map (manually linked)
+
+    // Level 1: manually linked email → patId map
     var map = _getEmailPatMap();
     if (map[email]) {
       var linked = (S && S.patients || []).find(function(p){ return p.id === map[email]; });
       if (linked) return linked;
-      // stale link — patient deleted, clean up
-      _unlinkEmailPat(email);
+      _unlinkEmailPat(email); // stale link
     }
+
     // Level 2: direct email field match
-    return (S && S.patients || []).find(function(p){ return (p.email || '').toLowerCase() === email; }) || null;
+    var byEmail = (S && S.patients || []).find(function(p){ return (p.email || '').toLowerCase() === email; });
+    if (byEmail) return byEmail;
+
+    // Level 3: display name → patient name match ("Anna Svensson <...>")
+    var displayRaw = (fromHeader.match(/^([^<]+)</) || [])[1];
+    if (displayRaw) {
+      var display = displayRaw.trim().toLowerCase().replace(/['"]/g, '');
+      var dParts  = display.split(/\s+/).filter(function(p){ return p.length > 1; });
+      if (dParts.length >= 2) {
+        var byName = (S && S.patients || []).find(function(p) {
+          var pn = (p.name || '').toLowerCase();
+          return dParts.every(function(part){ return pn.indexOf(part) !== -1; });
+        });
+        if (byName) return byName;
+        // Level 3b: first + last only (ignore middle names)
+        var first = dParts[0], last = dParts[dParts.length - 1];
+        var byFL = (S && S.patients || []).find(function(p) {
+          var pn = (p.name || '').toLowerCase();
+          return pn.indexOf(first) !== -1 && pn.indexOf(last) !== -1;
+        });
+        if (byFL) return byFL;
+      }
+    }
+
+    // Level 4: email local-part decoded as name ("anna.svensson@" → "anna svensson")
+    var localPart = email.split('@')[0].replace(/[._\-+0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (localPart.indexOf(' ') !== -1) {
+      var lParts = localPart.split(' ').filter(function(p){ return p.length > 1; });
+      var byLocal = (S && S.patients || []).find(function(p) {
+        var pn = (p.name || '').toLowerCase();
+        return lParts.length >= 2 && lParts.every(function(part){ return pn.indexOf(part) !== -1; });
+      });
+      if (byLocal) return byLocal;
+    }
+
+    return null;
   }
   function _buildPatContext(pat) {
     if (!pat) return 'Ok\u00e4nd avs\u00e4ndare \u2014 ingen patientmatchning hittades. Svara v\u00e4nligt utan att referera till specifik historik.';

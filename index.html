@@ -694,36 +694,36 @@ a:hover { text-decoration: underline; }
 }
 /* Row 1: pure black — no visible separator to row2 */
 .vela-gtb-row1 {
-  height: 52px; display: flex; align-items: center; gap: 0; width: 100%;
+  height: 48px; display: flex; align-items: center; gap: 0; width: 100%;
   background: var(--topbar-bg);
   flex-shrink: 0;
   border-bottom: none;
 }
 .vela-gtb-row2 {
-  height: 44px; display: flex; align-items: stretch;
-  padding: 0; overflow-x: auto; overflow-y: hidden;
+  height: 48px; display: flex; align-items: stretch;
+  padding: 0 0 0 16px; overflow-x: auto; overflow-y: hidden;
   flex-shrink: 0; background: var(--topbar-bg);
   border-bottom: 1px solid var(--border);
   scrollbar-width: none;
 }
 .vela-gtb-row2::-webkit-scrollbar { display: none; }
-/* Single canonical .vela-gtb-tab rule */
+/* Single canonical .vela-gtb-tab rule — GitHub UnderlineNav-exact */
 .vela-gtb-tab {
-  display: inline-flex; align-items: center; gap: 7px;
+  display: inline-flex; align-items: center; gap: 8px;
   padding: 0 16px; border: none; background: none;
-  font-size: 15px; font-weight: 400; color: #e2e8f0;
+  font-size: 14px; font-weight: 600; color: #9198a1;
   cursor: pointer; font-family: var(--font); white-space: nowrap;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   transition: color .12s, border-color .12s;
-  height: 44px; box-sizing: border-box;
+  height: 48px; box-sizing: border-box;
 }
-.vela-gtb-tab:hover { color: #fff; }
+.vela-gtb-tab:hover { color: #e6edf3; background: rgba(177,186,196,.06); border-radius: 6px 6px 0 0; }
 .vela-gtb-tab.active {
-  color: #fff; font-weight: 600;
+  color: #e6edf3; font-weight: 600;
   border-bottom-color: var(--orange);
 }
-.vela-gtb-tab svg { opacity: .8; flex-shrink: 0; transition: opacity .12s; }
+.vela-gtb-tab svg { flex-shrink: 0; transition: opacity .12s; }
 .vela-gtb-tab:hover svg { opacity: 1; }
 .vela-gtb-tab.active svg { opacity: 1; }
 .vela-gtb-tab-badge {
@@ -3153,7 +3153,6 @@ input::placeholder, textarea::placeholder { color: #484f58; }
 .ra-item.selected { background: rgba(177,186,196,.04); }
 
 /* 7. Tab bar */
-.vela-gtb-tab { font-size: 14px; font-weight: 400; }
 .vela-gtb-tab.active { font-weight: 600; }
 .vela-gtb-tab-badge { font-size: 12px; }
 
@@ -10196,7 +10195,7 @@ function _renderGlobalTopbar() {
 
   var h = '<div class="vela-gtb-row1">';
   // Left
-  h += '<div style="display:flex;align-items:center;gap:0;padding:0 8px;flex-shrink:0">';
+  h += '<div style="display:flex;align-items:center;gap:0;padding:0 8px 0 16px;flex-shrink:0">';
   h += '<button id="vela-gtb-hamburger" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:6px 8px;display:flex;align-items:center;border-radius:6px;transition:color .12s" onmouseenter="this.style.color=\'#f0f6fc\'" onmouseleave="this.style.color=\'#9198a1\'">';
   h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>';
   h += '<button id="vela-gtb-home-btn" style="background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;transition:opacity .12s" onmouseenter="this.style.opacity=\'.75\'" onmouseleave="this.style.opacity=\'1\'">';
@@ -10276,7 +10275,7 @@ function _renderGlobalTopbar() {
   TABS2.forEach(function(tab) {
     var isActive = activeTab2 === tab.id;
     h += '<button class="vela-gtb-tab'+(isActive?' active':'')+'" data-dest="'+tab.dest+'">';
-    h += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+tab.icon+'"/></svg>';
+    h += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="'+tab.icon+'"/></svg>';
     h += tab.label;
     if (tab.badge) {
       var badgeStyle = tab.badgeColor === 'red' ? 'background:rgba(248,81,73,.15);color:var(--red)' : '';

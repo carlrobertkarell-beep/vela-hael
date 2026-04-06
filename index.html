@@ -707,23 +707,23 @@ a:hover { text-decoration: underline; }
   scrollbar-width: none;
 }
 .vela-gtb-row2::-webkit-scrollbar { display: none; }
-/* Single canonical .vela-gtb-tab rule — GitHub UnderlineNav-exact */
+/* Single canonical .vela-gtb-tab rule */
 .vela-gtb-tab {
-  display: inline-flex; align-items: center; gap: 8px;
+  display: inline-flex; align-items: center; gap: 7px;
   padding: 0 16px; border: none; background: none;
-  font-size: 14px; font-weight: 600; color: #9198a1;
+  font-size: 14px; font-weight: 400; color: #e6edf3;
   cursor: pointer; font-family: var(--font); white-space: nowrap;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   transition: color .12s, border-color .12s;
   height: 48px; box-sizing: border-box;
 }
-.vela-gtb-tab:hover { color: #e6edf3; background: rgba(177,186,196,.06); border-radius: 6px 6px 0 0; }
+.vela-gtb-tab:hover { color: #fff; background: rgba(177,186,196,.06); border-radius: 6px 6px 0 0; }
 .vela-gtb-tab.active {
-  color: #e6edf3; font-weight: 600;
+  color: #fff; font-weight: 700;
   border-bottom-color: var(--orange);
 }
-.vela-gtb-tab svg { flex-shrink: 0; transition: opacity .12s; }
+.vela-gtb-tab svg { opacity: .8; flex-shrink: 0; transition: opacity .12s; }
 .vela-gtb-tab:hover svg { opacity: 1; }
 .vela-gtb-tab.active svg { opacity: 1; }
 .vela-gtb-tab-badge {
@@ -3153,7 +3153,7 @@ input::placeholder, textarea::placeholder { color: #484f58; }
 .ra-item.selected { background: rgba(177,186,196,.04); }
 
 /* 7. Tab bar */
-.vela-gtb-tab.active { font-weight: 600; }
+.vela-gtb-tab.active { font-weight: 700; }
 .vela-gtb-tab-badge { font-size: 12px; }
 
 /* 8. Page shell max width */
@@ -22750,7 +22750,7 @@ const VelaAgent = (function() {
     _scanMissingJournals(pats, bks, todayStr);
     _scanNoHomeProgramActivity(pats, todayStr);
     _scanNRSSpike(pats);
-    // _scanScheduleGaps(bks, todayStr); // Disabled — gaps are expected and not actionable
+    // _scanScheduleGaps(bks, todayStr); // Disabled
     _scanInactivePatients(pats, bks, todayStr);
 
     // Reasoning scan — progress analysis (max 3 patients per run to control cost)

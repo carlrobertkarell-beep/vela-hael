@@ -711,7 +711,7 @@ a:hover { text-decoration: underline; }
 .vela-gtb-tab {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 0 16px; border: none; background: none;
-  font-size: 15px; font-weight: 400; color: #c9d1d9;
+  font-size: 15px; font-weight: 400; color: #e2e8f0;
   cursor: pointer; font-family: var(--font); white-space: nowrap;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
@@ -22751,7 +22751,7 @@ const VelaAgent = (function() {
     _scanMissingJournals(pats, bks, todayStr);
     _scanNoHomeProgramActivity(pats, todayStr);
     _scanNRSSpike(pats);
-    _scanScheduleGaps(bks, todayStr);
+    // _scanScheduleGaps(bks, todayStr); // Disabled — gaps are expected and not actionable
     _scanInactivePatients(pats, bks, todayStr);
 
     // Reasoning scan — progress analysis (max 3 patients per run to control cost)

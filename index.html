@@ -12293,6 +12293,7 @@ function rActions() {
 
   // Auto-load original mail thread
   if ((iss.type === 'mail' || iss.type === 'rebook') && iss.threadId) {
+      var origBody = el.querySelector('#ra-orig-body');
       if (origBody && (!origBody.textContent.replace(/\s/g,'').length || origBody.querySelector('.ra-mail-loading'))) {
       if (!window._raThreadCache) window._raThreadCache = {};
       if (!window._raThreadCache[iss.threadId]) {

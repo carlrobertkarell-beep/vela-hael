@@ -11109,44 +11109,8 @@ function updateClinicMemoryApproval(approved) {
 }
 
 // Build rich memory context string for injection into any AI prompt
-function getClinicMemoryContext() {
-  var mem = getClinicMemory();
-  var edits = getAIEdits().filter(function(e){ return e.docType === 'soap'; }).slice(-20);
-  if (edits.length < 3 && !mem.totalEdits) return '';
-
-  var ctx = '\n\n── KLINIKER-PROFIL (lär dig av detta) ──────────────────────────────\n';
-
-  // Acceptance signal
-  if (mem.totalApprovals + mem.totalRejections > 0) {
-    ctx += 'Godkännandegrad: ' + mem.acceptanceRate + '% (' + mem.totalApprovals + ' av ' + (mem.totalApprovals+mem.totalRejections) + ' AI-förslag)\n';
-  }
-
-  // Edit habits
-  if (mem.totalEdits > 2) {
-    ctx += 'Redigeringsintensitet: ' + (mem.avgEditRatio < 10 ? 'minimal (AI-utkast accepteras nästan alltid)' : mem.avgEditRatio < 25 ? 'måttlig (smärre justeringar)' : 'hög (kliniker omformulerar ofta)') + '\n';
-    if (mem.oFieldEditRate > 0.5) ctx += 'O-fältet redigeras i ' + Math.round(mem.oFieldEditRate*100) + '% av fallen — skriv alltid specifika fynd\n';
-    if (mem.aFieldEditRate > 0.5) ctx += 'A-fältet redigeras i ' + Math.round(mem.aFieldEditRate*100) + '% av fallen — var specifik i diagnos och resonemang\n';
-  }
-
-  // Common phrases the clinician uses
-  var topPhrases = mem.commonPhrases.filter(function(p){ return p.count >= 2; }).slice(0,8);
-  if (topPhrases.length >= 3) {
-    ctx += 'Klinikerns vanliga termer: ' + topPhrases.map(function(p){ return p.word; }).join(', ') + '\n';
-  }
-
-  // Style notes
-  if (mem.styleNotes && mem.styleNotes.length) {
-    ctx += mem.styleNotes.map(function(n){ return '→ ' + n; }).join('\n') + '\n';
-  }
-
-  ctx += '────────────────────────────────────────────────────────────────\n';
-  return ctx;
-}
-
-// Build feedback context to re-inject into AI prompts (legacy alias, kept for compatibility)
-
-// getClinicMemoryContext — the canonical function injected into all AI prompts
-// Combines: (1) learned style from edits, (2) explicit voice instruction, (3) AI profile
+// getClinicMemoryContext — injected into all AI prompts
+// Combines: (1) explicit voice instruction, (2) AI profile, (3) learned style from edits
 function getClinicMemoryContext() {
   var parts = [];
 
@@ -35270,16 +35234,6 @@ function _saveSmsText(smsId, text) {
   try { stored = JSON.parse(localStorage.getItem('vela:sms:' + smsId) || 'null'); } catch(ex) {}
   var on = stored ? stored.active !== false : true;
   localStorage.setItem('vela:sms:' + smsId, JSON.stringify({ active: on, text: text }));
-}
-
-// Remove user from team
-function _velaRemoveUser(email) {
-  if (!confirm('Ta bort ' + email + ' från teamet?')) return;
-  var cfg = getClinicConfig();
-  cfg.teamMembers = (cfg.teamMembers || []).filter(function(u) { return u.email !== email; });
-  saveClinicConfig(cfg);
-  showAutoSaveToast(email + ' borttagen ✓');
-  _renderSettingsContent && _renderSettingsContent('users');
 }
 
 // Select role for a user
